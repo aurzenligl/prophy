@@ -1,0 +1,15 @@
+LteFetchCountersResp
+- union (with discriminator)
+- bool
+
+**********************
+
+REAL:
+__OK__ LteBrowserObjectsResp
+__OK__ STransportLayerAddress
+__OK__ LOM_TracingCtrlInitResp
+__OK__ LOM_TracingCtrlStartProviderReq
+__OK__ LOM_TracingExtReportInd
+LteFetchCountersResp
+- bool
+- union with discriminator
