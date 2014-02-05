@@ -10,6 +10,7 @@ class Parser(object):
 	tmp_dict=OrderedDict()
 	typedef_dict={}
 	enum_dict={}
+	constant_dict={}
 
 
 	def __init__(self):
@@ -19,6 +20,7 @@ class Parser(object):
  		self.files=["MAC.xml","externals.xml"]
  		self.open_files()
  		
+
  	def open_file(self,file):
  		DOMtree= minidom.parse(self.xml_dir+file)
  		return DOMtree
@@ -84,8 +86,23 @@ class Parser(object):
 		with open("typedef/"+"typedef.py", 'w') as f:
 		 			f.write(template.render(typedef=self.typedef_dict))
 
+	def constant_parse(self):
+		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
+		template = env.get_template('constant.txt')
+		if not os.path.exists(self.script_dir+"/constant"):
+			os.makedirs(self.script_dir+"/constant")
+		for x in self.tree_files:
+			constantNodes=x.getElementsByTagName('constant')
+			for constant_element in constantNodes:
+				if constant_element.hasAttribute("value"):
+					self.constant_dict[constant_element.attributes["name"].value]=constant_element.attributes["value"].value
+		with open("constant/"+"constant.py", 'w') as f:
+		 			f.write(template.render(constant=self.constant_dict))
+
+
 parser=Parser()
 parser.messages_or_struct_parse("message",'msg')
 parser.messages_or_struct_parse("struct",'struct')
 parser.enum_parse()	
-parser.typedef_parse()
+parser.typedef_parse()	
+parser.constant_parse()
