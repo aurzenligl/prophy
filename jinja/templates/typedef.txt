@@ -1,0 +1,5 @@
+import aprot 
+
+{% for key,value in typedef.items() -%}
+{{key}} = aprot.{{value}}
+{% endfor %} 

@@ -1,0 +1,7 @@
+import aprot
+
+class SPersistentRbUsage(aprot.struct):
+	__metaclass__ = aprot.struct_generator
+	_descriptor = [('dlResource0',TMeasurementValue),('dlResource1',TMeasurementValue),('dlResource2',TMeasurementValue),('dlResource3',TMeasurementValue),('dlResource4',TMeasurementValue),('dlResource5',TMeasurementValue),('dlResource6',TMeasurementValue),('dlResource7',TMeasurementValue),('dlResource8',TMeasurementValue),('dlResource9',TMeasurementValue),('dlResource10',TMeasurementValue),('dlResource11',TMeasurementValue),('dlResource12',TMeasurementValue),('dlResource13',TMeasurementValue),('dlResource14',TMeasurementValue),('dlResource15',TMeasurementValue),('dlResource16',TMeasurementValue),('dlResource17',TMeasurementValue),('dlResource18',TMeasurementValue),('dlResource19',TMeasurementValue),('ulResource0',TMeasurementValue),('ulResource1',TMeasurementValue),('ulResource2',TMeasurementValue),('ulResource3',TMeasurementValue),('ulResource4',TMeasurementValue),('ulResource5',TMeasurementValue),('ulResource6',TMeasurementValue),('ulResource7',TMeasurementValue),('ulResource8',TMeasurementValue),('ulResource9',TMeasurementValue),('ulResource10',TMeasurementValue),('ulResource11',TMeasurementValue),('ulResource12',TMeasurementValue),('ulResource13',TMeasurementValue),('ulResource14',TMeasurementValue),('ulResource15',TMeasurementValue),('ulResource16',TMeasurementValue),('ulResource17',TMeasurementValue),('ulResource18',TMeasurementValue),('ulResource19',TMeasurementValue)]
+	
+	

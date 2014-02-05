@@ -1,0 +1,11 @@
+import aprot
+
+class {{enum_name}}(aprot.enum):
+	__metaclass__ = aprot.enum_generator
+	_enumerators = [{%- for key,value in enum.items() %}
+	 				{%- if loop.last -%}
+	 			    ('{{key}}',{{value}})]
+	 			    {%- else -%}
+	 			    ('{{key}}',{{value}}),
+	 			    {% endif %}
+	 {%- endfor -%}
