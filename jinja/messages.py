@@ -17,16 +17,28 @@ class Parser(object):
  		self.tree_files=[]
  		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"
  		self.xml_dir='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\'
- 		self.files=["MAC.xml","externals.xml"]
+ 		self.files=[]
+ 		self.set_files_to_parse()
  		self.open_files()
 
  	def open_file(self,file):
  		DOMtree= minidom.parse(self.xml_dir+file)
  		return DOMtree
 
+ 	def set_files_to_parse(self):
+ 		all_files=os.listdir(self.xml_dir)
+ 		for f in all_files:
+ 			if f.endswith('.xml'):
+ 				self.files.append(f)
+ 		print self.files
+
  	def open_files(self):
  		for x in self.files:
  			self.tree_files.append(self.open_file(x))
+
+ 	def delete_old_files(self,files):
+ 		for f in files:
+ 			os.remove(f)
 
  	def messages_or_struct_parse(self,element_name,out_dir):
  		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
@@ -41,8 +53,6 @@ class Parser(object):
 					member=p.getElementsByTagName('member')
 					for k in member:
 						self.tmp_dict=self.checkin_dynamic_fields(k)
-					if 'MAC_AddressConfigReq' in name:
-						print self.tmp_dict
 					with open(out_dir+"/"+name+".py", 'w') as f:
 						f.write(template.render(name=name,elements=self.tmp_dict))
 					self.tmp_dict.clear()
