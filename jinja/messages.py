@@ -19,7 +19,7 @@ class Parser(object):
     def __init__(self,xml_dir_path):
         self.tree_files=[]
         self.xml_dir = xml_dir_path
-        self.script_dir=os.path.dirname(os.path.realpath(__file__))
+        self.script_dir=os.path.dirname(os.path.realpath(__file__)) # FIXME: What is this variable?
         self.set_files_to_parse()
         self.open_files()
 
