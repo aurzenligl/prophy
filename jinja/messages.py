@@ -4,6 +4,7 @@ from xml.dom import minidom
 from collections import OrderedDict
 
 #FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
+# In LOM we use spaces insed of tabs
 
 class Parser(object):
 
