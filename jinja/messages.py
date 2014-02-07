@@ -16,7 +16,7 @@ class Parser(object):
 
 	def __init__(self,xml_dir_path):
 		self.tree_file:u
-		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"  #FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
+		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"	#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
 		self.set_isar_xml_dir_path(xml_dir_path)
 		self.set_files_to_parse()
 		self.open_files()
@@ -32,7 +32,7 @@ class Parser(object):
 	def open_files(self):
 		for x in self.files:
 			self.tree_files.append(self.open_file(x))
- 	
+
 	def set_files_to_parse(self):
 		all_files=os.listdir(self.xml_dir)
 		for f in all_files:
@@ -45,7 +45,7 @@ class Parser(object):
 			os.remove(f)
 
 	def messages_or_struct_parse(self,tree_node,element_name,out_dir):
-		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))   #FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
+		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))	#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
 		template = env.get_template('message.txt')
 
 	def open_file(self,file):
@@ -64,7 +64,7 @@ class Parser(object):
 			self.tree_files.append(self.open_file(x))
 
 	def messages_or_struct_parse(self,element_name,out_dir):
-		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
+		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
 		template = env.get_template('message.txt')
 		if not os.path.exists(self.script_dir+out_dir):
 			os.makedirs(self.script_dir+out_dir)
@@ -88,7 +88,7 @@ class Parser(object):
 			if dimension[0].hasAttribute('size') and not dimension[0].hasAttribute('isVariableSize'):
 				dyn_dict[k.attributes["name"].value]=(value,dimension[0].attributes['size'].value)
 			elif dimension[0].hasAttribute('isVariableSize'):
-			  	if dimension[0].hasAttribute('variableSizeFieldType') and dimension[0].hasAttribute('variableSizeFieldName'):
+				if dimension[0].hasAttribute('variableSizeFieldType') and dimension[0].hasAttribute('variableSizeFieldName'):
 					dyn_dict[k.attributes["name"].value]=(value,dimension[0].attributes['size'].value,dimension[0].attributes['variableSizeFieldType'].value,dimension[0].attributes['variableSizeFieldName'].value)
 				elif dimension[0].hasAttribute('variableSizeFieldType') and not dimension[0].hasAttribute('variableSizeFieldName'):
 					dyn_dict[k.attributes["name"].value]=(value,dimension[0].attributes['size'].value,dimension[0].attributes['variableSizeFieldType'].value,"blabla ba")
@@ -116,10 +116,10 @@ class Parser(object):
 	 		self.enum_dict.clear()
 		
 	def typedef_parse(self,tree_node):
-		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
+		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
 		template = env.get_template('typedef.txt')
-		if not os.path.exists(self.script_dir+"/typedef"):
-			os.makedirs(self.script_dir+"/typedef")
+		if not os.path.exists(self.script_dir+"/typedef"):#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
+			os.makedirs(self.script_dir+"/typedef")#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
 		typedefNodes=tree_node.getElementsByTagName('typedef')
 		for typedef_element in typedefNodes:
 			if typedef_element.hasAttribute("type"):
@@ -130,13 +130,13 @@ class Parser(object):
 	def constant_parse(self,tree_node):
 		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
 		template = env.get_template('constant.txt')
-		if not os.path.exists(self.script_dir+"/constant"):
-			os.makedirs(self.script_dir+"/constant")
+		if not os.path.exists(self.script_dir+"/constant"):#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
+			os.makedirs(self.script_dir+"/constant")#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
 		constantNodes=tree_node.getElementsByTagName('constant')
 		if constant_element.hasAttribute("value"):
 			self.constant_dict[constant_element.attributes["name"].value]=constant_element.attributes["value"].value
 		with open("constant/"+"constant.py", 'w') as f:
-		 	f.write(template.render(constant=self.constant_dict))
+			f.write(template.render(constant=self.constant_dict))
 
 	def create_directory(self):
 		pass
