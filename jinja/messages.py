@@ -106,6 +106,14 @@ class Parser(object):
                 constant_dict[constant_element.attributes["name"].value]=constant_element.attributes["value"].value
         return constant_dict
 
+    def get_include(self, tree_node):
+            include_dict = {}
+            include_nodes = tree_node.getElementsByTagName("xi:include")
+            for include_element in include_nodes:
+                if include_element.hasAttribute("href"):
+                    include_dict[include_element.attributes["href"].value] = include_element.attributes["xpath"].value
+            return include_dict
+
     def parsing_xml_files(self):
         for tree_node in self.tree_files:
             self.constant_parse(tree_node)
@@ -113,9 +121,11 @@ class Parser(object):
             self.enum_parse(tree_node)
             self.struct_parse(tree_node,"message")
             self.struct_parse(tree_node,"struct")
+            self.get_include(tree_node)
 
 if __name__ == "__main__":
     options,args = options.getOptions()
     xml_path=options.isar_path
     parser=Parser(xml_path)
     parser.parsing_xml_files()
+
