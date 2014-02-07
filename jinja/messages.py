@@ -23,27 +23,27 @@ class Parser(object):
         self.set_files_to_parse()
         self.open_files()
 
-    def open_files(self):
+    def open_files(self): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         for x in self.files:
             self.tree_files.append(self.open_file(x))
 
-    def delete_old_files(self,files):
+    def delete_old_files(self,files): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         for f in files:
             os.remove(f)
 
-    def open_file(self,file):
+    def open_file(self,file): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         file_dir=os.path.join(self.xml_dir,file)
         dom_tree= minidom.parse(file_dir)
         return dom_tree
 
-    def set_files_to_parse(self):
+    def set_files_to_parse(self): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         all_files=os.listdir(self.xml_dir)
         for f in all_files: # TODO: Think about some error message, now I do not know whether the operation was successful - see the first test
             if f.endswith('.xml'):
                 self.files.append(f)
         print self.files
 
-    def struct_parse(self,tree_node,element_name):
+    def struct_parse(self,tree_node,element_name): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         tmp_dict={}
         struct_dict={}
         struct_nodes =tree_node.getElementsByTagName(element_name)
@@ -57,7 +57,7 @@ class Parser(object):
                 tmp_dict.clear()
         return struct_dict
 
-    def checkin_dynamic_fields(self,k,dyn_dict=OrderedDict()):
+    def checkin_dynamic_fields(self,k,dyn_dict=OrderedDict()): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         value=k.attributes["type"].value
         if value.startswith('u'):
             value="aprot."+value
@@ -77,7 +77,7 @@ class Parser(object):
             dyn_dict[k.attributes["name"].value]=(value)
         return dyn_dict
 
-    def enum_parse(self,tree_node):
+    def enum_parse(self,tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         tmp_dict={}
         enum_dict={}
         enum_nodes=tree_node.getElementsByTagName('enum')
@@ -91,7 +91,7 @@ class Parser(object):
             tmp_dict.clear()
         return enum_dict
 
-    def typedef_parse(self,tree_node):
+    def typedef_parse(self,tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         typedef_dict={}
         typedefNodes=tree_node.getElementsByTagName('typedef')
         for typedef_element in typedefNodes:
@@ -99,14 +99,14 @@ class Parser(object):
                 typedef_dict[typedef_element.attributes["name"].value]=typedef_element.attributes["type"].value
         return typedef_dict
 
-    def constant_parse(self,tree_node, constant_dict={}):
+    def constant_parse(self,tree_node, constant_dict={}): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         constant_nodes=tree_node.getElementsByTagName('constant')
         for constant_element in constant_nodes:
             if constant_element.hasAttribute("value"):
                 constant_dict[constant_element.attributes["name"].value]=constant_element.attributes["value"].value
         return constant_dict
 
-    def get_include(self, tree_node):
+    def get_include(self, tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
             include_dict = {}
             include_nodes = tree_node.getElementsByTagName("xi:include")
             for include_element in include_nodes:
