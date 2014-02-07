@@ -1,8 +1,7 @@
-from jinja2 import Environment, FileSystemLoader,Template
 import os
 from xml.dom import minidom
 from collections import OrderedDict
-
+import writer
 import options
 
 #FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
@@ -20,30 +19,26 @@ class Parser(object):
         self.tree_files=[]
         self.xml_dir = xml_dir_path
         self.script_dir=os.path.dirname(os.path.realpath(__file__)) # FIXME: What is this variable?
-        self.set_files_to_parse()
-        self.open_files()
+        self.__set_files_to_parse()
+        self.__open_files()
 
-    def open_files(self): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __open_files(self): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         for x in self.files:
-            self.tree_files.append(self.open_file(x))
+            self.tree_files.append(self.__open_file(x))
 
-    def delete_old_files(self,files): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
-        for f in files:
-            os.remove(f)
-
-    def open_file(self,file): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __open_file(self,file): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         file_dir=os.path.join(self.xml_dir,file)
         dom_tree= minidom.parse(file_dir)
         return dom_tree
 
-    def set_files_to_parse(self): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __set_files_to_parse(self): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         all_files=os.listdir(self.xml_dir)
         for f in all_files: # TODO: Think about some error message, now I do not know whether the operation was successful - see the first test
             if f.endswith('.xml'):
                 self.files.append(f)
         print self.files
 
-    def struct_parse(self,tree_node,element_name): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __struct_parse(self,tree_node,element_name): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         tmp_dict={}
         struct_dict={}
         struct_nodes =tree_node.getElementsByTagName(element_name)
@@ -52,12 +47,12 @@ class Parser(object):
                 name=p.attributes["name"].value
                 member=p.getElementsByTagName('member')
                 for k in member:
-                    tmp_dict=self.checkin_dynamic_fields(k)
+                    tmp_dict=self.__checkin_dynamic_fields(k)
                 struct_dict[name]=tmp_dict.copy()
                 tmp_dict.clear()
         return struct_dict
 
-    def checkin_dynamic_fields(self,k,dyn_dict=OrderedDict()): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __checkin_dynamic_fields(self,k,dyn_dict=OrderedDict()): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         value=k.attributes["type"].value
         if value.startswith('u'):
             value="aprot."+value
@@ -77,7 +72,7 @@ class Parser(object):
             dyn_dict[k.attributes["name"].value]=(value)
         return dyn_dict
 
-    def enum_parse(self,tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __enum_parse(self,tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         tmp_dict={}
         enum_dict={}
         enum_nodes=tree_node.getElementsByTagName('enum')
@@ -91,7 +86,7 @@ class Parser(object):
             tmp_dict.clear()
         return enum_dict
 
-    def typedef_parse(self,tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __typedef_parse(self,tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         typedef_dict={}
         typedefNodes=tree_node.getElementsByTagName('typedef')
         for typedef_element in typedefNodes:
@@ -99,14 +94,14 @@ class Parser(object):
                 typedef_dict[typedef_element.attributes["name"].value]=typedef_element.attributes["type"].value
         return typedef_dict
 
-    def constant_parse(self,tree_node, constant_dict={}): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __constant_parse(self,tree_node, constant_dict={}): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
         constant_nodes=tree_node.getElementsByTagName('constant')
         for constant_element in constant_nodes:
             if constant_element.hasAttribute("value"):
                 constant_dict[constant_element.attributes["name"].value]=constant_element.attributes["value"].value
         return constant_dict
 
-    def get_include(self, tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
+    def __get_include(self, tree_node): # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
             include_dict = {}
             include_nodes = tree_node.getElementsByTagName("xi:include")
             for include_element in include_nodes:
@@ -116,12 +111,12 @@ class Parser(object):
 
     def parsing_xml_files(self):
         for tree_node in self.tree_files:
-            self.constant_parse(tree_node)
-            self.typedef_parse(tree_node)
-            self.enum_parse(tree_node)
-            self.struct_parse(tree_node,"message")
-            self.struct_parse(tree_node,"struct")
-            self.get_include(tree_node)
+            self.__constant_parse(tree_node)
+            self.__typedef_parse(tree_node)
+            self.__enum_parse(tree_node)
+            self.__struct_parse(tree_node,"message")
+            self.__struct_parse(tree_node,"struct")
+            self.__get_include(tree_node)
 
 if __name__ == "__main__":
     options,args = options.getOptions()
