@@ -14,35 +14,35 @@ class Parser(object):
 
 
 	def __init__(self):
- 		self.tree_files=[]
- 		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"
- 		self.xml_dir='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\'
- 		self.files=[]
- 		self.set_files_to_parse()
- 		self.open_files()
+		self.tree_files=[]
+		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"
+		self.xml_dir='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\'
+		self.files=[]
+		self.set_files_to_parse()
+		self.open_files()
 
- 	def open_file(self,file):
- 		DOMtree= minidom.parse(self.xml_dir+file)
- 		return DOMtree
+	def open_file(self,file):
+		DOMtree= minidom.parse(self.xml_dir+file)
+		return DOMtree
 
- 	def set_files_to_parse(self):
- 		all_files=os.listdir(self.xml_dir)
- 		for f in all_files:
- 			if f.endswith('.xml'):
- 				self.files.append(f)
- 		print self.files
+	def set_files_to_parse(self):
+		all_files=os.listdir(self.xml_dir)
+		for f in all_files:
+			if f.endswith('.xml'):
+				self.files.append(f)
+		print self.files
 
- 	def open_files(self):
- 		for x in self.files:
- 			self.tree_files.append(self.open_file(x))
+	def open_files(self):
+		for x in self.files:
+			self.tree_files.append(self.open_file(x))
 
- 	def delete_old_files(self,files):
- 		for f in files:
- 			os.remove(f)
+	def delete_old_files(self,files):
+		for f in files:
+			os.remove(f)
 
- 	def messages_or_struct_parse(self,element_name,out_dir):
- 		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
- 		template = env.get_template('message.txt')
+	def messages_or_struct_parse(self,element_name,out_dir):
+		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
+		template = env.get_template('message.txt')
 		if not os.path.exists(self.script_dir+out_dir):
 			os.makedirs(self.script_dir+out_dir)
 		for x in self.tree_files:
