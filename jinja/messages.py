@@ -3,6 +3,8 @@ import os
 from xml.dom import minidom
 from collections import OrderedDict
 
+import options
+
 #FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
 # In LOM we use spaces insed of tabs
 
@@ -15,7 +17,7 @@ class Parser(object):
 	files=[]
 
 	def __init__(self,xml_dir_path):
-		self.tree_file:u
+		self.tree_file
 		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"	#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
 		self.set_isar_xml_dir_path(xml_dir_path)
 		self.set_files_to_parse()
@@ -150,6 +152,6 @@ class Parser(object):
 			self.messages_or_struct_parse(tree_node,"message",'msg')
 
 if __name__ == "__main__":
-	xml_path='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\' #FIXME: DO NOT HARD CODE PATHS USE http://docs.python.org/2/library/optparse.html
+	xml_path = options.getOptions()
 	parser=Parser(xml_path)
 	#parser.parsing_xml_files()
