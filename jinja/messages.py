@@ -59,7 +59,7 @@ class Parser(object):
         for f in all_files:
             if f.endswith('.xml'):
                 self.files.append(f)
-        print self.files
+        print self.files #FIXME do not use dupaprint make tests
 
     def open_files(self):
         for x in self.files:
