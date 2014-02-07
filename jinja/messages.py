@@ -20,28 +20,40 @@ class Parser(object):
  		self.set_files_to_parse()
  		self.open_files()
 
- 	def set_isar_xml_dir_path(self,xml_dir_path):
- 		self.xml_dir=xml_dir_path
+	def open_file(self,file):
+		DOMtree= minidom.parse(self.xml_dir+file)
+		return DOMtree
+	def set_isar_xml_dir_path(self,xml_dir_path):
+_dir_path
 
- 	def open_file(self,file):
- 		DOMtree= minidom.parse(self.xml_dir+file)
- 		print dir(DOMtree)
+	def open_file(self,file):
+	DOMtree= minidom.parse(self.xml_dir+file)
+		print dir(DOMtree)
 		return DOMtree
 
- 	def open_files(self):
- 		for x in self.files:
- 			self.tree_files.append(self.open_file(x))
- 	
- 	def set_files_to_parse(self):
- 		all_files=os.listdir(self.xml_dir)
- 		for f in all_files:
- 			if f.endswith('.xml'):
- 				self.files.append(f)
- 		print self.files
+	def set_files_to_parse(self):
+		all_files=os.listdir(self.xml_dir)
+		for f in all_files:
+			if f.endswith('.xml'):
+				self.files.append(f)
+		print self.files
+	def open_files(self):
+		for x in self.files:
+			self.tree_files.append(self.open_file(x))
+	
+	def set_files_to_parse(self):
+		all_files=os.listdir(self.xml_dir)
+		for f in all_files:
+			if f.endswith('.xml'):
+				self.files.append(f)
+		print self.files
 
- 	def delete_old_files(self,files):
- 		for f in files:
- 			os.remove(f)
+	def open_files(self):
+		for x in self.files:
+			self.tree_files.append(self.open_file(x))
+	def delete_old_files(self,files):
+		for f in files:
+			os.remove(f)
 
  	def messages_or_struct_parse(self,tree_node,element_name,out_dir):
  		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
