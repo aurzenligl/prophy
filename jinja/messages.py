@@ -40,7 +40,7 @@ class Parser(object):
         for f in all_files:
             if f.endswith('.xml'):
                 self.files.append(f)
-        print self.files
+        print self.files #FIXMEdo czego to jest? lepiej napisac test do tego
 
     def delete_old_files(self,files):
         for f in files:
@@ -114,9 +114,9 @@ class Parser(object):
                 value=member_enum_element.getAttribute('value')
                 self.enum_dict[member_enum_element.attributes["name"].value]=value
             with open("enum/"+name+".py", 'w') as f:
-     			f.write(template.render(enum_name=name,enum=self.enum_dict))
-     		self.enum_dict.clear()
-        
+                f.write(template.render(enum_name=name,enum=self.enum_dict))
+            self.enum_dict.clear()
+
     def typedef_parse(self,tree_node):
         env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))#FIXME:http://docs.python.org/2/library/os.path.html#os.path.join
         template = env.get_template('typedef.txt')
