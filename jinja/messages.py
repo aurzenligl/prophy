@@ -1,5 +1,4 @@
 import os
-from xml.dom import minidom
 from collections import OrderedDict
 import writer
 import options
@@ -14,31 +13,6 @@ class Parser(object):
     typedef_dict = {}
     enum_dict = {}
     constant_dict = {}
-    files = []
-
-    def __init__(self, xml_dir_path):
-        self.tree_files = []
-        self.xml_dir = xml_dir_path
-        self.script_dir = os.path.dirname(os.path.realpath(__file__))   # FIXME: What is this variable?
-        self.__set_files_to_parse()
-        self.__open_files()
-
-    # TODO: Think: Is this method belongs to the API of the class or is it an internal matter?
-    def __open_files(self):
-        for x in self.files:
-            self.tree_files.append(self.__open_file(x))
-
-    def __open_file(self, file):
-        file_dir = os.path.join(self.xml_dir, file)
-        dom_tree = minidom.parse(file_dir)
-        return dom_tree
-
-    def __set_files_to_parse(self):
-        all_files = os.listdir(self.xml_dir)
-        for f in all_files:    # TODO: Think about some error message, now I do not know whether the operation was successful - see the first test
-            if f.endswith('.xml'):
-                self.files.append(f)
-        print self.files
 
     def __struct_parse(self, tree_node, element_name):
         tmp_dict = {}
@@ -116,21 +90,20 @@ class Parser(object):
                     include_dict[include_element.attributes["href"].value] = include_element.attributes["xpath"].value
             return include_dict
 
-    def parsing_xml_files(self):
-        data_holder = DataHolder()
-        const_dict, typedef_dict = {}
-        for tree_node in self.tree_files:
+    def parsing_xml_files(self, tree_files):
+        #data_holder = DataHolder()
+        #const_dict, typedef_dict = {}
+        for tree_node in tree_files:
             self.__constant_parse(tree_node)
             self.__typedef_parse(tree_node)
             self.__enum_parse(tree_node)
             self.__struct_parse(tree_node, "message")
             self.__struct_parse(tree_node, "struct")
             self.__get_include(tree_node)
-            data_holder.set_dicts()
-
+            #data_holder.set_dicts()
 
 if __name__ == "__main__":
-    options, args = options.getOptions()
-    xml_path = options.isar_path
-    parser = Parser(xml_path)
-    parser.parsing_xml_files()
+    #xml_path = options.isar_path
+    #parser = Parser(xml_path)
+    #options, args = options.getOptions()
+    #parser.parsing_xml_files()
