@@ -1,0 +1,22 @@
+{% for key,value in enum.items() -%}
+class {{key}}(aprot.enum):
+	__metaclass__ = aprot.enum_generator
+	_enumerators = [{%- for key_enum,value_enum in value.items() %}
+	 				{%- if loop.last -%}
+	 			    ('{{key_enum}}',{{value_enum}})]
+	 			    {%- else -%}
+	 			    ('{{key_enum}}',{{value_enum}}),
+	 			    {% endif %}
+	 {%- endfor -%}
+{% endfor %}
+
+{% for key,value in typedef.items() -%}
+{{key}} = aprot.{{value}}
+{% endfor %} 
+
+
+{% for key,value in constant.items() -%}
+{{key}} = {{value}} 
+{% endfor %} 
+
+
