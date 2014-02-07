@@ -75,7 +75,7 @@ class Parser(object):
                         'TNumberOfItems',dimension[0].attributes['variableSizeFieldName'].value)
         else:
             dyn_dict[k.attributes["name"].value]=(value)
-        return dyn_dict	
+        return dyn_dict
 
     def enum_parse(self,tree_node):
         tmp_dict={}
