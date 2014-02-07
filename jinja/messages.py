@@ -16,7 +16,7 @@ class Parser(object):
 	def __init__(self):
 		self.tree_files=[]
 		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"
-		self.xml_dir='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\'
+		self.xml_dir='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\' # FIXME!
 		self.files=[]
 		self.set_files_to_parse()
 		self.open_files()
@@ -122,9 +122,11 @@ class Parser(object):
 		 			f.write(template.render(constant=self.constant_dict))
 
 
-parser=Parser()
-parser.messages_or_struct_parse("message",'msg')
-parser.messages_or_struct_parse("struct",'struct')
-parser.enum_parse()	
-parser.typedef_parse()	
-parser.constant_parse()
+
+if __name__ == "__main__":
+    parser=Parser()
+    parser.messages_or_struct_parse("message",'msg')
+    parser.messages_or_struct_parse("struct",'struct')
+    parser.enum_parse()
+    parser.typedef_parse()
+    parser.constant_parse()
