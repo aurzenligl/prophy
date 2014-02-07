@@ -7,5 +7,5 @@
 import messages
 
 def test_messenger():
-    pass
+    messages.Parser("dupa")
 
