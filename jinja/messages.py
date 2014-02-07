@@ -38,7 +38,7 @@ class Parser(object):
 
     def set_files_to_parse(self):
         all_files=os.listdir(self.xml_dir)
-        for f in all_files:
+        for f in all_files: # TODO: Think about some error message, now I do not know whether the operation was successful - see the first test
             if f.endswith('.xml'):
                 self.files.append(f)
         print self.files
