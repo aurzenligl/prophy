@@ -3,7 +3,7 @@ import os
 from xml.dom import minidom
 from collections import OrderedDict
 
-
+#FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
 
 class Parser(object):
 
@@ -149,6 +149,6 @@ class Parser(object):
 			self.messages_or_struct_parse(tree_node,"message",'msg')
 
 if __name__ == "__main__":
-	xml_path='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\'
+	xml_path='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\' #FIXME: DO NOT HARD CODE PATHS USE http://docs.python.org/2/library/optparse.html
 	parser=Parser(xml_path)
 	#parser.parsing_xml_files()
