@@ -15,7 +15,7 @@ class Parser(object):
 
 	def __init__(self):
 		self.tree_files=[]
-		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"
+		self.script_dir=os.path.dirname(os.path.realpath(__file__))+"/"  #FIXME: use http://docs.python.org/2/library/os.path.html#os.path.join
 		self.xml_dir='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\' # FIXME!
 		self.files=[]
 		self.set_files_to_parse()
@@ -41,7 +41,7 @@ class Parser(object):
 			os.remove(f)
 
 	def messages_or_struct_parse(self,element_name,out_dir):
-		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
+		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))  #FIXME: use http://docs.python.org/2/library/os.path.html#os.path.join
 		template = env.get_template('message.txt')
 		if not os.path.exists(self.script_dir+out_dir):
 			os.makedirs(self.script_dir+out_dir)
