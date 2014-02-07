@@ -3,6 +3,7 @@ from xml.dom import minidom
 from collections import OrderedDict
 import writer
 import options
+from data_holder import data_holder
 
 #FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
 # In LOM we use spaces insed of tabs
@@ -110,6 +111,8 @@ class Parser(object):
             return include_dict
 
     def parsing_xml_files(self):
+        data_holder=data_holder()
+        const_dict,typedef_dict={}
         for tree_node in self.tree_files:
             self.__constant_parse(tree_node)
             self.__typedef_parse(tree_node)
@@ -117,6 +120,7 @@ class Parser(object):
             self.__struct_parse(tree_node,"message")
             self.__struct_parse(tree_node,"struct")
             self.__get_include(tree_node)
+            data_holder.set_dicts()
 
 if __name__ == "__main__":
     options,args = options.getOptions()
