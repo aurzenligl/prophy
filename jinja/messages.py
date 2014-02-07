@@ -3,8 +3,6 @@ import os
 from xml.dom import minidom
 from collections import OrderedDict
 
-
-
 class Parser(object):
 
 	tmp_dict=OrderedDict()
@@ -20,44 +18,51 @@ class Parser(object):
  		self.set_files_to_parse()
  		self.open_files()
 
-	def open_file(self,file):
-		DOMtree= minidom.parse(self.xml_dir+file)
-		return DOMtree
-	def set_isar_xml_dir_path(self,xml_dir_path):
-_dir_path
+ 	def set_isar_xml_dir_path(self,xml_dir_path):
+ 		self.xml_dir=xml_dir_path
 
-	def open_file(self,file):
-	DOMtree= minidom.parse(self.xml_dir+file)
-		print dir(DOMtree)
+ 	def open_file(self,file):
+ 		DOMtree= minidom.parse(self.xml_dir+file)
+ 		print dir(DOMtree)
 		return DOMtree
 
-	def set_files_to_parse(self):
-		all_files=os.listdir(self.xml_dir)
-		for f in all_files:
-			if f.endswith('.xml'):
-				self.files.append(f)
-		print self.files
-	def open_files(self):
-		for x in self.files:
-			self.tree_files.append(self.open_file(x))
-	
-	def set_files_to_parse(self):
-		all_files=os.listdir(self.xml_dir)
-		for f in all_files:
-			if f.endswith('.xml'):
-				self.files.append(f)
-		print self.files
+ 	def open_files(self):
+ 		for x in self.files:
+ 			self.tree_files.append(self.open_file(x))
+ 	
+ 	def set_files_to_parse(self):
+ 		all_files=os.listdir(self.xml_dir)
+ 		for f in all_files:
+ 			if f.endswith('.xml'):
+ 				self.files.append(f)
+ 		print self.files
 
-	def open_files(self):
-		for x in self.files:
-			self.tree_files.append(self.open_file(x))
-	def delete_old_files(self,files):
-		for f in files:
-			os.remove(f)
+ 	def delete_old_files(self,files):
+ 		for f in files:
+ 			os.remove(f)
 
  	def messages_or_struct_parse(self,tree_node,element_name,out_dir):
  		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
  		template = env.get_template('message.txt')
+
+	def open_file(self,file):
+		DOMtree= minidom.parse(self.xml_dir+file)
+		return DOMtree
+
+	def set_files_to_parse(self):
+		all_files=os.listdir(self.xml_dir)
+		for f in all_files:
+			if f.endswith('.xml'):
+				self.files.append(f)
+		print self.files
+
+	def open_files(self):
+		for x in self.files:
+			self.tree_files.append(self.open_file(x))
+
+	def messages_or_struct_parse(self,element_name,out_dir):
+		env = Environment(loader=FileSystemLoader(self.script_dir+'/templates'))
+		template = env.get_template('message.txt')
 		if not os.path.exists(self.script_dir+out_dir):
 			os.makedirs(self.script_dir+out_dir)
 		messageNodes =tree_node.getElementsByTagName(element_name)
@@ -142,7 +147,9 @@ _dir_path
 			self.messages_or_struct_parse(tree_node,"message",'msg')
 
 
-
 xml_path='D:\Praca\I_Interface\Application_Env\Isar_Env\Xml\\'
 parser=Parser(xml_path)
 #parser.parsing_xml_files()
+
+
+
