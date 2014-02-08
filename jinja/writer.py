@@ -15,8 +15,11 @@ class Writer(object):
         enum_dict=data_holder.get_enum_dict()
         struct_dict=data_holder.get_struct_dict()
         include_dict=data_holder.get_include_dict()
-
-        with open(file_name+".py", 'w') as f:
+        out_folder="Out_py_files"
+        file_dest=os.path.join(out_folder,file_name)
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
+        with open(file_dest+".py", 'w') as f:
             f.write(template.render(msg=msg_dict,
                                     typedef=typedef_dict,
                                     constant=constant_dict,

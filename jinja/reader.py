@@ -5,14 +5,14 @@ class Reader(object):
     files = []
 
     def __init__(self, xml_dir_path):
-        self.tree_files = []
+        self.tree_files = {}
         self.xml_dir = xml_dir_path
         self.__set_files_to_parse()
         self.__open_files()
 
     def __open_files(self):
         for x in self.files:
-            self.tree_files.append(self.__open_file(x))
+            self.tree_files[x.partition('.')[0]]=self.__open_file(x)
 
     def __open_file(self, file):
         file_dir = os.path.join(self.xml_dir, file)

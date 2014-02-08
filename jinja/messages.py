@@ -103,14 +103,12 @@ class Parser(object):
 if __name__ == "__main__":
     options, args = options.getOptions()
     xml_path = options.isar_path
-    reader=Reader(xml_path)
+    reader = Reader(xml_path)
     parser = Parser()
     writer = Writer()
-    data_holder=DataHolder()
-    tree_files=reader.return_tree_files()
-    template_name="temp.txt"
-    # for tree_node in tree_files:
-    #     data_holder=parser.parsing_xml_files(tree_node,data_holder)
-    #     writer.write_py_file(data_holder,template_name,"sprawdz")
-    data_holder=parser.parsing_xml_files(tree_files[0],data_holder)
-    writer.write_py_file(data_holder,template_name,"sprawdz")
+    data_holder = DataHolder()
+    tree_files = reader.return_tree_files()
+    template_name = "temp.txt"
+    for file_name,tree_node in tree_files.iteritems():
+         data_holder = parser.parsing_xml_files(tree_node,data_holder)
+         writer.write_py_file(data_holder,template_name,file_name)
