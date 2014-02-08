@@ -1,12 +1,6 @@
 
 class DataHolder(object):
 
-    msg_dict = {}
-    typedef_dict = {}
-    constant_dict = {}
-    enum_dict = {}
-    struct_dict = {}
-
     def set_msg_dict(self,msg_dict):
         self.msg_dict = msg_dict
 
@@ -22,8 +16,8 @@ class DataHolder(object):
     def set_struct_dict(self,struct_dict):
         self.struct_dict = struct_dict
 
-    def set_include_dict(self,include_dict):
-        self.include_dict= include_dict
+    def set_include_list(self,include_list):
+        self.include_list = include_list
 
     def get_msg_dict(self):
         return self.msg_dict
@@ -40,5 +34,5 @@ class DataHolder(object):
     def get_struct_dict(self):
         return self.struct_dict
 
-    def get_include_dict(self):
-        return self.include_dict
+    def get_include_list(self):
+        return self.include_list

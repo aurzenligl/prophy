@@ -14,7 +14,7 @@ class Writer(object):
         constant_dict = data_holder.get_constant_dict()
         enum_dict = data_holder.get_enum_dict()
         struct_dict = data_holder.get_struct_dict()
-        include_dict = data_holder.get_include_dict()
+        include_list = data_holder.get_include_list()
         out_folder = "Out_py_files"
         file_dest = os.path.join(out_folder,file_name)
         if not os.path.exists(out_folder):
@@ -25,7 +25,7 @@ class Writer(object):
                                     constant = constant_dict,
                                     enum = enum_dict,
                                     struct = struct_dict,
-                                    include = include_dict))
+                                    include = include_list))
 
     def __set_template(self,template_name):
         template_dir = os.path.join('.', 'templates')

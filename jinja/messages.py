@@ -58,13 +58,14 @@ class Parser(object):
         enum_dict = {}
         enum_nodes = tree_node.getElementsByTagName('enum')
         for enum_element in enum_nodes:
-            name = enum_element.attributes["name"].value
-            member = enum_element.getElementsByTagName('enum-member')
-            for member_enum_element in member:
-                value = member_enum_element.getAttribute('value')
-                tmp_dict[member_enum_element.attributes["name"].value] = value
-            enum_dict[name] = tmp_dict.copy()
-            tmp_dict.clear()
+            if enum_element.hasChildNodes():
+                name = enum_element.attributes["name"].value
+                member = enum_element.getElementsByTagName('enum-member')
+                for member_enum_element in member:
+                    value = member_enum_element.getAttribute('value')
+                    tmp_dict[member_enum_element.attributes["name"].value] = value
+                enum_dict[name] = tmp_dict.copy()
+                tmp_dict.clear()
         return enum_dict
 
     def __typedef_parse(self, tree_node):
@@ -84,12 +85,14 @@ class Parser(object):
         return constant_dict
 
     def __get_include(self, tree_node):
-            include_dict = {}
+            include_list = []
             include_nodes = tree_node.getElementsByTagName("xi:include")
             for include_element in include_nodes:
                 if include_element.hasAttribute("href"):
-                    include_dict[include_element.attributes["href"].value] = include_element.attributes["xpath"].value
-            return include_dict
+                    x=include_element.attributes["href"].value
+                    x=x.partition('.')[0]
+                    include_list.append(x)
+            return include_list
 
     def parsing_xml_files(self, tree_node,data_holder):
         data_holder.set_constant_dict(self.__constant_parse(tree_node))
@@ -97,7 +100,7 @@ class Parser(object):
         data_holder.set_enum_dict(self.__enum_parse(tree_node))
         data_holder.set_msg_dict(self.__struct_parse(tree_node, "message"))
         data_holder.set_struct_dict(self.__struct_parse(tree_node, "struct"))
-        data_holder.set_include_dict(self.__get_include(tree_node))
+        data_holder.set_include_list(self.__get_include(tree_node))
         return data_holder
 
 if __name__ == "__main__":

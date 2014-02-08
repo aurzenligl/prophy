@@ -1,6 +1,6 @@
 import aprot
-{% for key,value in include.items() -%}
-import {{key}}
+{% for key in include -%}
+from {{key}} import *
 {% endfor %}
 
 
@@ -13,8 +13,10 @@ class {{key}}(aprot.enum):
 	 			    {%- else -%}
 	 			    ('{{key_enum}}',{{value_enum}}),
 	 			    {% endif %}
-	 {% endfor %}
+	 {%- endfor %}
+	 {{'\n'}}
 {% endfor %}
+
 
 {% for key,value in typedef.items() -%}
 {{key}} = aprot.{{value}}
