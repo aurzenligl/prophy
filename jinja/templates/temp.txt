@@ -1,4 +1,8 @@
 import aprot
+{% for key,value in include.items() -%}
+import {{key}}
+{% endfor %}
+
 
 {% for key,value in enum.items() -%}
 class {{key}}(aprot.enum):

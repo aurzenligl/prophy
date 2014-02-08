@@ -96,7 +96,7 @@ class Parser(object):
         data_holder.set_typedef_dict(self.__typedef_parse(tree_node))
         data_holder.set_enum_dict(self.__enum_parse(tree_node))
         data_holder.set_msg_dict(self.__struct_parse(tree_node, "message"))
-        data_holder.set_struct_dict(struct_dict=self.__struct_parse(tree_node, "struct"))
+        data_holder.set_struct_dict(self.__struct_parse(tree_node, "struct"))
         data_holder.set_include_dict(self.__get_include(tree_node))
         return data_holder
 
