@@ -1,8 +1,9 @@
 import os
 from collections import OrderedDict
-import writer
+from writer import Writer
 import options
 from data_holder import DataHolder
+from reader import Reader
 #FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
 # In LOM we use spaces insed of tabs
 
@@ -90,20 +91,26 @@ class Parser(object):
                     include_dict[include_element.attributes["href"].value] = include_element.attributes["xpath"].value
             return include_dict
 
-    def parsing_xml_files(self, tree_files):
-        #data_holder = DataHolder()
-        #const_dict, typedef_dict = {}
-        for tree_node in tree_files:
-            self.__constant_parse(tree_node)
-            self.__typedef_parse(tree_node)
-            self.__enum_parse(tree_node)
-            self.__struct_parse(tree_node, "message")
-            self.__struct_parse(tree_node, "struct")
-            self.__get_include(tree_node)
-            #data_holder.set_dicts()
+    def parsing_xml_files(self, tree_node,data_holder):
+        data_holder.set_constant_dict(self.__constant_parse(tree_node))
+        data_holder.set_typedef_dict(self.__typedef_parse(tree_node))
+        data_holder.set_enum_dict(self.__enum_parse(tree_node))
+        data_holder.set_msg_dict(self.__struct_parse(tree_node, "message"))
+        data_holder.set_struct_dict(struct_dict=self.__struct_parse(tree_node, "struct"))
+        data_holder.set_include_dict(self.__get_include(tree_node))
+        return data_holder
 
 if __name__ == "__main__":
-    #xml_path = options.isar_path
-    #parser = Parser(xml_path)
-    #options, args = options.getOptions()
-    #parser.parsing_xml_files()
+    options, args = options.getOptions()
+    xml_path = options.isar_path
+    reader=Reader(xml_path)
+    parser = Parser()
+    writer = Writer()
+    data_holder=DataHolder()
+    tree_files=reader.return_tree_files()
+    template_name="temp.txt"
+    # for tree_node in tree_files:
+    #     data_holder=parser.parsing_xml_files(tree_node,data_holder)
+    #     writer.write_py_file(data_holder,template_name,"sprawdz")
+    data_holder=parser.parsing_xml_files(tree_files[0],data_holder)
+    writer.write_py_file(data_holder,template_name,"sprawdz")

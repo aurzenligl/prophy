@@ -1,26 +1,32 @@
 from jinja2 import Environment, FileSystemLoader, Template
 import os
-import data_holder
-
+from data_holder import DataHolder
 
 class Writer(object):
 
-    def write_py_file(self, data_holder, script_dir, template_name, file_name):
-        self.data_holder = data_holder
-        template = self.__set_template(script_dir, template_name)
-        self.__save_python_file(file_name, template)
+    def write_py_file(self,data_holder,template_name, file_name):
+        template = self.__set_template(template_name)
+        self.__save_python_file(data_holder,template,file_name)
 
-    def __save_python_file(self, file_name, template,data_holder):
-        msg_dict, typedef_dict, constant_dict, enum_dict, struct_dict = data_holder.return_dicts()
+    def __save_python_file(self,data_holder,template,file_name):
+        msg_dict=data_holder.get_msg_dict()
+        typedef_dict=data_holder.get_typedef_dict()
+        constant_dict=data_holder.get_constant_dict()
+        enum_dict=data_holder.get_enum_dict()
+        struct_dict=data_holder.get_struct_dict()
+        include_dict=data_holder.get_include_dict()
+
         with open(file_name+".py", 'w') as f:
             f.write(template.render(msg=msg_dict,
-                                    type=typedef_dict,
-                                    const=constant_dict,
+                                    typedef=typedef_dict,
+                                    constant=constant_dict,
                                     enum=enum_dict,
-                                    struct=struct_dict))
+                                    struct=struct_dict,
+                                    include=include_dict))
 
-    def __set_template(script_dir, template_name):
-        template_dir = os.path.join(script_dir, 'template')
+    def __set_template(self,template_name):
+        template_dir = os.path.join('.', 'templates')
+        print template_dir
         env = Environment(loader=FileSystemLoader(template_dir))
         template = env.get_template(template_name)
         return template
