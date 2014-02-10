@@ -36,30 +36,40 @@ class Parser(object):
             value = self.class_aprot_string + value
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
-            if dimension[0].hasAttribute('size') and not dimension[0].hasAttribute('isVariableSize'):
+            if not dimension[0].hasAttribute('isVariableSize'):
+                # print dimension[0].parentNode.attributes['name'].value
+                # print ""
+                # print "=============="
+                # for i in dimension[0].attributes.items():
+                #     print i
+                # print "=============="
+                # print ""
                 dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value)
+                return dyn_dict
             elif dimension[0].hasAttribute('isVariableSize'):
                 if dimension[0].hasAttribute('variableSizeFieldType') and dimension[0].hasAttribute('variableSizeFieldName'):
                     dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value,
                                                             dimension[0].attributes['variableSizeFieldType'].value,
                                                             dimension[0].attributes['variableSizeFieldName'].value)
-                elif dimension[0].hasAttribute('variableSizeFieldType') and not dimension[0].hasAttribute('variableSizeFieldName'):
+                    return dyn_dict
+                elif dimension[0].hasAttribute('variableSizeFieldType'):
                     dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value,
                                                             dimension[0].attributes['variableSizeFieldType'].value, "blabla ba")
-                elif dimension[0].hasAttribute('variableSizeFieldName') and not dimension[0].hasAttribute('variableSizeFieldType'):
+                    return dyn_dict
+                elif dimension[0].hasAttribute('variableSizeFieldName'):
                     dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value,
                                                             'TNumberOfItems',
                                                             dimension[0].attributes['variableSizeFieldName'].value)
+                    return dyn_dict
                 else:
-                    print ""
-                    print "=============="
-                    for i in dimension[0].attributes.items():
-                        print i
-                    print "=============="
-                    print ""
+                    dyn_dict[k.attributes["name"].value] = (value,"else_in_checkin_dynamic_field")
+                    return dyn_dict
+            else:
+                dyn_dict[k.attributes["name"].value] = (value,"else_in_checkin_dynamic_field")
+                return dyn_dict
         else:
             dyn_dict[k.attributes["name"].value] = (value)
-        return dyn_dict
+            return dyn_dict
 
     def __enum_parse(self, tree_node):
         tmp_dict = {}
@@ -107,12 +117,12 @@ class Parser(object):
             return include_list
 
     def parsing_xml_files(self, tree_node,data_holder):
-        data_holder.set_constant_dict(self.__constant_parse(tree_node))
-        data_holder.set_typedef_dict(self.__typedef_parse(tree_node))
-        data_holder.set_enum_dict(self.__enum_parse(tree_node))
-        data_holder.set_msg_dict(self.__struct_parse(tree_node, "message"))
-        data_holder.set_struct_dict(self.__struct_parse(tree_node, "struct"))
-        data_holder.set_include_list(self.__get_include(tree_node))
+        data_holder.constant_dict=self.__constant_parse(tree_node)
+        data_holder.typedef_dict=self.__typedef_parse(tree_node)
+        data_holder.enum_dict=self.__enum_parse(tree_node)
+        data_holder.msg_dict=self.__struct_parse(tree_node, "message")
+        data_holder.struct_dict=self.__struct_parse(tree_node, "struct")
+        data_holder.include_list=self.__get_include(tree_node)
         return data_holder
 
 if __name__ == "__main__":
@@ -125,6 +135,8 @@ if __name__ == "__main__":
     reader.read_files()
     tree_files = reader.return_tree_files()
     template_name = "temp.txt"
+    dict={}
     for file_name,tree_node in tree_files.iteritems():
          data_holder = parser.parsing_xml_files(tree_node,data_holder)
          writer.write_py_file(data_holder,template_name,file_name)
+    print dict
