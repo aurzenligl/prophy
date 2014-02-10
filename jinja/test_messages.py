@@ -14,6 +14,6 @@ def test_of_constant_sorting():
 
     example = """<constant comment="Number of different measurement groups in MAC" name="MAX_MEAS_GROUP_TYPE_ID_MAC" value="MAX_MEAS_GROUP_TYPE_ID"/>
     <constant forceGeneration="true" name="MAX_MEAS_GROUP_TYPE_ID" value="22"/>"""
-
-    tree = xml.dom.minidom.parseString(example)
-    assert l = messages.__constant_sorter(tree)
+    print tree
+    # tree = xml.dom.minidom.parseString(example)
+    # assert l = messages.__constant_sorter(tree)

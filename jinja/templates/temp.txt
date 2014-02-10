@@ -5,7 +5,7 @@ from {{key}} import *
 
 
 {% for key,value in typedef.items() -%}
-{{key}} = aprot.{{value}}
+{{key}} = {{value}}
 {% endfor %}
 
 
@@ -34,7 +34,7 @@ class {{struct_name}}(aprot.struct):
 	 			   {%- elif value|length == 2 and value is sequence %}
 	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}))
 	 			   {%-elif value|length == 4 and value is sequence %}
-	 			   ('{{value[3]}}',{{value[2]}})
+	 			   ('{{value[3]}}',{{value[2]}}),
 	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}, bound = {{value[3]}}))
 	 			   {%- endif -%}
 	 			   {%- if loop.last -%}
@@ -52,7 +52,7 @@ class {{msg_name}}(aprot.struct):
 	 			   {%- elif value|length == 2 and value is sequence %}
 	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}))
 	 			   {%-elif value|length == 4 and value is sequence %}
-	 			   ('{{value[3]}}',{{value[2]}})
+	 			   ('{{value[3]}}',{{value[2]}}),
 	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}, bound = {{value[3]}}))
 	 			   {%- endif -%}
 	 			   {%- if loop.last -%}

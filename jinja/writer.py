@@ -29,7 +29,6 @@ class Writer(object):
 
     def __set_template(self,template_name):
         template_dir = os.path.join('.', 'templates')
-        print template_dir
         env = Environment(loader = FileSystemLoader(template_dir))
         template = env.get_template(template_name)
         return template

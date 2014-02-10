@@ -3,7 +3,7 @@ from collections import OrderedDict
 from writer import Writer
 import options
 from data_holder import DataHolder
-from reader import Reader
+from reader import XmlReader
 #FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
 # In LOM we use spaces insed of tabs
 
@@ -14,6 +14,7 @@ class Parser(object):
     typedef_dict = {}
     enum_dict = {}
     constant_dict = {}
+    class_aprot_string="aprot."
 
     def __struct_parse(self, tree_node, element_name):
         tmp_dict = {}
@@ -32,7 +33,7 @@ class Parser(object):
     def __checkin_dynamic_fields(self, k, dyn_dict=OrderedDict()):
         value = k.attributes["type"].value
         if value.startswith('u'):
-            value = "aprot." + value
+            value = self.class_aprot_string + value
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
             if dimension[0].hasAttribute('size') and not dimension[0].hasAttribute('isVariableSize'):
@@ -49,6 +50,13 @@ class Parser(object):
                     dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value,
                                                             'TNumberOfItems',
                                                             dimension[0].attributes['variableSizeFieldName'].value)
+                else:
+                    print ""
+                    print "=============="
+                    for i in dimension[0].attributes.items():
+                        print i
+                    print "=============="
+                    print ""
         else:
             dyn_dict[k.attributes["name"].value] = (value)
         return dyn_dict
@@ -73,7 +81,11 @@ class Parser(object):
         typedef_nodes = tree_node.getElementsByTagName('typedef')
         for typedef_element in typedef_nodes:
             if typedef_element.hasAttribute("type"):
-                typedef_dict[typedef_element.attributes["name"].value] = typedef_element.attributes["type"].value
+                v=typedef_element.attributes["type"].value
+                if v.startswith('T') or v.startswith('S') or v.startswith('U'):
+                    typedef_dict[typedef_element.attributes["name"].value] = typedef_element.attributes["type"].value
+                else:
+                    typedef_dict[typedef_element.attributes["name"].value] = self.class_aprot_string+typedef_element.attributes["type"].value
         return typedef_dict
 
     def __constant_parse(self, tree_node):
@@ -106,10 +118,11 @@ class Parser(object):
 if __name__ == "__main__":
     options, args = options.getOptions()
     xml_path = options.isar_path
-    reader = Reader(xml_path)
+    reader = XmlReader(xml_path)
     parser = Parser()
     writer = Writer()
     data_holder = DataHolder()
+    reader.read_files()
     tree_files = reader.return_tree_files()
     template_name = "temp.txt"
     for file_name,tree_node in tree_files.iteritems():
