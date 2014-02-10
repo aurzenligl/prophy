@@ -1,4 +1,4 @@
-import os
+﻿import os
 from collections import OrderedDict
 from writer import Writer
 import options
@@ -7,7 +7,7 @@ from reader import Reader
 #FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
 # In LOM we use spaces insed of tabs
 
-
+#FIXME: Testy nie zdają
 class Parser(object):
 
     tmp_dict = OrderedDict()
