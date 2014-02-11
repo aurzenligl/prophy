@@ -1,6 +1,7 @@
 ﻿import os
 from collections import OrderedDict
-from writer import WriterPython
+#from writer import WriterPython
+import writer
 import options
 from data_holder import DataHolder
 from reader import XmlReader
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     xml_path = options.isar_path
     reader = XmlReader(xml_path)
     parser = Parser()
-    writer = WriterPython()
+    writer = writer.WriterFabric.get_writer()
     data_holder = DataHolder()
     reader.read_files()
     tree_files = reader.return_tree_files()

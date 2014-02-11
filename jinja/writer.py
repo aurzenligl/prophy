@@ -1,5 +1,6 @@
 from jinja2 import Environment, FileSystemLoader, Template
 import os
+import options
 from data_holder import DataHolder
 
 
@@ -11,6 +12,17 @@ class TemplateFabric(object):
         env = Environment(loader = FileSystemLoader(self.__template_dir))
         template = env.get_template(template_name)
         return template
+
+
+class WriterFabric(object):
+    @staticmethod
+    def get_writer():
+        writers = {
+            "default": Writer(),
+            "python": WriterPython()
+             }
+        opt = options.getOptions()[0].output
+        return writers[opt]
 
 
 class Writer(object):
