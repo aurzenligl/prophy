@@ -7,8 +7,9 @@ class DataHolder(object):
     struct_dict={}
     include_dict={}
 
-    def sort_list(self,dic):
+    def sort_list(self, dic):
         out_list = []
+
         for key, val in dic.iteritems():
             if "_" not in val:
                 out_list.insert(0,key)
@@ -19,3 +20,4 @@ class DataHolder(object):
                 else:
                     out_list.append(key)
         return out_list
+
