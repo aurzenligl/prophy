@@ -19,9 +19,7 @@ def sort_list(dic):
 
 def test_of_sorter():
     dic = {"CONST_A": "CONST_B", "CONST_B": "5", "CONST_C": "4"}
-
     l = ['CONST_B', 'CONST_A', 'CONST_C']
-
     assert l == sort_list(dic)
 
 def test_of_sorter_2():
@@ -36,10 +34,19 @@ def test_of_sorter_3():
     assert l == sort_list(dic)
 
 def test_of_sorter_4():
-    dic = {"CC" : "5", "CB":"CC", "CA1":"CB", "CA2":"CB"}
-    l = ["CA2","CA1","CB","CC"]
+    dic = {"C_C" : "5", "C_B":"C_C", "C_A1":"C_B", "C_A2":"C_B"}
+    l = ['C_C', 'C_B', 'C_A2', 'C_A1']
     assert l == sort_list(dic)
 
+def test_of_sorter_5():
+    dic = {  "C_C" : "C_A + C_B" , "C_A":"5", "C_B":"3"}
+    l = ['C_B', 'C_A', 'C_C']
+    assert l == sort_list(dic)
+
+def test_of_sorter_6():
+    dic = {  "C_C" : "C_A + C_B" , "C_A":"5", "C_B":"3"}
+    l = ['C_B', 'C_A', 'C_C']
+    assert l == sort_list(dic)
 
 def test_of_ecev_of_file():
     from dic import dic
