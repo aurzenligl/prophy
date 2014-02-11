@@ -1,65 +1,24 @@
 import aprot
 {% for key in include -%}
-from {{key}} import *
+{% include "include.txt" %}
 {% endfor %}
-
 
 {% for key,value in typedef.items() -%}
-{{key}} = {{value}}
+{% include "typedef.txt" %}
 {% endfor %}
 
-
 {% for key in constant -%}
-{{key}} = {{constant_dict[key]}}
+{% include "constant.txt" %}
 {% endfor %}
 
 {% for key,value in enum.items() -%}
-class {{key}}(aprot.enum):
-	__metaclass__ = aprot.enum_generator
-	_enumerators = [{%- for key_enum,value_enum in value.items() %}
-	 				{%- if loop.last -%}
-	 			    ('{{key_enum}}',{{value_enum}})]
-	 			    {%- else -%}
-	 			    ('{{key_enum}}',{{value_enum}}),
-	 			    {% endif %}
-	 {%- endfor %}
-	 {{'\n'}}
+{% include "enum.txt" %}
 {% endfor %}
-{% for struct_name,struct_value in struct.items() -%}
-class {{struct_name}}(aprot.struct):
-	__metaclass__ = aprot.struct_generator
-	_descriptor = [{% for key,value in struct_value.items() -%}
-	 			   {%- if value is string %}
-	 			   ('{{key}}',{{value}})
-	 			   {%- elif value|length == 2 and value is sequence %}
-	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}))
-	 			   {%-elif value|length == 4 and value is sequence %}
-	 			   ('{{value[3]}}',{{value[2]}}),
-	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}, bound = {{value[3]}}))
-	 			   {%- endif -%}
-	 			   {%- if loop.last -%}
-	 			   ]
-	 			   {%- else -%},{%- endif -%}
-	 {% endfor %}
-	 {{'\n'}}
+{% for item_name,item_value in struct.items() -%}
+{% include "message.txt" %}
 {% endfor %}
-{% for msg_name,msg_value in msg.items() -%}
-class {{msg_name}}(aprot.struct):
-	__metaclass__ = aprot.struct_generator
-	_descriptor = [{%- for key,value in msg_value.items() -%}
-	 			   {%- if value is string %}
-	 			   ('{{key}}',{{value}})
-	 			   {%- elif value|length == 2 and value is sequence %}
-	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}))
-	 			   {%-elif value|length == 4 and value is sequence %}
-	 			   ('{{value[3]}}',{{value[2]}}),
-	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}, bound = {{value[3]}}))
-	 			   {%- endif -%}
-	 			   {%- if loop.last -%}
-	 			   ]
-	 			   {%- else -%},{%- endif -%}
-	 {% endfor %}
-	 {{'\n'}}
+{% for item_name,item_value in msg.items() -%}
+{% include "message.txt" %}
 {% endfor %}
 
 

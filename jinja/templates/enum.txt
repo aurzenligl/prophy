@@ -1,11 +1,10 @@
-import aprot
-
-class {{enum_name}}(aprot.enum):
+class {{key}}(aprot.enum):
 	__metaclass__ = aprot.enum_generator
-	_enumerators = [{%- for key,value in enum.items() %}
+	_enumerators = [{%- for key_enum,value_enum in value.items() %}
 	 				{%- if loop.last -%}
-	 			    ('{{key}}',{{value}})]
+	 			    ('{{key_enum}}',{{value_enum}})]
 	 			    {%- else -%}
-	 			    ('{{key}}',{{value}}),
+	 			    ('{{key_enum}}',{{value_enum}}),
 	 			    {% endif %}
-	 {%- endfor -%}
+	 {%- endfor %}
+	 {{'\n'}}

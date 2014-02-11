@@ -45,6 +45,7 @@ print x
 
 x = Y()
 x.decode('\x08\x01\x01\x02', ">")
+print x
 print repr(x.encode(">"))
 print x
 

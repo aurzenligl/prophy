@@ -18,10 +18,7 @@ class Writer(object):
         pass
 
 class WriterPython(Writer): 
-    """
-    To jest Writer do python, dla tego powinin być w innej klasie, a co będzie jak ktoś powie
-    Was że chce teraz miec wrtier do C++ albo Java albo Ady?
-    """
+
     def __init__(self):
         self.__template_fabric = TemplateFabric()
 
@@ -41,6 +38,7 @@ class WriterPython(Writer):
         file_dest = os.path.join(out_folder, file_name)
         if not os.path.exists(out_folder):
             os.mkdir(out_folder)
+        print msg_dict
         with open(file_dest+".py", 'w') as f:
             f.write(template.render(msg = msg_dict,
                                     typedef = typedef_dict,
@@ -49,6 +47,4 @@ class WriterPython(Writer):
                                     enum = enum_dict,
                                     struct = struct_dict,
                                     include = include_list))
-
-#    def __set_template(self, template_name):# ta metoda nic nie ustawia, nie nadaje się mylących nazw metod
 

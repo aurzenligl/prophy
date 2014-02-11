@@ -1,19 +1,16 @@
-import aprot
+{%- macro render_dialog(key,value,key_value,value_value) -%}
+    {{ key }} == {{value}}
+    {{ key_value }} == {{value_value}}
+    {{ caller() }}
+{%- endmacro -%}
 
-class {{name}}(aprot.struct):
+class {{item_name}}(aprot.struct):
 	__metaclass__ = aprot.struct_generator
-	_descriptor = [{% for key,value in elements.items() -%}
-	 			   {%- if value is string %}
-	 			   ('{{key}}',{{value}})
-	 			   {%- elif value|length == 2 and value is sequence %}
-	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}))
-	 			   {%-elif value|length == 4 and value is sequence %}
-	 			   ('{{value[3]}}',{{value[2]}})
-	 			   ('{{key}}', aprot.bytes(size = {{value[1]}}, bound = {{value[3]}}))
-	 			   {%- endif -%}
-	 			   {%- if loop.last -%}
-	 			   ]
-	 			   {%- else -%},{%- endif -%}
+	_descriptor = [{% for key,value in item_value.items() -%}
+	 			   {% for key_value,value_value in value.items() -%}
+	 			   {% call render_dialog(key,value,key_value,value_value) %}
+	 			   {% endcall %}
+	 			   {% endfor %}
 	 {% endfor %}
-	
-	
+
+

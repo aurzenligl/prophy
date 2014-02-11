@@ -1,13 +1,10 @@
 ﻿import os
 from collections import OrderedDict
-from writer import Writer
+from writer import WriterPython
 import options
 from data_holder import DataHolder
 from reader import XmlReader
-#FIME: Turn ON "show whitespace" in IDE, and fix all spaces to tabs. If interpreter got an error in indentation you'll never find it.
-# In LOM we use spaces insed of tabs
 
-#FIXME: Testy nie zdają
 class Parser(object):
 
     tmp_dict = OrderedDict()
@@ -36,39 +33,14 @@ class Parser(object):
             value = self.class_aprot_string + value
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
-            if not dimension[0].hasAttribute('isVariableSize'):
-                # print dimension[0].parentNode.attributes['name'].value
-                # print ""
-                # print "=============="
-                # for i in dimension[0].attributes.items():
-                #     print i
-                # print "=============="
-                # print ""
-                dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value)
-                return dyn_dict
-            elif dimension[0].hasAttribute('isVariableSize'):
-                if dimension[0].hasAttribute('variableSizeFieldType') and dimension[0].hasAttribute('variableSizeFieldName'):
-                    dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value,
-                                                            dimension[0].attributes['variableSizeFieldType'].value,
-                                                            dimension[0].attributes['variableSizeFieldName'].value)
-                    return dyn_dict
-                elif dimension[0].hasAttribute('variableSizeFieldType'):
-                    dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value,
-                                                            dimension[0].attributes['variableSizeFieldType'].value, "blabla ba")
-                    return dyn_dict
-                elif dimension[0].hasAttribute('variableSizeFieldName'):
-                    dyn_dict[k.attributes["name"].value] = (value, dimension[0].attributes['size'].value,
-                                                            'TNumberOfItems',
-                                                            dimension[0].attributes['variableSizeFieldName'].value)
-                    return dyn_dict
-                else:
-                    dyn_dict[k.attributes["name"].value] = (value,"else_in_checkin_dynamic_field")
-                    return dyn_dict
-            else:
-                dyn_dict[k.attributes["name"].value] = (value,"else_in_checkin_dynamic_field")
-                return dyn_dict
+            dimension_items={}
+            for item ,dim_val in dimension[0].attributes.items():
+                if 'Comment' not in item:
+                    dimension_items[item]=dim_val
+            dyn_dict[k.attributes["name"].value] = dimension_items.copy()
+            return dyn_dict
         else:
-            dyn_dict[k.attributes["name"].value] = (value)
+            dyn_dict[k.attributes["name"].value] = {'type':value}
             return dyn_dict
 
     def __enum_parse(self, tree_node):
@@ -130,7 +102,7 @@ if __name__ == "__main__":
     xml_path = options.isar_path
     reader = XmlReader(xml_path)
     parser = Parser()
-    writer = Writer()
+    writer = WriterPython()
     data_holder = DataHolder()
     reader.read_files()
     tree_files = reader.return_tree_files()
@@ -138,5 +110,5 @@ if __name__ == "__main__":
     dict={}
     for file_name,tree_node in tree_files.iteritems():
          data_holder = parser.parsing_xml_files(tree_node,data_holder)
-         writer.write_py_file(data_holder,template_name,file_name)
+         writer.write_to_file(data_holder,template_name,file_name)
     print dict

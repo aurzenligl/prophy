@@ -2,7 +2,7 @@
 from xml.dom import minidom
 
 
-#To jest reader to konkretnych xmlwoych plików a nie genertyczny reader
+
 class XmlReader(object):
     files = []
 

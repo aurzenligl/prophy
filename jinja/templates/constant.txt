@@ -1,3 +1,1 @@
-{% for key,value in constant.items() -%}
-{{key}} = {{value}}
-{% endfor %} 
+{{key}} = {{constant_dict[key]}}
