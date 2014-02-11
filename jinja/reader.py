@@ -6,7 +6,7 @@ from xml.dom import minidom
 class XmlReader(object):
     files = []
 
-    def __init__(self, xml_dir_path): # czy oby na pewno ma on czytać pliki w momencie konstrukcji? Potem te dane sa w ramie przez cały czas życia tego obiektu a nie tylko wtedy gdy są potrzebne
+    def __init__(self, xml_dir_path):
         self.tree_files = {}
         self.xml_dir = xml_dir_path
 

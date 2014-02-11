@@ -33,6 +33,11 @@ def test_of_sorter_6():
     l = ['C_B', 'C_A', 'C_C']
     assert l == dh().sort_list(dic)
 
+def test_of_sorter_7():
+    dic = {"C_A":"5", "C_B":"3", "C_C" : "C_A + C_B"}
+    l = ['C_B', 'C_A', 'C_C']
+    assert l == dh().sort_list(dic)
+
 def test_of_ecev_of_file():
     from dic import dic
 
