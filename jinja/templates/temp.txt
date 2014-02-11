@@ -9,8 +9,8 @@ from {{key}} import *
 {% endfor %}
 
 
-{% for key,value in constant.items() -%}
-{{key}} = {{value}}
+{% for key in constant -%}
+{{key}} = {{constant_dict[key]}}
 {% endfor %}
 
 {% for key,value in enum.items() -%}

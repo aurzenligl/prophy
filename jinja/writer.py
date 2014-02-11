@@ -9,12 +9,13 @@ class Writer(object):
         self.__save_python_file(data_holder,template,file_name)
 
     def __save_python_file(self,data_holder,template,file_name):
-        msg_dict = data_holder.get_msg_dict()
-        typedef_dict = data_holder.get_typedef_dict()
-        constant_dict = data_holder.get_constant_dict()
-        enum_dict = data_holder.get_enum_dict()
-        struct_dict = data_holder.get_struct_dict()
-        include_list = data_holder.get_include_list()
+        msg_dict = data_holder.msg_dict
+        typedef_dict = data_holder.typedef_dict
+        constant_dict=data_holder.constant_dict
+        constant_list = data_holder.sort_list(data_holder.constant_dict)
+        enum_dict = data_holder.enum_dict
+        struct_dict = data_holder.struct_dict
+        include_list = data_holder.include_list
         out_folder = "Out_py_files"
         file_dest = os.path.join(out_folder,file_name)
         if not os.path.exists(out_folder):
@@ -22,7 +23,8 @@ class Writer(object):
         with open(file_dest+".py", 'w') as f:
             f.write(template.render(msg = msg_dict,
                                     typedef = typedef_dict,
-                                    constant = constant_dict,
+                                    constant = constant_list,
+                                    constant_dict=constant_dict,
                                     enum = enum_dict,
                                     struct = struct_dict,
                                     include = include_list))
