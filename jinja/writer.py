@@ -16,23 +16,27 @@ class TemplateFabric(object):
 
 class PythonSerializer(object):
     def serialize(self, dataHolder):
-        return self.__serialize_enum(dataHolder.enum_dict) + os.linesep
+        out = ""
+        out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
+        out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
+        out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
+        return out
 
     def _serialize_enum(self, enum_dic):
         template = TemplateFabric().get_template("enum.txt");
         out = ""
         for key, val in enum_dic.iteritems():
-            out += template.render(key = key, value = val.list)
+            out += template.render(key = key, value = val)
             out += os.linesep
         return out
 
     def _serialize_typedef(self, typedef_list):
         out = ""
         for key, val in typedef_list:
-            if val.startswith('u'):
-                out += key +" = "+val+ os.linesep
+            if val.startswith('u') or val.startswith('i'):
+                out += key + " = " + val + os.linesep
             else:
-                out += key +" = "+"aprot."+val+ os.linesep
+                out += key + " = " + "aprot." + val + os.linesep
         return out
 
     def _serialize_include(self, include_list):
@@ -41,6 +45,14 @@ class PythonSerializer(object):
             out += "from " + inc + " import *" + os.linesep
         return out
 
+    def _serialize_constant(self, typedef_list):
+        out = ""
+        for key, val in typedef_list:
+            if val.startswith('u') or val.startswith('i'):
+                out += key +" = "+val+ os.linesep
+            else:
+                out += key +" = "+"aprot."+val+ os.linesep
+        return out
 
 
 class WriterFabric(object):
