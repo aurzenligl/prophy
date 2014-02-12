@@ -42,7 +42,7 @@ class IncludeHolder(Holder):
 
 class EnumHolder(Holder):
 
-    enum=namedtuple('enum','enum_name enum_value')
+    enum = namedtuple('enum','enum_name enum_value')
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.enum(element_name,element_value))

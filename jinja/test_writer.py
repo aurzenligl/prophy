@@ -8,7 +8,7 @@ def test_of_WriterFabric_default_writer():
 
 def test_of_Python_Enum_Serializer():
     ps = writer.PythonSerializer();
-    enum = data_holder.EnumHolder("test_enum")
+    enum = data_holder.EnumHolder()
     for x in range(1, 200):
         enum.add_to_list("elem_" + str(x), "val_"+ str(x))
     dh = data_holder.DataHolder(None, enum, None);
