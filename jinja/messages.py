@@ -5,6 +5,7 @@ import writer
 import options
 from data_holder import DataHolder
 from reader import XmlReader
+from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder
 
 class Parser(object):
 
@@ -47,55 +48,54 @@ class Parser(object):
     def __enum_parse(self, tree_node):
         tmp_dict = {}
         enum_dict = {}
+        list=[]
         enum_nodes = tree_node.getElementsByTagName('enum')
         for enum_element in enum_nodes:
             if enum_element.hasChildNodes():
+
                 name = enum_element.attributes["name"].value
+                enum=EnumHolder(name)
                 member = enum_element.getElementsByTagName('enum-member')
                 for member_enum_element in member:
                     value = member_enum_element.getAttribute('value')
-                    tmp_dict[member_enum_element.attributes["name"].value] = value
-                enum_dict[name] = tmp_dict.copy()
-                tmp_dict.clear()
-        return enum_dict
+                    enum.add_to_list(member_enum_element.attributes["name"].value,value)
+                list.append(enum)
+        return list
 
     def __typedef_parse(self, tree_node):
-        typedef_dict = {}
+        typedef_dict = TypeDefHolder()
         typedef_nodes = tree_node.getElementsByTagName('typedef')
         for typedef_element in typedef_nodes:
             if typedef_element.hasAttribute("type"):
-                v=typedef_element.attributes["type"].value
-                if v.startswith('T') or v.startswith('S') or v.startswith('U'):
-                    typedef_dict[typedef_element.attributes["name"].value] = typedef_element.attributes["type"].value
-                else:
-                    typedef_dict[typedef_element.attributes["name"].value] = self.class_aprot_string+typedef_element.attributes["type"].value
+                typedef_dict.add_to_list(typedef_element.attributes["name"].value,typedef_element.attributes["type"].value)
         return typedef_dict
 
     def __constant_parse(self, tree_node):
-        constant_dict = {}
+        constant=ConstantHolder()
         constant_nodes = tree_node.getElementsByTagName('constant')
         for constant_element in constant_nodes:
             if constant_element.hasAttribute("value"):
-                constant_dict[constant_element.attributes["name"].value]=constant_element.attributes["value"].value
-        return constant_dict
+                constant.add_to_list(constant_element.attributes["name"].value,constant_element.attributes["value"].value)
+        return constant
 
     def __get_include(self, tree_node):
-            include_list = []
+            include=IncludeHolder()
             include_nodes = tree_node.getElementsByTagName("xi:include")
             for include_element in include_nodes:
                 if include_element.hasAttribute("href"):
                     x=include_element.attributes["href"].value
                     x=x.partition('.')[0]
-                    include_list.append(x)
-            return include_list
+                    include.add_to_list(x)
+            return include
 
     def parsing_xml_files(self, tree_node,data_holder):
-        data_holder.constant_dict=self.__constant_parse(tree_node)
-        data_holder.typedef_dict=self.__typedef_parse(tree_node)
-        data_holder.enum_dict=self.__enum_parse(tree_node)
-        data_holder.msg_dict=self.__struct_parse(tree_node, "message")
-        data_holder.struct_dict=self.__struct_parse(tree_node, "struct")
-        data_holder.include_list=self.__get_include(tree_node)
+        data_holder.constant=self.__constant_parse(tree_node)
+        # data_holder.typedef_dict=self.__typedef_parse(tree_node)
+        data_holder.enum_list=self.__enum_parse(tree_node)
+        # data_holder.msg_dict=self.__struct_parse(tree_node, "message")
+        # data_holder.struct_dict=self.__struct_parse(tree_node, "struct")
+        data_holder.typedef=self.__typedef_parse(tree_node)
+        data_holder.include=self.__get_include(tree_node)
         return data_holder
 
 if __name__ == "__main__":
