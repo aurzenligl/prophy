@@ -52,10 +52,10 @@ class DataHolder(object):
     enum_dict={}
     struct_list=[]
 
-    def __init__(self, include = IncludeHolder()):
+    def __init__(self, include = IncludeHolder(), typedef = TypeDefHolder(), constant = ConstantHolder() ): 
         self.include = include
-        self.typedef=TypeDefHolder()
-        self.constant=ConstantHolder()
+        self.typedef = typedef
+        self.constant = constant
 
     def sort_list(self, dic):
         out_list = []
