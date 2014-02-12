@@ -1,6 +1,5 @@
 ﻿import os
 from collections import OrderedDict
-import writer_cop
 import options
 from data_holder import DataHolder
 from reader import XmlReader
