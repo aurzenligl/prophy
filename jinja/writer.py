@@ -27,7 +27,7 @@ class WriterFabric(object):
 
 class Writer(object):
     def write_to_file(self, data_holder, template_name, file_name):
-        pass
+        raise NotImplementedError
 
 class WriterPython(Writer): 
 
