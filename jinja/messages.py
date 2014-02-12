@@ -3,7 +3,7 @@ from collections import OrderedDict
 import options
 from data_holder import DataHolder
 from reader import XmlReader
-from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder
+from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,MemberHolder,MessageHolder
 
 class Parser(object):
 
@@ -14,48 +14,43 @@ class Parser(object):
     class_aprot_string="aprot."
 
     def __struct_parse(self, tree_node, element_name):
-        tmp_dict = {}
-        struct_dict = {}
+        list = []
         struct_nodes = tree_node.getElementsByTagName(element_name)
         for p in struct_nodes:
             if p.hasChildNodes():
-                name = p.attributes["name"].value
+                msg = MessageHolder()
+                msg.name = p.attributes["name"].value
                 member = p.getElementsByTagName('member')
                 for k in member:
-                    tmp_dict = self.__checkin_dynamic_fields(k)
-                struct_dict[name] = tmp_dict.copy()
-                tmp_dict.clear()
-        return struct_dict
+                    msg.add_to_list(self.__checkin_member_fields(k))
+                list.append(msg)
+        return list
 
-    def __checkin_dynamic_fields(self, k, dyn_dict=OrderedDict()):
+    def __checkin_member_fields(self, k):
+        member = MemberHolder()
         value = k.attributes["type"].value
-        if value.startswith('u'):
-            value = self.class_aprot_string + value
+        member.name = k.attributes["name"].value
+        member.type = value
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
-            dimension_items={}
             for item ,dim_val in dimension[0].attributes.items():
                 if 'Comment' not in item:
-                    dimension_items[item]=dim_val
-            dyn_dict[k.attributes["name"].value] = dimension_items.copy()
-            return dyn_dict
-        else:
-            dyn_dict[k.attributes["name"].value] = {'type':value}
-            return dyn_dict
+                    member.add_to_list(item,dim_val)
+        return member
 
     def __enum_parse(self, tree_node):
-        dict={}
+        dict = {}
         enum_nodes = tree_node.getElementsByTagName('enum')
         for enum_element in enum_nodes:
             if enum_element.hasChildNodes():
 
                 name = enum_element.attributes["name"].value
-                enum=EnumHolder()
+                enum = EnumHolder()
                 member = enum_element.getElementsByTagName('enum-member')
                 for member_enum_element in member:
                     value = member_enum_element.getAttribute('value')
                     enum.add_to_list(member_enum_element.attributes["name"].value,value)
-                dict[name]=enum.get_list()
+                dict[name] = enum.get_list()
         return dict
 
     def __typedef_parse(self, tree_node):
@@ -75,23 +70,22 @@ class Parser(object):
         return constant
 
     def __get_include(self, tree_node):
-            include=IncludeHolder()
+            include = IncludeHolder()
             include_nodes = tree_node.getElementsByTagName("xi:include")
             for include_element in include_nodes:
                 if include_element.hasAttribute("href"):
-                    x=include_element.attributes["href"].value
-                    x=x.partition('.')[0]
+                    x = include_element.attributes["href"].value
+                    x = x.partition('.')[0]
                     include.add_to_list(x)
             return include
 
     def parsing_xml_files(self, tree_node,data_holder):
-        data_holder.constant=self.__constant_parse(tree_node)
-        data_holder.typedef=self.__typedef_parse(tree_node)
-        data_holder.enum_dict=self.__enum_parse(tree_node)
-        # data_holder.msg_dict=self.__struct_parse(tree_node, "message")
-        # data_holder.struct_dict=self.__struct_parse(tree_node, "struct")
-
-        data_holder.include=self.__get_include(tree_node)
+        data_holder.constant = self.__constant_parse(tree_node)
+        data_holder.typedef = self.__typedef_parse(tree_node)
+        data_holder.enum_dict = self.__enum_parse(tree_node)
+        data_holder.msgs_lists = self.__struct_parse(tree_node, "message")
+        data_holder.struct_dict = self.__struct_parse(tree_node, "struct")
+        data_holder.include = self.__get_include(tree_node)
         return data_holder
 
 if __name__ == "__main__":
@@ -104,7 +98,7 @@ if __name__ == "__main__":
     reader.read_files()
     tree_files = reader.return_tree_files()
     template_name = "temp.txt"
-    dict={}
+    dict = {}
     for file_name,tree_node in tree_files.iteritems():
          data_holder = parser.parsing_xml_files(tree_node,data_holder)
          writer.write_to_file(data_holder,template_name,file_name)

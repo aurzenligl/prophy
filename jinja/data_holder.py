@@ -13,7 +13,6 @@ class DataHolder(object):
 
     def sort_list(self, dic):
         out_list = []
-
         for key, val in dic.iteritems():
             if "_" not in val:
                 out_list.insert(0,key)
@@ -25,72 +24,51 @@ class DataHolder(object):
                     out_list.append(key)
         return out_list
 
-
 class Holder(object):
-
     list=[]
-
     def add_to_list(self,element_name,element_value=0):
         pass
     def get_list(self):
         return self.list
 
 class IncludeHolder(Holder):
-
     list = []
     def add_to_list(self,element):
         self.list.append(element)
 
 class EnumHolder(Holder):
-
     list = []
     enum=namedtuple('enum','enum_name enum_value')
-
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.enum(element_name,element_value))
 
 
 class ConstantHolder(Holder):
-
     list =[]
     constant=namedtuple('constant','constant_name constant_value')
-
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.constant(element_name,element_value))
-
     def __sort_list(self,list):
         pass
-
     def get_sorted_list(self,list):
         return __sort_list(self,list)
 
 class TypeDefHolder(Holder):
-
+    list =[]
     typedef=namedtuple('typedef','typedef_name typedef_value')
-
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.typedef(element_name,element_value))
 
-class Member(Holder):
-
+class MemberHolder(Holder):
     name=''
     type=''
     list=[]
     dimension=namedtuple('dimension','dimension_field_name dimension_field_value')
     def add_to_list(self,element_name,element_value = 0):
-        self.list.append(self.typedef(element_name,element_value))
+        self.list.append(self.dimension(element_name,element_value))
 
-class Message(Holder):
+class MessageHolder(Holder):
     list = []
     def add_to_list(self,member):
         self.list.append(member)
-
-
-
-
-
-# my proposal for new Data_Holder class
-# class DataHolder(object):
-#     def __init__(self, include, enum, constants):
-#         self.dic = {"include" : include, "enum": enum, "constants" : constants }
 
