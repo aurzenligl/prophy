@@ -3,7 +3,6 @@ import os
 import options
 from data_holder import DataHolder
 
-
 class TemplateFabric(object):
     def __init__(self):
         self.__template_dir = os.path.join('.', 'templates')
@@ -13,25 +12,19 @@ class TemplateFabric(object):
         template = env.get_template(template_name)
         return template
 
+class Serializer(object):
+    pass
+
+
 
 class WriterFabric(object):
     @staticmethod
-    def get_writer():
-        writers = {
-            "default": Writer(),
-            "python": WriterPython()
-             }
-        opt = options.getOptions()[0].output
-        return writers[opt]
+    def get_writer(file_name, writer = "txt", mode = "w+"):
+        return WriterTxt(file_name, mode)
 
+class WriterPython(object): 
 
-class Writer(object):
-    def write_to_file(self, data_holder, template_name, file_name):
-        raise NotImplementedError
-
-class WriterPython(Writer): 
-
-    def __init__(self):
+    def __init__(self, file_name, mode):
         self.__template_fabric = TemplateFabric()
 
     def write_to_file(self, data_holder, template_name, file_name):
@@ -60,3 +53,10 @@ class WriterPython(Writer):
                                     struct = struct_dict,
                                     include = include_list))
 
+
+class WriterTxt(object):
+    def __init__(self, file_name, mode):
+        self.__file_h = open(file_name, mode)
+
+    def write_to_file(self, tekst):
+        self.__file_h.write(tekst)

@@ -1,6 +1,5 @@
 ﻿import os
 from collections import OrderedDict
-#from writer import WriterPython
 import writer
 import options
 from data_holder import DataHolder
