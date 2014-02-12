@@ -12,8 +12,15 @@ class TemplateFabric(object):
         template = env.get_template(template_name)
         return template
 
-class Serializer(object):
-    pass
+
+
+class PythonSerializer(object):
+    def serialize(self, dataHolder):
+        return self.__serialize_enum(dataHolder.dic["enum"]) + os.linesep
+
+    def __serialize_enum(self, enum_data_holder):
+        template = TemplateFabric().get_template("enum.txt");
+        template.render(key = enum_data_holder.get_enum_holder_name, value = enum_data_holder.get_list_values())
 
 
 
@@ -21,38 +28,6 @@ class WriterFabric(object):
     @staticmethod
     def get_writer(file_name, writer = "txt", mode = "w+"):
         return WriterTxt(file_name, mode)
-
-class WriterPython(object): 
-
-    def __init__(self, file_name, mode):
-        self.__template_fabric = TemplateFabric()
-
-    def write_to_file(self, data_holder, template_name, file_name):
-        template = self.__template_fabric.get_template(template_name)
-        self.__save_python_file(data_holder, template, file_name)
-
-    def __save_python_file(self, data_holder, template, file_name):
-        msg_dict = data_holder.msg_dict
-        typedef_dict = data_holder.typedef_dict
-        constant_dict = data_holder.constant_dict
-        constant_list = data_holder.sort_list(data_holder.constant_dict)
-        enum_dict = data_holder.enum_dict
-        struct_dict = data_holder.struct_dict
-        include_list = data_holder.include_list
-        out_folder = "Out_py_files"
-        file_dest = os.path.join(out_folder, file_name)
-        if not os.path.exists(out_folder):
-            os.mkdir(out_folder)
-        print msg_dict
-        with open(file_dest+".py", 'w') as f:
-            f.write(template.render(msg = msg_dict,
-                                    typedef = typedef_dict,
-                                    constant = constant_list,
-                                    constant_dict=constant_dict,
-                                    enum = enum_dict,
-                                    struct = struct_dict,
-                                    include = include_list))
-
 
 class WriterTxt(object):
     def __init__(self, file_name, mode):

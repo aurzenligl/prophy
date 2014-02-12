@@ -79,12 +79,3 @@ class Member(Holder):
 
 
 
-
-
-
-
-# my proposal for new Data_Holder class
-# class DataHolder(object):
-#     def __init__(self, include, enum, constants):
-#         self.dic = {"include" : include, "enum": enum, "constants" : constants }
-
