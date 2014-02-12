@@ -1,7 +1,7 @@
 from jinja2 import Environment, FileSystemLoader, Template
 import os
 import options
-from data_holder import DataHolder
+from data_holder_tmp import DataHolder
 
 
 class TemplateFabric(object):
@@ -41,10 +41,10 @@ class WriterPython(Writer):
     def __save_python_file(self, data_holder, template, file_name):
         msg_dict = {}
         typedef = data_holder.typedef.get_list()
+
         constant = data_holder.constant.get_list()
         enum = data_holder.enum_dict
-
-        print enum
+        print data_holder.msgs_list
         struct_dict = {}
 
         include_list = data_holder.include.get_list()

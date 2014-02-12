@@ -30,4 +30,6 @@ class XmlReader(object):
         self.__open_files()
 
     def return_tree_files(self):
+        if len(self.tree_files.keys()) == 0:
+            self.read_files()
         return self.tree_files
