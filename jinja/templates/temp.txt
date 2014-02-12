@@ -1,14 +1,14 @@
 import aprot
 {% for key in include -%}
-{% include "include.txt" %}
+{{key}}
 {% endfor %}
 
-{% for key,value in typedef.items() -%}
-{% include "typedef.txt" %}
+{% for key in typedef -%}
+{{key}}
 {% endfor %}
 
 {% for key in constant -%}
-{% include "constant.txt" %}
+{{key}}
 {% endfor %}
 
 {% for key,value in enum.items() -%}

@@ -1,6 +1,6 @@
 class {{key}}(aprot.enum):
 	__metaclass__ = aprot.enum_generator
-	_enumerators = [{%- for key_enum,value_enum in value.items() %}
+	_enumerators = [{%- for key_enum,value_enum in value %}
 	 				{%- if loop.last -%}
 	 			    ('{{key_enum}}',{{value_enum}})]
 	 			    {%- else -%}
