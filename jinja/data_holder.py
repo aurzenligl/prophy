@@ -1,29 +1,5 @@
 from collections import namedtuple
 
-
-class DataHolder(object):
-    msgs_list=[]
-    enum_dict={}
-    struct_list=[]
-
-    def __init(self):
-        self.include=IncludeHolder()
-        self.typedef=TypeDefHolder()
-        self.constant=ConstantHolder()
-
-    def sort_list(self, dic):
-        out_list = []
-        for key, val in dic.iteritems():
-            if "_" not in val:
-                out_list.insert(0,key)
-            else:
-                if val in out_list:
-                    index = out_list.index(val)
-                    out_list.insert(index + 1, key)
-                else:
-                    out_list.append(key)
-        return out_list
-
 class Holder(object):
     list=[]
     def add_to_list(self,element_name,element_value=0):
@@ -41,7 +17,6 @@ class EnumHolder(Holder):
     enum=namedtuple('enum','enum_name enum_value')
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.enum(element_name,element_value))
-
 
 class ConstantHolder(Holder):
     list =[]
@@ -72,3 +47,25 @@ class MessageHolder(Holder):
     def add_to_list(self,member):
         self.list.append(member)
 
+class DataHolder(object):
+    msgs_list=[]
+    enum_dict={}
+    struct_list=[]
+
+    def __init__(self, include = IncludeHolder(), typedef = TypeDefHolder(), constant = ConstantHolder() ): 
+        self.include = include
+        self.typedef = typedef
+        self.constant = constant
+
+    def sort_list(self, dic):
+        out_list = []
+        for key, val in dic.iteritems():
+            if "_" not in val:
+                out_list.insert(0,key)
+            else:
+                if val in out_list:
+                    index = out_list.index(val)
+                    out_list.insert(index + 1, key)
+                else:
+                    out_list.append(key)
+        return out_list

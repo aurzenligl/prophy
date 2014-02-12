@@ -25,7 +25,7 @@ class PythonSerializer(object):
         template = TemplateFabric().get_template("enum.txt");
         out = ""
         for key, val in enum_dic.iteritems():
-            out += template.render(key = key, value = val)
+            out += template.render(key = key, value = val.list)
             out += os.linesep
         return out
 
