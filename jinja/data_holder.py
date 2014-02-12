@@ -68,7 +68,13 @@ class ConstantHolder(Holder):
     def get_list_values(self):
         return self.enum_list
 
-   
 
-
+# my proposal for new Data_Holder class
+# class Data_Holder(object):
+#    def __init__(self, ...):
+#        self.dic = {"include" : include, 
+#            "enum": enum,
+#            "constants" : constant,
+#            ...
+#            }
 
