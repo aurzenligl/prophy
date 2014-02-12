@@ -16,11 +16,15 @@ class TemplateFabric(object):
 
 class PythonSerializer(object):
     def serialize(self, dataHolder):
-        return self.__serialize_enum(dataHolder.dic["enum"]) + os.linesep
+        return self.__serialize_enum(dataHolder.enum_dict) + os.linesep
 
-    def __serialize_enum(self, enum_data_holder):
+    def _serialize_enum(self, enum_dic):
         template = TemplateFabric().get_template("enum.txt");
-        template.render(key = enum_data_holder.get_enum_holder_name, value = enum_data_holder.get_list_values())
+        out = ""
+        for key, val in enum_dic.iteritems():
+            out += template.render(key = key, value = val.list)
+            out += os.linesep
+        return out
 
 
 
