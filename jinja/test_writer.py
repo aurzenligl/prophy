@@ -12,5 +12,6 @@ def test_of_Python_Enum_Serializer():
     enum = data_holder.EnumHolder()
     for x in range(1, 200):
         enum.add_to_list("elem_" + str(x), "val_"+ str(x))
+    o =  ps._serialize_enum( { "test" : enum } ) 
     assert "26f524cefc1243e04e18bbee34eac884" ==  hashlib.md5(o).hexdigest()
 
