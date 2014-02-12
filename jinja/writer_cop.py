@@ -52,7 +52,6 @@ class WriterPython(Writer):
         file_dest = os.path.join(out_folder, file_name)
         if not os.path.exists(out_folder):
             os.mkdir(out_folder)
-        print msg_dict
         with open(file_dest+".py", 'w') as f:
             f.write(template.render(msg = msg_dict,
                                     typedef = typedef,

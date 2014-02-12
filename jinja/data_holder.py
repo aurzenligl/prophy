@@ -3,7 +3,7 @@ from collections import namedtuple
 
 class DataHolder(object):
     msgs_list=[]
-    enum_dict=[]
+    enum_dict={}
     struct_list=[]
 
     def __init(self):
@@ -37,11 +37,13 @@ class Holder(object):
 
 class IncludeHolder(Holder):
 
+    list = []
     def add_to_list(self,element):
         self.list.append(element)
 
 class EnumHolder(Holder):
 
+    list = []
     enum=namedtuple('enum','enum_name enum_value')
 
     def add_to_list(self,element_name,element_value = 0):
@@ -50,6 +52,7 @@ class EnumHolder(Holder):
 
 class ConstantHolder(Holder):
 
+    list =[]
     constant=namedtuple('constant','constant_name constant_value')
 
     def add_to_list(self,element_name,element_value = 0):
@@ -63,6 +66,7 @@ class ConstantHolder(Holder):
 
 class TypeDefHolder(Holder):
 
+    list =[]
     typedef=namedtuple('typedef','typedef_name typedef_value')
 
     def add_to_list(self,element_name,element_value = 0):
@@ -77,7 +81,10 @@ class Member(Holder):
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.typedef(element_name,element_value))
 
-
+class Message(Holder):
+    list = []
+    def add_to_list(self,member):
+        self.list.append(member)
 
 
 

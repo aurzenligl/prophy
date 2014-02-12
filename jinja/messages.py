@@ -87,11 +87,11 @@ class Parser(object):
 
     def parsing_xml_files(self, tree_node,data_holder):
         data_holder.constant=self.__constant_parse(tree_node)
-        # data_holder.typedef_dict=self.__typedef_parse(tree_node)
+        data_holder.typedef=self.__typedef_parse(tree_node)
         data_holder.enum_dict=self.__enum_parse(tree_node)
         # data_holder.msg_dict=self.__struct_parse(tree_node, "message")
         # data_holder.struct_dict=self.__struct_parse(tree_node, "struct")
-        data_holder.typedef=self.__typedef_parse(tree_node)
+
         data_holder.include=self.__get_include(tree_node)
         return data_holder
 
