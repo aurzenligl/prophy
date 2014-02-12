@@ -26,6 +26,12 @@ class PythonSerializer(object):
             out += os.linesep
         return out
 
+    def _serialize_include(self, include_list):
+        out = ""
+        for inc in include_list:
+            out += "from " + inc + " import *" + os.linesep
+        return out
+
 
 
 class WriterFabric(object):
