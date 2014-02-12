@@ -1,6 +1,6 @@
 ﻿import os
 from collections import OrderedDict
-import writer_cop
+import writer
 import options
 from data_holder import DataHolder
 from reader import XmlReader
@@ -94,13 +94,15 @@ if __name__ == "__main__":
     xml_path = options.isar_path
     reader = XmlReader(xml_path)
     parser = Parser()
-    writer = writer_cop.WriterFabric.get_writer()
     data_holder = DataHolder()
     reader.read_files()
     tree_files = reader.return_tree_files()
     template_name = "temp.txt"
-    dict = {}
-    for file_name,tree_node in tree_files.iteritems():
-         data_holder = parser.parsing_xml_files(tree_node,data_holder)
-         writer.write_to_file(data_holder,template_name,file_name)
-    print dict
+    data_holder=parser.parsing_xml_files(tree_files[tree_files.keys()[0]],data_holder)
+    ps = writer.PythonSerializer()
+    o = ps._serialize_typedef(data_holder.typedef.get_list())
+    print o
+    # for file_name,tree_node in tree_files.iteritems():
+    #      data_holder = parser.parsing_xml_files(tree_node,data_holder)
+    #      writer.write_to_file(data_holder,template_name,file_name)
+

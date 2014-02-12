@@ -26,6 +26,15 @@ class PythonSerializer(object):
             out += os.linesep
         return out
 
+    def _serialize_typedef(self, typedef_list):
+        out = ""
+        for key, val in typedef_list:
+            if val.startswith('u'):
+                out += key +" = "+val+ os.linesep
+            else:
+                out += key +" = "+"aprot."+val+ os.linesep
+        return out
+
     def _serialize_include(self, include_list):
         out = ""
         for inc in include_list:
