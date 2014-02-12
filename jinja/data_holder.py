@@ -23,10 +23,23 @@ class ConstantHolder(Holder):
     constant=namedtuple('constant','constant_name constant_value')
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.constant(element_name,element_value))
-    def __sort_list(self,list):
-        pass
-    def get_sorted_list(self,list):
-        return __sort_list(self,list)
+
+    def __sort_list(self, l):
+        out_list = []
+        for t in l:
+            key, val = t
+            if "_" not in val:
+                out_list.insert(0,key)
+            else:
+                if val in out_list:
+                    index = out_list.index(val)
+                    out_list.insert(index + 1, key)
+                else:
+                    out_list.append(key)
+        return out_list
+
+    def get_sorted_list(self):
+        return self.__sort_list(self.list)
 
 class TypeDefHolder(Holder):
     list =[]
