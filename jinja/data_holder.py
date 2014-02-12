@@ -37,15 +37,12 @@ class Holder(object):
 
 class IncludeHolder(Holder):
 
-    list = []
-
     def add_to_list(self,element):
         self.list.append(element)
 
 class EnumHolder(Holder):
 
     enum=namedtuple('enum','enum_name enum_value')
-    list = []
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.enum(element_name,element_value))
@@ -54,7 +51,6 @@ class EnumHolder(Holder):
 class ConstantHolder(Holder):
 
     constant=namedtuple('constant','constant_name constant_value')
-    list = []
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.constant(element_name,element_value))
@@ -68,10 +64,21 @@ class ConstantHolder(Holder):
 class TypeDefHolder(Holder):
 
     typedef=namedtuple('typedef','typedef_name typedef_value')
-    list = []
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.typedef(element_name,element_value))
+
+class Member(Holder):
+
+    name=''
+    type=''
+    list=[]
+    dimension=namedtuple('dimension','dimension_field_name dimension_field_value')
+    def add_to_list(self,element_name,element_value = 0):
+        self.list.append(self.typedef(element_name,element_value))
+
+
+
 
 
 

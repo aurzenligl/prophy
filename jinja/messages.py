@@ -45,8 +45,6 @@ class Parser(object):
             return dyn_dict
 
     def __enum_parse(self, tree_node):
-        tmp_dict = {}
-        enum_dict = {}
         dict={}
         enum_nodes = tree_node.getElementsByTagName('enum')
         for enum_element in enum_nodes:
