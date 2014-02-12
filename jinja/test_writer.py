@@ -7,8 +7,8 @@ import hashlib
 
 
 linux_hashes = {
-"test_of_PythonSerializer" : "11e1ffc3519be57eba208d6f740c7dd2",
-"test_of_PythonSerializer_enum" : "e907ddf819d3a2558596ffb392eb626f",
+"test_of_PythonSerializer" : "dd20e4a505ee4625fd857f3962a4acf6",
+"test_of_PythonSerializer_enum" : "ca82f0d3706c921db9ac4d37389a9c77",
 "test_of_PythonSerializer_import" : "42b158e97a9e205de2178d6befaeed35"
 }
 
