@@ -59,8 +59,10 @@ class PythonSerializer(object):
             out += "class %s(aprot.struct):" %key.name + os.linesep
             out += "\t__metaclass__ = aprot.struct_generator" + os.linesep
             out += "\t_descriptor = ["
-            for member in key.get_list():
-                out += member.name"\t\t"
+            print len(key.get_list())
+            # for member in key.get_list():
+            #     print member.name
+                #out += member.name+"\t\t"
         return out
 
 
