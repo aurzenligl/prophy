@@ -12,14 +12,13 @@ class TemplateFabric(object):
         template = env.get_template(template_name)
         return template
 
-
-
 class PythonSerializer(object):
     def serialize(self, dataHolder):
         out = ""
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
         out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
+        out += self._serialize_msgs(dataHolder.msgs_list)
         return out
 
     def _serialize_enum(self, enum_dic):
@@ -53,6 +52,17 @@ class PythonSerializer(object):
             else:
                 out += key +" = "+"aprot."+val+ os.linesep
         return out
+
+    def _serialize_msgs(self,msgs_list):
+        out = ""
+        for key in msgs_list:
+            out += "class %s(aprot.struct):" %key.name + os.linesep
+            out += "\t__metaclass__ = aprot.struct_generator" + os.linesep
+            out += "\t_descriptor = ["
+            for member in key.get_list():
+                out += member.name"\t\t"
+        return out
+
 
 
 class WriterFabric(object):

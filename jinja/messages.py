@@ -85,7 +85,7 @@ class Parser(object):
         data_holder.constant = self.__constant_parse(tree_node)
         data_holder.typedef = self.__typedef_parse(tree_node)
         data_holder.enum_dict = self.__enum_parse(tree_node)
-        data_holder.msgs_lists = self.__struct_parse(tree_node, "message")
+        data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_dict = self.__struct_parse(tree_node, "struct")
         data_holder.include = self.__get_include(tree_node)
         return data_holder
