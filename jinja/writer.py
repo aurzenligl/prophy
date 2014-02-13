@@ -57,24 +57,25 @@ class PythonSerializer(object):
 
     def _serialize_msgs(self,msgs_list):
         out = ""
-        lib_imp = self.lib_imp
-        for key in msgs_list:
-            out += "class {0}({1}struct):" .format(key.name,self.lib_imp) + "\n"
-            out += "    __metaclass__ = aprot.struct_generator" + "\n"
-            out += "    _descriptor = ["
+
+        def serialize_members(keys):
+            lib_imp = self.lib_imp
             desc = []
-            for member in key.get_list():
+            for member in keys:
                 if member.type.startswith('u') or member.type.startswith('i'):
                     lib_imp = self.lib_imp
                 else :
                     lib_imp = ""
-                if len(member.list) > 0:
-                    out += self._serialize_msg_member(member,lib_imp)
-                else:
-                    desc.append("('{0}',{1}{2})" .format(member.name ,lib_imp, member.type))
-            out += ", ".join(desc)
-            out += "]"
-            out += "\n"
+#                if len(member.list) > 0:
+#                    out += self._serialize_msg_member(member,lib_imp)
+#                else:
+                desc.append("('{0}',{1}{2})" .format(member.name ,lib_imp, member.type))
+            return ", ".join(desc)
+
+        for key in msgs_list:
+            out += "class {0}({1}struct):" .format(key.name,self.lib_imp) + "\n"
+            out += "    __metaclass__ = aprot.struct_generator" + "\n"
+            out += "    _descriptor = [" + serialize_members(key.get_list()) + "]\n"
         return out
 
     def _serialize_msg_member(self,member,lib_imp):
