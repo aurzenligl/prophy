@@ -38,7 +38,7 @@ class ConstantHolder(Holder):
 
     def __sort_list(self,list):
         out_list = []
-        for t in l:
+        for t in list:
             key, val = t
             if "_" not in val:
                 out_list.insert(0,key)
@@ -50,8 +50,8 @@ class ConstantHolder(Holder):
                     out_list.append(key)
         return out_list
 
-    def get_sorted_list(self,list):
-        return __sort_list(self,list)
+    def get_sorted_list(self):
+        return self.__sort_list(self.list)
 
 class TypeDefHolder(Holder):
 
@@ -64,10 +64,10 @@ class TypeDefHolder(Holder):
 
 class MemberHolder(Holder):
 
-    def __init__(self):
+    def __init__(self, name, type):
         self.list=[]
-        self.name = ''
-        self.type = ''
+        self.name = name
+        self.type = type
         self.dimension=namedtuple('dimension','dimension_field_name dimension_field_value')
 
     def add_to_list(self,element_name,element_value = 0):
@@ -77,6 +77,7 @@ class MessageHolder(Holder):
 
     def __init__(self):
         self.list=[]
+        self.name = ""
 
     def add_to_list(self,member):
         self.list.append(member)

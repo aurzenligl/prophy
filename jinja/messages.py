@@ -99,10 +99,11 @@ if __name__ == "__main__":
     tree_files = reader.return_tree_files()
     template_name = "temp.txt"
     data_holder = parser.parsing_xml_files(tree_files[tree_files.keys()[0]],data_holder)
-    ps = writer.PythonSerializer()
-    o = ps.serialize(data_holder)
-    print o
-    # for file_name,tree_node in tree_files.iteritems():
-    #      data_holder = parser.parsing_xml_files(tree_node,data_holder)
-    #      writer.write_to_file(data_holder,template_name,file_name)
+
+    for file_name,tree_node in tree_files.iteritems():
+          data_holder = parser.parsing_xml_files(tree_node,data_holder)
+          w=writer.WriterTxt(file_name+".py","w")
+          ps = writer.PythonSerializer()
+          o = ps.serialize(data_holder)
+          w.write_to_file(o)
 

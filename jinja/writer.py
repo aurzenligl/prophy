@@ -13,9 +13,13 @@ class TemplateFabric(object):
         return template
 
 class PythonSerializer(object):
+    def __init__(self):
+        self.lib_imp="aprot."
+
     def serialize(self, dataHolder):
         out = ""
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
+        out += self._serialize_constant(dataHolder.constant.get_list()) + os.linesep
         out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
         out += self._serialize_msgs(dataHolder.struct_list)
@@ -34,46 +38,49 @@ class PythonSerializer(object):
         out = ""
         for key, val in typedef_list:
             if val.startswith('u') or val.startswith('i'):
-                out += key + " = " + val + os.linesep
+                out += key + " = " + self.lib_imp + val + '\n'
             else:
-                out += key + " = " + "aprot." + val + os.linesep
+                out += key + " = "  + val + '\n'
         return out
 
     def _serialize_include(self, include_list):
         out = ""
         for inc in include_list:
-            out += "from " + inc + " import *" + os.linesep
+            out += "from " + inc + " import *" + '\n'
         return out
 
-    def _serialize_constant(self, typedef_list):
+    def _serialize_constant(self, constant_list):
         out = ""
-        for key, val in typedef_list:
-            if val.startswith('u') or val.startswith('i'):
-                out += key + " = " +val+ os.linesep
-            else:
-                out += key + " = " +"aprot."+val+ os.linesep
+        for key, val in constant_list:
+            out += key + " = " +val+ '\n'
         return out
 
     def _serialize_msgs(self,msgs_list):
         out = ""
+        lib_imp = self.lib_imp
         for key in msgs_list:
-            out += "class {0}(aprot.struct):" .format(key.name) + os.linesep
-            out += "\t__metaclass__ = aprot.struct_generator" + os.linesep
-            out += "\t_descriptor = ["
+            out += "class {0}({1}struct):" .format(key.name,self.lib_imp) + "\n"
+            out += "    __metaclass__ = aprot.struct_generator" + "\n"
+            out += "    _descriptor = ["
+            desc = []
             for member in key.get_list():
+                if member.type.startswith('u') or member.type.startswith('i'):
+                    lib_imp = self.lib_imp
+                else :
+                    lib_imp = ""
                 if len(member.list) > 0:
-                    out += self._serialize_msg_member(member)
+                    out += self._serialize_msg_member(member,lib_imp)
                 else:
-                    out += "('{0}',{1})" .format(member.name , member.type) + os.linesep + "\t\t\t\t\t"
-
-            out += os.linesep
+                    desc.append("('{0}',{1}{2})" .format(member.name ,lib_imp, member.type))
+            out += ", ".join(desc)
+            out += "]"
+            out += "\n"
         return out
 
-    def _serialize_msg_member(self,member):
+    def _serialize_msg_member(self,member,lib_imp):
         str = ""
-        print member.list
         if not "isVariableSize" in member.list:
-            str += "('{0}',{1})" .format(member.name , member.type) + os.linesep + "\t\t\t\t\t"
+            str += "('{0}',{1}{2})" .format(member.name ,lib_imp, member.type) + os.linesep + "\n\t\t\t\t   "
         return str
 
 

@@ -68,6 +68,14 @@ def test_of_PythonSerializer_enum():
     o =  ps._serialize_enum( { "test" : enum } )
     assert hashes["test_of_PythonSerializer_enum"] ==  hashlib.md5(o).hexdigest()
 
+def test_of_PythonSerializer_msg():
+    ps = writer.PythonSerializer()
+    enum = data_holder.EnumHolder()
+    for x in range(1, 200):
+        enum.add_to_list("elem_" + str(x), "val_"+ str(x))
+    o =  ps._serialize_enum( { "test" : enum } )
+    assert hashes["test_of_PythonSerializer_enum"] ==  hashlib.md5(o).hexdigest()
+
 def test_of_PythonSerializer_import():
     l = []
     for x in range(20, 400, 3):
