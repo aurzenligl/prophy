@@ -45,14 +45,13 @@ class Parser(object):
         enum_nodes = tree_node.getElementsByTagName('enum')
         for enum_element in enum_nodes:
             if enum_element.hasChildNodes():
-
                 name = enum_element.attributes["name"].value
                 enum = EnumHolder()
                 member = enum_element.getElementsByTagName('enum-member')
                 for member_enum_element in member:
                     value = member_enum_element.getAttribute('value')
                     enum.add_to_list(member_enum_element.attributes["name"].value,value)
-                dict[name] = enum.get_list()
+                dict[name] = enum
         return dict
 
     def __typedef_parse(self, tree_node):
@@ -86,7 +85,7 @@ class Parser(object):
         data_holder.typedef = self.__typedef_parse(tree_node)
         data_holder.enum_dict = self.__enum_parse(tree_node)
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
-        data_holder.struct_dict = self.__struct_parse(tree_node, "struct")
+        data_holder.struct_list = self.__struct_parse(tree_node, "struct")
         data_holder.include = self.__get_include(tree_node)
         return data_holder
 
