@@ -31,7 +31,7 @@ class ConstantHolder(Holder):
 
     def __init__(self):
         self.list=[]
-    constant=namedtuple('constant','constant_name constant_value')
+        self.constant=namedtuple('constant','constant_name constant_value')
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.constant(element_name,element_value))
@@ -46,18 +46,18 @@ class TypeDefHolder(Holder):
 
     def __init__(self):
         self.list=[]
-    typedef=namedtuple('typedef','typedef_name typedef_value')
+        self.typedef=namedtuple('typedef','typedef_name typedef_value')
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.typedef(element_name,element_value))
 
 class MemberHolder(Holder):
-    name = ''
-    type = ''
 
     def __init__(self):
         self.list=[]
-    dimension=namedtuple('dimension','dimension_field_name dimension_field_value')
+        self.name = ''
+        self.type = ''
+        self.dimension=namedtuple('dimension','dimension_field_name dimension_field_value')
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.dimension(element_name,element_value))

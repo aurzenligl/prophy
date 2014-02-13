@@ -18,6 +18,7 @@ class PythonSerializer(object):
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
         out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
+        out += self._serialize_msgs(dataHolder.struct_list)
         out += self._serialize_msgs(dataHolder.msgs_list)
         return out
 
@@ -48,22 +49,32 @@ class PythonSerializer(object):
         out = ""
         for key, val in typedef_list:
             if val.startswith('u') or val.startswith('i'):
-                out += key +" = "+val+ os.linesep
+                out += key + " = " +val+ os.linesep
             else:
-                out += key +" = "+"aprot."+val+ os.linesep
+                out += key + " = " +"aprot."+val+ os.linesep
         return out
 
     def _serialize_msgs(self,msgs_list):
         out = ""
         for key in msgs_list:
-            out += "class %s(aprot.struct):" %key.name + os.linesep
+            out += "class {0}(aprot.struct):" .format(key.name) + os.linesep
             out += "\t__metaclass__ = aprot.struct_generator" + os.linesep
             out += "\t_descriptor = ["
             for member in key.get_list():
-                out += member.name + member.type + os.linesep + "\t\t\t\t\t"
+                if len(member.list) > 0:
+                    out += self._serialize_msg_member(member)
+                else:
+                    out += "('{0}',{1})" .format(member.name , member.type) + os.linesep + "\t\t\t\t\t"
+
             out += os.linesep
         return out
 
+    def _serialize_msg_member(self,member):
+        str = ""
+        print member.list
+        if not "isVariableSize" in member.list:
+            str += "('{0}',{1})" .format(member.name , member.type) + os.linesep + "\t\t\t\t\t"
+        return str
 
 
 class WriterFabric(object):
