@@ -11,9 +11,9 @@ linux_hashes = {
 }
 
 windows_hashes = {
-"test_of_PythonSerializer" : "bce7e420fbdb878941e28bf38c69b5fc",
-"test_of_PythonSerializer_enum" : "9cbdcca5ebf27b8b8bcb2b7f080bcf6f",
-"test_of_PythonSerializer_import" : "e57c2d6db6b44ecdabba127dd0532aa0"
+"test_of_PythonSerializer" : "af8c4ee390b6e906d2dfdf9336bf90c9",
+"test_of_PythonSerializer_enum" : "275bf674a0c1025d10e929b39896213f",
+"test_of_PythonSerializer_import" : "42b158e97a9e205de2178d6befaeed35"
 }
 
 hashes = linux_hashes if sys.platform == "linux2" else windows_hashes
