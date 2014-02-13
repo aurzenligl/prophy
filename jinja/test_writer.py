@@ -7,8 +7,8 @@ import hashlib
 
 
 linux_hashes = {
-"test_of_PythonSerializer" : "dd20e4a505ee4625fd857f3962a4acf6",
-"test_of_PythonSerializer_enum" : "ca82f0d3706c921db9ac4d37389a9c77",
+"test_of_PythonSerializer" : "d77aba9af887b02875be83660dc02ae9",
+"test_of_PythonSerializer_enum" : "26f524cefc1243e04e18bbee34eac884",
 "test_of_PythonSerializer_import" : "42b158e97a9e205de2178d6befaeed35"
 }
 
@@ -47,18 +47,6 @@ def test_of_PythonSerializer():
     o =  ps.serialize(dh)
     assert hashes["test_of_PythonSerializer"] == hashlib.md5( o ).hexdigest()
 
-# def test_of_PythonSerializer_member():
-#     msg=data_holder.MessageHolder()
-#     member1=data_holder.MemberHolder()
-#     member2=data_holder.MemberHolder()
-#     member3=data_holder.MemberHolder()
-#
-#     msg.add_to_list(member1)
-#     msg.add_to_list(member2)
-#     msg.add_to_list(member3)
-#     ps = writer.PythonSerializer()
-#     o =  ps.serialize(dh)
-#     assert hashes["test_of_PythonSerializer"] == hashlib.md5( o ).hexdigest()
 
 def test_of_PythonSerializer_enum():
     ps = writer.PythonSerializer()
@@ -68,13 +56,6 @@ def test_of_PythonSerializer_enum():
     o =  ps._serialize_enum( { "test" : enum } )
     assert hashes["test_of_PythonSerializer_enum"] ==  hashlib.md5(o).hexdigest()
 
-def test_of_PythonSerializer_msg():
-    ps = writer.PythonSerializer()
-    enum = data_holder.EnumHolder()
-    for x in range(1, 200):
-        enum.add_to_list("elem_" + str(x), "val_"+ str(x))
-    o =  ps._serialize_enum( { "test" : enum } )
-    assert hashes["test_of_PythonSerializer_enum"] ==  hashlib.md5(o).hexdigest()
 
 def test_of_PythonSerializer_import():
     l = []
