@@ -67,7 +67,7 @@ class PythonSerializer(object):
                 else :
                     lib_imp = ""
                 if len(member.list) > 0:
-                    desc.append(self._serialize_msg_member(member,lib_imp))
+                    desc.append(self._serialize_msg_member(member))
                 else:
                     desc.append("('{0}',{1}{2})" .format(member.name ,lib_imp, member.type))
             return ", ".join(desc)
@@ -78,13 +78,17 @@ class PythonSerializer(object):
             out += "    _descriptor = [" + serialize_members(key.get_list()) + "]\n"
         return out
 
-    def _serialize_msg_member(self,member,lib_imp):
+    def _serialize_msg_member(self,member):
         str = ""
-        if not "isVariableSize" in member.list:
-            str = " ('{0}',{1}{2})" .format(member.name ,lib_imp, member.type)
+        if len(member.list) == 5:
+            var_field_name_index = member.get_dimension_field_index('variableSizeFieldName')
+            var_field_type_index = member.get_dimension_field_index('variableSizeFieldType')
+            str += "('{0}','{1}, '" .format(member.list[var_field_name_index].dimension_field_value,member.list[var_field_type_index].dimension_field_value)
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[var_field_name_index].dimension_field_value)
         if len(member.list) == 4 and "variableSizeFieldType" not in member.list:
-            str += ", ('{0}',{1}" .format("tu cos bedzie",'TNumberOfItems) ,')
-            str += "('{0}',{1}array({2},bound={3}))" .format("tu cos bedzie2",lib_imp,"tu bedzie tego typ","tu bedzie tego wymiar")
+            var_field_name_index = member.get_dimension_field_index('variableSizeFieldName')
+            str += "('{0}',{1}" .format(member.list[var_field_name_index].dimension_field_value,'TNumberOfItems), ')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[var_field_name_index].dimension_field_value)
         return str
 
 

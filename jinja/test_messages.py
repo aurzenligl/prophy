@@ -57,5 +57,5 @@ def test_of_message_with_dim():
 
     a = writer.PythonSerializer()._serialize_msgs([msg_h])
     print a
-    out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList', aprot.array(SSRbList,bound='numSRbs')]\n"
+    out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',aprot.array(SSRbList,bound='numSRbs'))]\n"
     assert out == a
