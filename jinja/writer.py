@@ -66,10 +66,10 @@ class PythonSerializer(object):
                     lib_imp = self.lib_imp
                 else :
                     lib_imp = ""
-#                if len(member.list) > 0:
-#                    out += self._serialize_msg_member(member,lib_imp)
-#                else:
-                desc.append("('{0}',{1}{2})" .format(member.name ,lib_imp, member.type))
+                if len(member.list) > 0:
+                    desc.append(self._serialize_msg_member(member,lib_imp))
+                else:
+                    desc.append("('{0}',{1}{2})" .format(member.name ,lib_imp, member.type))
             return ", ".join(desc)
 
         for key in msgs_list:
@@ -81,7 +81,10 @@ class PythonSerializer(object):
     def _serialize_msg_member(self,member,lib_imp):
         str = ""
         if not "isVariableSize" in member.list:
-            str += "('{0}',{1}{2})" .format(member.name ,lib_imp, member.type) + os.linesep + "\n\t\t\t\t   "
+            str = " ('{0}',{1}{2})" .format(member.name ,lib_imp, member.type)
+        if len(member.list) == 4 and "variableSizeFieldType" not in member.list:
+            str += ", ('{0}',{1}" .format("tu cos bedzie",'TNumberOfItems) ,')
+            str += "('{0}',{1}array({2},bound={3}))" .format("tu cos bedzie2",lib_imp,"tu bedzie tego typ","tu bedzie tego wymiar")
         return str
 
 
