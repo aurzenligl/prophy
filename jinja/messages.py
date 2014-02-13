@@ -45,14 +45,13 @@ class Parser(object):
         enum_nodes = tree_node.getElementsByTagName('enum')
         for enum_element in enum_nodes:
             if enum_element.hasChildNodes():
-
                 name = enum_element.attributes["name"].value
                 enum = EnumHolder()
                 member = enum_element.getElementsByTagName('enum-member')
                 for member_enum_element in member:
                     value = member_enum_element.getAttribute('value')
                     enum.add_to_list(member_enum_element.attributes["name"].value,value)
-                dict[name] = enum.get_list()
+                dict[name] = enum
         return dict
 
     def __typedef_parse(self, tree_node):

@@ -1,49 +1,72 @@
 from collections import namedtuple
 
 class Holder(object):
-    list=[]
+
+    def __init__(self):
+        self.list=[]
     def add_to_list(self,element_name,element_value=0):
         pass
     def get_list(self):
         return self.list
 
 class IncludeHolder(Holder):
-    list = []
+
+    def __init__(self):
+        self.list=[]
+
     def add_to_list(self,element):
         self.list.append(element)
 
 class EnumHolder(Holder):
-    list = []
-    enum=namedtuple('enum','enum_name enum_value')
+
+    def __init__(self):
+        self.list=[]
+        self.enum=namedtuple('enum','enum_name enum_value')
+
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.enum(element_name,element_value))
 
+
 class ConstantHolder(Holder):
-    list =[]
+
+    def __init__(self):
+        self.list=[]
     constant=namedtuple('constant','constant_name constant_value')
+
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.constant(element_name,element_value))
+
     def __sort_list(self,list):
         pass
+
     def get_sorted_list(self,list):
         return __sort_list(self,list)
 
 class TypeDefHolder(Holder):
-    list =[]
+
+    def __init__(self):
+        self.list=[]
     typedef=namedtuple('typedef','typedef_name typedef_value')
+
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.typedef(element_name,element_value))
 
 class MemberHolder(Holder):
-    name=''
-    type=''
-    list=[]
+    name = ''
+    type = ''
+
+    def __init__(self):
+        self.list=[]
     dimension=namedtuple('dimension','dimension_field_name dimension_field_value')
+
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.dimension(element_name,element_value))
 
 class MessageHolder(Holder):
-    list = []
+
+    def __init__(self):
+        self.list=[]
+
     def add_to_list(self,member):
         self.list.append(member)
 
