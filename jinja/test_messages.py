@@ -44,7 +44,7 @@ def test_of_message_complex():
     out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti), ('ueId',TUeId), ('ueGroup',TUeGroup), ('transactionId',TTransactionID), ('spsCrnti',TCrnti), ('macUserAddress',TAaSysComSicad), ('raPreambleIndex',TRaPreambleIndex), ('prachMaskIndex',TPrachMaskIndex), ('sRbList',SSRbList), ('dRbList',SDRbList)]\n"
     assert out == a
 
-def test_of_message_with_dim():
+def test_of_message_with_four_dim_without_field_type():
 
     msg_h = data_holder.MessageHolder()
     msg_h.name = "MAC_L2CallConfigResp"
@@ -58,4 +58,21 @@ def test_of_message_with_dim():
     a = writer.PythonSerializer()._serialize_msgs([msg_h])
     print a
     out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',aprot.array(SSRbList,bound='numSRbs'))]\n"
+    assert out == a
+
+def test_of_message_with_five_dim():
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_CcchDataReceiveInd"
+    member_h = data_holder.MemberHolder('msg3Info','SMsg3Info')
+    member_h.add_to_list("isVariableSize", "true")
+    member_h.add_to_list("minSize", "1")
+    member_h.add_to_list("size", "MAX_MSG3_PER_TTI")
+    member_h.add_to_list("variableSizeFieldName", "maxNumOfUes")
+    member_h.add_to_list("variableSizeFieldType", "u32")
+    msg_h.add_to_list(member_h)
+
+    a = writer.PythonSerializer()._serialize_msgs([msg_h])
+    print a
+    out = "class MAC_CcchDataReceiveInd(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('maxNumOfUes',u32), ('msg3Info',aprot.array(SMsg3Info,bound='maxNumOfUes'))]\n"
     assert out == a
