@@ -83,11 +83,13 @@ class MessageHolder(Holder):
         self.list.append(member)
 
 class DataHolder(object):
-    msgs_list=[]
-    enum_dict={}
-    struct_list=[]
 
-    def __init__(self, include = IncludeHolder(), typedef = TypeDefHolder(), constant = ConstantHolder() ): 
+
+    def __init__(self, include = IncludeHolder(), typedef = TypeDefHolder(), constant = ConstantHolder(), msgs_list =
+            [],  enum_dict = {}, struct_list = [] ): 
+        self.msgs_list = msgs_list
+        self.enum_dict = enum_dict
+        self.struct_list = struct_list
         self.include = include
         self.typedef = typedef
         self.constant = constant
