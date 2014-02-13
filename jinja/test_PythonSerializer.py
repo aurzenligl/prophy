@@ -5,7 +5,7 @@ import data_holder
 import writer
 
 linux_hashes = {
-"test_of_PythonSerializer" : "0437fc1b78dd0bfd25d9c2ad69e44cb5",
+"test_of_PythonSerializer" : "8095a37d6d2cbbaa3b3ca05fa99842b7",
 "test_of_PythonSerializer_enum" : "26f524cefc1243e04e18bbee34eac884",
 "test_of_PythonSerializer_import" : "42b158e97a9e205de2178d6befaeed35"
 }
@@ -38,14 +38,17 @@ def test_of_PythonSerializer():
     const.add_to_list("C_B","5")
     const.add_to_list("C_C", "C_B + C_A")
 
-    dh = data_holder.DataHolder( include = ih, typedef = th , constant = const)
-    dh.enum_dict["test"] = enum
 
-    
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_L2CallConfigResp"
+    msg_h.add_to_list(data_holder.MemberHolder('messageResult','SMessageResult'))
+
+
+    dh = data_holder.DataHolder( include = ih, typedef = th , constant = const, msgs_list = [msg_h])
+    dh.enum_dict["test"] = enum
 
     ps = writer.PythonSerializer()
     o =  ps.serialize(dh)
-    print o
     assert hashes["test_of_PythonSerializer"] == hashlib.md5( o ).hexdigest()
 
 
