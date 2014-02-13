@@ -48,11 +48,14 @@ def test_of_message_with_dim():
 
     msg_h = data_holder.MessageHolder()
     msg_h.name = "MAC_L2CallConfigResp"
-    member_h = data_holder.MemberHolder('messageResult','SMessageResult')
-    member_h.add_to_list("aaa", "pppp")
+    member_h = data_holder.MemberHolder('sRbList','SSRbList')
+    member_h.add_to_list("isVariableSize", "true")
+    member_h.add_to_list("minSize", "1")
+    member_h.add_to_list("size", "MAX_NUM_SRB_PER_USER")
+    member_h.add_to_list("variableSizeFieldName", "numSRbs")
     msg_h.add_to_list(member_h)
 
     a = writer.PythonSerializer()._serialize_msgs([msg_h])
-
-    out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('messageResult',SMessageResult)]\n"
+    print a
+    out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList', aprot.array(SSRbList,bound='numSRbs')]\n"
     assert out == a

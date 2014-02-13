@@ -29,10 +29,7 @@ class Parser(object):
         return list
 
     def __checkin_member_fields(self, k):
-        member = MemberHolder()
-        value = k.attributes["type"].value
-        member.name = k.attributes["name"].value
-        member.type = value
+        member = MemberHolder(k.attributes["name"].value,k.attributes["type"].value)
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
             for item ,dim_val in dimension[0].attributes.items():
