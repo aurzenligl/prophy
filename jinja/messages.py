@@ -57,7 +57,35 @@ class Parser(object):
         for typedef_element in typedef_nodes:
             if typedef_element.hasAttribute("type"):
                 typedef_dict.add_to_list(typedef_element.attributes["name"].value,typedef_element.attributes["type"].value)
+            elif typedef_element.hasAttribute("primitiveType"):
+                type = self.__get_type_of_typedef(typedef_element.attributes["primitiveType"].value)
+                typedef_dict.add_to_list(typedef_element.attributes["name"].value,type)
         return typedef_dict
+
+    def __get_type_of_typedef(self,value):
+        if "8 bit integer unsigned" in value:
+            return "u8"
+        elif "16 bit integer unsigned" in value:
+            return "u16"
+        elif "32 bit integer unsigned" in value:
+            return "u32"
+        elif "64 bit integer unsigned" in value:
+            return "u64"
+        elif "8 bit integer signed" in value:
+            return "i8"
+        elif "16 bit integer signed" in value:
+            return "i16"
+        elif "32 bit integer signed" in value:
+            return "i32"
+        elif "64 bit integer signed" in value:
+            return "i64"
+        elif "32 bit float" in value:
+            # should be r32 ale nie ma teraz w aprocie obsługi
+            return "i32"
+        elif "64 bit float" in value:
+            # should be r64 ale nie ma teraz w aprocie obsługi
+            return "i64"
+
 
     def __constant_parse(self, tree_node):
         constant=ConstantHolder()
@@ -77,7 +105,8 @@ class Parser(object):
                     include.add_to_list(x)
             return include
 
-    def parsing_xml_files(self, tree_node,data_holder):
+    def parsing_xml_files(self, tree_node):
+        data_holder = DataHolder()
         data_holder.constant = self.__constant_parse(tree_node)
         data_holder.typedef = self.__typedef_parse(tree_node)
         data_holder.enum_dict = self.__enum_parse(tree_node)
@@ -91,13 +120,13 @@ if __name__ == "__main__":
     xml_path = options.isar_path
     reader = XmlReader(xml_path)
     parser = Parser()
-    data_holder = DataHolder()
+
     reader.read_files()
     tree_files = reader.return_tree_files()
     template_name = "temp.txt"
     directory_dst = options.out_path
     for file_name,tree_node in tree_files.iteritems():
-          data_holder = parser.parsing_xml_files(tree_node, data_holder) #WTF?? czemu tutaj wsadzamy data holder a potema jest ona pramaterem wyjsciwym
+          data_holder = parser.parsing_xml_files(tree_node) #WTF?? czemu tutaj wsadzamy data holder a potema jest ona pramaterem wyjsciwym
           w=writer.WriterTxt(directory_dst,file_name+".py","w")
           ps = writer.PythonSerializer()
           o = ps.serialize(data_holder)

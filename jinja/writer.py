@@ -37,7 +37,7 @@ class PythonSerializer(object):
     def _serialize_typedef(self, typedef_list):
         out = ""
         for key, val in typedef_list:
-            if val.startswith('u') or val.startswith('i'):
+            if val.startswith('u') or val.startswith('i') or val.startswith('r'):
                 out += key + " = " + self.lib_imp + val + '\n'
             else:
                 out += key + " = "  + val + '\n'
@@ -62,7 +62,7 @@ class PythonSerializer(object):
             lib_imp = self.lib_imp
             desc = []
             for member in keys:
-                if member.type.startswith('u') or member.type.startswith('i'):
+                if member.type.startswith('u') or member.type.startswith('i') or member.type.startswith('r')  :
                     lib_imp = self.lib_imp
                 else :
                     lib_imp = ""
