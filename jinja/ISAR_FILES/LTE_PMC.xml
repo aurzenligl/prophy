@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xui configuration/if_editor.xui?><system xmlns:xi="http://www.nsn.com/2008/XInclude"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        name="LTE_PMC"
+        xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions"  />
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <xi:include href="ASN.xml" xpath="//global-definitions[@name='ASN1']"/>
+   <xi:include href="ASN.xml" xpath="//global-definitions[@name='S1AP']"/>
+   <xi:include href="OAM_MERGED.xml" xpath="//global-definitions[@name='OAM']"/>
+   <xi:include href="DCM_MAC_PS.xml" xpath="//global-definitions[@name='DCM']"/>
+   <xi:include href="WMP_MAC_PS.xml" xpath="//global-definitions[@name='WMP']"/>
+   <component name="MAC">
+      <xi:include href="MAC.xml" xpath="//definitions"/>
+      <xi:include href="MAC.xml" xpath="//messages"/>
+      <interfaces>
+         <xi:include href="MAC.xml" xpath="//interface[@name='MacCell']"/>
+         <xi:include href="MAC.xml" xpath="//interface[@name='MacUser']"/>
+         <xi:include href="MAC.xml" xpath="//interface[@name='MacSgnl']"/>
+         <xi:include href="MAC.xml" xpath="//interface[@name='MacCellMeas']"/>
+         <xi:include href="MAC.xml" xpath="//interface[@name='MacTest']"/>
+      </interfaces>
+   </component>
+   <component name="PHY">
+      <xi:include href="PHY.xml" xpath="//definitions[@name='Common PHY']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='Common PHY-BF']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-TX']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-RX']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-TX-BF']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-RX-BF']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='Common PHY']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-TX']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-TX-BF']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-RX']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-RX-BF']"/>
+      <interfaces>
+         <xi:include href="PHY.xml" xpath="//interface[@name='PhyCell']"/>
+         <interface optimize="true" name="PhyTest" responsibleEditor="">
+            <message name="PHY_Start3GppDlTestModelReq"/>
+            <message name="PHY_Start3GppDlTestModelResp"/>
+            <message name="PHY_Stop3GppDlTestModelReq"/>
+            <message name="PHY_Stop3GppDlTestModelResp"/>
+         </interface>
+      </interfaces>
+   </component>
+   <component name="TUP">
+      <xi:include href="TUPu.xml" xpath="//definitions[@name='TUPu']"/>
+      <xi:include href="TUPu.xml" xpath="//messages[@name='TUPu']"/>
+      <interfaces>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupCell']"/>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupSgnlSrb']"/>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupUser']"/>
+         <interface optimize="true" name="TupConfig" responsibleEditor="Markus Tauchnitz">
+            <xi:include href="TUPu.xml"
+                        xpath="//interface[@name='TupConfig']/message[@name='TUP_DataPathStatusInd']"/>
+            <xi:include href="TUPu.xml"
+                        xpath="//interface[@name='TupConfig']/message[@name='TUP_DataPathSupervisionReq']"/>
+            <xi:include href="TUPu.xml"
+                        xpath="//interface[@name='TupConfig']/message[@name='TUP_DataPathSupervisionResp']"/>
+            <xi:include href="TUPu.xml"
+                        xpath="//interface[@name='TupConfig']/message[@name='TUP_CoefficientRequestReq']"/>
+            <xi:include href="TUPu.xml"
+                        xpath="//interface[@name='TupConfig']/message[@name='TUP_CoefficientRequestResp']"/>
+         </interface>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupCellMeas']"/>
+     </interfaces>
+   </component>
+</system>

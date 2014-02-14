@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui configuration/if_editor.xui?><system name="LTE" xmlns:xi="http://www.nsn.com/2008/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions"/>
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <global-definitions name="DctMeasurementDefinitions">
+      <constant comment="Maximum number of DCI information issued every TTI." name="MAX_NUMBER_OF_DCI" value="32"/>
+      <constant comment="Maximum number PHICH groups in DL. In case of&#13;&#10;- normal cyclic prefix - max number of PHICH groups is 25&#13;&#10;- extended cyclic prefix - max number of PHICH group is 50&#13;&#10;(according to 3GPP 36.211 [6.9])" name="MAX_NUMBER_OF_PHICH_GRP" value="50"/>
+      <constant comment="Indicates how many DCI information structures can be included in a single report message." name="MAX_UL_DCI_PER_REPORT" value="32"/>
+      <constant comment="Indicates how many DCI information structures can be included in a single report message." name="MAX_DL_DCI_PER_REPORT" value="16"/>
+      <constant comment="Indicates the number of PDUs that the statistics can be reported in a single message (downlink)" name="MAX_DL_PDU" value="16"/>
+      <constant comment="Indicates the number of PDUs that the statistics can be reported in a single message (downlink)" name="MAX_DL_PDU_MIMO" value="32"/>
+      <constant comment="Indicates the number of PDUs that the statistics can be reported in a single message (uplink)" name="MAX_UL_PDU" value="32"/>
+      <constant comment="Indicates the maximum PDU size [number of bits]" name="MAX_PDU_SIZE" value="75376"/>
+      <constant comment="Maximum number of UL Resource Block Groups." name="MAX_UL_RBG" value="16"/>
+      <constant comment="Number of CQI values reported from UE" name="NUMBER_OF_CQI_VALUES" value="16"/>
+      <constant comment="Size of the &quot;dctDlLevOfdmGroup&quot; parameter in &quot;SDctDlLevL1Cell&quot;." name="DCT_DL_LEV_OFDM_GROUP_SIZE" value="3"/>
+      <constant name="MAX_PDU_PER_REPORT" value="75376"/>
+      <constant comment="Number of octets that carry PDU bits &#13;&#10;[number of bytes]" name="MAX_PDU_DATA_LENGTH" value="9422"/>
+      <constant name="MAX_U8_RANGE" value="255"/>
+      <constant comment="Indicates how many transportBlocks are scheduled. This IE has always value of 2 in current version." name="NUMBER_OF_TRANSPORT_BLOCKS" value="2"/>
+      <constant comment="Number of DCCH channels multiplexed on MAC PDU. Although the number of DCCH channels can vary there will be always 2 reports in the following group" name="NUMBER_OF_DCCH" value="2"/>
+      <constant comment="Number of statistics on DTCH channels multiplexed in PDU. Although the number of multiplexed DTCH channels can vary there will be always 8 reports in the following Group" name="NUMBER_OF_DTCH" value="8"/>
+      <constant name="DCT_G1M2_GROUP_SIZE" value="1"/>
+      <constant comment="Maximum number of detected preambles" name="MAX_NUMBER_OF_DETECTED_PREAMBLES" value="64"/>
+      <constant name="MAX_NUMBER_OF_DETECTED_PREAMBLES__VARIABLE_SIZE" value="MAX_NUMBER_OF_DETECTED_PREAMBLES"/>
+      <constant name="MAX_NUM_RB_PER_USER__VARIABLE_SIZE" value="MAX_NUM_RB_PER_USER"/>
+      <constant name="MAX_DL_DCI_PER_REPORT__VARIABLE_SIZE" value="MAX_DL_DCI_PER_REPORT"/>
+      <constant name="MAX_DL_PDU_MIMO__VARIABLE_SIZE" value="MAX_DL_PDU_MIMO"/>
+      <constant name="MAX_DL_PDU__VARIABLE_SIZE" value="MAX_DL_PDU"/>
+      <constant name="MAX_PDU_DATA_LENGTH__VARIABLE_SIZE" value="MAX_PDU_DATA_LENGTH"/>
+      <constant name="MAX_UL_DCI_PER_REPORT__VARIABLE_SIZE" value="MAX_UL_DCI_PER_REPORT"/>
+      <constant name="MAX_UL_PDU__VARIABLE_SIZE" value="MAX_UL_PDU"/>
+      <typedef comment="Indicates the throughput in bits per second (bps).&#13;&#10;For DCM it is assumed that at most 76000 bits can be transmitted in one TTI.&#13;&#10;" maxRange="76000000" minRange="0" name="TBitThroughput" type="u32"/>
+      <typedef comment="Resource allocation type according to 3GPP 25.213. The following encoding shall be used: &#13;&#10;Resource Allocation Type&#9;| Value&#13;&#10;----------------------------------------&#13;&#10;Type 0&#9;&#9;&#9;| 0&#13;&#10;Type 1&#9;&#9;&#9;| 1&#13;&#10;Type 2 with localized VRB&#9;| 2&#13;&#10;Type 2 with distributed VRB | 3" name="TResAllocType" type="u32"/>
+      <typedef comment="Defines the modulation coding scheme MCS. The following encoding shall be used: &#13;&#10;MCS&#9;| Value&#13;&#10;-----------------&#13;&#10;QPSK&#9;| 0&#13;&#10;16QAM&#9;| 1&#13;&#10;64QAM&#9;| 2" name="TMcsDct" type="u8"/>
+      <typedef comment="Relative power in dB units with 0.1 dB precision. The actual relative power value is obtained according to the following formula: Relative power value = value x 0.1&#13;&#10;The gain is to encode the linear equivalent of the relative logarithmic power dynamic range between -30 dB and +60dB on the integer data type. The following conversion formula shall be used to encode the relative power:&#13;&#10;Value = P_linear * 10**3 &#13;&#10;where:&#13;&#10;Value - encoded power value transmitted over the interface&#13;&#10;P_linear - linear representation of the relative power " name="TRelativePower" type="u32"/>
+      <typedef comment="TPC power commands. TPC commands shall be encoded depending on channel type and DCI format as indicated in 3GPP TS 36.213 (v860) in the following tables:&#13;&#10;- 5.1.1.1-2&#13;&#10;- 5.1.2.1-1&#13;&#10;- 6.2-1&#13;&#10;DCM uses only Accumulated" maxRange="7" minRange="0" name="TTpcCmd" type="u8"/>
+      <typedef comment="This type represents the HARQ evaluation received from UE in a single sub-frame. Because of MIMO operations in DL there may be up to 2 transport blocks (TB) per sub-frame. This type combines the result (Value) for doubled transport block.&#13;&#10;The value of TDlAckResult type is according to:&#13;&#10;Value = R_TB#0 + 4*R_TB#1&#13;&#10;where&#13;&#10;R_TB = 0 if there is no transmission for TB,&#13;&#10;R_TB = 1 if NACK has been received for TB,&#13;&#10;R_TB = 2 if the ACK has been received for TB,&#13;&#10;R_TB = 3 if the DTX has been received for TB,&#13;&#10;&#13;&#10;R_TB#0 : transport block 1&#13;&#10;R_TB#1 : transport block 2" name="TDlAckResult" type="u8"/>
+      <typedef comment="0:Low Fd 1:High Fd" maxRange="1" minRange="0" name="TFrequency" type="u32"/>
+      <typedef comment="Transmitted power&#13;&#10;Linear scale, unit = 10^-4 mW  " maxRange="1000000000" minRange="0" name="TLinearTxPower" pointer="false" type="u32"/>
+      <typedef comment="Type for Received power or interference power&#13;&#10;Linear scale, unit = 10^-14 mW  " maxRange="1000000000" minRange="0" name="TLinearRxPower" pointer="false" type="u32"/>
+      <struct name="SCodeWordBlockInformation">
+         <member maxRange="1" minRange="0" name="codewordIndex" type="u8"/>
+         <member comment="CQI&#13;&#10;FSM does actual value *1000 and output it&#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0x80000000) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, calculated value shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0x80000000) shall be used.&#13;&#10;In case of Msg4 or retransmission, Invalid value (0x80000000) shall be used." maxRange="35000" minRange="-20000" name="dctG6M30" type="i32"/>
+         <member comment="Offset Value in CQI offset adjustment&#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0x80000000) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, calculated value shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0x80000000) shall be used.&#13;&#10;FSM does actual value *1000 and output it" maxRange="15000" minRange="-15000" name="dctG6M31" type="i32"/>
+         <member comment="Received CQI (Wideband)&#13;&#10;In the case CRC NG,output value is defined in L1L2 spec 2.4.4.1.1(DCM know how). &#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, calculated value shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFFFFFFFF) shall be used.&#13;&#10;In case the CQI reception is not good due to the reliability judgment or CRC check failure, output latest Wideband CQI" maxRange="15" minRange="0" name="dctG6M32" type="u32"/>
+      </struct>
+      <struct forceGeneration="true" name="SDctDlPdcpSdu">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment=" " name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="This field is variable size which is depending on numOfDctDlPdcpSduResults" name="dctDlPdcpSduResults" type="SDctDlPdcpSduResult">
+            <dimension isVariableSize="true" minSize="1" size="MAX_NUM_RB_PER_USER__VARIABLE_SIZE"/>
+         </member>
+      </struct>
+      <struct name="SDctDlPdcpSduResult">
+         <member comment="Used to distinguish between SRB-ID (true) and DRB-ID (false)." name="isSrbId" type="TBoolean"/>
+         <member comment="Range SRB: 1..MAX_SRB_ID; range DRB 1..MAX_DRB_ID" maxRange="MAX_DRB_ID" minRange="1" name="rbIdentifier" type="TRadioBearerId"/>
+         <member comment="Accumulator of a number of bits delivered to PDCP from upper layers. This is used for calculation of “PDCP SDU Received Data Rate” on DCT.&#13;&#10;[number of bits]" name="dctG11M1" type="u32"/>
+         <member comment="Number of Received PDCP SDU&#13;&#10;[number of units]" name="dctG11M2" type="u32"/>
+         <member comment="Accumulator of the number of discarded PDCP SDUs in PDCP sub-layer for any reason except the reason &quot;RLC Max Retransmission Exceeded&quot;(After the support of “LTE1007-c Max RLC retransmissions for 11A”, the exception case is invalid).&#13;&#10;&#13;&#10;This is used for calculation of “Loss Rate of PDCP SDU” on DCT: dctG11M3 / (dctG11M3 + dctG15M2)&#13;&#10;[number of units]" name="dctG11M3" type="u32"/>
+         <member comment="Number of discarded PDCP SDU (Buffer Overflow)&#13;&#10;[number of units]&#13;&#10;" name="dctG11M4" type="u32"/>
+         <member comment="Number of discarded PDCP SDU (Over the Buffer Threshold)&#13;&#10;- G11M5 shall count SDUs discarded by only UE-based threshold&#13;&#10;- G11M5 shall not count SDUs discarded by Cell-based threshold&#13;&#10;[number of units]" name="dctG11M5" type="u32"/>
+         <member comment="Number of discarded PDCP SDU (Expiry of Discard Timer)&#13;&#10;[number of units]" name="dctG11M6" type="u32"/>
+         <member comment="Amount of PDCP SDUs that are buffered in PDCP sublayer.&#13;&#10;Instant value in the end of reporting period shall be reported.&#13;&#10;Zero value shall be reported for radio bearer identities that are not active.&#13;&#10;[number of bits]" name="dctG11M7" type="u32"/>
+         <member comment="Average Buffering time of PDCP SDU (Transmission)&#13;&#10;[milliseconds]" name="dctG11M8" type="u32"/>
+      </struct>
+      <struct forceGeneration="true" name="SDctDlLevL1Cell">
+         <member comment="System Frame Number of the last frame within the reporting period." maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="Subframe counter of the last subframe within the reporting period." maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Total TX power. Power is reported as a sum power of TX antennas.&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]" name="dctG1M13" type="TLinearTxPower"/>
+         <member comment="This field is fixed size." name="dciMappingInformationGroup" type="SDciMappingInformationGroup">
+            <dimension isVariableSize="true" size="MAX_NUMBER_OF_DCI"/>
+         </member>
+         <member comment="This field is fixed size." name="dciTxPowerGroup" type="SDciTxPowerGroup">
+            <dimension isVariableSize="true" size="MAX_NUMBER_OF_DCI"/>
+         </member>
+         <member comment="This field is fixed size.&#13;&#10;" name="phichGroupTxPowerGroup" type="SPhichGroupTxPowerGroup">
+            <dimension isVariableSize="true" size="MAX_NUMBER_OF_PHICH_GRP"/>
+         </member>
+         <member comment="This field is fixed size." name="dctDlLevOfdmGroup" type="SDctDlLevOfdmGroup">
+            <dimension size="DCT_DL_LEV_OFDM_GROUP_SIZE"/>
+         </member>
+      </struct>
+      <struct name="SDciMappingInformationGroup">
+         <member comment="Mapping of n-th DCI on CCE." maxRange="86" minRange="0" name="dctG1M14" type="u8"/>
+      </struct>
+      <struct name="SDciTxPowerGroup">
+         <member comment="Tx Power of L1 Cell.  Power is reported as a sum power of TX antennas.&#13;&#10;Instant value of the end of the measurement period&#13;&#10;Transmission power per RE of DCI transmitted&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]" name="dctG1M15" type="TLinearTxPower"/>
+      </struct>
+      <struct name="SPhichGroupTxPowerGroup">
+         <member comment="Transmit power of PHICH n-th group. Power is reported as a sum power of TX antennas.&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]&#13;&#10;Transmission power per RE of PHICH transmitted" name="dctG1M16Power" type="TLinearTxPower"/>
+         <member comment="Unused.&#13;&#10;This field is 1 as fixed value." defaultValue="1" maxRange="1" minRange="1" name="dctG1M16NumberOfResouceElements" type="u32"/>
+      </struct>
+      <struct name="SDctDlLevOfdmGroup">
+         <member comment="TX Power of n-th OFDM control symbol. Transmitted power for first 3 control symbols is reported. Power is reported as a sum power of TX antennas.&#13;&#10;In case one of these symbols are not configured for signaling a value of 0 is used.&#13;&#10;In case all symbols are not configured for signaling in measurement period, output is invalid value &quot;0xFFFF_FFFF&quot;.[DCT-PC converts the value to &quot;-&quot;.]&#13;&#10;In case symbols are configured and measurement  value is &quot;0&quot; , output value is &quot;0&quot;. [DCT-PC converts the value to &quot;-Inf.&quot;.]&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]" name="dctG1M17" type="TLinearTxPower"/>
+      </struct>
+      <struct comment="See additional Note D)" forceGeneration="true" name="SDctDlsch0">
+         <member comment="System Frame Number of the last frame within the reporting period." maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="This field is 1 as fixed value." maxRange="1" minRange="1" name="numberOfUsers" type="u32"/>
+         <member comment="This field is fixed size." name="dctDlSch0Results" type="SDctDlSch0Results">
+            <dimension minSize="1" size="1"/>
+         </member>
+      </struct>
+      <struct name="SDctDlSch0Results">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="Accumulated DL MAC PDU Transmitted Data Bits.&#13;&#10;[number of bits]&#13;&#10;As for first transmission, Adaptive retransmission, retransmission, both MAC PDU is accumulated&#13;&#10;" maxRange="1507520000" minRange="0" name="dctG5M2" type="u32"/>
+         <member comment=" numberOfSubframes. Number of subframes when the transmission was performed to UE" maxRange="10000" minRange="0" name="dctG5M4" type="u32"/>
+         <member comment="Number of Transmitted DL MAC PDU&#13;&#10;Total number of MAC PDU transmitted for particular UE.&#13;&#10;When there is some Codewords, the value that some Codewords was added to is reported&#13;&#10;" maxRange="20000" minRange="0" name="dctG5M5" type="u32"/>
+         <member comment="Sequence consisting of accumulated number of received CQI values for each CQI index&#13;&#10;This field is fixed size." name="dctG5M7Group" type="SDctG5M7Group">
+            <dimension size="NUMBER_OF_CQI_VALUES"/>
+         </member>
+         <member comment="Total number of PRB used for this UE's DL-SCH during the measurement period&#13;&#10;(100PRB*10000)" maxRange="1000000" minRange="0" name="dctG5M8" type="u32"/>
+         <member comment="Delay packed index during the last subframe of the measurement period.&#10;Invalid value 0xFF is used to indicate no Logical Channel with &#148;VoLTE bearer&#148; is configured&#10;" maxRange="3" minRange="0" name="dctG5M9" type="u8"/>
+         <member comment="Average CQI related to delay packed during the last subframe of the measurement period&#10;Range: -22.50...40.00&#10;Real value = (dctG5M10 / 100) - 22.5&#10;Invalid value 0xFFFF FFFF is used to indicate no Logical Channel with &#148;VoLTE bearer&#148; is configured&#10;" maxRange="6250" minRange="0" name="dctG5M10" type="u32"/>
+      </struct>
+      <struct name="SDctG5M7Group">
+         <member comment="WidebandCQI&#13;&#10;Accumulated number of received CQI values for n-th CQI index&#13;&#10;From FSM to DCT, the # of the received CQIn which I received in measurement period" name="numberOfCqiReports" type="u32"/>
+      </struct>
+      <struct comment="See additional Note D)" forceGeneration="true" name="SDctDlsch1">
+         <member comment="System Frame Number of the last frame within the reporting period.&#13;&#10;Note, this measurement is supported also with test model configuration" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="This field is 1 as fixed value." maxRange="1" minRange="1" name="numOfDctDlsch1Results" type="u32"/>
+         <member comment="Indicates number of RBS results structures&#13;&#10;This field is fixed size." name="dctDlsch1Results" type="SDctDlsch1Result">
+            <dimension minSize="1" size="1"/>
+         </member>
+      </struct>
+      <struct name="SDctDlsch1Result">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="Amount data of transmitted DL MAC PDU which received ACK &#13;&#10;[number of bits]" maxRange="1507520000" minRange="0" name="dctG5M3" type="u32"/>
+         <member comment="Number of Received DL MAC PDU ACK&#13;&#10;Note, this measurement is supported also with test model configuration&#13;&#10;Number of MAC PDU acknowledged by UE&#13;&#10;When there is some Codewords, the value that some Codewords was added to is reported&#13;&#10;" maxRange="10000" minRange="0" name="dctG5M6" type="u32"/>
+      </struct>
+      <struct comment="&#13;&#10;Note, reporting period for this measurement is always 1ms. Any other reporting period is not needed to support.&#13;&#10;See additional Note D)" forceGeneration="true" name="SDctDlschData0">
+         <member comment="(dctG6M1)&#13;&#10;Indicates SFN number when DLSCH transmitted" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="(dctG6M2)&#13;&#10;Indicates Sub-Frame Counter when DLSCH transmitted" maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="This field is variable size which is depending on numberOfDciElements" name="dctDlschData0Results" type="SDctDlschData0Result">
+            <dimension isVariableSize="true" size="MAX_DL_DCI_PER_REPORT__VARIABLE_SIZE" variableSizeFieldName="numberOfDciElements" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct name="SDctDlschData0Result">
+         <member comment="Radio Network Temporary Identifier (dctG6M3)&#13;&#10;Identifies user. This RNTI can be one of the following (depending on scheduled  channels and users):&#13;&#10;- C-RNTI&#13;&#10;- P-RNTI&#13;&#10;- SI-RNTI&#13;&#10;- RA-RNTI &#13;&#10;- temporary-CRNTI" name="rnti" type="TCrnti"/>
+         <member comment="Identifies user.&#10;&#10;In case of temporary UeId, value 0xFFFFFFFF is outputted." name="ueId" type="TUeId"/>
+         <member comment="Resource block assignment as defined in 3GPP 36.212 [5.3.3.1]&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFFFF FFFF) shall be used.&#13;&#10;&#10;Field of 28 bits without depending on the number of the bits of Resource block assignment, and it is seven columns by a hex digit.&#13;&#10;The bit string of Resource block assignment is at the right and the place without a bit is 0" maxRange="0x0FFFFFFF" minRange="0x00000000" name="dctG6M7" type="u32"/>
+         <member comment="Number of RBs which PDSCH was mapped onto&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFFFF FFFF) shall be used." maxRange="100" minRange="0" name="dctG6M5" type="u32"/>
+         <member comment="Resource allocation type&#13;&#10;Information to calculate assignment RB from Resource block assignment(TS36.212 5.3.3.1)&#10;&#10;0: resource allocation type 0&#10;1: resource allocation type 1&#10;2: resource allocation type 2 (localized VRB)&#10;3: resource allocation type 3 (distributed VRB)&#10;&#10;&#10;&#10;&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFFFF FFFF) shall be used." maxRange="3" minRange="0" name="dctG6M6" type="TResAllocType"/>
+         <member comment="DCI Format type&#13;&#10;- Format 1: 0x10 (1)&#13;&#10;- Format 1A: 0x11 (2)&#10;- Format 1A (Sync request procedure): 0x14 (3)&#13;&#10;- Format 1C: 0x12 (4)&#13;&#10;- Format 2: 0x20 (5)&#13;&#10;- Format 2A: 0x21 (6)&#10;&#10;In the parenthesis, it is printed value about the DCT-log.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used." maxRange="0x21" minRange="0x00" name="dctG6M4" type="TDciFormatType"/>
+         <member comment="HARQ swap flag&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;In case of DCI format type = 1,1A,1A(Sync request procedure), invalid value (0xFF) shall be used&#13;&#10;In the case of DCI format = 2,2A, FSM outputs an invalid value (0xFF) in the case of disable the Transport block." maxRange="1" minRange="0" name="dctG6M8" type="u8"/>
+         <member comment="HARQ process number&#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFFFF FFFF) shall be used." maxRange="7" minRange="0" name="dctG6M9" type="TResAllocType"/>
+         <member comment="In the case of DCI format is Format1A(Sync request procedure), this field is 0.&#13;&#10;In the case of DCI format 2,2A, this field is fixed 2." maxRange="NUMBER_OF_TRANSPORT_BLOCKS" minRange="0" name="numberOfTranportBlocks" type="u8"/>
+         <member comment="Indicates how many transportBlocks are scheduled. &#13;&#10;This field is fixed size." name="transportBlockInformationGroup" type="STransportBlockInformationGroup">
+            <dimension minSize="0" size="NUMBER_OF_TRANSPORT_BLOCKS"/>
+         </member>
+         <member name="codeWordBlockInformation" type="SCodeWordBlockInformation">
+            <dimension size="2"/>
+         </member>
+         <member comment="Average Data Rate&#10;[bits per second]&#10;Average Data Rate of Logical Channel with the Highest Priority.&#10;&#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, calculated value shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFFFF FFFF) shall be used." maxRange="150000000" minRange="0" name="dctG6M33" type="TBitThroughput"/>
+         <member comment="Mapping information of CCE which DL Scheduling Information is mapped onto. CCE is specified in TS36.213 10.1&#13;&#10;-In case that DL Scheduling Information was not transmit by PDCCH discard, output is -3.&#13;&#10;-In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, -3 value shall be used." maxRange="86" minRange="-3" name="dctG6M34" type="i32"/>
+         <member comment="PDCCH format for DL Scheduling Grant according to 3GPP 36.211 [6.8.1]&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, invalid value (0xFF) shall be used." maxRange="3" minRange="0" name="dctG6M35" type="u8"/>
+         <member comment="TPC command for PUCCH&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFF) shall be used." name="dctG6M20" type="TTpcCmd"/>
+         <member comment="Precoding information&#13;&#10;Bit field mapped index which specified in TS36.212 5.3.3.1.&#13;&#10;In case of DCI format type is 1, 1A, 1A(Sync request procedure), 1C or 2A, invalid value (0xFF) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used." maxRange="63" minRange="0" name="dctG6M21" type="u8"/>
+         <member comment="DL scheduling information &quot;Rank&quot;&#13;&#10;Number of Codeword&#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0xFF) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;In case of DCI format type is 1, 1A, 1A(Sync request procedure) or 1C, invalid value (0xFF) shall be used." maxRange="2" minRange="1" name="dctG6M37" type="u8"/>
+         <member comment="PUCCH information&#13;&#10;Resource index of PUCCH for ACK transmission which was specified in 36.213[10.1]&#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0xFF) shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFF) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, invalid value (0xFF) shall be used.&#13;&#10;" maxRange="2133" minRange="0" name="dctG6M38" type="u16"/>
+         <member comment="&#13;&#10;" name="dctG6M39" type="SDctSyncRequestInformation"/>
+         <member comment="Highest priority Logical Channel index &#10;&#10;defined in L1L2 spec 2.3.1.7.(DCM know how)&#10;&#10;Output:&#10;0 In case of no data&#10;0 In case of CCH only&#10;1 #1 DCCH SRB1(including case of MAC-CE Only)&#10;2 #2 DCCH SRB2 &#10;3 #3 DTCH DRB#1&#10;4 #4 DTCH DRB#2&#10;...&#10;" maxRange="10" minRange="0" name="dctG6M40" type="u8"/>
+         <member comment="g(i) &#10;&#10;see TS36.213 chapter 5.1.2.1 " maxRange="151" minRange="-150" name="dctG6M41" type="i32"/>
+         <member comment="Scheduling Coefficient&#10;&#10;&quot;Scheduling Coefficient&quot; is output by internal value. When adjusting  the unit to the L1L2ControlSpecification, use corrective calculation by the equation of below.&#10;C' = {5*Log2(C) + 5*Log2(10^7)} * 2^16&#10;where C is output value from FSM&#10;&#10;" name="dctG6M42" type="u32"/>
+         <member comment="dAvailable&#10;&#10;defined in L1L2 spec 2.3.1.7.2(DCM know how)&#10;" name="dctG6M43" type="i32"/>
+      </struct>
+      <struct name="SDctSyncRequestInformation">
+         <member comment="Random Access Preamble ID&#13;&#10;In the case of RNTI is P-RNTI, SI-RNTI, RA-RNTI invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of FormatType is not 1A(Sync request).invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#13;&#10;" maxRange="63" minRange="0" name="preambleIndex" type="u32"/>
+         <member comment="PRACH Mask Index&#13;&#10;In the case of RNTI is P-RNTI, SI-RNTI, RA-RNTI invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of FormatType is not 1A(Sync request).invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used." maxRange="15" minRange="0" name="prachmaskIndex" type="u32"/>
+      </struct>
+      <struct name="STransportBlockInformationGroup">
+         <member comment="Transport Block Number&#13;&#10;0 : transport block 1,  &#13;&#10;1 : transport block 2&#13;&#10;&#13;&#10;-In case of DCI format is Format 1A (Sync request procedure), transportBlockNumber #0 and transportBlockNumber #1 outputs invalid value 0xFF.&#13;&#10;-In case of DCI format is Format 1 and Format 1A and Format 1C, transportBlock #0 outputs valid value and transportBlock #1 outputs invalid value 0xFF.&#13;&#10;-In case of DCI format is Format 2/2A, transportBlock #0 and transportBlock #1 outputs valid value." maxRange="1" minRange="0" name="transportBlockNumber" type="u8"/>
+         <member comment="(dctG6M15)&#13;&#10;Modulation scheme&#13;&#10;*1  is applied to only transportBlockNumber=0&#13;&#10;*2  is applied to only transportBlockNumber=1&#13;&#10;*3  is applied to both transportBlockNumber=0 and transportBlockNumber=1&#13;&#10;&#13;&#10;*1: In case of DCI format type is 1A(Sync request procedure), invalid value (0xFF) shall be used.&#13;&#10;*2: In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;*3: In case of DCI format 2/2A and Transport Block disable, Invalid value (0xFF) shall be used.&#13;&#10;&#13;&#10;I" maxRange="2" minRange="0" name="dctG6M10" type="TMcsDct"/>
+         <member comment="(dctG6M16)&#13;&#10;MCS Index (Imcs)&#13;&#10;(defined in 3GPP TS 36.213, chapter 7.1.7.1)&#13;&#10;*1  is applied to only transportBlockNumber=0&#13;&#10;*2  is applied to only transportBlockNumber=1&#13;&#10;*3  is applied to both transportBlockNumber=0 and transportBlockNumber=1&#13;&#10;&#13;&#10;*1: In case of DCI format type is 1A(Sync request procedure), invalid value (0xFF) shall be used.&#13;&#10;*2: In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;" maxRange="31" minRange="0" name="dctG6M11" type="u8"/>
+         <member comment="(dctG6M18)&#13;&#10;New data indicator&#13;&#10;*1 and *2 are applied to only transportBlockNumber=0&#13;&#10;*3  is applied to only transportBlockNumber=1&#13;&#10;*4  is applied to both transportBlockNumber=0 and transportBlockNumber=1&#13;&#10;&#13;&#10;*1: In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0xFF) shall be used.&#13;&#10;*2: In case of DCI format type is 1A(Sync request procedure), invalid value (0xFF) shall be used.&#13;*4: In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;*5: In case of DCI format 2/2A and Transport Block disable, Invalid value (0xFF) shall be used." maxRange="1" minRange="0" name="dctG6M13" type="u8"/>
+         <member comment="(dctG6M12)&#13;&#10;Transport Block Size (TBS)&#13;&#10;&#13;&#10;*1 is applied to only transportBlockNumber=0&#13;&#10;*2  is applied to only transportBlockNumber=1&#13;&#10;*3  and *4 are applied to both transportBlockNumber=0 and transportBlockNumber=1&#13;&#10;*1: In case of DCI format type is 1A(Sync request procedure), invalid value (0xFFFF FFFF) shall be used.&#13;&#10;*2: In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used.&#13;&#10;*3: In case that DCI format type is 2 or 2A and transport block  disable, output value = 0 shall be used." maxRange="131071" minRange="0" name="dctG6M12" type="u32"/>
+         <member comment="(dctG6M19)&#13;&#10;Redundancy version&#13;&#10;*1  is applied to only transportBlockNumber=0&#13;&#10;*2  is applied to only transportBlockNumber=1&#13;&#10;*3  is applied to both transportBlockNumber=0 and transportBlockNumber=1&#13;&#10;*1: In case of DCI format type is 1A(Sync request procedure), invalid value (0xFF) shall be used.&#13;&#10;*2: In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, value which should have been transmitted as DL Scheduling Information shall be used." maxRange="3" minRange="0" name="dctG6M14" type="u8"/>
+         <member comment="Number of retransmission of MAC PDU&#13;&#10;0:the first transmission&#13;&#10;FSM reports #of retransmission.&#13;&#10;In case of rnti=P-RNTI, SI-RNTI or RA-RNTI, invalid value (0xFF) shall be used.&#13;&#10;In case that DL Scheduling Information is not transmitted due to lack of PDCCH resource, calculated value shall be used.&#13;&#10;In case of DCI format type = 1A(Sync request procedure), invalid value (0xFF) shall be used." maxRange="15" minRange="0" name="dctG6M36" type="u8"/>
+      </struct>
+      <struct comment="The following report consists of DL MAC PDU information elements statistics that is collected before the MAC PDU is about to be sent.&#13;&#10;Note, reporting period for this measurement is always 1ms. Any other reporting period is not needed to support.&#13;&#10;" forceGeneration="true" name="SDctDlschData1">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Indicates SFN number when DLSCH transmitted.&#13;&#10;&#13;&#10;FSM shall set the sfn to 0xFFFF FFFF in case there is no DLSCH transmission." maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="Indicates Sub-frame counter when DLSCH transmitted&#13;&#10;&#13;&#10;FSM shall set the subFrameCounter to 0xFFFF FFFF in case there is no DLSCH transmission." maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="This field is variable size which is depending on the value of numberOfPdus parameter" name="dctDlschData1Result" type="SDctDlschData1Result">
+            <dimension isVariableSize="true" minSize="0" size="MAX_DL_PDU_MIMO__VARIABLE_SIZE" variableSizeFieldName="numberOfPdus" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct comment="This structure contains information for all PDUs processed for reports" name="SDctDlschData1Result">
+         <member comment="Indicates the Transport Block ( 0 : transport block 1, 1 : transport block 2). In case of 2 transport blocks to be transmitted each of them is indicated as a separate group “SDctDlschData1Result”" maxRange="1" minRange="0" name="transportBlockNumber" type="u8"/>
+         <member comment="Identifies user. &#13;&#10;- C-RNTI" name="rnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="Number of multiplexed Logical CH. &#13;&#10;Total number of DCCH, DTCH and CCCH channels. (TS 36.321, Chapter 4.5.2)" maxRange="8" minRange="0" name="dctG6M28" type="u8"/>
+         <member comment="This field is fixed size.&#13;&#10;" name="dcchGroup" type="SDcchGroup">
+            <dimension minSize="NUMBER_OF_DCCH" size="NUMBER_OF_DCCH"/>
+         </member>
+         <member comment="This field is fixed size." name="dtchGroup" type="SDtchGroup">
+            <dimension minSize="NUMBER_OF_DTCH" size="NUMBER_OF_DTCH"/>
+         </member>
+         <member comment="MAC SDU size (CCCH)&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6m24" type="u32"/>
+         <member comment="MAC control element size&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6m25" type="u32"/>
+         <member comment="Padding size&#13;&#10;[number of bits]&#13;&#10;This does not include Padding MAC subheader&#13;&#10;Refer the 3GPP TS36.321 6.1.2.&#13;&#10;" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6m26" type="u32"/>
+         <member comment="MAC PDU size&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6m27" type="u32"/>
+      </struct>
+      <struct name="SDcchGroup">
+         <member comment="MAC SDU size (for n-th DCCH). In case n-th DCCH channel is not multiplexed a value of 0 is reported&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6M22" type="u32"/>
+      </struct>
+      <struct name="SDtchGroup">
+         <member comment="MAC SDU size (for n-th DTCH number). In case the n-th DTCH is not multiplexed a value of 0 is reported.&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6M23" type="u32"/>
+      </struct>
+      <struct comment="The following report consists of ACK / NACK reports received in eNB at MAC layer from UE.&#13;&#10;Notes and issues:&#13;&#10;1) This message structure shall be reported only if corresponding ACK / NACK received from UE.&#13;&#10;2) Note, reporting period for this measurement is always 1ms. Any other reporting period is not needed to support.&#13;&#10;See also additional Note D)" forceGeneration="true" name="SDctDlschData2">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Indicates the SFN number when the ACK/NACK has been received&#13;&#10;&#13;&#10;FSM shall set the sfn to 0xFFFF FFFF in case there is no ACK/NACK reception.&#13;&#10;&#13;&#10;Note, this measurement is supported also with test model configuration&#13;&#10;" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="Indicates the sub-frame counter when the ACK/NACK has been received.&#13;&#10;&#13;&#10;FSM shall set the subFrameCounter to 0xFFFF FFFF in case there is no ACK/NACK reception.&#13;&#10;&#13;&#10;Note, this measurement is supported also with test model configuration&#13;&#10;" maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="This field is variable size which is depending on numberOfAckNack" name="ackNackResults" type="SAckNackResult">
+            <dimension isVariableSize="true" minSize="0" size="MAX_DL_PDU__VARIABLE_SIZE" variableSizeFieldName="numberOfAckNack" variableSizeFieldType="u8"/>
+         </member>
+      </struct>
+      <struct name="SAckNackResult">
+         <member comment="Result of received ACK/NACK for two transport blocks&#13;&#10;Note, this measurement is supported also with test model configuration&#10;&#10;dctG6M29&#10;=[b7:b6:b5:b4:b3:b2:b1:b0]&#10;&lt;TB#0&gt;&#10;[b1 b0 :DCT output]&#10;0   0 :&quot;-&quot; :Invalid&#10;0   1 : 1 :NACK&#10;1   0 : 0 :ACK&#10;1   1 : 2 :DTX&#10;&#10;&lt;TB#1&gt;&#10;[b3 b2 :DCT output]&#10;0   0 :&quot;-&quot; :Invalid&#10;0   1 : 1 :NACK&#10;1   0 : 0 :ACK&#10;1   1 : 2 :DTX" maxRange="15" minRange="0" name="dctG6M29" type="TDlAckResult"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+      </struct>
+      <struct comment="The following report consists of DL MAC PDU information elements statistics for the Random Access Responses, Paging and System Information Update procedures.&#13;&#10;Statistics is collected when the MAC PDU is about to be sent.&#13;&#10;Note, reporting period for this measurement is always 1ms. Any other reporting period is not needed to support. Measurement report is sent only when there is MAC PDU to be reported." forceGeneration="true" name="SDctDlschData3">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Indicates SFN number when DLSCH transmitted." maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="Indicates Sub-frame counter when DLSCH transmitted" maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="Running number from the beginning of the measurement. Incremented by one for each reported SDctDlschData3 structure" maxRange="255" minRange="0" name="sequenceNumber" type="u8"/>
+         <member comment="This field is variable size which is depending on the value of numberOfPdus parameter" name="dctDlschData3Result" type="SDctDlschData3Result">
+            <dimension isVariableSize="true" minSize="0" size="MAX_DL_PDU__VARIABLE_SIZE" variableSizeFieldName="numberOfPdus" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct name="SDctDlschData3Result">
+         <member comment="Identifies user. &#13;&#10;- P-RNTI&#13;&#10;- SI-RNTI&#13;&#10;- RA-RNTI" name="rnti" type="TCrnti"/>
+         <member comment="Padding size&#13;&#10;[number of bits]&#13;&#10;&#13;&#10;-In case of RNTI=RA-RNTI, padding is padding(opt) of MAC PDU(Random Access Response). Refer the 3GPP TS36.321 6.1.5.&#13;&#10;-In case of RNTI=P-RNTI, SI-RNTI, padding is RRC level padding. Refer the 3GPP TS36.331 8.5.&#13;&#10;-In case of RNTI=P-RNTI, SI-RNTI, RA-RNTI and CCE resource is shortage(PDCCH discard), Invalid value(0xFFFFFFFF) shall be used" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6m26" type="u32"/>
+         <member comment="MAC PDU size&#13;&#10;[number of bits]&#13;&#10;&#13;&#10;- In case of RNTI=P-RNTI, SI-RNTI, RA-RNTI and CCE resource is shortage(PDCCH discard), Invalid value(0xFFFFFFFF) shall be used" maxRange="MAX_PDU_SIZE" minRange="0" name="dctG6m27" type="u32"/>
+         <member comment="-In case of RNTI is RA-RNTI , should be transmitted as # of multiplexed MAC RAR in a Random Access Response&#13;&#10;-In case of RNTI is P-RNTI SI-RNTI, invalid value(0xFF) shall be used.&#13;&#10;-In case of RNTI is RA-RNTI and CCE resource is shortage (PDCCH discard), invalid value(0xFF) shall be used." maxRange="8" minRange="0" name="dctG6M28" type="u8"/>
+      </struct>
+      <struct comment="Note, reporting period for this measurement is always 1ms.&#13;&#10;Note, In case that the measured UE has not PDU's to report, FSM is not sending report at all. So no empty reports." forceGeneration="true" name="SDctMacPduDump">
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="- At DCT_DL_MAC_PDU_DUMP, indicates SFN number when DLSCH transmitted. &#13;&#10;- At DCT_UL_MAC_PDU_DUMP, System Frame Number of the frame when ULSCH is received." maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="- At DCT_DL_MAC_PDU_DUMP, indicates Sub-Frame Counter when DLSCH transmitted. &#13;&#10;- At DCT_UL_MAC_PDU_DUMP, Sub-frame number of the sub-frame when ULSCH is received." maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="# of re-transmission. Shall be set to 0xFF in UL case" maxRange="15" minRange="0" name="nbrOfRetransmission" type="u8"/>
+         <member comment="Running number from the beginning of the measurement. Incremented by one for each dumped PDU" maxRange="255" minRange="0" name="sequenceNumber" type="u8"/>
+         <member comment="PDU size [number of bits]" maxRange="MAX_PDU_PER_REPORT" minRange="0" name="pduSize" type="u32"/>
+         <member comment="Dumped MAC PDU. MAC PDU is specified in the 3GPP TS 36.321, chapter 6.1 Protocol Data Units&#13;&#10;This field is variable size which is depending on pduDataLength. &#13;&#10;Note, this field is word aligned. In case the pduSize value is not word aligned, the unused payload is don't care." name="dctG7M1" type="u8">
+            <dimension isVariableSize="true" minSize="0" size="MAX_PDU_DATA_LENGTH__VARIABLE_SIZE" variableSizeFieldName="pduDataLength" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct comment="Notes and issues:&#13;&#10;1) IE “dctG9M3” (Loss Rate of AMD PDU) shall be set to 0xFFFFFFFF if no ACK and no NACK has been received in the reporting period (# ACKed AM PDU + # NACKed AM PDU is 0).&#13;&#10;2) Measurements dctG9M1 and dctG9M2 does not include the Control PDU throughput, that is bits of STATUS PDU are not accounted." forceGeneration="true" name="SDctUlRlcAmPdu">
+         <member comment="This field is fixed size" name="rbsResults" type="SUlRbsAmResult">
+            <dimension isVariableSize="true" minSize="1" size="1" variableSizeFieldName="numberOfUsers" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct name="SUlRbsAmResult">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="This field is fixed size" name="dctUlRlcAmPduResults" type="SDctUlRlcAmPduResult">
+            <dimension isVariableSize="true" minSize="1" size="MAX_NUM_RB_PER_USER" variableSizeFieldName="numberOfRadioBearers" variableSizeFieldType="u8"/>
+         </member>
+      </struct>
+      <struct name="SDctUlRlcAmPduResult">
+         <member comment="Used to distinguish between SRB-ID (true) and DRB-ID (false)." name="isSrbId" type="TBoolean"/>
+         <member comment="Range SRB: 1..MAX_SRB_ID; range DRB 1..MAX_DRB_ID" maxRange="MAX_DRB_ID" minRange="1" name="rbIdentifier" type="TRadioBearerId"/>
+         <member comment="Accumulator of number of bits of AMD PDU received from lower layers. This is used for calculation of “RLC data PDU Received Data Rate” in DCT.&#13;&#10;[number of bits]&#13;&#10;- It is not including Control PDU" name="dctG9M4" type="u32"/>
+      </struct>
+      <struct comment="Notes and issues:&#13;&#10;1) IE “dctG9M3” (Loss Rate of AMD PDU) shall be set to 0xFFFFFFFF if no ACK and no NACK has been received in the reporting period (# ACKed AM PDU + # NACKed AM PDU is 0).&#13;&#10;2) Measurements dctG9M1 and dctG9M2 does not include the Control PDU throughput, that is bits of STATUS PDU are not accounted." forceGeneration="true" name="SDctDlRlcAmPdu">
+         <member comment="This field is 1 as fixed value." maxRange="1" minRange="1" name="numberOfUsers" type="u32"/>
+         <member comment="This field is fixed size" name="rbsResults" type="SDlRbsAmResult">
+            <dimension minSize="1" size="1"/>
+         </member>
+      </struct>
+      <struct name="SDlRbsAmResult">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="This field is fixed size" name="dctDlRlcAmPduResults" type="SDctDlRlcAmPduResult">
+            <dimension isVariableSize="true" minSize="1" size="MAX_NUM_RB_PER_USER" variableSizeFieldName="numberOfRadioBearers" variableSizeFieldType="u8"/>
+         </member>
+      </struct>
+      <struct name="SDctDlRlcAmPduResult">
+         <member comment="Used to distinguish between SRB-ID (true) and DRB-ID (false)." name="isSrbId" type="TBoolean"/>
+         <member comment="Range SRB: 1..MAX_SRB_ID; range DRB 1..MAX_DRB_ID" maxRange="MAX_DRB_ID" minRange="1" name="rbIdentifier" type="TRadioBearerId"/>
+         <member comment="RLC data PDU Transmission Rate&#13;&#10;Accumulator of number of bits of AMD PDU including first transmission and retransmission. This is used for calculation of “RLC data PDU Transmission Rate” in DCT.&#13;&#10;[number of bits]&#13;&#10;- It is not including Control PDU" name="dctG9M1" type="u32"/>
+         <member comment="RLC data PDU reTransmission Rate&#13;&#10;Accumulator of number of bits of retransmitted AMD PDU. This is used for calculation of  “RLC data PDU Retransmission Rate” in DCT.&#13;&#10;[number of bits]" name="dctG9M2" type="u32"/>
+         <member comment="Loss Rate of AMD PDU&#13;&#10;[%]&#13;&#10;[#of AMD PDU which NACK was confirmed in measurement period]/[ #of AMD PDU which ACK or NACK was confirmed in measurement period]&#13;&#10;Invalid value is &quot;0xFFFF FFFF &quot;." name="dctG9M3" type="TPercentage"/>
+      </struct>
+      <struct forceGeneration="true" name="SDctUlRlcUmPdu">
+         <member comment="This field is fixed size" name="rbsResults" type="SUlRbsUmResult">
+            <dimension isVariableSize="true" minSize="1" size="1" variableSizeFieldName="numberOfUsers" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct name="SUlRbsUmResult">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="This field defines the number of valid elements in the &quot;dctUlRlcUmPduResults&quot; array.&#10;&#10;When the RLCUMPDU includes AM setting only, number of radio bearers shall be 0." name="numberOfRadioBearers" type="u8"/>
+         <member comment="This field is fixed size" name="dctUlRlcUmPduResults" type="SDctUlRlcUmPduResult">
+            <dimension minSize="0" size="MAX_NUM_RB_PER_USER" variableSizeFieldName="numberOfRadioBearers" variableSizeFieldType="u8"/>
+         </member>
+      </struct>
+      <struct name="SDctUlRlcUmPduResult">
+         <member comment="Used to distinguish between SRB-ID (true) and DRB-ID (false)." name="isSrbId" type="TBoolean"/>
+         <member comment="Range SRB: 1..MAX_SRB_ID; range DRB 1..MAX_DRB_ID" maxRange="MAX_DRB_ID" minRange="1" name="rbIdentifier" type="TRadioBearerId"/>
+         <member comment="Accumulator of number of bit of UM RLC received from lower layers. This is used for calculation of “UL UMD PDU Received Data Rate” in DCT.&#13;&#10;[number of bits]" name="dctG9M6" type="u32"/>
+      </struct>
+      <struct forceGeneration="true" name="SDctDlRlcUmPdu">
+         <member comment="This field is 1 as fixed value." maxRange="1" minRange="1" name="numberOfUsers" type="u32"/>
+         <member comment="This field is fixed size" name="rbsResults" type="SDlRbsUmResult">
+            <dimension minSize="1" size="1"/>
+         </member>
+      </struct>
+      <struct name="SDlRbsUmResult">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="This field defines the number of valid elements in the &quot;dctDlRlcUmPduResults&quot; array.&#10;&#10;When the RLCUMPDU includes AM setting only, number of radio bearers shall be 0." name="numberOfRadioBearers" type="u8"/>
+         <member comment="This field is fixed size" name="dctDlRlcUmPduResults" type="SDctDlRlcUmPduResult">
+            <dimension minSize="0" size="MAX_NUM_RB_PER_USER" variableSizeFieldName="numberOfRadioBearers" variableSizeFieldType="u8"/>
+         </member>
+      </struct>
+      <struct name="SDctDlRlcUmPduResult">
+         <member comment="Used to distinguish between SRB-ID (true) and DRB-ID (false)." name="isSrbId" type="TBoolean"/>
+         <member comment="Range SRB: 1..MAX_SRB_ID; range DRB 1..MAX_DRB_ID" maxRange="MAX_DRB_ID" minRange="1" name="rbIdentifier" type="TRadioBearerId"/>
+         <member comment="Accumulator of number of bit of UM RLC transmitted to lower layers. This is used for calculation of “DL UMD PDU Transmission Rate” in DCT&#13;&#10;[number of bits]" name="dctG9M5" type="u32"/>
+      </struct>
+      <struct comment="See additional Note D)" forceGeneration="true" name="SDctUlLevL1Cell">
+         <member comment="(dctG1M1)&#13;&#10;System Frame Number of the last frame within the reporting period.&#13;&#10;Note, this measurement is supported also with test model configuration" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="Identifies the cell" maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="It is normalized by RB&#13;&#10;Note, this measurement is supported also with test model configuration" name="dctG1M2Group" type="SDctG1M2Group"/>
+         <member comment="PUSCH Interference level of the whole channel band&#13;&#10;It is averaged over all the sampling subframes&#13;&#10;It is normalized by RB which is allocated to PUSCH.&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]&#13;&#10;Note, this measurement is supported also with test model configuration" name="dctG1M4" type="TLinearRxPower"/>
+         <member comment="PUCCH interference level&#13;&#10;It is normalized by RB&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]&#13;&#10;Note, this measurement is supported also with test model configuration" name="dctG1M6" type="TLinearRxPower"/>
+         <member comment="PRACH interference level&#13;&#10;value per 6RB&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]" name="dctG1M7" type="TLinearRxPower"/>
+         <member comment="This field is fixed size." name="ulRbgGroup" type="SUlRbgGroup">
+            <dimension isVariableSize="true" minSize="1" size="MAX_UL_RBG" variableSizeFieldName="numberOfUlRbg" variableSizeFieldType="u8"/>
+         </member>
+      </struct>
+      <struct name="SDctG1M2Group">
+         <member comment="Received level of the whole channel band on branch 0.&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]" name="rxPowerBranch0" type="TLinearRxPower"/>
+         <member comment="Received level of the whole channel band on branch 1 (diversity)&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]" name="rxPowerBranch1" type="TLinearRxPower"/>
+      </struct>
+      <struct name="SUlRbgGroup">
+         <member comment="Received level of RB group for n-th RB group.&#13;&#10;It is normalized by RB&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]" name="dctG1M3" type="TLinearRxPower"/>
+         <member comment="Interference level of n-th RB group&#13;&#10;It is normalized by RB&#13;&#10;[FSM shall report linear value - DCT-AP converts into dBm]&#13;&#10;Transmission power per RE of DCI transmitted" name="dctG1M5" type="TLinearRxPower"/>
+      </struct>
+      <struct comment="See additional Note D)" forceGeneration="true" name="SDctUlLevL1Ue">
+         <member comment="System Frame Number of the last frame within the reporting period." maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="This field is 1 as fixed value." maxRange="1" minRange="1" name="numberOfUsers" type="u32"/>
+         <member comment="This field is fixed size." name="dctUlLevL1UeResults" type="SDctUlLevL1UeResult">
+            <dimension minSize="1" size="1"/>
+         </member>
+      </struct>
+      <struct name="SDctUlLevL1UeResult">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="Sounding RS SIR of the whole channel band&#13;&#10;[dB converted to linear scale]&#13;&#10;It is averaged over all sampling subframes during the reporting  period.&#13;&#10;In case that SRS transmit status is NG, invalid value (0x0000_0000) shall be used." name="dctG1M9" type="TRelativePower"/>
+         <member comment="This field is fixed size" name="ulRbgGroup" type="SUlRbgGroup2">
+            <dimension isVariableSize="true" minSize="1" size="MAX_UL_RBG" variableSizeFieldName="numberOfUlRbg" variableSizeFieldType="u8"/>
+         </member>
+         <member comment="Result of Doppler frequency estimation judgment – UE mobility detection" name="dctG2M10" type="TFrequency"/>
+         <member comment="PUCCH SIR&#13;&#10;[dB converted to linear scale]&#13;&#10;Instant value at the last subframe in the measurement period which measured by PUCCH format2. &#13;&#10;PUCCH format2 is the value that is not be subtracted g(i) and offset of TX power according to transfer bits.&#13;&#10;&#13;&#10;In case of not  received PUCCH format2 during  measurement period, &quot;0&quot; shall be used." name="dctG1M18" type="TRelativePower"/>
+         <member name="dctG1M19" type="SUlSyncStatus"/>
+      </struct>
+      <struct name="SUlRbgGroup2">
+         <member comment="Sounding RS SIR of n-th RB group.&#13;&#10;[dB converted to linear scale]&#13;&#10;It is averaged over all sampling subframes during the reporting  period.&#13;&#10;In case that SRS transmit status is NG, invalid value (0x0000_0000) shall be used. And SRS transmit status is OK, value is SIR, not related to Pathloss.&#13;&#10;This is averaged by linear" name="dctG1M10" type="TRelativePower"/>
+      </struct>
+      <struct comment="Notes and issues:&#13;&#10;1) Measurement indicated as dctG10M1 “Loss Rate of PDCP PDU (UL)” is calculated as a ratio Loss Rate [%] = dctG10M1A/(dctG10M1A+dctG10M1N)*100”  in DCT." forceGeneration="true" name="SDctUlPdcpPdu">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment=" " name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="This field is variable size which is depending on numOfDctUlPdcpPduResults" name="dctUlPdcpPduResults" type="SDctUlPdcpPduResult">
+            <dimension isVariableSize="true" minSize="1" size="MAX_NUM_RB_PER_USER__VARIABLE_SIZE"/>
+         </member>
+      </struct>
+      <struct name="SDctUlPdcpPduResult">
+         <member comment="Used to distinguish between SRB-ID (true) and DRB-ID (false)." name="isSrbId" type="TBoolean"/>
+         <member comment="Range SRB: 1..MAX_SRB_ID; range DRB 1..MAX_DRB_ID" maxRange="MAX_DRB_ID" minRange="1" name="rbId" type="TRadioBearerId"/>
+         <member comment="(component N)&#13;&#10;Number of PDCP PDUs received from lower layer. This is used for calculation of “Loss Rate of PDCP PDU (UL)” in DCT." name="dctG10M1N" type="u32"/>
+         <member comment="(component A)&#13;&#10;Number of missed sequence numbers of PDCP PDUs received from lower layer. This is used for calculation of “Loss Rate of PDCP PDU (UL)” in DCT." name="dctG10M1A" type="u32"/>
+      </struct>
+      <struct comment="See additional Note D)" forceGeneration="true" name="SDctUlsch0">
+         <member comment="(dctG2M1)&#13;&#10;System Frame Number of the last frame within the reporting period." maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="This field is 1 as fixed value." maxRange="1" minRange="1" name="numberOfUsers" type="u32"/>
+         <member comment="This field is fixed size" name="SDctUlsch0Results" type="SDctUlsch0Result">
+            <dimension minSize="1" size="1"/>
+         </member>
+      </struct>
+      <struct name="SDctUlsch0Result">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="Accumulated UL MAC PDU Received Data Bits.&#13;&#10;[number of bits]&#13;&#10;As for first transmission, Adaptive retransmission, retransmission&#13;&#10;&#10;Note: for TTI bundling (supported from RLD6):&#10;In TTI bundling case, it shall be counted as one TB for 4TTI.&#10;Even when a part of bundle is included in Measurement Gap, it shall be counted as 1TB.&#10;" maxRange="468880000" minRange="0" name="dctG2M2" type="u32"/>
+         <member comment="Amount of data buffered in UE’s UL MAC&#13;&#10;(150000bits/Logchgroup/&#13;&#10;UE/Subframe*4logchgroup=600000bit)&#13;&#10;[number bits]&#13;&#10;The last instant value in measurement period" name="dctG2M7" type="u32"/>
+         <member comment="Pathloss&#13;&#10;It is averaged over all sampling subframes during the reporting period.&#13;&#10;This is averaged by linear&#13;&#10;FSM shall report dB value, unit = 0.01 dB" name="dctG2M8" type="u32"/>
+         <member comment="Total number of PRB used for this UE’s UL-SCH during the measurement period&#13;&#10;(100PRB*10000)" maxRange="1000000" minRange="0" name="dctG2M9" type="u32"/>
+         <member comment="Periodic Grant Index during the last subframe of the measurement period.&#10;Invalid value 0xFF is used to indicate no Logical Channel with &#148;VoLTE bearer&#148; is configured &#10;&#10;In case of Periodic Grant Status = OFF:&#10;If no previous calculated value available, initial value shall be used&#10;If previous calculated value exist it shall be reported.&#10;" maxRange="3" minRange="0" name="dctG2M11" type="u8"/>
+         <member comment="Periodic Grant Status during the last subframe of the measurement period.&#10;0:Periodic Grant = OFF&#10;1:Periodic Grant = ON&#10;Invalid value 0xFF is used to indicate no Logical Channel with &#148;VoLTE bearer&#148; is configured &#10;" maxRange="1" minRange="0" name="dctG2M12" type="u8"/>
+         <member comment="DMRS SIR for periodic grant during the last subframe of the measurement period.&#10;&#10;[FSM shall report dB value,unit = 0.001 dB]&#10;Range: -157dB...188dB&#10;&#10;Invalid value 0x80000000 is used to indicate no Logical channel with VoLTE bearer is configured or that DMRS SIR is not yet calculated" maxRange="188000" minRange="-157000" name="dctG2M13" type="i32"/>
+      </struct>
+      <struct comment="UL MAC PDU Received Throughput2" name="SDctG2M4">
+         <member comment="Accumulated number of bits received which CRC Oked within the reporting period&#13;&#10;[number of bits]&#10;&#10;Note: In case of TTI bundling (supported from RLD6):&#10;In the case of CRC OK in TTI bundling period, this item shall be counted as CRC OK for one TB for bundled TTI." name="accumulatedData" type="u32"/>
+         <member comment="Number of subframes when the transmission was performed.&#10;&#10;Note: In case of TTI bundling (supported from RLD6):&#10;&#10;all  &quot;numberOfSubframes when the transmission was performed&quot; which are bundled should be reported.&#10;It means that 4TTIs are counted for transmission of UL-SCH by UL Scheduling Grant or PHICH(NACK)&#10;Even in the case of Measurement Gap on  a part of bundled TTI, but is always 4(TTI)" name="numberOfSubframes" type="u16"/>
+      </struct>
+      <struct comment="See additional Note D)" forceGeneration="true" name="SDctUlsch1">
+         <member comment="System Frame Number of the last frame within the reporting period.&#13;&#10;Note, this measurement is supported also with test model configuration" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="This field is 1 as fixed value." maxRange="1" minRange="1" name="numberOfUsers" type="u32"/>
+         <member comment="This field is fixed size" name="SDctUlsch1Results" type="SDctUlsch1Result">
+            <dimension minSize="1" size="1"/>
+         </member>
+      </struct>
+      <struct name="SDctUlsch1Result">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="CRC OKed UL MAC PDU Received Throughput1 – received data averaged over 100 ms&#13;&#10;[bits per 100 ms]&#13;&#10;Note, this measurement is supported also with test model configuration&#10;&#10;Note: Incase of TTI bundling (supported from RLD6):&#10;In the case of CRC OK in TTI bundling period, this item should be counted  it as CRC OK for one TB for bundled TTI.&#10;" name="dctG2M3" type="u32"/>
+         <member comment="Number of Received UL MAC PDU&#13;&#10;Note, this measurement is supported also with test model configuration&#13;&#10;This measurement value includes CRC Oked and CRC NG values&#10;&#10;Note: Incase of TTI bundling (supported from RLD6):&#10;In TTI bundling period, this item shall be counted as one.&#10;Even in the case of Measurement Gap on  a part of bundled TTI, but is always counted as one." maxRange="10000" minRange="0" name="dctG2M5" type="u32"/>
+         <member comment="Number of UL MAC PDU CRC Oked&#13;&#10;Note, this measurement is supported also with test model configuration&#10;&#10;Note: Incase of TTI bundling (supported from RLD6):&#10;In the case of CRC OK in TTI bundling period, this item should be counted  it as CRC OK for  one TB for bundled TTI.&#10;" maxRange="10000" minRange="0" name="dctG2M6" type="u32"/>
+         <member comment="UL MAC PDU Received Throughput2" name="dctG2M4" type="SDctG2M4"/>
+      </struct>
+      <struct comment="Note, reporting period for this measurement is always 1ms. Any other reporting period is not needed to support.&#13;&#10;See additional note D)" forceGeneration="true" name="SDctUlschData0">
+         <member comment="Identifies the cell" maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="(dctG3M1)&#13;&#10;System Frame Number of the frame when ULSCH is received" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="(dctG3M2)&#13;&#10;Sub-frame number of the sub-frame when ULSCH is received" maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="This field is variable size which is depending on numberOfDciElements" name="SDctUlschData0Results" type="SDctUlschData0Result">
+            <dimension isVariableSize="true" minSize="0" size="MAX_UL_DCI_PER_REPORT__VARIABLE_SIZE" variableSizeFieldName="numberOfDciElements" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct name="SDctUlschData0Result">
+         <member comment="Don't care" name="dciFormat" type="TDciFormatType"/>
+         <member comment="Hopping flag&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF&#10;" maxRange="1" minRange="0" name="dctG3M4" type="u8"/>
+         <member comment="Number of PRBs which PUSCH was mapped onto&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="100" minRange="1" name="dctG3M5" type="u8"/>
+         <member comment="The first PRB number which PUSCH was mapped onto&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#13;&#10;When PUSCH Hopping is supported, output value is before the Hopping value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="99" minRange="0" name="dctG3M6" type="u8"/>
+         <member comment="The last RB number which PUSCH was mapped onto&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#13;&#10;When PUSCH Hopping is supported, output value is before the Hoppingvalue which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="99" minRange="0" name="dctG3M7" type="u8"/>
+         <member comment="Modulation scheme&#10;0: QPSK&#10;1: 16QAM&#10;2: 64QAM&#10;&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="2" minRange="0" name="dctG3M8" type="TMcsDct"/>
+         <member comment="MCS Index (Imcs)&#13;&#10;(3GPP 36.213 [8.6.1-1])&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="31" minRange="0" name="dctG3M9" type="u8"/>
+         <member comment="New data indicator&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#13;&#10;In the case of message3(initial) transmission, output value is 0Xff&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="1" minRange="0" name="dctG3M11" type="u8"/>
+         <member comment="TPC command for scheduled PUSCH&#13;&#10;Invalid value (0xFF) shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" name="dctG3M12" type="TTpcCmd"/>
+         <member comment="Cyclic shift for DMRS&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#13;&#10;Invalid value is &quot;0xFF&quot;&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="7" minRange="0" name="dctG3M13" type="u8"/>
+         <member comment="CQI request&#13;&#10;Invalid value (0xFF) shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="1" minRange="0" name="dctG3M14" type="u8"/>
+         <member comment="TTI bundling information&#10;&#10;0x00: TTI bundling OFF &#10;0x91: TTI bundling ON, TTI bundling information = 0, final TTI&#10;0x01: TTI bundling ON, TTI bundling information = 0&#10;0xCC: TTI bundling ON, TTI bundling information = 0, TTI skipped&#10;0x11: TTI bundling ON, TTI bundling information = 1, non final TTI&#10;0x41: TTI bundling ON, TTI bundling information = 1, final TTI&#10;0x21:TTI bundling ON, TTI bundling information = 2, non final TTI&#10;0x51:TTI bundling ON, TTI bundling information = 2, final TTI&#10;0x31:TTI bundling ON, TTI bundling information = 3. Final TTI, 4 tb received&#10;0x61:TTI bundling ON, TTI bundling information = 3. Final TTI, 3 tb received&#10;0x71:TTI bundling ON, TTI bundling information = 3. Final TTI, 2 tb received&#10;0x81:TTI bundling ON, TTI bundling information = 3. Final TTI, 1 tb received&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, the following values shall be used depending on TTI bundling ON/OFF and measurement gap: 0x00" maxRange="0xCC" minRange="0x00" name="dctG3M41" type="u8"/>
+         <member comment="(dctG3M3)&#13;&#10;Identifies user. This can be either C-RNTI or Temporary C-RNTI (depending on channel type and user)&#13;&#10;When UL scheduling grant did not transmit by PDCCH discard, output is necessary.&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user.&#10;&#10;In case of temporary UeId, value 0xFFFFFFFF is outputted." name="ueId" type="TUeId"/>
+         <member comment="Transport Block Size (TBS)&#13;&#10;[number of bits]&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0xFFFF FFFF" maxRange="47000" minRange="0" name="dctG3M10" type="u32"/>
+         <member comment="Sounding RS SIR&#13;&#10;[FSM shall report dB value, unit = 0.001 dB]&#13;&#10;In case that received UL-SCH is Message 3, invalid value (0x80000000) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="188000" minRange="-157000" name="dctG3M25" type="i32"/>
+         <member comment="PUSCH_SIR1&#13;&#10;[FSM shall report dB value,unit = 0.001 dB]&#13;&#10;In case that received UL-SCH is Message 3, invalid value (0x80000000) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="188000" minRange="-157000" name="dctG3M26" type="i32"/>
+         <member comment="PUSCH_SIR2&#13;&#10;[FSM shall report dB value, unit = 0.001 dB]&#13;&#10;In case that received UL-SCH is Message 3, invalid value (0x80000000) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000&#10;" maxRange="188000" minRange="-157000" name="dctG3M27" type="i32"/>
+         <member comment="PUSCH_SIR3&#13;&#10;[FSM shall report dB value, unit = 0.001 dB]&#13;&#10;In case that received UL-SCH is Message 3, invalid value (0x80000000) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="188000" minRange="-157000" name="dctG3M28" type="i32"/>
+         <member comment="Pathloss&#13;&#10;In case that received UL-SCH is Message 3, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#13;&#10;DB scale, unit = 0.01 dB. Invalid value is 0xFFFF FFFF&#13;&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" name="dctG3M29" type="u32"/>
+         <member comment="UPH&#13;&#10;&#13;&#10;FSM should output G3M30 as the following formula.&#13;&#10;[UPH value received from UE][dB]+ [10log10(numberOfPrb)][dB]&#13;&#10;&#13;&#10;[FSM shall report dB value, unit = 0.01 dB]&#13;&#10;&#13;&#10;In case that received UL-SCH is Message 3, invalid value (0x80000000) shall be used.&#13;&#10;FSM should output invalid value (0x8000 0000) if UPH has not been received after Random Access Procedure&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="6000" minRange="-2300" name="dctG3M30" type="i32"/>
+         <member comment="UL_Buffer0 which specified DCM's L1L2 specification  3.4.1.10.2(DCM know how)&#13;&#10;[number of bits]&#13;&#10;In case of RNTI is Temporary C-RNT, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="28000000" minRange="0" name="dctG3M311" type="u32"/>
+         <member comment="UL_Buffer1 which specified DCM's L1L2 specification (DCM know how)&#13;&#10;[number of bits]&#13;&#10;In case of RNTI is Temporary C-RNT, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="28000000" minRange="0" name="dctG3M312" type="u32"/>
+         <member comment="UL_Buffer2 which specified DCM's L1L2 specification (DCM know how)&#13;&#10;[number of bits]&#13;&#10;In case of RNTI is Temporary C-RNT, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="28000000" minRange="0" name="dctG3M313" type="u32"/>
+         <member comment="UL_Buffer3 which specified DCM's L1L2 specification (DCM know how)&#13;&#10;[number of bits]&#13;&#10;In case of RNTI is Temporary C-RNT, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or not 0x01 or not 0xCC,  output is invalid value 0x80000000" maxRange="28000000" minRange="0" name="dctG3M314" type="u32"/>
+         <member comment="Average Data Rate&#13;&#10;[bits per second]&#10;Average Data Rate of Logical Channel Group with the Highest Priority. In initial transmission case, it is decided in Buffer Status Check. In retransmission case, it should be Logical Channel Group which has Highest Priority in retransmission MAC-PDU.&#10;In case of RNTI is Temporary C-RNT, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;It is specified by DCM's L1L2 specification (DCM know how)&#13;&#10;&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#10;&#10;Even in TTI bundling case, measured value is updated in every TTI.&#10;Only in TTI of gap, invalid value (0xFFFF FFFF) is outputted" maxRange="50000000" minRange="0" name="dctG3M32" type="TBitThroughput"/>
+         <member comment="Mapping information of CCE which UL Scheduling Grant is mapped onto (# of CCE is 87 in case of 20MHz, defined by 36.213)&#13;&#10;in the case of non-adaptive retransmission caused by PHICH (NACK), invalid value (0x80) shall always be used.&#13;&#10;Minus value means as follows&#13;&#10;-1: dedicated preamble is used&#13;&#10;-2: contention preamble is used&#13;&#10;-3 : UL Scheduling Grant is not transmitted&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or  not 0x01 or not 0xCC,  output is invalid value 0x80" maxRange="86" minRange="-3" name="dctG3M33" type="i8"/>
+         <member comment="PDCCH format for UL Scheduling Grant&#13;&#10;in the case of non-adaptive retransmission caused by PHICH (NACK), invalid value (0xFF) shall be used.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, invalid value (0xFF) shall be used.&#13;&#10;In the case of msg3 by Rabdom Access Response is transmitted, invalid value (0xFF) shall be used&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) is not 0x91 or  not 0x01 or not 0xCC,  output is invalid value 0xFF" maxRange="3" minRange="0" name="dctG3M34" type="u8"/>
+         <member comment="#of retransmission of MAC PDU&#13;&#10;The first time transmission 0. &#13;&#10;Report value is the #of retransmission number of MAC PDU.&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, calculated values shall be used.&#13;&#10;Invalid value is &quot;0xFF &quot;&#10;&#10;Even in TTI bundling case, measured value is updated in every TTI.&#10;Only in TTI of gap, invalid value (0xFF) is outputted&#10;" maxRange="27" minRange="0" name="dctG3M35" type="u8"/>
+         <member comment="PHICH information&#13;&#10;Resource index which PHICH mapped onto &#13;&#10;2NPhichSf x nPhichGroup + nPhichSeq&#13;&#10;When PHICH could not transmit by Measurement  GAP,output resource index&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource, invalid value (0xFFFF FFFF) shall be used.&#13;&#10;FSM should output measured resource index even if PHICH can’t be transmitted because of measurement GAP&#10;&#10;In the case of TTI bundling and TTI bundling information (dctG3M41) shows other than Final TTI,  output is invalid value 0xFFFF FFFF (If final TTI is on measurement gap, utput is invalid value 0xFFFF FFFF)" name="dctG3M36" type="u32"/>
+         <member comment="Highest priority Logical Channel Group index&#10;&#10;Invalid value 0xFF" maxRange="3" minRange="0" name="dctG3M37" type="u8"/>
+         <member comment="f(i) &#10;See TS36.213 chapter 5.1.2.1&#10;&#10;Invalid value 0x7FFFFFFF" maxRange="127" minRange="-128" name="dctG3M38" type="i32"/>
+         <member comment="Scheduling Coefficient&#10;&#10;&quot;Scheduling Coefficient&quot; is output by internal value. When adjusting  the unit to the L1L2ControlSpecification, use corrective calculation by the equation of below.&#10;C' = {5*Log2(C) + 5*Log2(10^7)} * 2^16&#10;where C is output value from FSM" name="dctG3M39" type="u32"/>
+         <member comment="dAvailable&#10;&#10;defined in L1 L2 spec 3.4.1.9.2 (DCM know how)" name="dctG3M40" type="i32"/>
+      </struct>
+      <struct comment="dctG3M19 indicates the size of padding that is attached at the end of MAC PDU (indicated at figure 6.1.2-3 in 3GPP TS 36.321-850 as “Padding (opt)”)&#13;&#10;See also additional Note D)" forceGeneration="true" name="SDctUlschData1">
+         <member comment="Identifies the cell" maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="System Frame Number of the frame when ULSCH is received&#13;&#10;&#13;&#10;FSM shall set the sfn to 0xFFFF FFFF in case there is no ULSCH reception.&#13;&#10;&#13;&#10;Note, this measurement is supported also with test model configuration" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="Subframe number of the frame when ULSCH is received&#13;&#10;&#13;&#10;FSM shall set the subFrameCounter to 0xFFFF FFFF in case there is no ULSCH reception.&#13;&#10;&#13;&#10;Note, this measurement is supported also with test model configuration&#13;&#10;" maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="This field is variable size which is dependent on the numOfDctUlschData1Results value." name="dctUlschData1Results" type="SDctUlschData1Result">
+            <dimension isVariableSize="true" size="MAX_UL_PDU__VARIABLE_SIZE"/>
+         </member>
+      </struct>
+      <struct comment="This UE specific information is outputted only when UE data is received. &#10;" name="SDctUlschData1Result">
+         <member comment="Identifies user. This can be either C-RNTI or Temporary C-RNTI (depending on channel type and user)" name="crnti" type="TCrnti"/>
+         <member comment="Identifies user.&#10;&#10;In case of temporary UeId, value 0xFFFFFFFF is outputted." name="ueId" type="TUeId"/>
+         <member comment="This field is fixed size." name="dcchGroup" type="SDcchGroup2">
+            <dimension isVariableSize="true" minSize="NUMBER_OF_DCCH" size="NUMBER_OF_DCCH" variableSizeFieldName="numberOfDcch" variableSizeFieldType="u8"/>
+         </member>
+         <member comment="This field is fixed size." name="dtchGroup" type="SDtchGroup2">
+            <dimension isVariableSize="true" minSize="NUMBER_OF_DTCH" size="NUMBER_OF_DTCH" variableSizeFieldName="numberOfDtch" variableSizeFieldType="u8"/>
+         </member>
+         <member comment="MAC SDU size (CCCH)&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="1" name="dctG3M17" type="u32"/>
+         <member comment="MAC control block size&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="1" name="dctG3M18" type="u32"/>
+         <member comment="Padding size&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="1" name="dctG3M19" type="u32"/>
+         <member comment="MAC PDU size&#13;&#10;[number of bits]" maxRange="MAX_PDU_SIZE" minRange="1" name="dctG3M20" type="u32"/>
+         <member comment="Number of multiplexed Logical CH" maxRange="128" minRange="0" name="dctG3M21" type="u8"/>
+         <member comment="Result of CRC check&#10;0: OK&#10;1: NG&#13;&#10;Note, this measurement is supported also with test model configuration" maxRange="1" minRange="0" name="dctG3M22" type="u8"/>
+      </struct>
+      <struct comment="Note, reporting period for this measurement is always 1ms. Any other reporting period is not needed to support.&#13;&#10;" forceGeneration="true" name="SDctUlschData2">
+         <member comment="Identifies the cell" maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="(dctG3M1)&#13;&#10;System Frame Number of the frame when ULSCH is received&#13;&#10;Note, this measurement is supported also with test model configuration" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="(dctG3M2)&#13;&#10;Sub-frame number of the sub-frame when ULSCH is received&#13;&#10;Note, this measurement is supported also with test model configuration" maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="This field is variable size which is depending on numberOfDctUlschData2Results" name="SDctUlschData2Results" type="SDctUlschData2Result">
+            <dimension isVariableSize="true" minSize="0" size="MAX_UL_DCI_PER_REPORT__VARIABLE_SIZE" variableSizeFieldName="numberOfDctUlschData2Results" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct name="SDctUlschData2Result">
+         <member comment="(dctG3M3)&#13;&#10;Identifies user. This can be either C-RNTI or Temporary C-RNTI (depending on channel type and user)&#13;&#10;When UL scheduling grant did not transmit by PDCCH discard, output is necessary.&#13;&#10;Latest value of UL Scheduling Grant which was transmitted shall be used in case the UL Scheduling Grant is not assigned for re-transmission.&#13;&#10;&#13;&#10;In the case of UL Scheduling Grant is not transmitted due to lack of PDCCH resource,the value which should have been transmitted as UL Scheduling Grant shall be used." name="crnti" type="TCrnti"/>
+         <member comment="Identifies user.&#10;&#10;In case of temporary UeId, value 0xFFFFFFFF is outputted." name="ueId" type="TUeId"/>
+         <member comment="Result of UL-SCH Power Judgement&#10;0: OK&#10;1: NG&#13;&#10;Note, this measurement is supported also with test model configuration&#13;&#10;Result of UL-SCH Power Judgement &#13;&#10;It is specified in DCM's L1L2 spec(DCM's knowhow)&#13;&#10;When do not  UL-SCH Power Detection; output is invalid value’-‘&#13;&#10;FSM out put is 0xFF." maxRange="1" minRange="0" name="dctG3M23" type="u8"/>
+         <member comment="Demodulation RS SIR&#13;&#10;[dB converted to linear scale]&#13;&#10;Definition of Demodulation RS SIR is depending on implementation.&#13;&#10;(There is not DCM’s specification)&#13;&#10;It is instant value of PUSCH SIR " name="dctG3M24" type="TRelativePower"/>
+      </struct>
+      <struct name="SDcchGroup2">
+         <member comment="MAC SDU size (for n-th DCCH). In case n-th DCCH channel is not multiplexed a value of 0 is reported [number of bits]&#10;" maxRange="MAX_PDU_SIZE" minRange="1" name="dctG3M15" type="u32"/>
+      </struct>
+      <struct name="SDtchGroup2">
+         <member comment="MAC SDU size for n-th DTCH&#13;&#10;[number of bits]&#13;&#10;In case n-th DTCH is not multiplexed a value of 0 is reported" maxRange="MAX_PDU_SIZE" minRange="1" name="dctG3M16" type="u32"/>
+      </struct>
+      <struct comment="- Measurement Object Class Name is “MAC User”&#13;&#10;- Measurement period is 1ms." forceGeneration="true" name="SDctUci">
+         <member comment="(dctG8M1)&#13;&#10;System Frame Number of the sub-frame which is an event produced.&#10;(Refer to PNS Feature Description document - Data Collection Tool)" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="(dctG8M2)&#13;&#10;Sub Frame Number of the sub-frame which is an event produced.&#10;(Refer to PNS Feature Description document - Data Collection Tool)" maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="Identifies the cell" maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="Running number from the beginning of the measurement. Incremented by one for each reported SDctUci structure." maxRange="255" minRange="0" name="sequenceNumber" type="u32"/>
+         <member comment="Physical channel which UCI mapped onto&#13;&#10;0:PUCCH,1:PUSCH&#13;&#10;In case UCI is not received in the current subframe, FSM shall output invalid value 0xFF" maxRange="1" minRange="0" name="dctG12M1" type="u8"/>
+         <member comment="0:no SR(Periodic Grant status=OFF)&#10;1:SR (Periodic Grant status =OFF)&#10;2:no SR(Periodic Grant status= ON)&#10;3:SR (Periodic Grant status= ON)&#10;4:SR is not received during Periodic Grant state = ON&#10;&#10;When PUSCH is received in  SR receive timing, FSM should output invalid value 0xFF&#10;&#10;When SR status is something else than Detected or NotDetected, FSM should output invald value 0xFF&#10;&#10;" maxRange="4" minRange="0" name="dctG12M2" type="u8"/>
+         <member comment="RI&#13;&#10;[-1, 1 – 4]&#13;&#10;-In the case of Transmission mode 1/2, FSM should output invalid value 0x80&#13;&#10;-In case RI is not received in the current subframe, FSM shall output invalid value 0x80&#13;&#10;-In case RI was canceled by a reliability judgment, FSM shall output invalid value &quot;-1&quot;" maxRange="4" minRange="-1" name="dctG12M3" type="i8"/>
+         <member comment="PMI&#13;&#10;Codebook Index which defined inTS 36.211 [6.3.4.2]&#13;&#10;-In case PMI is not received in the current subframe, FSM shall output invalid value 0x80&#13;&#10;-In case PMI was canceled by a reliability judgment, FSM shall output invalid value &quot;-1&quot;&#13;&#10;-In case of detected CRC is NG, FSM shall output invalid value &quot;-2&quot;&#13;&#10;-In the case of Transmission mode 1/2/3, FSM should output invalid value 0x80&#13;&#10;&#13;&#10;" maxRange="15" minRange="-2" name="dctG12M4" type="i8"/>
+         <member comment="CW0&#13;&#10;Received CQI(Wideband)(CW0)&#13;&#10;-In case CQI is not received in the current subframe, FSM shall output invalid value 0x80&#13;&#10;-In case CW0 was canceled by a reliability judgment, FSM shall output invalid value &quot;-1&quot;&#13;&#10;-In case of detected CRC is NG, FSM shall output invalid value &quot;-2&quot;" maxRange="15" minRange="-2" name="dctG12M5" type="i8"/>
+         <member comment="CW1&#13;&#10;Received CQI(Wideband)(CW1)&#13;&#10;-In the case of Transmission mode 4 and RI = 1, output invalid value &quot;-&quot; FSM shall be set to 0x80 in this case.&#13;&#10;-In case CQI is not received in the current subframe, FSM shall output invalid value 0x80&#13;&#10;-In case CW1 was canceled by a reliability judgment, FSM shall output invalid value &quot;-1&quot;&#13;&#10;-In case of detected CRC is NG, FSM shall output invalid value &#13;&#10;-In the case of Transmission mode 1/2/3, FSM should output invalid value 0x80&#13;&#10;" maxRange="15" minRange="-2" name="dctG12M6" type="i8"/>
+         <member name="dctG12M7" type="SUlSyncStatus"/>
+      </struct>
+      <struct name="SUlSyncStatus">
+         <member comment="UL Sync Status&#13;&#10;0:Out of Sync,1:In Sync" maxRange="1" minRange="0" name="ulSyncStatus" type="u8"/>
+         <member comment="UL Resource Status. &#13;&#10;It is judged whether UL Timing Alignment is maintained&#13;&#10;0:False,1:OK&#13;&#10;" maxRange="1" minRange="0" name="ulResourceStatus" type="u8"/>
+      </struct>
+      <struct comment="“Random Access Preamble” as Measurement Classification&#13;&#10;- Measurement Object Class Name is “MAC Cell”&#13;&#10;- Measurement period is 1ms.&#13;&#10;- Shall be reported when PRACH is received according to PRACH configuration index (even in case of &quot;number of received preamble = 0&quot; report shall be send).&#13;&#10;" forceGeneration="true" name="SDctRa">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment="(dctG6M1)&#13;&#10;SFN when RACH  received" maxRange="1023" minRange="0" name="sfn" type="TSfn"/>
+         <member comment="(dctG6M2)&#13;&#10;Sub-frame number when RACH  received&#13;&#10;This value is Subframe number of TS36.211 Table5.7.1-2&#13;&#10;In the case of Preamble Format 1(2subframe use), FSM output a subframe number of the first half." maxRange="9" minRange="0" name="subFrameCounter" type="TSubFrameNumber"/>
+         <member comment="Running  number from the beginning of the measurement. Incremented by one for each reported SDctRa structure" maxRange="255" minRange="0" name="sequenceNumber" type="u8"/>
+         <member comment="This field is variable size which is depending on numOfDctRaResults&#13;&#10;" name="dctRaResults" type="SDctRaResults">
+            <dimension isVariableSize="true" minSize="0" size="MAX_NUMBER_OF_DETECTED_PREAMBLES__VARIABLE_SIZE"/>
+         </member>
+      </struct>
+      <struct name="SDctRaResults">
+         <member comment="Random Access Preamble ID&#13;&#10;Output is necessary for all Random Access Preamble ID which is received in measured Sub-frame" maxRange="63" minRange="0" name="dctG14M1" type="u8"/>
+         <member comment="Timing Advance Command at Random Access Response&#13;&#10;Output is necessary even if Random Access Response is not sent to UE" maxRange="1282" minRange="0" name="dctG14M2" type="u16"/>
+         <member comment="Timing Advance Type2 measurement&#13;&#10;Reporting range and mapping according to the TS36.133 v9.3.0, subclause 10.3.1" maxRange="7690" minRange="0" name="dctG14M3" type="u16"/>
+         <member comment="Timing Advance Strongest Path&#13;&#10;Unit is the basic timing unit Ts, ref. to 36.211. Ts = 1/(15000 x 2048) seconds.&#13;&#10;Note, This item is not DCM requirement. This is for PNS internal use.&#13;&#10;" maxRange="20512" minRange="0" name="dctG14M4" type="u32"/>
+      </struct>
+      <struct forceGeneration="true" name="SDctDlRlcSdu">
+         <member comment="Identifies the cell." maxRange="6" minRange="1" name="cellId" type="TCellId"/>
+         <member comment=" " name="crnti" type="TCrnti"/>
+         <member comment="Identifies user." name="ueId" type="TUeId"/>
+         <member comment="This field is variable size which is depending on numOfDctDlRlcSduResults" name="dctDlRlcSduResults" type="SDctDlRlcSduResult">
+            <dimension isVariableSize="true" minSize="1" size="MAX_NUM_RB_PER_USER__VARIABLE_SIZE" variableSizeFieldName="numOfDctDlRlcSduResults" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      <struct name="SDctDlRlcSduResult">
+         <member comment="Used to distinguish between SRB-ID (true) and DRB-ID (false)." name="isSrbId" type="TBoolean"/>
+         <member comment="Radio Bearer identifier" maxRange="MAX_DRB_ID" minRange="1" name="rbIdentifier" type="TRadioBearerId"/>
+         <member comment="Amount of buffered RLC SDU data. Instant value at the end of reporting period shall be reported.&#13;&#10;[number of bits]" name="dctG15M1" type="u32"/>
+         <member comment="Accumulator of anumber of transmitted RLC SDUs. Only the first transmission of the RLS SDU shall be counted.  Accumulated value over the reporting period shall be reported. &#13;&#10;[number of units]" name="dctG15M2" type="u32"/>
+      </struct>
+      <struct comment="This structure is used in dynamicData[] in the LTE_BROWSER_START_REPORT_REQ_MSG message." forceGeneration="true" name="SDctStartParameters">
+         <member comment="The SFN which the DCT measurement is started on. &#13;&#10;SFN shall be set so that it is at least 2 SFNs ahead, but not more than 1000 SFNs ahead of the current SFN. &#13;&#10;In case the startSfn contains value 0xFFFFFFFF the measurement shall be started immediately" maxRange="1023" minRange="0" name="startSfn" type="TSfn"/>
+      </struct>
+   </global-definitions>
+   <component comment="Component holding the Dct Measurement Definitions interface" name="DCT">
+      <messages/>
+      <interfaces>
+         <interface name="DctIf" responsibleEditor="">
+            <struct name="SDctUlLevL1Cell"/>
+            <struct name="SDctUlLevL1Ue"/>
+            <struct name="SDctDlLevL1Cell"/>
+            <struct name="SDctUlsch0"/>
+            <struct name="SDctUlsch1"/>
+            <struct name="SDctUlschData0"/>
+            <struct name="SDctUlschData1"/>
+            <struct name="SDctUlschData2"/>
+            <struct name="SDctDlsch0"/>
+            <struct name="SDctDlsch1"/>
+            <struct name="SDctDlschData0"/>
+            <struct name="SDctDlschData1"/>
+            <struct name="SDctDlschData2"/>
+            <struct name="SDctDlschData3"/>
+            <struct name="SDctMacPduDump"/>
+            <struct name="SDctUlRlcAmPdu"/>
+            <struct name="SDctDlRlcAmPdu"/>
+            <struct name="SDctUlRlcUmPdu"/>
+            <struct name="SDctDlRlcUmPdu"/>
+            <struct name="SDctDlPdcpSdu"/>
+            <struct name="SDctUlPdcpPdu"/>
+            <struct name="SDctUci"/>
+            <struct name="SDctRa"/>
+            <struct name="SDctDlRlcSdu"/>
+            <struct name="SDctStartParameters"/>
+         </interface>
+      </interfaces>
+   </component>
+</system>

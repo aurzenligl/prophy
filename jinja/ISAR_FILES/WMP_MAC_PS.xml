@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui configuration/if_editor.xui?><system name="" xmlns:xi="http://www.nsn.com/2008/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions"/>
+   <xi:include href="OAM_MERGED.xml" xpath="//global-definitions[@name='OAM']"/>
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <global-definitions name="WMP">
+      <typedef maxRange="MAC_T_PDCCH_UL_DL_PRIO_MAX" minRange="MAC_T_PDCCH_UL_DL_PRIO_MIN" name="TPdcchUlDlPrio" type="u32">
+         <constant name="MAC_T_PDCCH_UL_DL_PRIO_MIN" value="0"/>
+         <constant name="MAC_T_PDCCH_UL_DL_PRIO_MAX" value="99"/>
+      </typedef>
+      <typedef comment="SID packet size" maxRange="255" minRange="0" name="TUlsSidVol" type="u32"/>
+      <typedef name="TDlsGbrRlc" type="u32">
+         <dimension size="2"/>
+      </typedef>
+      <typedef name="TDlsGbrMac" type="u32">
+         <dimension size="2"/>
+      </typedef>
+      <typedef name="TUlsGbrRlc" type="u32">
+         <dimension size="2"/>
+      </typedef>
+      <typedef name="TUlsGbrMac" type="u32">
+         <dimension size="2"/>
+      </typedef>
+      <typedef maxRange="2560" minRange="10" name="TDrxMaxLongCycle" type="u32"/>
+      <enum name="EDelayTarget">
+         <enum-member name="EDelayTarget_NotDefined" value="0"/>
+         <enum-member name="EDelayTarget_50ms" value="50"/>
+         <enum-member name="EDelayTarget_60ms" value="60"/>
+         <enum-member name="EDelayTarget_70ms" value="70"/>
+         <enum-member name="EDelayTarget_80ms" value="80"/>
+         <enum-member name="EDelayTarget_90ms" value="90"/>
+         <enum-member name="EDelayTarget_100ms" value="100"/>
+         <enum-member name="EDelayTarget_110ms" value="110"/>
+         <enum-member name="EDelayTarget_120ms" value="120"/>
+         <enum-member name="EDelayTarget_130ms" value="130"/>
+         <enum-member name="EDelayTarget_140ms" value="140"/>
+         <enum-member name="EDelayTarget_150ms" value="150"/>
+         <enum-member name="EDelayTarget_200ms" value="200"/>
+         <enum-member name="EDelayTarget_250ms" value="250"/>
+         <enum-member name="EDelayTarget_300ms" value="300"/>
+         <enum-member name="EDelayTarget_350ms" value="350"/>
+         <enum-member name="EDelayTarget_400ms" value="400"/>
+         <enum-member name="EDelayTarget_450ms" value="450"/>
+         <enum-member name="EDelayTarget_500ms" value="500"/>
+         <enum-member name="EDelayTarget_550ms" value="550"/>
+         <enum-member name="EDelayTarget_600ms" value="600"/>
+         <enum-member name="EDelayTarget_650ms" value="650"/>
+         <enum-member name="EDelayTarget_700ms" value="700"/>
+         <enum-member name="EDelayTarget_750ms" value="750"/>
+         <enum-member name="EDelayTarget_800ms" value="800"/>
+         <enum-member name="EDelayTarget_850ms" value="850"/>
+         <enum-member name="EDelayTarget_900ms" value="900"/>
+         <enum-member name="EDelayTarget_950ms" value="950"/>
+         <enum-member name="EDelayTarget_1000ms" value="1000"/>
+      </enum>
+      <typedef comment="Defines the minimum PRB allocation for UEs which  are power limited" maxRange="100" minRange="1" name="TUlsMinRbPerUe" type="u32"/>
+      <typedef maxRange="193" minRange="2" name="TUlsMinTbs" type="u32"/>
+      <typedef comment="0 .. 150, meaning 0.0 to 15.0, step size is 0.1 CQI steps." maxRange="150" minRange="0" name="TReCqiLimit" type="u8"/>
+      <typedef name="TMeasGapOffset" type="u32"/>
+      <typedef comment="Indicates the maximum number of HARQ transmissions in UL that is configured for the UE.&#13;&#10;In non-bundling mode, the valid value range is: 1...7&#13;&#10;In TTI bundling mode, the valid values are: 4, 8,12,16,20,24,28" maxRange="28" minRange="1" name="THarqMaxTrUl" type="u32"/>
+      <typedef comment="Step size 50" maxRange="12000" minRange="10" name="TDedicRaPreExpT" type="u32"/>
+      <typedef name="TICqiPmi" type="u32"/>
+      <typedef name="TIRi" type="u32"/>
+      <typedef name="TCqiPerSbCycK" type="u32"/>
+      <typedef name="TCellResourceGroupId" type="u32"/>
+      <typedef name="TSCellResourceGroupId" type="u32"/>
+      <typedef name="TSCellServCellIndex" type="u32"/>
+      <enum name="EDrxConfigType">
+         <enum-member name="EDrxConfigType_NotDefined" value="0"/>
+         <enum-member name="EDrxConfigType_Activation" value="1"/>
+         <enum-member name="EDrxConfigType_Deactivation" value="2"/>
+         <enum-member name="EDrxConfigType_Reconfiguration" value="3"/>
+         <enum-member name="EDrxConfigType_ConfigCompleted" value="4"/>
+      </enum>
+      <enum name="ETransmMode">
+         <enum-member name="ETransmMode_NotDefined" value="0"/>
+         <enum-member name="ETransmMode_SingleAntennaPort_Port0" value="1"/>
+         <enum-member name="ETransmMode_TransmitDiversity" value="2"/>
+         <enum-member name="ETransmMode_OpenLoopSpatialMultiplexing" value="3"/>
+         <enum-member name="ETransmMode_ClosedLoopSpatialMultiplexing" value="4"/>
+         <enum-member name="ETransmMode_MultiUserMIMO" value="5"/>
+         <enum-member name="ETransmMode_ClosedLoopRank1Precoding" value="6"/>
+         <enum-member name="ETransmMode_SingleAntennaPort_Port5" value="7"/>
+         <enum-member comment="TDD only." name="ETransmMode_DualBeamforming_Port7_8" value="8"/>
+         <enum-member comment="TDD only" name="ETransmMode_TM9" value="9"/>
+      </enum>
+      <enum name="ECellType">
+         <enum-member comment="Normal cell without eICIC functionality." name="ECellType_Normal" value="0"/>
+         <enum-member comment="eICIC micro/pico cell." name="ECellType_Micro" value="1"/>
+         <enum-member comment="eICIC macro cell." name="ECellType_Macro" value="2"/>
+      </enum>
+      <enum comment="This parameter defines the used deployment of the eNodeB." defaultValue="8" name="EDeploymentInformation">
+         <enum-member name="EDeploymentInformation_Undefined" value="0"/>
+         <enum-member name="EDeploymentInformation_2Pipe" value="2"/>
+         <enum-member name="EDeploymentInformation_4Pipe" value="4"/>
+         <enum-member name="EDeploymentInformation_8Pipe" value="8"/>
+      </enum>
+      <enum name="EMeasGapOffset">
+         <enum-member name="EMeasGapOffset_None" value="0"/>
+         <enum-member name="EMeasGapOffset_measGapPattern0" value="1"/>
+         <enum-member name="EMeasGapOffset_measGapPattern1" value="2"/>
+      </enum>
+      <enum name="ECqiAperMode">
+         <enum-member name="ECqiAperMode_m12" value="0"/>
+         <enum-member name="ECqiAperMode_m20" value="1"/>
+         <enum-member name="ECqiAperMode_m22" value="2"/>
+         <enum-member name="ECqiAperMode_m30" value="3"/>
+         <enum-member name="ECqiAperMode_m31" value="4"/>
+      </enum>
+      <enum name="ECqiPerEnable">
+         <enum-member name="ECqiPerEnable_Disabled" value="0"/>
+         <enum-member name="ECqiPerEnable_Enabled" value="1"/>
+      </enum>
+      <enum name="ECqiPerMode">
+         <enum-member name="ECqiPerMode_Wideband" value="0"/>
+         <enum-member name="ECqiPerMode_Wideband_And_Subband" value="1"/>
+         <enum-member comment="TDD only" name="ECqiPerMode_WidebandSubmode1" value="2"/>
+         <enum-member comment="TDD only" name="ECqiPerMode_WidebandSubmode2" value="3"/>
+      </enum>
+      <enum name="ECqiPerSimulAck">
+         <enum-member name="ECqiPerSimulAck_Disabled" value="0"/>
+         <enum-member name="ECqiPerSimulAck_Enabled" value="1"/>
+      </enum>
+      <enum name="ECqiPerSbPeriodicityFactorR10">
+         <enum-member name="ECqiPerSbPeriodicityFactorR10_n2" value="0"/>
+         <enum-member name="ECqiPerSbPeriodicityFactorR10_n4" value="1"/>
+      </enum>
+      <enum name="EMaxNumOfLayers">
+         <enum-member name="EMaxNumOfLayers_NotDefined" value="0"/>
+         <enum-member name="EMaxNumOfLayers_2" value="2"/>
+         <enum-member name="EMaxNumOfLayers_4" value="4"/>
+         <enum-member name="EMaxNumOfLayers_8" value="8"/>
+      </enum>
+      <enum name="ETmSettingWithBf">
+         <enum-member name="ETmSettingWithBf_fixedTm3WithBf" value="0"/>
+         <enum-member name="ETmSettingWithBf_followDlMimoMode" value="1"/>
+      </enum>
+      <constant comment="Number of Message Types defined as Tags. Values 1..16 in use." name="MAX_MSG_TYPE_TAG" value="17"/>
+      <constant name="MAX_NUM_OF_NCELLABS" value="1"/>
+      <constant name="MAX_NUM_OF_RESOURCE_GROUPS" value="4"/>
+      <struct name="SExtendedDrxParameters">
+         <member comment="Determines which UEs shall be actively sent to UL out-of-sync state provided that bearer combination and applied DRX profile allows for this" name="applyOutOfSyncState" type="EOaMApplyOutOfSyncState"/>
+         <member comment="Factor with which the DRX Inactivity Timer of the DRX profile as applied for a UE is multiplied in order to determine how long to keep a UE UL synchronized following last transmission of new data" name="stInactFactor" type="TOaMStInactFactor"/>
+      </struct>
+      <struct name="SWmpCellContainer">
+         <member comment="Number of cells in DSP Pool configuration. Valid only in FSMr3, range 1..2.. In FSMr2 set to 0. The same value is given to all cells in a DSP Pool. " maxRange="2" minRange="0" name="numOfCellsPerBBPool" type="u32"/>
+         <member name="commonCellParamsWmp" type="SCommonCellParamsWmp"/>
+         <member comment="Collects Mcs parameters for MAC" name="mcsParams" type="SMcsParams"/>
+         <member comment="Collects Pdcch parameters for MAC" name="pdcchParams" type="SPdcchParams"/>
+         <member comment="Collects scheduling weight parameters for MAC." name="schedulingWeightParams" type="SSchedulingWeightParams"/>
+         <member comment="Collects link adaption parameters for MAC" name="linkAdaptConfParams" type="SLinkAdaptConfParams"/>
+         <member comment="Parameters for Open and Closed loop MIMO.&#13;&#10;Note: Closed loop MIMO is not yet supported (LTE703-a)." name="mimoCtrlParams" type="SMimoCtrlParams"/>
+         <member name="convVoiceParams" type="SConvVoiceParams"/>
+         <member comment="Enable usage of DRX Measurement Reporting Grant for BSR, PHR and aperiodic CQI reporting for UE with DRX enabled&#13;&#10;" name="enaDrxRepGra" type="TOaMEnaDrxRepGra"/>
+         <member comment="Enable prioritization of UEs in UL Time Domain scheduling depending on remaining DRX active time.&#13;&#10;" name="enaDrxWactUl" type="TOaMEnaDrxWactUl"/>
+         <member comment="Enable/disable prioritization of UEs in Downlink Time Domain scheduling depending on remaining DRX active time.&#13;&#10;" name="enaDrxWactDl" type="TOaMEnaDrxWactDl"/>
+         <member comment="Enable/disable prioritization of UEs in Downlink Time Domain scheduling depending on CQI freshness. There is four prioritization categories: new (transmitted during current active time) subband CQI available, new wideband CQI available, old but not exprired CQI available and default CQI in use.&#13;&#10;" name="enaDrxWcqiDl" type="TOaMEnaDrxWcqiDl"/>
+         <member comment="Activate DRX " name="actDrx" type="TOaMActDrx"/>
+         <member comment="Maximum value of drxLongCycle parameter in the available DRX profiles." maxRange="2560" minRange="10" name="drxMaxLongCycle" type="TDrxMaxLongCycle"/>
+         <member comment="Downlink Reference Signals Transmission Power Boost (not modifiable parameter)" name="dlRsBoost" type="EOaMDlRsBoost"/>
+         <member comment="Value = dlpcfichBoost / 10&#13;&#10;Downlink PCFICH Transmission Power Boost" name="dlPcfichBoost" type="TOaMDlPcfichBoost"/>
+         <member comment="Value = dlPhichBoost / 10&#13;&#10;Downlink PHICH Transmission Power Boost" name="dlPhichBoost" type="TOaMDlPhichBoost"/>
+         <member comment="Parameter to configure whether common channel signalling (SI, paging RACH )  use DCI format 1C(value 0) or 1A (value 1)  on PDCCH." name="dlsSciCch" type="TBoolean"/>
+         <member comment="defines the minimum UL TBS (segment size)&#13;&#10;real value = 8*ulsMinTbs" name="ulsMinTbs" type="TUlsMinTbs"/>
+         <member comment="Defines the minimum PRB allocation for UEs which  are power limited" name="ulsMinRbPerUe" type="TUlsMinRbPerUe"/>
+         <member comment="Activates support of the following features ARP based Admission Control (LTE534), Smart Admission Control (LTE497) and EPS bearers with QCI 2, 3 and 4 (LTE496)." name="actEnhAcAndGbrServices" type="TBoolean"/>
+         <member name="gbrCongestionParams" type="SGbrCongestionParams"/>
+         <member name="prsInfoParams" type="SPRSInfoParams"/>
+         <member comment="Feature activation flag for DL carrier aggregation.&#13;&#10;Parameter is set to true only if CAREL is defined for the cell or the cell is pointed by lcrId of CAREL of aggregated cell.&#13;&#10;Otherwise, (independently on O&amp;M parameter actDLCAggr value) actDLCAggr is set to false." name="actDLCAggr" type="TBoolean"/>
+         <member name="actFastMimoSwitch" type="TOaMActFastMimoSwitch"/>
+         <member name="cellResourceSharingMode" type="EOaMCellResourceSharingMode"/>
+         <member name="crgSkipThreshold" type="EOaMCrgSkipThreshold"/>
+         <member comment="sharePerResourceGroup[i] is the share for CRG i, value is in percent, step 1." name="sharePerResourceGroup" type="u32">
+            <dimension size="MAX_NUM_OF_RESOURCE_GROUPS"/>
+         </member>
+         <member comment="Enable SDL records collection on the MAC PS level." name="sdlEnable" type="TBoolean"/>
+         <member comment="WMP FDD only." name="srsTriggerParams" optional="true" type="SSRSTriggerParams"/>
+         <member comment="Beamforming control parameters.&#13;&#10;TDD only.&#13;&#10;This is an array of variable length of dimension 0...1. ISAR will generate a numberOfItems element, which has to be set to 1 for BF and to 0 otherwise.&#13;&#10;NOTE! IE hasBfCtrlParams also indicates that the cell supports beamforming if this field is set as “True”. Otherwise it indicates the cell does’t support beamforming." name="bfCtrlParams" optional="true" type="SBeamformingCtrlParams"/>
+         <member comment="TDD only." name="transmModeParams" optional="true" type="STransmModeParams"/>
+         <member comment="WMP FDD only" name="eIcicParams" optional="true" type="SEicicParameters"/>
+         <member comment="TDD only." name="muMimoParameters" optional="true" type="SMuMimoParameters"/>
+         <member comment="Downlink carrier aggregation parameters" name="dlCarrierAggrParams" optional="true" type="SDlCarrierAggrParams"/>
+         <member comment="Present when dlMimoMode is set to CL MIMO 8x2 with TM9." name="csiRsConfiguration" optional="true" type="SCsiRsConfiguration"/>
+         <member comment="TDD only" name="superCellParameters" optional="true" type="SSuperCellParameters"/>
+         <member comment="TDD only&#13;&#10;Specifies the Scell transmission mode for CA configured UEs." name="scellTmSettingWithBf" optional="true" type="ETmSettingWithBf"/>
+      </struct>
+      <struct name="SWmpUserContainer">
+         <member comment="UE specific CQI parameters" name="cqiParamsWmp" type="SCqiParamsWmp"/>
+         <member comment="Maximum number of HARQ transmissions in Downlink." name="harqMaxTrDl" type="TOaMHarqMaxTrDl"/>
+         <member comment="Maximum number of HARQ transmissions in Uplink." name="harqMaxTrUl" type="THarqMaxTrUl"/>
+         <member comment="TDD only." defaultValue="GLO_FALSE" maxRange="GLO_TRUE" minRange="GLO_FALSE" name="tm8SupportFlag" type="TBoolean"/>
+         <member comment="Indicates whether TTI Bundling measurements are activated for the UE." defaultValue="GLO_FALSE" maxRange="GLO_TRUE" minRange="GLO_FALSE" name="ttiBmMeasActivate" type="TBoolean"/>
+         <member comment="Set to true, if measurement gaps shall be deleted otherwise set to false.&#13;&#10;Used in MAC_RadioBearerDeleteReq." maxRange="GLO_TRUE" minRange="GLO_FALSE" name="measGapStopRequired" type="TBoolean"/>
+         <member comment="Defines the used gapPattern. &#13;&#10;Used in MAC_UserSetupReq in TDD when tti bundling is active. &#13;&#10;Used in WMP in MAC_RadioBearerSetupReq." defaultValue="0" maxRange="2" minRange="0" name="gapPattern" type="EMeasGapOffset"/>
+         <member comment="Measurement gap offset value. &#13;&#10;Used in MAC_UserSetupReq in TDD when tti bundling is active. &#13;&#10;Used in WMP in MAC_RadioBearerSetupReq.&#13;&#10;Range for EMeasGapOffset_measGapPattern0: 0...39. Range for EMeasGapOffset_measGapPattern1: 0...79.&#13;&#10;" maxRange="79" minRange="0" name="measGapOffset" type="TMeasGapOffset"/>
+         <member comment="Time period for UE inactivity detection; the same value is used for UL and DL direction. Step size 1, unit [s]. Special value 0 means disabled. Used in messages MAC_UserSetupReq and MAC_RadioBearerSetupReq." name="ueInactivityTimer" optional="true" specialValue="0" type="TOaMInactivityTimer"/>
+         <member comment="Time period for UE inactivity detection for the purpose of UTRA ANR measurements.&#13;&#10;Special value 0 is used to disable the timer." maxRange="300" minRange="5" name="tInactiveUtraAnr" specialValue="0" type="u32"/>
+         <member comment="Expiry timer for dedicated random access preamble in case of non-contention based RA. Range is calculated from TRACH_Preamble_Reservation= T304 + T301 + THOoverallDelta. Values are ms.&#13;&#10;Included in HO case in MAC_UserSetupReq." maxRange="12000" minRange="10" name="dedicRaPreExpT" type="TDedicRaPreExpT"/>
+         <member comment="Indicates the C-RNTI of the UE in the old context in case of intra cell handover or RRC Connection re-establishment. Included when old context in the same cell is available. Used only in MAC_UserSetupReq." name="oldCrntiInTheSameCell" optional="true" type="TCrnti"/>
+         <member comment="If TRUE, LTE MAC PS shall not reserve dedicated preamble for UE." name="intentionalContentionbasedRaEnabled" type="TBoolean"/>
+         <member comment="Parameter identifies the cell resource group to which the UE belongs to.&#13;&#10;If O&amp;M parameter cellResourceSharingMode is set to 'none' the group Id is always 0.&#13;&#10; &#13;&#10;If the value is different to 'none' LTE UEC shall provide the cell resource group id of the cell resource group to which the UE belongs to." name="cellResourceGroupId" type="TCellResourceGroupId"/>
+         <member comment="This parameter is for padding only and doesn't contain any information" name="padding" type="u32"/>
+         <member comment="TDD.&#13;&#10;Max number of layers as defined in chapter 5.2.2.6 of 3GPP 36.212-axx.&#13;&#10;Present when transmMode == ETransmMode_TM9." name="maxNumOfLayers" optional="true" type="EMaxNumOfLayers"/>
+         <member comment="Reserved parameter." name="reserved1" optional="true" type="u32"/>
+         <member comment="Reserved parameter." name="reserved2" optional="true" type="u32"/>
+         <member comment="Reserved parameter." name="reserved3" optional="true" type="u32"/>
+      </struct>
+      <struct name="SWmpSrbInfo">
+         <member comment="DL scheduling weight for a SRB" maxRange="1000" minRange="1" name="dlSchedulingPriority" type="TSchedulingWeight"/>
+      </struct>
+      <struct name="SWmpRbInfo">
+         <member comment="DL scheduling weight for a GBR DRB or a signalling DRB." maxRange="1000" minRange="1" name="dlSchedulingPriority" type="TSchedulingWeight"/>
+         <member comment="This parameter specifies the scheduling weight for DRBs (used with non-GBR DRBs) in eNB schedulers" maxRange="100" minRange="1" name="schedulWeight" type="TSchedulingWeight"/>
+         <member comment="QoS Class Identifier.&#13;&#10;Values 10-127 are not supported." maxRange="254" minRange="1" name="qci" type="u32"/>
+         <member comment="Scheduling Bucket Size Duration, used for GBR DRB in DL Scheduler." maxRange="5" minRange="0" name="dlsBucketSizeDuration" type="EOaMLnbtsQciTab5SchedulBSD"/>
+         <member comment="Defines the rate of the GBR bearer on RLC SDU level, used for GBR DRB in DL scheduler" maxRange="10000001600" minRange="0" name="dlsGbrRlc" type="TDlsGbrRlc"/>
+         <member comment="Defines the rate of the GBR bearer on MAC SDU level, used for GBR DRB in DL scheduler" maxRange="10000003200" minRange="0" name="dlsGbrMac" type="TDlsGbrMac"/>
+         <member comment="Delay Target, used for GBR DRB in DL scheduler" maxRange="1000" minRange="50" name="dlsDelayTarget" type="EDelayTarget"/>
+         <member comment="Scheduling Bucket Size Duration, used for GBR DRB in UL Scheduler." maxRange="5" minRange="0" name="ulsBucketSizeDuration" type="EOaMLnbtsQciTab5SchedulBSD"/>
+         <member comment="Defines the rate of the GBR bearer on RLC SDU level in UL direction used for GBR DRB in UL scheduler" maxRange="10000001600" minRange="0" name="ulsGbrRlc" type="TUlsGbrRlc"/>
+         <member comment="Defines the rate of the GBR bearer on MAC SDU level in UL direction  used for GBR DRB in UL scheduler" maxRange="10000003200" minRange="0" name="ulsGbrMac" type="TUlsGbrMac"/>
+         <member comment="Delay Target used for GBR DRB in UL scheduler" maxRange="1000" minRange="50" name="ulsDelayTarget" type="EDelayTarget"/>
+         <member comment="Defines the data volume of the SID packet used for GBR DRB in UL scheduler" maxRange="255" minRange="0" name="ulsSidVol" type="TUlsSidVol"/>
+         <member comment="Bearer specific congestion weight (priority) used in short-term congestion control. Currently used for GBR DRBs only." defaultValue="1" maxRange="30" minRange="1" name="congestionWeight" type="u32"/>
+         <member comment="Priority of the logical channel used by UE in logical channel multiplexing." maxRange="16" minRange="1" name="ulSchedulingPriority" type="TSchedulingWeight"/>
+         <member comment="Reserved parameter." name="reserved1" optional="true" type="u32"/>
+         <member comment="Reserved parameter." name="reserved2" optional="true" type="u32"/>
+      </struct>
+      <struct name="SWmpUlResCtrlParams">
+         <member name="cqiParamsWmp" type="SCqiParamsWmp"/>
+         <member comment="TDD only." maxRange="9" minRange="0" name="newTransmMode" type="ETransmMode"/>
+         <member comment="Present if hasCqiParamsScellWmp is true. Must be given when hasCqiParamsScell is also true." name="cqiParamsScellWmp" optional="true" type="SCqiParamsScellWmp"/>
+         <member comment="Present if hasTmSwitchScell is true. Include the TM Mode for Scell." name="tmSwitchScell" optional="true" type="STmSwitchScell"/>
+      </struct>
+      <struct name="SSystemInfoContainerWmp">
+         <member comment="Boolean value indicating request t monitor GPS time and fill received CDMA2000 system time reference for SystemTimeInfoCDMA2000 IE&#13;&#10;In WMP always true when SIB8 present" name="sib8SyncTimePresent" type="TBoolean"/>
+         <member comment="SIB8 related additional parameters.&#13;&#10;Valid only when sib8SyncTimePresent indicates true " name="sib8info" type="SSib8Info"/>
+      </struct>
+      <struct name="SBeamformingCtrlParams">
+         <member comment="TDD specific" name="sectorBeamformingMode" type="EOaMDlSectorBeamformingMode"/>
+         <member comment="The parameter defines the downlink sector beamforming weight for sector beamforming solution 1.&#13;&#10;It is the normalized sector beamforming weight array. DL PHY will do float to fixed point convertion. It is used only on non-beamforming mode channels and signals.TDD specific addition." name="sectorBfWeightforAntenna" type="SSectorBfWeightforAntenna">
+            <dimension size="NUM_OF_ANTENNAGROUPS"/>
+         </member>
+         <member comment="CQI threshold for switching from single codeword to dual codeword in case of TM8.&#13;&#10;Value range: 0...160 (0...16), Step size: 1 (0.1) Default: 110 (11)" defaultValue="110" maxRange="160" minRange="0" name="bfCqiThUp" type="u32"/>
+         <member comment="CQI threshold for switching from dual codeword to single codeword in case of TM8.&#13;&#10;Value range: 0...160 (0...16), Step size: 1 (0.1) Default: 90 (9)" defaultValue="90" maxRange="160" minRange="0" name="bfCqiThDown" type="u32"/>
+         <member comment="Rank threshold for switching from single codeword to dual codeword in case of TM8.&#13;&#10;Value range: 20...40 (1...2), Step size: 1 (0.05) Default: 32 (1.6)" defaultValue="32" maxRange="40" minRange="20" name="bfRankThUp" type="u32"/>
+         <member comment="Rank threshold for switching from dual codeword to single codeword in case of TM8.&#13;&#10;Value range: 20...40 (1...2), Step size: 1 (0.05) Default: 28 (1.4)" defaultValue="28" maxRange="40" minRange="20" name="bfRankThDown" type="u32"/>
+         <member comment="Time period during which channel information is valid." defaultValue="5" name="timeChInfoValid" type="EOaMTimeChInfoValid"/>
+         <member comment="Activate/de-activate the functionality of fallbacking from beamforming to TxDiv under TM8.&#13;&#10;Default value: True" maxRange="GLO_TRUE" minRange="GLO_FALSE" name="actBfFallback" type="TBoolean"/>
+         <member comment="CQI Compensation applied to Measurements when reported RI=2 in dual layer beamforming.&#13;&#10;Value range: 0...100 (0...10), Step size: 1 (0.1) Default: 30 (3)" defaultValue="30" maxRange="100" minRange="0" name="mimoBfdlCqiComp" type="u32"/>
+         <member comment="Averaging filter constant for CQI measurements in dual layer beamforming.&#13;&#10;Value range: 1...20 (0.05...1), Step size: 1 (0.05) Default: 10 (0.5)" defaultValue="10" maxRange="20" minRange="1" name="mimoBfCqiAvg" type="u32"/>
+         <member comment="Averaging filter constant for RI measurements in dual layer beamforming.&#13;&#10;Value range: 1...20 (0.05...1), Step size: 1 (0.05) Default: 10 (0.5)" defaultValue="10" maxRange="20" minRange="10" name="mimoBfdlRiAvg" type="u32"/>
+         <member name="deploymentInformation" type="EDeploymentInformation"/>
+         <member comment="CQI threshold from single layer BF to TxDiv.&#13;&#10;Value range: 0...160 (0...16), Step size: 1 (0.1) Default: 140 (14)&#13;&#10;" defaultValue="140" maxRange="160" minRange="0" name="mimoBfslCqiThU" type="u32"/>
+         <member comment="CQI threshold from TxDiv to  single layer BF.&#13;&#10;Value range: 0...160 (0...16), Step size: 1 (0.1) Default: 120 (12)" defaultValue="120" maxRange="160" minRange="0" name="mimoBfslCqiThD" type="u32"/>
+         <member comment="The aggregated gain of sector beam. Actual range: [0 … 10log10(4)] dB, step 0.01&#13;&#10;TDD only." maxRange="602" minRange="0" name="sectorBeamAggrGain" type="u32"/>
+      </struct>
+      <struct comment="TDD only" name="SCommonCellParamsWmpTdd">
+         <member comment="Maximum number of simultaneous users scheduled per DwPTS." name="maxNumUeDlDwPTS" type="TOaMMaxNumUeDlDwPTS"/>
+         <member comment="Number of consecutive SRS DTX detections triggering radio link failure indication to LTE UEC.&#13;&#10;Special value 0 means that the feature is disabled." name="nSrsDtx" type="TOaMNSrsDtx"/>
+         <member comment="NUmber of consecutive SRS non-DTX detections triggering radio link failure recovery indication to LTE UEC." name="nSrsRec" type="TOaMNSrsRec"/>
+         <member comment="DL scheduler type" name="dlsSchedType" type="EOaMDlsSchedType"/>
+         <member comment="Filtering constant for the relative signal strength parameters required for the channel aware UL scheduler.&#13;&#10;The filtering constant shall be determined depending on the SRS settings.&#13;&#10;ulsSrelFilterCst = (mSRS,0/mSRS,B_SRS)*TSRS&#13;&#10;mSRS, 0, mSRS,B_SRS see 3GPP TS 36.211 chapter 5.5.3.2&#13;&#10;TSRS see 3GPP TS 36.313 chapter 8.2" name="ulsSrelFilterCst" type="TOaMUlsSrelFilterCst"/>
+         <member comment="Gap value if DL scheduler type is DVRB." name="dlsNgap" type="EOaMDlsNgap"/>
+         <member comment="Parameter to configure whether common channel signalling (SI, paging RACH) use DCI format 1C (value 0) or 1A (value 1) on PDCCH.&#13;&#10;Note that format 1A is used by TDD, for FDD DCI format is always 1C" name="dlsDciCch" type="TBoolean"/>
+         <member name="puschHoppingInformation" type="SPuschHoppingInformation"/>
+         <member comment="DL frequency domain scheduling algorithm for FD metric calculation. 0 = TTA and 1 = Pfsch" name="dlsFdAlg" type="EOaMDlsFdAlg"/>
+         <member comment="TDD only.&#13;&#10;(Correct OAM type definition used, when available in SACK.)" name="ulMuMimoParameters" optional="true" type="SUlMuMimoParameters"/>
+      </struct>
+      <struct name="SCommonCellParamsWmp">
+         <member comment="Initial maximum amount of PRBs in UL. Step 1." name="iniPrbsUl" type="TOaMIniPrbsUl"/>
+         <member comment="Maximum amount of PRBs for scheduling request. Step 1." name="maxNumPrbSr" type="TOaMMaxNumPrbSr"/>
+         <member comment="Time averaging constant for equal throughput criterion in DL. Step 1 TTI." name="dlsTputAvgT" type="TOaMDlsTputAvgT"/>
+         <member comment="Time averaging constant for equal throughput criterion in UL. Step 1 TTI ." name="ulsTputAvgT" type="TOaMUlsTputAvgT"/>
+         <member comment="Maximum number of simultaneous users scheduled in a TTI in DL. Step 1.&#13;&#10;Range depends on Downlink Channel Bandwidth parameter. Range depends on Downlink Channel Bandwidth parameter as follows:&#13;&#10;FDD:&#13;&#10;5.0 MHz =&gt; 1...5&#13;&#10;10.0 MHz =&gt; 1...10&#13;&#10;15.0 MHz =&gt; 1...15&#13;&#10;20.0 MHz =&gt; 1...20&#13;&#10;TDD:&#13;&#10;10.0 MHz =&gt; 1...10&#13;&#10;20.0 MHz =&gt; 1...12" name="maxNumUeDl" type="TOaMMaxNumUeDl"/>
+         <member comment="Maximum number of simultaneous users scheduled in a TTI in U. Step 1. &#13;&#10;Range depends on Uplink Channel Bandwidth parameter. Range depends on Uplink Channel Bandwidth parameter as follows:&#13;&#10;FDD:&#13;&#10;5.0 MHz =&gt; 1...5&#13;&#10;10.0 MHz =&gt; 1...10&#13;&#10;15.0 MHz =&gt; 1...15&#13;&#10;20.0 MHz =&gt; 1...20&#13;&#10;TDD:&#13;&#10;10.0 MHz =&gt; 1...10&#13;&#10;20.0 MHz =&gt; 1...15" name="maxNumUeUl" type="TOaMMaxNumUeUl"/>
+         <member comment="PSD power for Single Tx case. &#13;&#10;Range -60…60 dBm, step 0.01." maxRange="6000" minRange="-6000" name="psd0" type="TTxPower"/>
+         <member comment="PSD power for Single Tx Diversity and 2x2 MIMO SM. &#13;&#10;Range -60…60 dBm, step 0.01." maxRange="6000" minRange="-6000" name="psdMimo" type="TTxPower"/>
+         <member name="dl64QamEnable" type="TOaMDl64QamEnable"/>
+         <member name="enableDl16Qam" type="TOaMEnableDl16Qam"/>
+         <member comment="Determines if PRBs partly allocated for transmission of common channels shall be used in dynamic scheduling." name="dlsUsePartPrb" type="EOaMDlsUsePartPrb"/>
+         <member comment="Minimum data volume which shall be transferred by a Dummy Grant. Step 80." name="ilMinDatvolUl" type="TOaMIlMinDatvolUl"/>
+         <member comment="Improved Latency Reaction Timer in Uplink defines the time in which the UE has to send some useful data after either the initial dummy grant or after previous reception of useful data. &#13;&#10;Step 100." name="ilReacTimerUl" type="TOaMIlReacTimerUl"/>
+         <member comment="Enables / disables PHICH control algorithm." name="enablePhichCtrlUl" type="TOaMEnablePhichCtrlUl"/>
+         <member comment="Determines time alignment offset limit for the uplink sceduler to stop considering the UE for scheduling. Range 1.5..4, step 0.1, unit 1 μs, internal range 15..40, step 1, unit 0.1 μs" name="taOffsetSchedMgn" type="TOaMTaOffScheMarg"/>
+         <member comment="The number of times the Timing Advance Command will be retried before LTE MAC assumes the UE has gone Out-of-Synch. Step 1." name="taCmdMaxRetry" type="TOaMTaCmdMaxRetry"/>
+         <member comment="Defines lead with respect to the taTimer expiration time for starting to send the periodic Timing Advance Command. Step 1 subframe." name="taTimerMargin" type="TOaMTaTimerMargin"/>
+         <member comment="Number of consecutive CQI DTX detections triggering radio link failure indication to LTE UEC. &#13;&#10;Special value 0 means that the feature is disabled." name="nCqiDtx" type="TOaMNCqiDtx"/>
+         <member comment="Number of consecutive CQI non-DTX detections triggering radio link failure recovery indication to LTE UEC. Step 1. " name="nCqiRec" type="TOaMNCqiRec"/>
+         <member name="redBwEnDl" type="TOaMRedBwEnDl"/>
+         <member comment="Maximum number of PRBs which may be assigned to the UEs scheduled in DL. Step 1.&#13;&#10;Note: The value will be rounded up in RRM algorithm to fit with the system bandwidth dependent RGB granularity.&#13;&#10;Range: 5MHz: 1… 25, 10MHz: 1… 50, 15MHz: 1… 75, 20MHz: 1… 100." maxRange="100" minRange="1" name="redBwMaxRbDl" type="SOaMRedBwMaxRbDl"/>
+         <member comment="Enables/disables restricted PRB assignment functionality in uplink. &#13;&#10;Not supported (LTE786)." name="redBwRpaEnUl" type="TOaMRedBwRpaEnUl"/>
+         <member comment="Parameters for Radio Link Failure detection" name="radioLinkFailureParams" type="SRadioLinkFailureParams"/>
+         <member comment="Parameters for Rate Capping. &#13;&#10;Not supported (LTE13-a)." name="rateCappingParams" type="SRateCappingParams"/>
+         <member comment="Cell specific parameters for UL Power Control" name="ulPCCellParams" type="SUlPCCellParams"/>
+         <member comment="DL frequency domain scheduling proprotionalfair FD metric averagingconstant" name="dlsFdPfSchAvgC" type="TOaMDlsFdPfSchAvgC"/>
+         <member comment="DL time domain QCI specific metric aligning constant" name="qciWeightAlignDl" type="TOaMQciWeightAlignDl"/>
+         <member comment="UL frequency domain scheduling algorithm for channel unaware scheduling" name="ulsFdPrbAssignAlg" type="EOaMUlsFdPrbAssignAlg"/>
+         <member comment="UL time domain QCI specific metric aligning constant" name="qciWeightAlignUl" type="TOaMQciWeightAlignUl"/>
+         <member comment="The parameter switch on/off the differnt Ul modulation schemes" name="actModulationSchemeUL" type="EOaMActModulationSchemeUL"/>
+         <member comment="Defines the scheduling method which shall be applied in the cell for the UL branch.&#13;&#10;Two methods can be chosen - the channel unaware UL scheduler and the channel aware UL scheduler.&#13;&#10;FDD:&#13;&#10;EOaMUlsSchedMethod_ChannelUnaware = 0,&#13;&#10;EOaMUlsSchedMethod_ChannelAware = 1,&#13;&#10;EOaMUlsSchedMethod_InterferenceAwareFdd = 2&#13;&#10;TDD:&#13;&#10;EOaMUlsSchedMethod_ChannelUnaware = 0,&#13;&#10;EOaMUlsSchedMethod_ChannelAware = 1" name="ulsSchedMethod" type="EOaMUlsSchedMethod"/>
+         <member comment="Averaging constant which is required for the calculation of the PRB-specific interference and noise power in the time domain." name="ulsInterferenceCst" type="TOaMUlsInterferenceCst"/>
+         <member comment="Defines the number of scheduling areas supported by the PUSCH" name="ulsNumSchedAreaUl" type="TOaMUlsNumSchedAreaUl"/>
+         <member comment="Running averaging factor for the calculation of the scheduling criterion of the interference aware UL scheduler" name="ulsTxPowDenConst" type="TOaMUlsTxPowDenConst"/>
+         <member name="extendedDrxParameters" type="SExtendedDrxParameters"/>
+         <member comment="Primary PLMN Id of the cell. Used for counter. See LTE_CP_3122.&#13;&#10;Structure (MCC, MNC, MNClength). &#13;&#10;Range: [MCC: (0 .. 999), MNC: (0 .. 999), MNClength: (2 .. 3), must be 3 if MNC &gt;= 100]&#13;&#10;Not used in MAC_CellReconfigurationReq." name="primaryPLMNId" type="SPlmnId"/>
+         <member name="ttiBundlingParameters" type="STtiBundlingParameters"/>
+         <member name="actCsiDroppingSolution" type="EOaMActCsiDroppingSolution"/>
+         <member name="ulsPuschMask" type="SArrayOfOaMUlsPuschMask"/>
+         <member comment="Defines the maximum and minimum number of PRBs which may be assigned to a UE scheduled in UL when restricted PRB assignment in uplink is enabled." name="redBwRbUlConfig" optional="true" type="SOaMRedBwRbUlConfig"/>
+         <member comment="TDD scpecific information for Common Cell structure&#13;&#10;TDD only" name="commonCellParamsWmpTdd" optional="true" type="SCommonCellParamsWmpTdd"/>
+      </struct>
+      <struct name="SMcsParams">
+         <member comment="MCS for the large size RACH Access procedure in case of initial access or handover. Step 1." name="raLargeMcsUl" type="TOaMRaLargeMcsUl"/>
+         <member comment="Data volume assigned for the 1st scheduled transmission in UL related to the group of large size RACH Access Procedure in case of initial access or handover. Step 8." name="raLargeVolUl" type="TOaMRaLargeVolUl"/>
+         <member comment="MCS for the small size RACH Access procedure in case of UL or DL data arrival. Step 1." name="raSmallMcsUl" type="TOaMRaSmallMcsUl"/>
+         <member comment="Data volume assigned for the small size RACH Access Procedure in case of UL or DL data arrival. Range 56, 144, 208 and 256 bits." name="raSmallVolUl" type="EOaMRaSmallVolUl"/>
+         <member comment="Maximum code rate for Secondary System Information. Step 0.01" name="maxCrSibDl" type="TOaMMaxCrSibDl"/>
+         <member comment="Maximum code rate for Paging. Step 0.01" name="maxCrPgDl" type="TOaMMaxCrPgDl"/>
+         <member comment="Maximum code rate for Random Access Message 2. Step 0.01." name="maxCrRaDl" type="TOaMMaxCrRaDl"/>
+         <member comment="Maximum code rate for Random Access Message 4. Step 0.01" name="maxCrRa4Dl" type="TOaMMaxCrRa4Dl"/>
+         <member comment="Initial modulation and coding scheme (MCS) in DL. Step 1." name="iniMcsDl" type="TOaMIniMcsDl"/>
+         <member comment="Initial modulation and coding scheme (MCS) in UL. Step 1." name="iniMcsUl" type="TOaMIniMcsUl"/>
+      </struct>
+      <struct name="SCqiParamsWmp">
+         <member comment="Sets the aperiodic CQI Reporting Time-Limit by Polling to be taken into account by Scheduler. Step 1 TTI.&#13;&#10;Defines the minimum time between two consecutive aperiodic CQI/RI/PMI report requests." name="cqiAperPollT" type="TOaMCqiAperPollT"/>
+         <member comment="Enables / disables aperiodic CQI / RI / PMI reporting in UE basis." maxRange="1" minRange="0" name="cqiAperEnable" type="TOaMCqiAperEnable"/>
+      </struct>
+      <struct name="SPdcchParams">
+         <member comment="PDCCH Aggregation for Secondary System Information allocation. Step 4." name="pdcchAggSib" type="TOaMPdcchAggSib"/>
+         <member comment="PDCCH Aggregation for Random Access Responce Message allocation. Step 4." name="pdcchAggRaresp" type="TOaMPdcchAggRaresp"/>
+         <member comment="PDCCH Aggregation for Paging allocation. Step 4." name="pdcchAggPaging" type="TOaMPdcchAggPaging"/>
+         <member comment="PDCCH Aggregation for Dedicated Preamble Assignment. Step 4. &#13;&#10;Not supported (LTE81)." name="pdcchAggPreamb" type="TOaMPdcchAggPreamb"/>
+         <member comment="PDCCH Aggregation for RA Msg4 allocation. Step 4." name="pdcchAggMsg4" type="TOaMPdcchAggMsg4"/>
+         <member comment="Switch for enable/disable CQI based AMC on PDCCH. In case of disabled AMC the default Aggregation shall be used." name="enableAmcPdcch" type="TOaMEnableAmcPdcch"/>
+         <member comment="Default Aggregation for UE if PDCCH AMC is disabled or no valid CQI is available due to pdcchCqiHist." name="pdcchAggDefUe" type="EOaMPdcchAggDefUe"/>
+         <member comment="Averaging Constant for PDCCH CQI measurement filter. &#13;&#10;Step 0.05. Scaled (value*20)." name="pdcchCqiAvg" type="TOaMPdcchCqiAvg"/>
+         <member comment="Fine-Tuning Parameter for adjustment of measured and averaged CQI towards lower or higher Values. Affects also for the default aggregation.&#13;&#10;Step 0.1. Scaled (value*10)." defaultValue="-50" maxRange="100" minRange="-100" name="pdcchCqiShift" type="SOaMPdcchCqiShift"/>
+         <member comment="CQI compensation applied to RI = 2 CQI report for diversity normalization for open loop MIMO SM transmission.&#13;&#10;Step 0.1. Scaled (value*10)." name="pdcchOlComp" type="TOaMPdcchOlComp"/>
+         <member comment="CQI compensation applied to RI = 2 CQI report for diversity normalization for closed loop MIMO SM transmission.&#13;&#10;Step 0.1. Scaled (value*10)." name="pdcchClComp" type="TOaMPdcchClComp"/>
+         <member comment="CQI compensation applied to RI = 2 CQI report for diversity normalization for closed loop MIMO SM transmission." name="pdcchCqiHist" type="TOaMPdcchCqiHist"/>
+         <member comment="Switch for enable/disable automatic Use of lower Aggregations than required, Agg8=&gt;Agg4 and Agg4=&gt;Agg2." name="enableLowAgg" type="TOaMEnableLowAgg"/>
+         <member comment="CCE Utilization threshold for Activation of lower Aggregations&#13;&#10;Step 0.05. Scaled (value*20)." name="pdcchLowAggTh" type="TOaMPdcchLowAggTh"/>
+         <member comment="PDCCH Allocation Limit." name="pdcchAlpha" type="TOaMPdcchAlpha"/>
+         <member comment="PDCCH Allocation Balance between UL and DL.&#13;&#10;Step 0.05. Scaled (value*20). Value = pdcchUlDlBal/20" name="pdcchUlDlBal" type="TOaMPdcchUlDlBal"/>
+         <member comment="Priority Vector giving UL and DL message Priority per Message Type defined as Tag (Prio 0-99 per Tag)." name="pdcchUlDlPrio" type="TPdcchUlDlPrio">
+            <dimension size="MAX_MSG_TYPE_TAG"/>
+         </member>
+         <member comment="Switch for enable/disable Power Control on PDCCH. In case of disabled PC the flat DL PSD shall be used." name="enablePcPdcch" type="TOaMEnablePcPdcch"/>
+         <member comment="Limit for maximum PDCCH CCE Power Boost.&#13;&#10;Step 0.1. Scaled (value*10)." name="pdcchPcBoost" type="TOaMPdcchPcBoost"/>
+         <member comment="Limit for maximum PDCCH CCE Power Reduction.&#13;&#10;Step 0.1. Scaled (value*10)." name="pdcchPcRed" type="TOaMPdcchPcRed"/>
+         <member comment="PC Limit on the equal Power Relocation per CCE.&#13;&#10;Step 0.1. Scaled (value*10)." name="pdcchPcReloc" type="TOaMPdcchPcReloc"/>
+         <member comment="Parameter to activate or deactivate the load adaptive number of PDCCH symbols in a cell." maxRange="GLO_TRUE" minRange="GLO_FALSE" name="actLdPdcch" type="TBoolean"/>
+         <member comment="Activate /deactivate PDCCH load generation function.&#13;&#10;TDD only." name="actPdcchLoadGen" optional="true" type="TOaMActPdcchLoadGen"/>
+         <member name="pdcchLoadLevel" type="SOaMPdcchLoadLevel"/>
+         <member name="pdcchLoadPsdOffset" type="SOaMPdcchLoadPsdOffset"/>
+      </struct>
+      <struct name="SSchedulingWeightParams">
+         <member comment="Scheduling priority of a HARQ retransmission in DL. Step 1." name="prioHarqDl" type="TOaMPrioHarqDl"/>
+         <member comment="Scheduling priority of the Signalling Radio Bearer in DL. Step 1." name="prioSrbDl" type="TOaMPrioSrbDl"/>
+         <member comment="Scheduling priority of the HARQ retransmissions in UL." name="prioHarqUl" type="TOaMPrioHarqUl"/>
+         <member comment="Schedulign Priority of the Scheduling Request Procedure." name="prioSrUl" type="TOaMPrioSrUl"/>
+         <member comment="Scheduling priority of the Signalling Radio Bearer in UL." name="prioSrbUl" type="TOaMPrioSrbUl"/>
+      </struct>
+      <struct name="SLinkAdaptConfParams">
+         <member comment="Enables / disables DL AMC (Adaptive Modulation and Coding)" name="dlamcEnable" type="TOaMDlamcEnable"/>
+         <member comment="Enabling/diabling Outer Loop Quality Control. " name="dlOlqcEnable" type="TOaMDlOlqcEnable"/>
+         <member comment="Intial CQI offset for DL OLQC. &#13;&#10;Step 0.1. Scaled (value*10)." name="dlOlqcDeltaCqiIni" type="TOaMDlOlqcDeltaCqiIni"/>
+         <member comment="Maximum CQI offset for DL OLQC.&#13;&#10;Step 0.1. Scaled (value*10)." name="dlOlqcDeltaCqiMax" type="TOaMDlOlqcDeltaCqiMax"/>
+         <member comment="Minimum CQI offset for DL OLQC. &#13;&#10;Step 0.1. Scaled (value*10)." name="dlOlqcDeltaCqiMin" type="TOaMDlOlqcDeltaCqiMin"/>
+         <member comment="The parameter defines increase to CQI offset for HARQ ACK response for DL OLQC.&#13;&#10;Step 0.001. Scaled (value*1000)." name="dlOlqcDeltaCqiStepUp" type="TOaMDlOlqcDeltaCqiStepUp"/>
+         <member comment="Target BLER for downlink. &#13;&#10;Step 0.0010. Scaled (value*1000)." defaultValue="100" maxRange="999" minRange="1" name="dlTargetBler" type="SOaMDlTargetBler"/>
+         <member comment="CQI value. Step 1. Value 0: disabled." name="dlamcCqiDef" type="TOaMDlamcCqiDef"/>
+         <member comment="Time in TTIs for which the old CQI shall be remembered. Step 1. &#13;&#10;Value 0: not remembered" name="dlamcTHistCqi" type="TOaMDlamcTHistCqi"/>
+         <member comment="Defines CQI compensation value for DL AMC for case where Spatial Multiplexing transmission mode is used but Rank Indication of 1 is received from UE. Applicable in the case when Dynamic Open Loop MIMO Spatial Multiplexing has been configured to use i.e. when dlMimoMode parameter is 3.&#13;&#10;Step 0.1. Scaled (value*10)." name="cqiCompSmRi1Ol" type="TOaMCqiCompSmRi1Ol"/>
+         <member comment="Defines CQI compensation value for DL AMC for case where TX Diversity transmission mode is used but Rank Indication of 2 is received from UE. Applicable in the case when Dynamic Open Loop MIMO Spatial Multiplexing has been configured to use i.e. when dlMimoMode parameter is 3.&#13;&#10;Step 0.1. Scaled (value*10)." name="cqiCompTdRi2Ol" type="TOaMCqiCompTdRi2Ol"/>
+         <member comment="Defines CQI compensation value for DL AMC for case where Spatial Multiplexing transmission mode is used but Rank Indication of 1 is received from UE. Applicable in the case when Closed Loop MIMO Spatial Multiplexing has been configured to use i.e. when dlMimoMode parameter is 4.&#13;&#10;Step 0.1. Scaled (value*10).&#13;&#10;Not supported (LTE703-a)." name="cqiCompSmRi1Cl" type="TOaMCqiCompSmRi1Cl"/>
+         <member comment="Defines CQI compensation value for DL AMC for case where TX Diversity transmission mode is used but Rank Indication of 2 is received from UE. Applicable in the case when Closed Loop MIMO Spatial Multiplexing has been configured to use i.e. when dlMimoMode parameter is 4.&#13;&#10;Step 0.1. Scaled (value*10).&#13;&#10;Not supported (LTE703-a)." name="cqiCompTdRi2Cl" type="TOaMCqiCompTdRi2Cl"/>
+         <member comment="MCS BLER Target (used for both OLLA and BLER AMC) &#13;&#10;Step: 1 %" name="ulTargetBler" type="TOaMUlTargetBler"/>
+         <member comment="Factor for Calculation of the BLER Thresholds for MCS Upgrade / Downgrade by Division and Multiplication with the Target BLER&#13;&#10;Step 0.05. Scaled (value*20). " name="ulamcUpdowngrF" type="TOaMUlamcUpdowngrF"/>
+         <member comment="Maximum Limit for the OLLA Compensation (Threshold for Fast Upgrade)&#13;&#10;Step 0.1. Scaled (value*10)." name="ulamcDeltaCmax" type="TOaMUlamcDeltaCmax"/>
+         <member comment="Minimum Limit for the OLLA Compensation (Threshold for Emergency Downgrade)&#13;&#10;Step 0.1. Scaled (value*10). " name="ulamcDeltaCmin" type="TOaMUlamcDeltaCmin"/>
+         <member comment="Maximum Limit for the OLLA Compensation (Threshold for Fast Upgrade, Emergency Downgrade)&#13;&#10;Step 0.1. Scaled (value*10). " name="ulamcDeltaCini" type="TOaMUlamcDeltaCini"/>
+         <member comment="OLLA Compensation Stepsize Up&#13;&#10;Step 0.05. Scaled (value*20)." name="ulamcCStepUp" type="TOaMUlamcCStepUp"/>
+         <member comment="Switch on/off for the BLER Calculation on 1st TB Transmission or on all TBs. 0: disabled, 1: enabled" name="ulamcAllTbEn" type="TOaMUlamcAllTbEn"/>
+         <member comment="Timer for valid “historical MCS”. Step 100 ms." name="ulamcHistMcsT" type="TOaMUlamcHistMcsT"/>
+         <member comment="Timer for MCS degradation due to “temporary UE Inactivity” or DRX/DTX, step 10ms." name="ulamcInactT" type="TOaMUlamcInactT"/>
+         <member comment="Threshold determining the AMC switching Period (Number of received TBs with initial Transmission), step 10." name="ulamcSwitchPer" type="TOaMUlamcSwitchPer"/>
+         <member comment="ATB averaging period for UE power headroom reports. Step 0.05. Scaled (value*20)." name="ulatbPhrAvgF" type="TOaMUlatbPhrAvgF"/>
+         <member comment="ATB Period in Terms of UL AMC Switching Periods (including EDG and FUG Events). Step 1." name="ulatbEventPer" type="TOaMUlatbEventPer"/>
+         <member comment="Activates Uplink Link Adaptation and defines Link Adaptation mode." name="actUlLnkAdp" type="EOaMActUlLnkAdp"/>
+         <member comment="When not externally triggered by Outer Loop Link Adaptation (OLLA), the Adaptive Transmission Bandwidth (ATB) algorithm will be activated  when the amount of  TTI events here defined has been reached. Step size: 5" defaultValue="30" maxRange="50" minRange="10" name="eUlLaAtbPeriod" type="SOaMEUlLaAtbPeriod"/>
+         <member comment="Incremental and decremental factor for the Adaptive Transmission Bandwidth's calculation of allocable PRBs.&#13;&#10;Step 0.05. Scaled (value*20)." defaultValue="16" maxRange="18" minRange="10" name="eUlLaPrbIncDecFactor" type="SOaMEUlLaPrbIncDecFactor"/>
+         <member comment="Averaging window for BLER in E-ULA.&#13;&#10;It is expressed in number of TTI when UE has been actively scheduled. Step size: 5" defaultValue="30" maxRange="50" minRange="20" name="eUlLaBlerAveWin" type="SOaMEUlLaBlerAveWin"/>
+         <member comment="Defines how many MCS indexes above the minimal MCS index are required before ATB may increase the amount of allocable PRBs." defaultValue="3" maxRange="6" minRange="1" name="eUlLaDeltaMcs" type="SOaMEUlLaDeltaMcs"/>
+         <member comment="Defines the lowest possible amount of allocable PRBs." defaultValue="1" maxRange="5" minRange="1" name="eUlLaLowPrbThr" type="SOaMEUlLaLowPrbThr"/>
+         <member comment="Defines the lowest possible MCS index before Adaptive Transmission Bandwith (ATB) algorithm may act and decrease the amount of allocable PRBs." defaultValue="1" maxRange="4" minRange="1" name="eUlLaLowMcsThr" type="SOaMEUlLaLowMcsThr"/>
+         <member comment="Activate / Deactivate Outer loop Link Adaptation for PDCCH." name="actOlLaPdcch" type="TOaMActOlLaPdcch"/>
+         <member comment="Defines target BLER of PDCCH and UL HARQ response for initial downlink transmissions for PDCCH Outer Loop Link Adaptation in percents." defaultValue="10" maxRange="30" minRange="1" name="pdcchHarqTargetBler" type="SOaMPdcchHarqTargetBler"/>
+         <member comment="Parameter defines the threshold under which the OLLA triggers an early ATB calculation.&#13;&#10;It is used in F-ULLA (actUlLnkAdp == EOaMActUlLnkAdp_FUlLaFdd)." name="fUlLAAtbTrigThr" type="SOaMFUlLAAtbTrigThr"/>
+      </struct>
+      <struct comment="Note: Parameters related to LTE703-a Closed loop MIMO are not supported." name="SMimoCtrlParams">
+         <member comment="CQI Compensation applied to Measurements when reported RI=2 in Open Loop MIMO. Step 0.1. Scaled (value*10)." name="mimoOlCqiComp" type="TOaMMimoOlCqiComp"/>
+         <member comment="Averaging filter constant for CQI measurements in Open Loop MIMO. Step 0.05. Scaled (value*20)." name="mimoOlCqiAvg" type="TOaMMimoOlCqiAvg"/>
+         <member comment="Averaging filter constant for RI measurements in Open Loop MIMO. Step 0.05. Scaled (value*20)." name="mimoOlRiAvg" type="TOaMMimoOlRiAvg"/>
+         <member comment="CQI Compensation When Reported RI Equals 2 In CL SM. Step 0.1. Scaled (value*10)." name="mimoClCqiComp" type="TOaMMimoClCqiComp"/>
+         <member comment="Averaging Filter Constant For CL CQI Measurements. Step 0.05. Scaled (value*20)." name="mimoClCqiAvg" type="TOaMMimoClCqiAvg"/>
+         <member comment="Averaging Filter Constant For CL RI Measurements. Step 0.05. Scaled (value*20)." name="mimoClRiAvg" type="TOaMMimoClRiAvg"/>
+         <member comment="Closed Loop MIMO parameter configuration. Those parameters need to be configured only if dlMimoMode is configured to &quot;Closed Loop MIMO&quot; and actFastMimoSwitch is set to 'false'." name="mimoClConfig" optional="true" type="SOaMMimoClConfig"/>
+         <member comment="Open Loop MIMO parameter configuration. Those parameter need to be configured only if dlMimoMode is configured to &quot;Dynamic Open Loop MIMO&quot;." name="mimoOlConfig" optional="true" type="SOaMMimoOlConfig"/>
+      </struct>
+      <struct name="SRadioLinkFailureParams">
+         <member comment="Determines the time frame within only (more than 1) failed PDSCH transmissions have been detected causing indication of radio link failure to LTE UEC. &#13;&#10;Step size 1. Special value 0 means that the functionality is switched off." name="rlpDetMaxTimeDl" type="TOaMRlpDetMaxTimeDl"/>
+         <member comment="Determines the maximum number of failed DL PDSCH transmission attempts until radio link problems are detected. &#13;&#10;Step size 1. Special value 0 means that the functionality is switched off." name="rlpDetMaxNoDl" type="TOaMRlpDetMaxNoDl"/>
+         <member comment="Defines number of consecutive DL HARQI non-DTX detections causing radio link failure recovery sending. &#13;&#10;Step size 1." name="rlpDetEndNoDl" type="TOaMRlpDetEndNoDl"/>
+         <member comment="Defines the number of consecutive PUSCH DTX indications (reliableULtransmissionFlag==FALSE) after which a radio link failure is send.&#13;&#10;Step size 1. Special value 0 means that the functionality is switched off." name="rlpDetMaxNUl" type="TOaMRlpDetMaxNUl"/>
+         <member comment="Defines the number of consecutive PUSCH TX indications (reliableULtransmissionFlag==TRUE) after which radio link recovery is reported to LTE UEC. &#13;&#10;Step size 1." name="rlpDetEndNUl" type="TOaMRlpDetEndNUl"/>
+      </struct>
+      <struct comment="Note: LTE13-a Rate Capping not supported." name="SRateCappingParams">
+         <member name="rcEnableDl" type="TOaMRcEnableDl"/>
+         <member comment="Factor to calculate margin for AMBR to account for overhead of PDCP and RLC. Step 0.01. Scaled (value*100)." defaultValue="103" maxRange="150" minRange="100" name="rcAmbrMgnDl" type="SOaMRcAmbrMgnDl"/>
+         <member comment="Averaging constant for scheduled AMBR determination. Step 1 TTI." name="rcAvCstDl" type="TOaMRcAvCstDl"/>
+         <member name="rcEnableUl" type="TOaMRcEnableUl"/>
+         <member comment="Factor to calculate margin for AMBR to account for overhead of PDCP and RLC. Step 0.01. Scaled (value*100)." defaultValue="102" maxRange="150" minRange="100" name="rcAmbrMgnUl" type="SOaMRcAmbrMgnUl"/>
+         <member comment="Averaging constant for scheduled AMBR determination. Step 1 TTI." name="rcAvCstUl" type="TOaMRcAvCstUl"/>
+      </struct>
+      <struct name="SUlPCCellParams">
+         <member comment="Defines the delta power for random access response message. Value is defined as -3 to 4 which shall be multiply by 2. After that real values are -6 to 8 and step is 2. " name="ulpcRarespTpc" type="TOaMUlpcRarespTpc"/>
+         <member comment="Power offset for PUCCH format 1. ENUM; 0: -2 dB; 1: 0 dB; 2: 2 dB" name="dFpucchF1" type="EOaMDFpucchF1"/>
+         <member comment="Power offset for PUCCH format 1b. ENUM; 0: 1 dB; 1: 3 dB; 2: 5 dB" name="dFpucchF1b" type="EOaMDFpucchF1b"/>
+         <member comment="Power offset for PUCCH format 2. ENUM; 0: -2 dB; 1: 0 dB; 2: 1 dB; 3: 2 dB" name="dFpucchF2" type="EOaMDFpucchF2"/>
+         <member comment="Power offset for PUCCH format 2a. ENUM; 0: -2 dB; 1: 0 dB; 2: 2 dB" name="dFpucchF2a" type="EOaMDFpucchF2a"/>
+         <member comment="Power offset for PUCCH format 2b. ENUM; 0: -2 dB; 1: 0 dB; 2: 2 dB" name="dFpucchF2b" type="EOaMDFpucchF2b"/>
+         <member comment="Minimum value for RSSI measurement for clipping purpose. Step 1dBm." name="ulpcRssiMin" type="TOaMUlpcRssiMin"/>
+         <member comment="Maximum value for RSSI measurement for clipping purpose. Step 1dBm." name="ulpcRssiMax" type="TOaMUlpcRssiMax"/>
+         <member comment="Minimum value for SINR measurement for clipping purpose. Step 1dB." name="ulpcSinrMin" type="TOaMUlpcSinrMin"/>
+         <member comment="Maximum value for SINR measurement for clipping purpose. Step 1dB." name="ulpcSinrMax" type="TOaMUlpcSinrMax"/>
+         <member comment="Weighting factor for cell level PUCCH measurement. Step 1." name="ulpcWfPucchcell" type="TOaMUlpcWfPucchcell"/>
+         <member comment="Weighting factor for user level PUCCH measurement. Step 1." name="ulpcWfPucchUe" type="TOaMUlpcWfPucchUe"/>
+         <member comment="Weighting factor for cell level PUSCH measurement. Step 1." name="ulpcWfPuschcell" type="TOaMUlpcWfPuschcell"/>
+         <member comment="Weighting factor for user level PUSCH measurement. Step 1." name="ulpcWfPuschUe" type="TOaMUlpcWfPuschUe"/>
+         <member comment="Weighting factor for cell level SRS measurement." name="ulpcWfSrscell" type="TOaMUlpcWfSrscell"/>
+         <member comment="Weighting factor for user level SRS measurement." name="ulpcWfSrsUe" type="TOaMUlpcWfSrsUe"/>
+         <member comment="Minimum limit for cumulative PUCCH power commands. Step 1 dB." name="ulpcCumpucchmin" type="TOaMUlpcCumpucchmin"/>
+         <member comment=" Maximum limit for cumulative PUCCH power commands. Step 1 dB." name="ulpcCumpucchmax" type="TOaMUlpcCumpucchmax"/>
+         <member comment="Minimum limit for cumulative PUSCH power commands. Step 1 dB." name="ulpcCumpuschmin" type="TOaMUlpcCumpuschmin"/>
+         <member comment="Maximum limit for cumulative PUSCH power commands. Step 1 dB." name="ulpcCumpuschmax" type="TOaMUlpcCumpuschmax"/>
+         <member comment="Time interval for calculating the power correction values DELTA_PUSCH and DELTA_PUCCH. Step 10 ms." defaultValue="50" maxRange="2000" minRange="10" name="ulpcReadPeriod" type="SOaMUlpcReadPeriod"/>
+         <member comment="Averaging time for continuous PUSCH/SRS measurement data. &#13;&#10;Step 0.1 ms in range [0.2;4] and 1 in the range [4,100]. Scaled (value*10)." name="ulpcSchavgtcont" type="TOaMUlpcSchavgtcont"/>
+         <member comment="Averaging time for discontinuous PUSCH/SRS measurement data. &#13;&#10;Step 0.1 ms in range [0.2;4] and 1 in the range [4,100]. Scaled (value*10)." maxRange="1000" minRange="2" name="ulpcSchavgtdisc" type="TOaMUlpcSchavgtdisc"/>
+         <member comment="Averaging time for continuous PUCCH measurement data. &#13;&#10;Step 0.1 ms in range [0.2;4] and 1 in the range [4,100]. Scaled (value*10)." name="ulpcCchavgtcont" type="TOaMUlpcCchavgtcont"/>
+         <member comment="Averaging time for discontinuous PUCCH measurement data. &#13;&#10;Step 0.1 ms in range [0.2;4] and 1 in the range [4,100]. Scaled (value*10)." name="ulpcCchavgtdisc" type="TOaMUlpcCchavgtdisc"/>
+         <member name="actUlpcMethod" type="EOaMActUlpcMethod"/>
+         <member name="p0NominalPusch" type="TOaMP0NomPusch"/>
+         <member name="p0NomPucch" type="TOaMP0NomPucch"/>
+         <member name="ulpcIniPrePwr" type="EOaMUlpcIniPrePwr"/>
+         <member comment="Indicates the power offset (delta value) of message 3 relative to the preamble.&#13;&#10;Range -2…12, step 2, unit dB. Internal range -1…6, step 1, unit 2dB." maxRange="6" minRange="-1" name="deltaPreambleMsg3" type="i32"/>
+         <member comment="Fractional path loss compensation factor: alpha value in UE uplink power control equations (P1) and (P3) to control received SNR variance (fairness) for user data and sounding reference symbol." name="ulpcAlpha" type="EOaMUlpcAlpha"/>
+         <member comment="Uplink power control configuration for PUCCH component" name="ulpcPucchConfig" optional="true" type="SOaMUlpcPucchConfig"/>
+         <member comment="Uplink power control configuration for PUSCH component" name="ulpcPuschConfig" optional="true" type="SOaMUlpcPuschConfig"/>
+         <member name="ulpcIawConfig" optional="true" type="SUlpcIawConfig"/>
+      </struct>
+      <struct name="SUlPCUeParams">
+         <member comment="UE specific power offset for PUSCH power in dynamic scheduling case. Step 1dB" name="p0UePusch" type="TOaMP0UePusch"/>
+         <member comment="UE specific power offset for PUCCH power. Step 1dB" name="p0UePucch" type="TOaMP0UePucch"/>
+         <member comment="Enables/disables transport format dependent offset in UE basis" name="deltaTfEnabled" type="TOaMDeltaTfEnabled"/>
+         <member comment="Enables/disables accumulated PUSCH/PUCCH power commands." name="ulpcAccuEnable" type="TOaMUlpcAccuEnable"/>
+         <member name="srsPwrOffset" type="SOaMSrsPwrOffset"/>
+      </struct>
+      <struct name="SConvVoiceParams">
+         <member comment="Enable Support of Conversational Voice Bearer" name="actConvVoice" type="TOaMActConvVoice"/>
+         <member comment="Enable DL Voice Packet Aggregation" name="actDlsVoicePacketAgg" type="TOaMActDlsVoicePacketAgg"/>
+         <member comment="Switch to enable/disable Outer Loop Delay Target Control (OLDTC) for voice in downlink TD scheduling" name="actDlsOldtc" type="TOaMActDlsOldtc"/>
+         <member comment="Target value for Outer Loop Delay Target Control&#13;&#10;Step 0.01. Scaled (value*100)." defaultValue="98" maxRange="98" minRange="90" name="dlsOldtcTarget" type="SOaMDlsOldtcTarget"/>
+         <member comment="Adaptation step for Outer Loop Delay Target Control&#13;&#10;Step 0.01. Scaled (value*100)." name="dlsOldtcStepUp" type="TOaMDlsOldtcStepUp"/>
+         <member comment="Maximum number of aggregated VoIP packets in UL" name="ulsMaxPacketAgg" type="TOaMUlsMaxPacketAgg"/>
+         <member comment="Overhead size of VoIP packets on MAC level" name="ulsVoipOverhead" type="TOaMUlsVoipOverhead"/>
+      </struct>
+      <struct name="SSib8Info">
+         <member comment="Define starting position of the SystemTimeInfoCDMA2000 IE in SIB8 in bits from the beginning of the message" name="sib8TimePosition" type="u32"/>
+         <member comment="Defines length of the SystemTimeInfoCDMA2000 IE in SIB8 in bits" name="sib8TimeLength" type="u32"/>
+         <member comment="If present, means that SIB8DataWithTime field contains a SIB8 structure with longCodeState1XRTT IE to be filled up by MAC. &#13;&#10;This field defines starting position of the longCodeState IE in SIB8 in bits from the beginning of the message.&#13;&#10;The length of the longCodeState IE is always 42 bits.&#13;&#10;Note: It is present when LTE1441 is enabled." name="longCodeState1XRTTPosition" optional="true" type="u32"/>
+         <member comment="ASN.1 encoded SIB8 message with SystemTimeInfoCDMA2000 IE and with or w/o longCodeState1XRTT IE" name="sib8DataWithTime" type="u8">
+            <dimension isVariableSize="true" size="MAX_SI_DATA" variableSizeFieldName="sib8SizeWithTime" variableSizeFieldType="TL3MsgSize"/>
+         </member>
+      </struct>
+      <struct name="SPuschHoppingInformation">
+         <member name="hopBwPusch" type="TOaMLnbtsHopBwPusch"/>
+         <member name="hopModePusch" type="EOaMHopModePusch"/>
+         <member name="hopTypePusch" type="u32"/>
+         <member name="TPuschHoppingEnable" type="TBoolean"/>
+         <member name="puschHopOffset" type="TOaMPuschHopOffset"/>
+      </struct>
+      <struct comment="WMP FDD only." name="SSRSTriggerParams">
+         <member comment="Number of consecutively received PHRs." name="ulsNumConsecutivePhr" type="TOaMUlsNumConsecutivePhr"/>
+         <member comment="Defines the srs configuration." defaultValue="1" maxRange="8" minRange="1" name="srsConfiguration" type="SOaMSrsConfiguration"/>
+      </struct>
+      <struct name="STransmModeParams">
+         <member comment="Activate or deactivate the dynamic transmission mode switch function." name="actTmSwitch" type="TOaMActTmSwitch"/>
+         <member comment="Prohibit timer for dynamic TM mode switch." name="prohibitTimerTmSwitch" type="EOaMProhibitTimerTmSwitch"/>
+         <member name="tm7to3CqiTh" type="SOaMTm7to3CqiTh"/>
+         <member name="tm3to7CqiTh" type="SOaMTm3to7CqiTh"/>
+         <member name="tm8to3CqiTh" type="SOaMTm8to3CqiTh"/>
+         <member name="tm3to8CqiTh" type="SOaMTm3to8CqiTh"/>
+      </struct>
+      <struct name="SEicicParameters">
+         <member comment="Defines the type of the cell." maxRange="2" minRange="0" name="cellType" type="ECellType"/>
+         <member comment="If the cqi of a UE falls below this threshold, then the UE is in range extension area." name="reCqiLimit" type="TReCqiLimit"/>
+         <member comment="Used with reCqiLimit to calculate if UE is in range extension area." name="reCqiThreshold" type="TReCqiLimit"/>
+         <member comment="Pattern for transmsission in cell." name="cellAbsPattern" type="SEicicAbsPattern"/>
+         <member comment="Transmission pattern of neighbour cells." name="nCellAbsPattern" type="SEicicAbsPattern">
+            <dimension isVariableSize="true" size="MAX_NUM_OF_NCELLABS" variableSizeFieldName="numberOfNcellAbsPattern" variableSizeFieldType="u8"/>
+         </member>
+      </struct>
+      <struct name="SEicicAbsPattern">
+         <member comment="Bits 0  .. 31 of ABS pattern." name="absPatternLow" type="u32"/>
+         <member comment="Bits 32 .. 39 of ABS pattern." name="absPatternHigh" type="u8"/>
+         <member comment="Shift of the ABS pattern." name="absShift" type="u16"/>
+      </struct>
+      <struct name="SGbrCongestionParams">
+         <member comment="Determines if and on which layer congestion handling shall be applied if congestion is detected by layer 2." name="gbrCongHandling" type="EOaMGbrCongHandling"/>
+         <member comment="Maximum radio resource consumption (PRBs) for GBR traffic in UL and DL." name="maxGbrTrafficLimit" type="TOaMMaxGbrTrafficLimit"/>
+         <member comment="Additional margin on the threshold &quot;maxGbrTrafficLimit&quot; in case of handover for radio reasons." name="addGbrTrafficRrHo" type="TOaMAddGbrTrafficRrHo"/>
+         <member comment="Additional margin on the threshold &quot;maxGbrTrafficLimit &quot; in case of handover for time critical reasons." name="addGbrTrafficTcHo" type="TOaMAddGbrTrafficTcHo"/>
+      </struct>
+      <struct comment="Positioning Reference Signals (PRS) info parameters" name="SPRSInfoParams">
+         <member comment="Activates the transmission of PRS signals according to the PRS configuration." name="actOtdoa" type="TOaMActOtdoa"/>
+         <member comment="Determines the periodicity and offset of the PRS occasions for FDD." name="prsConfigurationIndex" type="SOaMPrsConfigurationIndex"/>
+         <member comment="Number of DL Frames that are used for PRS per PRS occasion for FDD. With this PRS transmission can be repeated within a PRS occasion in order to increase the hearability of PRS." defaultValue="1" maxRange="2" minRange="1" name="prsNumDlFrames" type="SOaMPrsNumDlFrames"/>
+      </struct>
+      <struct name="SMuMimoParameters">
+         <member comment="Active/deactive the TM8 based MU-MIMO." defaultValue="GLO_FALSE" maxRange="GLO_TRUE" minRange="GLO_FALSE" name="actTm8MuMimo" type="TBoolean"/>
+         <member comment="The CQI threshold above which the TM8 BF UE can be selected as TM8 MU-MIMO candidate." name="tm8MuMimoCqiThd" type="TOaMTm8MuMimoCqiThd"/>
+         <member comment="The correlation threshold below which two TM8 MU-MIMO candidate can be paired." name="tm8MuMimoCorrThd" type="TOaMTm8MuMimoCorrThd"/>
+      </struct>
+      <struct name="STtiBundlingParameters">
+         <member comment="Controls the BLER threshold for switching UEs from non-bundling mode into TTI-Bundling mode.&#13;&#10;Must be configured if the TTI Bundling is enabled." defaultValue="20" maxRange="50" minRange="8" name="ttiBundlingBlerThreshold" type="SOaMTtiBundlingBlerThreshold"/>
+         <member comment="SINR threshold for switching UEs from TTI-Bundling mode into non-TTI-bundling mode.&#13;&#10;Must be configured if the TTI Bundling is enabled." defaultValue="10" maxRange="100" minRange="-100" name="ttiBundlingSinrThreshold" type="SOaMTtiBundlingSinrThreshold"/>
+         <member comment="BLER target value for link adaption while in TTI Bundling mode.&#13;&#10;Must be configured if the TTI Bundling is enabled." defaultValue="12" maxRange="50" minRange="10" name="ttiBundlingBlerTarget" type="SOaMTtiBundlingBlerTarget"/>
+         <member comment="UL OLLA compensation stepsize up while in TTI Bundling mode." name="ttiBundlingCStepUp" type="TOaMTtiBundlingCStepUp"/>
+         <member comment="UL OLLA initial value for compensation while in TTI Bundling mode." name="ttiBundlingDeltaCini" type="TOaMTtiBundlingDeltaCini"/>
+         <member comment="UL OLLA minimum limit for compensation while in TTI Bundling mode." name="ttiBundlingDeltaCmin" type="TOaMTtiBundlingDeltaCmin"/>
+         <member comment="UL OLLA maximum limit for compensation while in TTI Bundling mode." name="ttiBundlingDeltaCmax" type="TOaMTtiBundlingDeltaCmax"/>
+      </struct>
+      <struct name="SDlCarrierAggrParams">
+         <member comment="Controls scheduling fairness between UEs with and without activated SCell.&#13;&#10;If no value is configured (no CAREL exists), the value is copied from the corresponding parameter of CAREL of aggregated cell (linked by lcrId of CAREL of aggregated cell)" name="caSchedFairFact" type="TOaMCaSchedFairFact"/>
+         <member name="sCellActivationCyclePeriod" type="EOaMSCellActivationCyclePeriod"/>
+         <member name="sCellActivationMethod" type="EOaMSCellActivationMethod"/>
+         <member name="sCellpCellHARQFdbkUsage" type="EOaMSCellpCellHARQFdbkUsage"/>
+         <member comment="Downlink carrier aggregated  parameters for PCell. The parameters are configured if subordinate CAREL exists for the cell. " name="dlCarrierAggrParamsPCell" optional="true" type="SDlCarrierAggrParamsPCell"/>
+         <member comment="Downlink carrier aggregated  parameters for SCell. The parameters are configured if the cell is linked by lcrId of CAREL of an aggregated cell." name="dlCarrierAggrParamsSCell" optional="true" type="SDlCarrierAggrParamsSCell"/>
+      </struct>
+      <struct name="SCqiParamsScell">
+         <member comment="Cell ID for UE's Scell." name="lnCellIdScell" type="TOaMLnCelId"/>
+         <member comment="Aperiodic CQI reporting mode." defaultValue="3" maxRange="4" minRange="0" name="cqiAperMode" type="ECqiAperMode"/>
+         <member comment="Enables/disables periodic CQI/RI/PMI reporting in UE basis. &#13;&#10;Note RI reporting can be separately disabled with riEnable even if this parameter is enabled." defaultValue="1" maxRange="1" minRange="0" name="cqiPerEnable" type="ECqiPerEnable"/>
+         <member comment="Period and offset of periodic CQI/PMI feedbacks. &#13;&#10;Value is ignored, if cqiPerEnable is disabled." maxRange="1023" minRange="0" name="iCqiPmi" type="TICqiPmi"/>
+         <member comment="Defines 3GPP rel 10 kind PUCCH resource index for periodic CQI/RI/PMI feedback." defaultValue="0" maxRange="1184" minRange="0" name="resourceIndexCqiR10" type="TResourceIndexCqi"/>
+         <member comment="Periodic CQI/PMI reporting mode. &#13;&#10;Value is ignored, if cqiPerEnable is disabled." defaultValue="0" maxRange="3" minRange="0" name="cqiPerMode" type="ECqiPerMode"/>
+         <member comment="Enables/disables periodic RI reporting in UE basis. Value is ignored, if cqiPerEnable is disabled." defaultValue="1" maxRange="1" minRange="0" name="riEnable" type="TBoolean"/>
+         <member comment="Period and offset of periodic RI feedbacks. &#13;&#10;Value is ignored if cqiPerEnable is disabled or if riEnable is FALSE." maxRange="1023" minRange="0" name="iRi" type="TIRi"/>
+         <member comment="O&amp;M switch for enabling simultaneous ACK/NACK and periodic CQI/RI/PMI report on PUCCH.&#13;&#10;Value is ignored, if cqiPerEnable is disabled.&#13;&#10;For Scell, this parameter shall be set according to cqiPerSimulAck of PCell." defaultValue="1" maxRange="1" minRange="0" name="cqiPerSimulAck" type="ECqiPerSimulAck"/>
+         <member comment="Number of reported periodic subband CQI feedbacks per DL bandwidth part between periodic wideband CQI/PMI feedbacks, step 1.&#13;&#10;Value is ignored, if cqiPerEnable is disabled." defaultValue="1" maxRange="4" minRange="1" name="cqiPerSbCycK" type="TCqiPerSbCycK"/>
+         <member comment="Defines periodicity factor for periodic subband CQI feedback." defaultValue="ECqiPerSbPeriodicityFactorR10_n2" maxRange="1" minRange="0" name="cqiPerSbPeriodicityFactorR10" type="ECqiPerSbPeriodicityFactorR10"/>
+      </struct>
+      <struct name="SCqiParamsScellWmp">
+         <member comment="Sets the aperiodic CQI Reporting Time-Limit by Polling to be taken into account by Scheduler. Step 1 TTI.&#13;&#10;Defines the minimum time between two consecutive aperiodic CQI/RI/PMI report requests." name="cqiAperPollT" type="TOaMCqiAperPollT"/>
+         <member comment="Enables / disables aperiodic CQI / RI / PMI reporting in UE basis." maxRange="1" minRange="0" name="cqiAperEnable" type="TOaMCqiAperEnable"/>
+      </struct>
+      <struct name="SCsiRsConfiguration">
+         <member name="numOfCsiRsAntennaPorts" type="EOaMNumOfCsiRsAntennaPorts"/>
+         <member name="csiRsResourceConf" type="EOaMCsiRsResourceConf"/>
+         <member name="csiRsSubfrConf" type="TOaMCsiRsSubfrConf"/>
+         <member name="csiRsPwrOffset" type="TOaMCsiRsPwrOffset"/>
+         <member name="actCsiRsSubFNonTM9Sch" type="TOaMActCsiRsSubFNonTM9Sch"/>
+      </struct>
+      <struct name="SUplinkPcCommonR10">
+         <member comment="The parameter defines the transport format dependent offset in power control for PUCCH format 3.&#13;&#10;This parameter is used only when the Cell is configured as PCell in Carrier Aggregation." name="deltaFPucchF3r10" type="EOaMDeltaFPucchF3r10"/>
+         <member comment="The parameter defines the transport format dependent offset in power control for PUCCH format 1bCS.&#13;&#10;This parameter is used only when the Cell is configured as PCell in Carrier Aggregation." name="deltaFPucchF1bCSr10" type="EOaMDeltaFPucchF1bCSr10"/>
+      </struct>
+      <struct name="SUlpcIawConfig">
+         <member comment="Controls Target SINR in interference-aware UL-PC: provides a tilt in the balancing between Target SINR in cell-center and Target SINR at cell-edge. Target SINR determines the max. throughput, therefore higher values increase cell-center throughput at the cost of cell-edge throughput, and vice versa." name="ulpcCEBalanceIAw" type="TOaMUlpcCEBalanceIAw"/>
+         <member comment="Minimum number of TTIs (ms) that must pass before another UL power decision is made for a UE." name="ulpcMinWaitForPc" type="TOaMUlpcMinWaitForPc"/>
+         <member comment="Minimum quality measure for interference-aware UL-PC. Target SINR for UEs in poor conditions cannot go below a limit defined by this parameter even if they generate higher UL interference." name="ulpcMinQualIAw" type="TOaMUlpcMinQualIAw"/>
+         <member comment="Controls Target SINR in interference-aware UL-PC: provides an equal shift of Target SINR for all UEs in the cell, regardless of their pathloss ratios." name="ulpcRefPwrIAw" type="TOaMUlpcRefPwrIAw"/>
+         <member comment="Sets an upper limit for RSSI received from a UE. If exceeded, the next power command indicates -1 dB UL power change even if the current UL power is insufficient for reaching Target SINR." name="ulpcRssiMaxIAw" type="SOaMUlpcRssiMaxIAw"/>
+      </struct>
+      <struct name="SSuperCellParameters">
+         <member comment="TDD specific comment: Activates the transmission of duplicated data streams via different RRHs in downlink, and the combination of uplink signals received from different RRHs.&#13;&#10;All cell instances in the eNB shall be configured with same for actSuperCell value." name="actSuperCell" type="TOaMActSuperCell"/>
+         <member comment="Parameter Set for Super cell&#13;&#10;(Correct OAM type definition used, when available in SACK.)" name="superCellParSet" type="SSuperCellParSet"/>
+      </struct>
+      <struct name="SDlCarrierAggrParamsPCell">
+         <member comment="Present if actDlCAggr is true. Equals to lnCellId of the aggerated cell." name="lnCellIdScell" type="TOaMLnCelId"/>
+         <member name="uplinkPcCommonR10" optional="true" type="SUplinkPcCommonR10"/>
+      </struct>
+      <struct name="SDlCarrierAggrParamsSCell">
+         <member comment="Present if actDlCAggr is true. Equals to lnCellId of the aggerated cell." name="lnCellIdPcell" type="TOaMLnCelId"/>
+         <member name="sCellDeactivationTimerEnb" type="EOaMSCellDeactivationTimereNB"/>
+         <member comment="As determined in the PCell. The value is copied from the corresponding parameter of CAREL of aggregated cell (linked by lcrId of CAREL of aggregated cell)." name="disableSCellPDCCHOlLa" type="TOaMDisableSCellPDCCHOlLa"/>
+      </struct>
+      <struct name="SCaWmpSCellContainer">
+         <member comment="Indicates the maximum number of HARQ transmissions in DL that is configured for each UE at initial access to a specific SCell." name="harqMaxTrDlSCell" type="TOaMHarqMaxTrDl"/>
+         <member comment="Parameter identifies the cell resource group of the Scell to which the UE belongs to.&#13;&#10;If O&amp;M parameter cellResourceSharingMode is set to 'none' the group Id is always 0. &#13;&#10;If the value is different to 'none' L3 shall provide the cell resource group id of the cell resource group of the Scell to which the UE belongs to." name="sCellResourceGroupId" type="TSCellResourceGroupId"/>
+         <member comment="Present if hasCqiParamsScellWmp is true. Must be given when hasCqiParamsScell is also true." name="cqiParamsScellWmp" optional="true" type="SCqiParamsScellWmp"/>
+      </struct>
+      <struct name="SUlMuMimoParameters">
+         <member comment="Activate/deactivate UL MU-MIMO" defaultValue="GLO_FALSE" maxRange="GLO_TRUE" minRange="GLO_FALSE" name="actUlMuMimo" type="TBoolean"/>
+         <member comment="SINR threshold above which UEs can be selected as the candidate users of UL MU-MIMO" name="ulMuMimoSinrThreshold" type="i32"/>
+         <member comment="The orthogonality factor between two UEs shall be bigger than ulMuMimoOrthThrehold." name="ulMuMimoOrthThreshold" type="u32"/>
+      </struct>
+      <struct name="STmSwitchScell">
+         <member comment="Present if secondary cell to be modified.&#13;&#10;Index of the aggregated cell (secondary serving cell), also passed to UE. &#13;&#10;Default value: 1&#13;&#10;Reserved for future: 2…4" defaultValue="1" maxRange="4" minRange="1" name="sCellServCellIndex" type="TSCellServCellIndex"/>
+         <member comment="TDD only." maxRange="9" minRange="0" name="newTransmMode" type="ETransmMode"/>
+      </struct>
+      <struct comment="Parameter Set for Super cell" name="SSuperCellParSet" technology="tdd">
+         <member name="subCellSwitchUlSinrHys" type="TOaMSubCellSwitchUlSinrHys"/>
+         <member name="subCellUlSinrAvgT" type="TOaMSubCellUlSinrAvgT"/>
+         <member comment="This parameter defines the maximum UL sinr offset to serving for candidate sub-cell selection.&#13;&#10;(Correct OAM type definition used, when available in SACK.)" maxRange="100" minRange="0" name="candSubCellUlSinrOffset" type="u32"/>
+         <member comment="This parameter defines the UL SINR hysteresis on top of UL SINR offset for removing candidate sub-cell.&#13;&#10;(Correct OAM type definition used, when available in SACK.)" maxRange="60" minRange="0" name="remCandSubCellUlSinrHys" type="u32"/>
+         <member comment="This parameter defines the UL SINR hysteresis to replace candidate sub-cell by a measurement sub-cell.&#13;&#10;(Correct OAM type definition used, when available in SACK.)" maxRange="60" minRange="0" name="repCandSubCellUlSinrHys" type="u32"/>
+      </struct>
+   </global-definitions>
+   <component name="WMP_MAC_PS">
+      <interfaces>
+         <interface name="WmpMacPs" optimize="true" responsibleEditor="Lahetkangas, Eeva (NSN - FI/Oulu)">
+            <struct name="SCommonCellParamsWmp"/>
+            <struct name="SWmpSrbInfo"/>
+            <struct name="SWmpRbInfo"/>
+            <struct name="SWmpUserContainer"/>
+            <struct name="SWmpUlResCtrlParams"/>
+            <struct name="SSystemInfoContainerWmp"/>
+         </interface>
+      </interfaces>
+   </component>
+</system>

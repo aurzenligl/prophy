@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xui configuration/if_editor.xui?>
+<system comment="Data type definitions according to ASN.1 Protocols" 
+        name="LTE" 
+        xmlns:xi="http://www.nsn.com/2008/XInclude" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+  <xi:include href="externals.xml"  xpath="//external-definitions"/>
+  <xi:include href="globals.xml"    xpath="//global-definitions[@name='LTE']"/>
+  <xi:include href="OAM_MERGED.xml" xpath="//global-definitions[@name='OAM']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='ASN1']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='ERRC']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='URRC']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='S1AP']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='X2AP']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='RANAP']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='SON']"/>
+  <xi:include href="RIM.xml"        xpath="//global-definitions[@name='RIM']"/>
+  <xi:include href="CDMA.xml"       xpath="//global-definitions[@name='CDMA']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='LPPA']"/>
+  <xi:include href="ASN.xml"        xpath="//global-definitions[@name='M3AP']"/>
+
+</system>
+

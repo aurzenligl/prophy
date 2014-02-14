@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui configuration/if_editor.xui?><system name="LTE" xmlns:xi="http://www.nsn.com/2008/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml"  xpath="//external-definitions" />
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <xi:include href="DCT.xml" xpath="//global-definitions[@name='DctMeasurementDefinitions']"/>
+   <component comment="Data Collection Tool (DCT)" name="TUPu_DCT">
+      <interfaces>
+         <interface comment="Interface references structures used for the data collection tool (DCT) measurements such that header files are generated for them" name="TupDct" responsibleEditor="">
+            <struct name="SDctDlPdcpSdu"/>
+            <struct name="SDctUlPdcpPdu"/>
+         </interface>
+      </interfaces>
+   </component>
+</system>

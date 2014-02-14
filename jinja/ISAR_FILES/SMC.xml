@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui configuration/if_editor.xui?><system name="LTE" xmlns:xi="http://www.nsn.com/2008/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions" />
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <component name="SMC">
+      <definitions>
+         <struct name="SUplaneAddr">
+            <member comment="SICAD address of LTE TUP  config service" name="tupConfigAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE TUP  cell service" name="tupCellAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE MAC cell service" name="macCellAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE PHY UL cell service" name="phyCellUplinkAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE PHY DL cell service" name="phyCellDownlinkAddr" type="TAaSysComSicad"/>
+            <member comment="IP address of CPU where LTE TUP Downlink is running.&#13;&#10;In current increment only IPv4 is supported." name="tupDownlinkIpAddr" type="STransportLayerAddress"/>
+         </struct>
+         <struct name="SUplaneAddrForLteInMicro">
+            <member comment="SICAD address of LTE TUP  config service" name="tupConfigAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE TUP  cell service" name="tupCellAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE MAC cell service" name="macCellAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE PHY UL cell service" name="phyCellUplinkAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE PHY DL cell service" name="phyCellDownlinkAddr" type="TAaSysComSicad"/>
+            <member comment="Number of valid addresses in tupGtpuReceiveAddress array. FSMr3 only." maxRange="MAX_NUM_UEGROUP_PER_BB_POOL" minRange="1" name="numOfUeGroups" type="TNumberOfItems"/>
+            <member comment="SICAD address of LTE TUP DL per UE Group" name="tupDownlinkAddr" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>               
+         </struct>
+         <struct name="SUplaneAddrForWcdmaInMicro">
+            <member name="tupUserplaneAddr" type="TAaSysComSicad"/>
+            <member name="ccdDspLtcomAddr" type="TAaSysComSicad"/>
+            <member name="dcdCell1DspLtcomAddr" type="TAaSysComSicad"/>
+            <member name="dcdCell2DspLtcomAddr" type="TAaSysComSicad"/>
+            <member name="commonDspMeasAddr" type="TAaSysComSicad"/>
+            <member name="cell1DspMeasAddr" type="TAaSysComSicad"/>
+            <member name="cell2DspMeasAddr" type="TAaSysComSicad"/>
+            <member name="dspMachsRmAddr" type="TAaSysComSicad"/>
+            <member name="nodeSyncAddr" type="TAaSysComSicad"/>
+            <member name="rake1Addr" type="TAaSysComSicad"/>
+            <member name="rake2Addr" type="TAaSysComSicad"/>
+            <member name="l2DctMeasMgrAddr" type="TAaSysComSicad"/>
+            <member name="l1Cell1DctMeasMgrAddr" type="TAaSysComSicad"/>
+            <member name="l1Cell2DctMeasMgrAddr" type="TAaSysComSicad"/>
+         </struct>
+         <struct name="SUplaneAddrForLteInLrc">
+            <member comment="SICAD address of LTE TUP  config service" name="tupConfigAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE TUP  cell service" name="tupCellAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE MAC cell service" name="macCellAddr" type="TAaSysComSicad"/>
+            <member comment="SICAD address of LTE PHY UL cell service" name="phyCellUplinkAddr" type="TAaSysComSicad">
+               <dimension size="NUM_PHY_PER_LSP_IN_LRC"/>
+            </member>
+            <member comment="SICAD address of LTE PHY DL cell service" name="phyCellDownlinkAddr" type="TAaSysComSicad">
+               <dimension size="NUM_PHY_PER_LSP_IN_LRC"/>
+            </member>
+            <member comment="Number of valid addresses in tupGtpuReceiveAddress array. FSMr3 only." maxRange="MAX_NUM_UEGROUP_PER_BB_POOL" minRange="1" name="numberOfValidUEGroup" type="TNumberOfItems"/>
+            <member comment="SICAD address of LTE TUP DL per UE Group" name="tupEqId" type="TEqId">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+         </struct>
+         <struct name="SUplaneAddrForWcdmaInLrc">
+            <member name="mcdDspLtcomAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="dcdDspLtcomAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="tupL2UserplaneAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="mcdDspMeasAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="dcdDspMeasAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="dspMachsRmAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="nodeSyncAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="hsupaL2MgrAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="loopdelayRachRakeAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+            <member name="loopdelayRakeAddr" type="TAaSysComSicad">
+               <dimension size="NUM_K2_PER_LSP_IN_LRC"/>
+            </member>
+         </struct>
+      </definitions>
+      <definitions comment="" name="Smc_RD_Parameter" radDomain="ERadSwDomain_LteSmc">
+         <typedef RadId="0x0004" comment="TRUE for global level feature logging" defaultValue="GLO_FALSE" name="TSmcRadDebugLogEnabledGlobal" type="TBoolean"/>
+         <typedef RadId="0x0005" comment="TRUE for namespace SMC level feature logging" defaultValue="GLO_FALSE" name="TSmcRadDebugLogEnabledSmc" type="TBoolean"/>
+         <typedef RadId="0x0006" comment="TRUE for namespace COMMON level feature logging" defaultValue="GLO_FALSE" name="TSmcRadDebugLogEnabledCommon" type="TBoolean"/>
+      </definitions>
+      <messages>
+         <message name="SMC_HwConfigReq" opcode="SMC_HW_CONFIG_REQ_MSG">
+            <member comment="Specifies the Baseband Resource (FSPC board) where the internal addresses shall be distributed. Id values are specified in file Glo_bs.h: &#13;&#10;#define FSM1_FSP1&#13;&#10;#define FSM1_FSP2&#13;&#10;#define FSM1_FSP3&#13;&#10;#define FSM2_FSP1&#13;&#10;#define FSM2_FSP2&#13;&#10;#define FSM2_FSP3&#13;&#10;" name="bbResourceId" type="TBoardId"/>
+         </message>
+         <message name="SMC_HwConfigResp" opcode="SMC_HW_CONFIG_RESP_MSG">
+            <member comment="Result of request message handling." name="result" type="SMessageResult"/>
+            <member comment="Baseband Resource (FSPC board) where internal addresses have been distributed." name="bbResourceId" type="TBoardId"/>
+         </message>
+         <message name="SMC_GetUplaneAddrReq" opcode="SMC_GET_UPLANE_ADDR_REQ_MSG">
+            <member comment="Specifies the Baseband Resource (FSPC board) from which addresses shall be provided. Id values are specified in file Glo_bs.h:&#13;&#10;#define FSM1_FSP1&#13;&#10;#define FSM1_FSP2&#13;&#10;#define FSM1_FSP3&#13;&#10;#define FSM2_FSP1&#13;&#10;#define FSM2_FSP2&#13;&#10;#define FSM2_FSP3&#13;&#10;" name="bbResourceId" type="TBoardId"/>
+         </message>
+         <message name="SMC_GetUplaneAddrResp" opcode="SMC_GET_UPLANE_ADDR_RESP_MSG">
+            <member comment="Result of request message handling." name="result" type="SMessageResult"/>
+            <member comment="Baseband Resource (FSPC board) where the U-Plane addresses are provided from." name="bbResourceId" type="TBoardId"/>
+            <member comment="Requested U-Plane addresses" name="uplaneAddr" type="SUplaneAddr"/>
+         </message>
+         <message name="SMC_GetUplaneAddrForLteInMicroResp" opcode="SMC_GET_UPLANE_ADDR_FOR_LTE_IN_MICRO_RESP_MSG">
+            <member comment="Result of request message handling." name="result" type="SMessageResult"/>
+            <member comment="Baseband Resource (FSPC board) where the U-Plane addresses are provided from." name="bbResourceId" type="TBoardId"/>
+            <member comment="Requested U-Plane addresses" name="uplaneAddr" type="SUplaneAddrForLteInMicro"/>
+         </message>
+         <message name="SMC_GetUplaneAddrForWcdmaInMicroResp" opcode="SMC_GET_UPLANE_ADDR_FOR_WCDMA_IN_MICRO_RESP_MSG">
+            <member comment="Result of request message handling." name="result" type="SMessageResult"/>
+            <member comment="Baseband Resource (FSPC board) where the U-Plane addresses are provided from." name="bbResourceId" type="TBoardId"/>
+            <member comment="Requested U-Plane addresses" name="uplaneAddr" type="SUplaneAddrForWcdmaInMicro"/>
+         </message>
+         <message name="SMC_NetworkConfigReq" opcode="SMC_NETWORK_CONFIG_REQ_MSG">
+            <member comment="Specifies the Baseband Resource (FSPC board) where the eNB transport layer addresses shall be forwarded to. Id values are specified in file Glo_bs.h: &#13;&#10;#define FSM1_FSP1&#13;&#10;#define FSM1_FSP2&#13;&#10;#define FSM1_FSP3&#13;&#10;#define FSM2_FSP1&#13;&#10;#define FSM2_FSP2&#13;&#10;#define FSM2_FSP3&#13;&#10;" name="bbResourceId" type="TBoardId"/>
+            <member comment="DSCP value set to IP header TOS field in case of GTP-U management messages." maxRange="63" minRange="0" name="dscp" type="TDscp"/>
+            <member comment="List of eNB IP address info elements. Currently only IPv4 is supported." name="enbIPAddrList" type="STransportLayerAddress">
+               <dimension isVariableSize="true" size="MAX_NUM_OF_ENB_IP_ADDR"/>
+            </member>
+         </message>
+         <message name="SMC_NetworkConfigResp" opcode="SMC_NETWORK_CONFIG_RESP_MSG">
+            <member comment="Result of request message handling." name="result" type="SMessageResult"/>
+            <member comment="Baseband Resource (FSPC board) where the eNB transport layer addresses have been forwarded to." name="bbResourceId" type="TBoardId"/>
+         </message>
+         <message name="SMC_GetUplaneAddrForLteInLrcResp" opcode="SMC_GET_UPLANE_ADDR_FOR_LTE_IN_LRC_RESP_MSG">
+            <member comment="Result of request message handling." name="result" type="SMessageResult"/>
+            <member comment="Baseband Resource (FSPC board) where the U-Plane addresses are provided from." name="bbResourceId" type="TBoardId"/>
+            <member comment="Requested U-Plane addresses" name="uplaneAddr" type="SUplaneAddrForLteInLrc"/>
+         </message>
+         <message name="SMC_GetUplaneAddrForWcdmaInLrcResp" opcode="SMC_GET_UPLANE_ADDR_FOR_WCDMA_IN_LRC_RESP_MSG">
+            <member comment="Result of request message handling." name="result" type="SMessageResult"/>
+            <member comment="Baseband Resource (FSPC board) where the U-Plane addresses are provided from." name="bbResourceId" type="TBoardId"/>
+            <member comment="Requested U-Plane addresses" name="uplaneAddr" type="SUplaneAddrForWcdmaInLrc"/>
+         </message>
+      </messages>
+      <interfaces>
+         <interface name="SmcMgmt" responsibleEditor="Stefan Dillig">
+            <message name="SMC_HwConfigReq"/>
+            <message name="SMC_HwConfigResp"/>
+            <message name="SMC_GetUplaneAddrReq"/>
+            <message name="SMC_GetUplaneAddrResp"/>
+            <message name="SMC_GetUplaneAddrForLteInMicroResp"/>
+            <message name="SMC_GetUplaneAddrForWcdmaInMicroResp"/>
+            <message name="SMC_NetworkConfigReq"/>
+            <message name="SMC_NetworkConfigResp"/>
+            <message name="SMC_GetUplaneAddrForLteInLrcResp"/>
+            <message name="SMC_GetUplaneAddrForWcdmaInLrcResp"/>
+         </interface>
+      </interfaces>
+   </component>
+</system>

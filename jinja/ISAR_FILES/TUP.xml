@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xui configuration/if_editor.xui?><system xmlns:xi="http://www.nsn.com/2008/XInclude"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        name="LTE"
+        xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions" />
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <xi:include href="DCM_MAC_PS.xml" xpath="//global-definitions[@name='DCM']"/>
+   <xi:include href="WMP_MAC_PS.xml" xpath="//global-definitions[@name='WMP']"/>
+   <xi:include href="OAM_MERGED.xml" xpath="//global-definitions[@name='OAM']"/>
+   <xi:include href="ASN.xml" xpath="//global-definitions[@name='ASN1']"/>
+   <xi:include href="ASN.xml" xpath="//global-definitions[@name='S1AP']"/>
+   <component name="TUP">
+      <xi:include href="TUPu.xml" xpath="//definitions[@name='TUPu']"/>
+      <xi:include href="TUPu.xml" xpath="//definitions[@name='TUPu Dl R&amp;D Parameters']"/>
+      <xi:include href="TUPu.xml" xpath="//definitions[@name='TUPu Ul R&amp;D Parameters']"/>
+      <xi:include href="TUPu.xml" xpath="//messages[@name='TUPu']"/>
+      <interfaces>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupCell']"/>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupSgnlSrb']"/>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupUser']"/>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupConfig']"/>
+         <xi:include href="TUPu.xml" xpath="//interface[@name='TupCellMeas']"/>
+      </interfaces>
+   </component>
+</system>

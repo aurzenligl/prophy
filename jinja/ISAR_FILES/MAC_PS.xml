@@ -1,0 +1,799 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui configuration/if_editor.xui?><system name="LTE" xmlns:xi="http://www.nsn.com/2008/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions"/>
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <xi:include href="OAM_MERGED.xml" xpath="//global-definitions[@name='OAM']"/>
+   <xi:include href="DCM_MAC_PS.xml" xpath="//global-definitions[@name='DCM']"/>
+   <xi:include href="WMP_MAC_PS.xml" xpath="//global-definitions[@name='WMP']"/>
+   <xi:include href="MAC.xml" xpath="//component[@name='MAC']"/>
+   <xi:include href="PHY.xml" xpath="//component[@name='PHY']"/>
+   <component name="MAC_PS">
+      <definitions>
+         <typedef comment="message ID: PS_CELL_RECONFIGURATION_DELTA_REQ_MSG" name="PS_CellReconfigurationDeltaReq" type="MAC_CellReconfigurationDeltaReq"/>
+         <typedef comment="message ID: PS_CELL_RECONFIGURATION_DELTA_RESP_MSG" name="PS_CellReconfigurationDeltaResp" type="MAC_CellReconfigurationDeltaResp"/>
+         <typedef comment="message ID: PS_CELL_RECONFIGURATION_REQ_MSG" name="PS_CellReconfigurationReq" type="MAC_CellReconfigurationReq"/>
+         <typedef comment="message ID: PS_CELL_RECONFIGURATION_RESP_MSG" name="PS_CellReconfigurationResp" type="MAC_CellReconfigurationResp"/>
+         <typedef comment="message ID: PS_CELL_SETUP_REQ_MSG" name="PS_CellSetupReq" type="MAC_CellSetupReq"/>
+         <typedef comment="message ID: PS_DEFAULT_USER_CONFIG_REQ_MSG" name="PS_DefaultUserConfigReq" type="MAC_DefaultUserConfigReq"/>
+         <typedef comment="message ID: PS_RACH_SETUP_REQ_MSG" name="PS_RachSetupReq" type="MAC_RachSetupReq"/>
+         <typedef comment="message ID: PS_START_REF_SYNC_S_REQ_MSG" name="PS_StartRefSyncSReq" type="MAC_StartRefSyncSReq"/>
+         <typedef comment="message ID: PS_START_REF_SYNC_S_RESP_MSG" name="PS_StartRefSyncSResp" type="MAC_StartRefSyncSResp"/>
+         <typedef comment="message ID: PS_STOP_REF_SYNC_S_REQ_MSG" name="PS_StopRefSyncSReq" type="MAC_StopRefSyncSReq"/>
+         <typedef comment="message ID: PS_STOP_REF_SYNC_S_RESP_MSG" name="PS_StopRefSyncSResp" type="MAC_StopRefSyncSResp"/>
+         <typedef comment="message ID: PS_STOP_SCHEDULING_CELL_REQ_MSG" name="PS_StopSchedulingCellResp" type="MAC_StopSchedulingCellResp"/>
+         <typedef comment="message ID: PS_TX_ANTENNA_CONF_CHANGE_REQ_MSG" name="PS_TxAntennaConfChangeReq" type="MAC_TxAntennaConfChangeReq"/>
+         <typedef comment="messaage ID: PS_TX_ANTENNA_CONF_CHANGE_RESP_MSG" name="PS_TxAntennaConfChangeResp" type="MAC_TxAntennaConfChangeResp"/>
+         <typedef comment="message ID: PS_DISABLE_DISC_TIMER_IND_MSG" name="PS_DisableDiscTimerInd" type="MAC_DisableDiscTimerInd"/>
+         <typedef comment="message ID: PS_RESUME_DISC_TIMER_IND_MSG" name="PS_ResumeDiscTimerInd" type="MAC_ResumeDiscTimerInd"/>
+         <typedef comment="message ID: PS_UL_PHY_DATA_ADDRESS_SET_REQ_MSG" forceGeneration="true" name="PS_UlPhyDataAddressSetReq" type="PHY_UlPhyDataAddressResp"/>
+         <typedef name="TDlPhyDataAddressResp" type="PHY_DlPhyDataAddressResp"/>
+         <typedef forceGeneration="true" name="TRoutingIndex" type="u32"/>
+         <enum name="EOperation">
+            <enum-member name="EOperation_CellSetup" value="0"/>
+            <enum-member name="EOperation_RachSetup" value="1"/>
+            <enum-member name="EOperation_Delete" value="2"/>
+         </enum>
+         <enum name="ETypeOfOperation">
+            <enum-member comment="To setup a cell configuration" name="ETypeOfOperation_CaCellSetup" value="0"/>
+            <enum-member comment="To release a cell configuration" name="ETypeOfOperation_CaCellDelete" value="1"/>
+         </enum>
+         <enum comment="Type of the PS_UeIndexMgmtReq request" name="EUeIndexMgmtOperationType">
+            <enum-member comment="Allocate a new permanent ueIndex for a new UE" name="EUeIndexMgmtOperationType_Allocate" value="0"/>
+            <enum-member comment="Reassign an ueIndex for an UE already having a temporary ueIndex" name="EUeIndexMgmtOperationType_Reassign" value="1"/>
+            <enum-member comment="Free an ueIndex" name="EUeIndexMgmtOperationType_Free" value="2"/>
+            <enum-member comment="Free all ueIndexs assigned to a cell" name="EUeIndexMgmtOperationType_FreeAll" value="3"/>
+            <enum-member comment="Pre-reserve one ueIndex from a selected UE Group. FSMr3 only" name="EUeIndexMgmtOperationType_GroupReserve" value="4"/>
+            <enum-member comment="Free one pre-reserved ueIndex in the given UE Group. FSMr3 only" name="EUeIndexMgmtOperationType_GroupFree" value="5"/>
+            <enum-member comment="Free one pre-reserved ueIndex in the given UE Group. FSMr3 only&#10;MAC PS should handle it just like EUeIndexMgmtOperationType_GroupFree and return type in Resp. " name="EUeIndexMgmtOperationType_GroupFreeInternal" value="6"/>
+            <enum-member comment="DCM HDBDE only: Allocate a new permanent ueIndex for SCell UE added without HO&#10;&#10;" name="EUeIndexMgmtOperationType_AllocateSCellAdd" value="7"/>
+            <enum-member comment="DCM HDBDE only: Allocate a new permanent ueIndex for SCell UE added with HO&#10;&#10;" name="EUeIndexMgmtOperationType_AllocateSCellAddByHo" value="8"/>
+         </enum>
+         <struct name="SCellCarrierInfo">
+            <member name="lnCelId" type="TCellId"/>
+            <member comment="Downlink Bandwidth / Number of PRBs DL" name="dlChBw" type="ECarrierBandwidth"/>
+            <member comment="Uplink Bandwidth / Number of PRBs UL" name="ulChBw" type="ECarrierBandwidth"/>
+         </struct>
+         <struct name="SMemBuffer">
+            <member name="addressPtr" pointer="false" type="u32"/>
+            <member name="sizeInBytes" type="TSize"/>
+         </struct>
+         <struct name="SMacPsAddresses">
+            <member comment="Address of LTE MAC PS UlCell (Core) component" name="ulCell" type="TAaSysComSicad"/>
+            <member comment="Address of LTE MAC PS DlCell (Core) component" name="dlCell" type="TAaSysComSicad"/>
+            <member comment="Address of LTE MAC PS UlSch (Core) component" name="ulScheduler" type="TAaSysComSicad"/>
+            <member comment="Address of LTE MAC PS DlSch (Core) component" name="dlScheduler" type="TAaSysComSicad"/>
+         </struct>
+         <struct name="SL2Addresses">
+            <member comment="Number of UE Groups" name="numOfUeGroups" type="TNumberOfItems"/>
+            <member comment="UE Group specific addresses for DataCtrl_DlData service.&#13;&#10;numOfUeGroups defines number of valid addresses in the array.&#13;&#10;The address where to send MacCtrl: MAC_PduMuxBundledDataReq and MAC_HarqReleaseReq messages.&#13;&#10;" name="dataCtrlDlData" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses for DataCtrl_DlBsr service.&#13;&#10;numOfUeGroups defines number of valid addresses in the array.&#13;&#10;The address where to send MacCtrl: MAC_BufferStatusTriggerReq messages.&#13;&#10;" name="dataCtrlDlBsr" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+         </struct>
+         <struct name="SServingCellConfiguration">
+            <member name="sCellConfiguration" type="SSCellsConfiguration"/>
+            <member comment="Identifies the UE in DSP Pool of the SCell" name="ueIndexSCell" type="TUeIndex"/>
+         </struct>
+      </definitions>
+      <messages>
+         <message name="PS_CellDeleteReq" opcode="PS_CELL_DELETE_REQ_MSG">
+            <member name="cellId" type="TCellId"/>
+         </message>
+         <message name="PS_CellDeleteResp" opcode="PS_CELL_DELETE_RESP_MSG">
+            <member name="cellId" type="TCellId"/>
+            <member name="messageResult" type="SMessageResult"/>
+         </message>
+         <message name="PS_CellReconfigInternalReq" opcode="PS_CELL_RECONFIG_INTERNAL_REQ_MSG">
+            <member maxRange="65535" minRange="1" name="lnCelId" type="TCellId"/>
+            <member comment="Related operation : Cell Setup or Delete" name="operation" type="EOperation"/>
+            <member maxRange="MAX_NUM_CELL_PER_BB_POOL" minRange="1" name="numCellsFsp" type="TNumberOfItems"/>
+            <member name="cellCarrierInfo" type="SCellCarrierInfo">
+               <dimension size="MAX_NUM_CELL_PER_BB_POOL" variableSizeFieldName="numCellsFsp"/>
+            </member>
+         </message>
+         <message name="PS_CellReconfigInternalResp" opcode="PS_CELL_RECONFIG_INTERNAL_RESP_MSG">
+            <member name="messageResult" type="SMessageResult"/>
+            <member maxRange="65535" minRange="1" name="lnCelId" type="TCellId"/>
+            <member comment="Related operation : Cell Setup or Delete" name="operation" type="EOperation"/>
+         </message>
+         <message name="PS_CellSetupResp" opcode="PS_CELL_SETUP_RESP_MSG">
+            <member name="messageResult" type="SMessageResult"/>
+            <member name="cellId" type="TCellId"/>
+            <member comment="Dynamic address of MacSgnl interface Service. FSMr3 onwards, in FSMr2 can be set to zero." name="macSgnl" type="TAaSysComSicad"/>
+            <member comment="Dynamic address of MacCellMeas interface Service. FSMr3 onwards, in FSMr2 can be set to zero." name="macCellMeas" type="TAaSysComSicad"/>
+            <member comment="Dynamic address of MacUser interface service provided by LTE MAC PS. WMP only FSMr3 onwards, otherwise can be set to zero." name="macUserPs" type="TAaSysComSicad"/>
+            <member comment="DCM HDBDE: Dynamic address of DataCtrl_DLPdcchClient service.&#10;Other: Set to zero." name="dataCtrlDLPdcchClient" type="TAaSysComSicad"/>
+         </message>
+         <message name="PS_CrntiReleaseReq" opcode="PS_CRNTI_RELEASE_REQ_MSG">
+            <member name="cellId" type="TCellId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_DlPhyDataAddressSetReq" opcode="PS_DL_PHY_DATA_ADDRESS_SET_REQ_MSG">
+            <member name="dlPhyDataAddress" type="TDlPhyDataAddressResp"/>
+            <member name="raContResoT" type="TRaContResoT"/>
+         </message>
+         <message name="PS_ExternalAddressSetReq" opcode="PS_EXTERNAL_ADDRESS_SET_REQ_MSG">
+            <member maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member name="tupUserAddress" type="STupUserAddress"/>
+         </message>
+         <message forceGeneration="true" name="PS_HoUeAddReq" opcode="PS_HO_UE_ADD_REQ_MSG">
+            <member comment="Cell Id." name="cellId" type="TCellId"/>
+            <member comment="Crnti." name="crnti" type="TCrnti"/>
+            <member comment="Ue Id." name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Table for SCell IDs.&#13;&#10;For DCM only. Value of numOfScellIds is set to 0 in WMP product." name="lnCelIdSCell" type="TOaMLnCelId">
+               <dimension isVariableSize="true" minSize="0" size="1" variableSizeFieldName="numOfScellIds"/>
+            </member>
+            <member name="maxNumberOfHarqTransmissionsMsg3" type="TNumHarqTransmissions"/>
+            <member name="ueSetupParams" type="SUeSetupParams"/>
+            <member comment="NO_COMMENT" name="dcmContainer" type="UWmpDcmUserContainer"/>
+            <member name="controlOffsets" type="SPuschControlOffsets"/>
+            <member comment="NO_COMMENT" name="cqiParams" type="SCqiParams"/>
+            <member comment="NO_COMMENT" name="handoverType" type="EHandoverType"/>
+            <member comment="UE parameters" name="ueParams" type="SUeParams"/>
+            <member name="ttiBundlingEnable" type="TBoolean"/>
+            <member comment="Transmit Power Control parameters. For DCM only." name="tpcPdcchConfigParams" optional="true" type="STpcPdcchConfigParams"/>
+            <member comment="UE specific UL Power Control parameters. For WMP only." name="ulPCUeParams" optional="true" type="SUlPCUeParams"/>
+            <member name="soundingRsUlConfigDedicated" optional="true" type="SSoundingRsUlConfigDedicated"/>
+            <member comment="NO_COMMENT" name="numSRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="sRbInfoList" type="SSrbInfo">
+               <dimension size="MAX_NUM_SRB_PER_USER"/>
+            </member>
+            <member comment="NO_COMMENT" name="numRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="rbInfoList" type="SRbInfo">
+               <dimension size="MAX_NUM_DRB_PER_USER"/>
+            </member>
+         </message>
+         <message forceGeneration="true" name="PS_HoUeAddResp" opcode="PS_HO_UE_ADD_RESP_MSG">
+            <member comment="NO_COMMENT" name="messageResult" type="SMessageResult"/>
+            <member comment="Identification of the cell. " name="cellId" type="TCellId"/>
+            <member comment="NO_COMMENT" name="crnti" type="TCrnti"/>
+            <member comment="NO_COMMENT" name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_AddressConfigReq" opcode="PS_ADDRESS_CONFIG_REQ_MSG">
+            <member comment="A MAC PS address. Valid only if numOfPools=0 (in FSMr2 and in FSMr3 before LBT1886 adaptation), otherwise set to zeroes." name="ulCellMac" type="TAaSysComSicad"/>
+            <member comment="A MAC PS address. Valid only if numOfPools=0 (in FSMr2 and in FSMr3 before LBT1886 adaptation), otherwise set to zeroes." name="ulSchedulerMac" type="TAaSysComSicad"/>
+            <member comment="A MAC PS address. Valid only if numOfPools=0 (in FSMr2 and in FSMr3 before LBT1886 adaptation), otherwise set to zeroes." name="dlCellMac" type="TAaSysComSicad"/>
+            <member comment="A MAC PS address. Valid only if numOfPools=0 (in FSMr2 and in FSMr3 before LBT1886 adaptation), otherwise set to zeroes." name="dlSchedulerMac" type="TAaSysComSicad"/>
+            <member comment="Number of UE Groups. In FSMr2 always 1." maxRange="MAX_NUM_UEGROUP_PER_BB_POOL" minRange="1" name="numOfUeGroups" type="TNumberOfItems"/>
+            <member comment="UE Group specific addresses for DataCtrl_Ul service. &#13;&#10;numOfUeGroups defines number of valid addresses in the array." name="dataCtrlUl" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses for DataCtrl_DlData service. &#13;&#10;numOfUeGroups defines number of valid addresses in the array." name="dataCtrlDlData" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses for DataCtrl_DlBsr service.&#13;&#10;numOfUeGroups defines number of valid addresses in the array." name="dataCtrlDlBsr" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses where UL PHY shall send PhyData: PHY_PuschReceiveRespU messages.&#10;numOfUeGroups defines number of valid addresses in the array." name="puschReceiveRespUAddress" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="Address of MacUser service. DCM only." name="macUser" type="TAaSysComSicad"/>
+            <member comment="Address of DataMeas service. Per DSP Pool. DCM only." name="dataMeas" type="TAaSysComSicad"/>
+            <member comment="Address to send indications in PsCell interface. Per DSP Pool. " name="psCellClient" type="TAaSysComSicad"/>
+            <member comment="UE Group specific addresses where to send PsUser interface DiscardTimer indications.&#13;&#10;numOfUeGroups defines number of valid addresses in the array.&#13;&#10;FSMr3 onwards. WMP only. Otherwise set to zeroes. " name="psUserDiscardClient" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="Address to send other indications in PsUser interface. Per DSP Pool." name="psUserClient" type="TAaSysComSicad"/>
+            <member comment="Pool ID, identifies the local own pool in the Super Pool. &#10;Set to 0 in FSMr2, and in FSMr3 for a non Super Pool configuration." name="poolId" type="TPoolId"/>
+            <member comment="FSMr3 onwards." name="poolInfo" type="SL2PoolInfo">
+               <dimension isVariableSize="true" size="MAX_NUM_OF_POOLS_IN_SUPER_POOL" variableSizeFieldComment="Value is 0 in FSMr2, and in FSMr3 for uREC (before LBT1886).&#10;Value 1 indicates a non Super Pool configuration, where only one local own pool.&#10;Any higher value indicates a Super Pool configuration with multiple pools." variableSizeFieldName="numOfPools"/>
+            </member>
+         </message>
+         <message comment="response to PS_AddressConfigReq message" name="PS_AddressConfigResp" opcode="PS_ADDRESS_CONFIG_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause" name="messageResult" type="SMessageResult"/>
+            <member comment="Number of UE Groups. The value is copied from the related request. In FSMr2 always 1. &#13;&#10;If UE Group specific addressing is not needed by LTE MAC PS, it provides same address for all UE Groups. " maxRange="MAX_NUM_UEGROUP_PER_BB_POOL" minRange="1" name="numOfUeGroups" type="TNumberOfItems"/>
+            <member comment="UE Group specific addresses to PsUser_UL service. FSMr3 onwards, in FSMr2 can be set to zeroes.&#13;&#10;numOfUeGroups defines number of valid addresses in the array. " name="psUserUl" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses to PsUser_DL service. FSMr3 onwards, in FSMr2 can be set to zeroes.&#13;&#10;numOfUeGroups defines number of valid addresses in the array. " name="psUserDl" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses to DataCtrl_UlClient service. FSMr3 onwards, in FSMr2 can be set to zeroes.&#13;&#10;numOfUeGroups defines number of valid addresses in the array. " name="dataCtrlUlClient" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses to DataCtrl_DlClient service. FSMr3 onwards, in FSMr2 can be set to zeroes.&#13;&#10;numOfUeGroups defines number of valid addresses in the array. " name="dataCtrlDlClient" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="UE Group specific addresses to DataCtrl_RachClient service. FSMr3 onwards, in FSMr2 can be set to zeroes.&#13;&#10;numOfUeGroups defines number of valid addresses in the array. " name="dataCtrlRachClient" type="TAaSysComSicad">
+               <dimension size="MAX_NUM_UEGROUP_PER_BB_POOL"/>
+            </member>
+            <member comment="When TRUE, LTE L2 shall disable sending of duplicates to PsUser_Dl address, and direct messaging towards LTE MAC PS (SCell) through PsUser_Ul/Dl in a CA configuration. &#10;In FSMr2 and uREC in FSMr3 always FALSE&#10;" name="psUserDisableDlAndSCell" type="TBoolean"/>
+            <member comment="Addresses of testability services in LTE L2 and MAC PS. Addresses are only for test tool usage and not to be used for eNB internal communication.&#13;&#10;WMP only. FSMr3 onwards." name="serviceInfo" type="SServiceInfo">
+               <dimension isVariableSize="true" minSize="0" size="MAX_NUM_OF_TESTABILITY_SERVICES" variableSizeFieldComment="WMP only. For DCM always 0. FSMr3 onwards." variableSizeFieldName="numOfTestabilityServices"/>
+            </member>
+         </message>
+         <message comment="LTE MAC rach para request message." name="PS_RachParaReq" opcode="PS_RACH_PARA_REQ_MSG">
+            <member name="cellId" type="TCellId"/>
+            <member name="ueId" type="TUeId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Table for SCell IDs.&#13;&#10;For DCM only. Value of numOfScellIds is set to 0 in WMP product." name="lnCelIdSCell" type="TOaMLnCelId">
+               <dimension isVariableSize="true" minSize="0" size="1" variableSizeFieldName="numOfScellIds"/>
+            </member>
+            <member name="handoverType" type="EHandoverType"/>
+            <member comment="A value of 0 means that the value is not set" name="dedicRaPreExpT" type="TDedicRaPreExpT"/>
+            <member comment="UE Group of the UE, co-located UE Group, or INVALID_UEGROUP. &#10;In DCM Macro and uREC always INVALID_UEGROUP. &#10;In WMP FSMr2 always 0&#10;" name="ueGroup" type="TUeGroup"/>
+            <member comment="DCM: enables / disables TTI bundling feature for UE&#10;other: ignore" name="ttiBundlingEnable" type="TBoolean"/>
+            <member comment="When parameter value is set to TRUE, LTE MAC PS shall not reserve dedicated preamble for UE, but instead return 0xFFFF in PS_RachParaResp message and act as if there are no dedicated preambles available." name="intentionalContentionbasedRaEnabled" type="TBoolean"/>
+         </message>
+         <message comment="LTE MAC rach parameter request message." name="PS_RachParaResp" opcode="PS_RACH_PARA_RESP_MSG">
+            <member comment="Cell ID" name="cellId" type="TCellId"/>
+            <member name="messageResult" type="SMessageResult"/>
+            <member name="ueId" type="TUeId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member name="raPreambleIndex" type="TRaPreamble"/>
+            <member name="prachMaskIndex" type="TPrachMaskIndex"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_RachSetupResp" opcode="PS_RACH_SETUP_RESP_MSG">
+            <member comment="results of rach setup" name="messageResult" type="SMessageResult"/>
+            <member comment="Cell ID" name="cellId" type="TCellId"/>
+         </message>
+         <message name="PS_RbAddReq" opcode="PS_RB_ADD_REQ_MSG">
+            <member comment="Cell Id." name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="For TDD Beam Forming" maxRange="65535" minRange="0" name="crnti" optional="true" type="TCrnti"/>
+            <member comment="Scheduling Request configuration." name="ueSetupParams" optional="true" type="SUeSetupParams"/>
+            <member comment="NO_COMMENT" name="container" optional="true" type="UWmpDcmUserContainer"/>
+            <member comment="NO_COMMENT" name="cqiParams" optional="true" type="SCqiParams"/>
+            <member comment="NO_COMMENT" name="ueParams" optional="true" type="SUeParams"/>
+            <member comment="Transmit Power Control parameters. For DCM only." name="tpcPdcchConfigParams" optional="true" type="STpcPdcchConfigParams"/>
+            <member name="soundingRsUlConfigDedicated" optional="true" type="SSoundingRsUlConfigDedicated"/>
+            <member comment="NO_COMMENT" name="numSRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="sRbInfoList" type="SSrbInfo">
+               <dimension size="MAX_NUM_SRB_PER_USER"/>
+            </member>
+            <member comment="NO_COMMENT" name="numRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="rbInfoList" type="SRbInfo">
+               <dimension size="MAX_NUM_DRB_PER_USER"/>
+            </member>
+         </message>
+         <message name="PS_RbAddResp" opcode="PS_RB_ADD_RESP_MSG">
+            <member comment="NO_COMMENT" name="messageResult" type="SMessageResult"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="NO_COMMENT" name="container" optional="true" type="UUlTfrParamContainer"/>
+         </message>
+         <message name="PS_RbDeleteReq" opcode="PS_RB_DELETE_REQ_MSG">
+            <member comment="cell ID " name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="NO_COMMENT" name="container" optional="true" type="UWmpDcmUserContainer"/>
+            <member comment="NO_COMMENT" name="ueParams" optional="true" type="SUeParams"/>
+            <member comment="NO_COMMENT" name="numSRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="srbList" type="TSrbId">
+               <dimension size="MAX_NUM_SRB_PER_USER"/>
+            </member>
+            <member name="sLogicalChannelList" type="TLogicalChannelId">
+               <dimension size="MAX_NUM_SRB_PER_USER"/>
+            </member>
+            <member comment="NO_COMMENT" name="numRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="rbList" type="TRadioBearerId">
+               <dimension size="MAX_NUM_DRB_PER_USER"/>
+            </member>
+            <member comment="Inc18 modification parameter.&#13;&#10;The logical channel member is only used by DCM in order to avoid to have different tables for signaling and data rbs." name="logicalChannelId" type="TLogicalChannelId">
+               <dimension size="MAX_LCID"/>
+            </member>
+         </message>
+         <message name="PS_RbDeleteResp" opcode="PS_RB_DELETE_RESP_MSG">
+            <member comment="NO_COMMENT" name="messageResult" type="SMessageResult"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="NO_COMMENT" name="container" optional="true" type="UUlTfrParamContainer"/>
+         </message>
+         <message name="PS_RbModifyResp" opcode="PS_RB_MODIFY_RESP_MSG">
+            <member comment="NO_COMMENT" name="messageResult" type="SMessageResult"/>
+            <member name="lnCelId" type="TCellId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Allocated SPS CRNTI. Only for DCM" maxRange="65535" minRange="0" name="spsCrnti" optional="true" type="TCrnti"/>
+            <member comment="NO_COMMENT" name="container" optional="true" type="UUlTfrParamContainer"/>
+         </message>
+         <message comment="Requests the resume of scheduling for an UE after handover." name="PS_StartSchedulingReq" opcode="PS_START_SCHEDULING_REQ_MSG">
+            <member maxRange="65535" minRange="1" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_StopSchedulingCellReq" opcode="PS_STOP_SCHEDULING_CELL_REQ_MSG">
+            <member maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member comment="The field specifies whether to stop all cell related scheduling (including system information) or only UE related scheduling.&#13;&#10; &#13;&#10;0 = shutDownUE&#13;&#10;1 = shutDownCell&#13;&#10;&#13;&#10;For WMP shutDownCell is always used." name="shutDownFlag" type="TBoolean"/>
+         </message>
+         <message comment="Requests stopping of scheduling for an UE in the case of handover." name="PS_StopSchedulingReq" opcode="PS_STOP_SCHEDULING_REQ_MSG">
+            <member maxRange="65535" minRange="1" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Handover Type, needed to detect a RRC Connection Re-establishment case." name="handoverType" type="EHandoverType"/>
+         </message>
+         <message forceGeneration="true" name="PS_StopUeReq" opcode="PS_STOP_UE_REQ_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_StopUeResp" opcode="PS_STOP_UE_RESP_MSG">
+            <member name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member name="messageResult" type="SMessageResult"/>
+         </message>
+         <message name="PS_UeDeleteReq" opcode="PS_UE_DELETE_REQ_MSG">
+            <member name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Crnti." name="crnti" type="TCrnti"/>
+            <member name="validUeId" type="TBoolean"/>
+         </message>
+         <message name="PS_UeDeleteResp" opcode="PS_UE_DELETE_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause." name="messageResult" type="SMessageResult"/>
+            <member name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Crnti." name="crnti" type="TCrnti"/>
+         </message>
+         <message name="PS_UeReconfigReq" opcode="PS_UE_RECONFIG_REQ_MSG">
+            <member comment="Cell identifier. " name="cellId" type="TCellId"/>
+            <member comment="User identifier. " name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in BTS level. " name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="NO_COMMENT" name="handoverType" type="EHandoverType"/>
+            <member comment="NO_COMMENT" name="ueSetupParams" type="SUeSetupParams"/>
+            <member comment="NO_COMMENT" name="container" type="UWmpDcmUserContainer"/>
+            <member comment="NO_COMMENT" name="controlOffsets" type="SPuschControlOffsets"/>
+            <member comment="NO_COMMENT" name="cqiParams" type="SCqiParams"/>
+            <member comment="UE parameters" name="ueParams" optional="true" type="SUeParams"/>
+            <member comment="Enables / disables TTI bundling feature for UE. Used only for DCM product, for WMP the value is ignored." name="ttiBundlingEnable" type="TBoolean"/>
+            <member comment="Transmit Power Control parameters. For DCM only." name="tpcPdcchConfigParams" optional="true" type="STpcPdcchConfigParams"/>
+            <member comment="UE specific UL Power Control parameters. For WMP only." name="ulPCUeParams" optional="true" type="SUlPCUeParams"/>
+            <member name="soundingRsUlConfigDedicated" optional="true" type="SSoundingRsUlConfigDedicated"/>
+            <member comment="NO_COMMENT" name="numSRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="sRbInfoList" type="SSrbInfo">
+               <dimension size="MAX_NUM_SRB_PER_USER"/>
+            </member>
+            <member comment="NO_COMMENT" name="numRbs" type="TNumberOfItems"/>
+            <member comment="NO_COMMENT" name="rbInfoList" type="SRbInfo">
+               <dimension size="MAX_NUM_DRB_PER_USER"/>
+            </member>
+         </message>
+         <message name="PS_UeReconfigResp" opcode="PS_UE_RECONFIG_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause. " name="messageResult" type="SMessageResult"/>
+            <member comment="Cell identifier. " name="cellId" type="TCellId"/>
+            <member comment="User identifier. " name="crnti" type="TCrnti"/>
+            <member comment="NO_COMMENT" name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_DefaultUserConfigResp" opcode="PS_DEFAULT_USER_CONFIG_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause. " name="messageResult" type="SMessageResult"/>
+            <member comment="Cell identifier. " maxRange="65535" minRange="0" name="cellId" type="TCellId"/>
+         </message>
+         <message comment="UL PRE indicated the SRIO DIO buffer addresses to UlCoreUeEU at cell setup. Addresses are needed for OP183 interface optimization." name="PS_SrioBsrBufferAddrInd" opcode="PS_SRIO_BSR_BUFFER_ADDR_IND_MSG">
+            <member comment="Cell ID" name="cellId" type="TCellId"/>
+            <member comment="ULPreScheduler srio ID." name="ulSrioId" type="u16"/>
+            <member comment="Pointer. Two srioBuffer addresses." name="ulSrioBsrAddr" type="u32">
+               <dimension size="4"/>
+            </member>
+         </message>
+         <message name="PS_RachUserSetupReq" opcode="PS_RACH_USER_SETUP_REQ_MSG">
+            <member comment="cellId the user should be setup for" name="cellId" type="TCellId"/>
+            <member comment="crnti for L2CallConfig purposes, 0 for normal use (value 0 trigger crnti generation by application)" name="crnti" type="TCrnti"/>
+            <member name="subFrameNumber" type="TSubFrameNumber"/>
+            <member name="RAPreambleList" type="SRaPreambleList"/>
+         </message>
+         <message name="PS_RachUserSetupResp" opcode="PS_RACH_USER_SETUP_RESP_MSG">
+            <member comment="cellId the user should be setup for" name="cellId" type="TCellId"/>
+            <member name="subFrameNumber" type="TSubFrameNumber"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member name="RAPreambleList" type="SRaPreambleResList"/>
+         </message>
+         <message comment="UL user plane trace" name="PS_UlUserPlaneReportInd" opcode="PS_UL_USER_PLANE_REPORT_IND_MSG">
+            <member name="ueId" type="u16"/>
+            <member name="crnti" type="u16"/>
+            <member comment="Cumulative number of bytes received on non GBR. Sum of all non-GBR bearers" name="utUlsReceivedNonGbrBytes" type="u32"/>
+            <member comment="Cumulative number of bytes received on GBR. Sum of all GBR bearers" name="utUlsReceivedGbrBytes" type="u32"/>
+            <member comment="Max delay of GBR in ms. Delay in L2 between MAC and PDCP layers" name="utMaxDelayUl" type="u16"/>
+            <member comment="Number of received transmissions(all)" name="utNumOfReceivedTxAll" type="u16"/>
+            <member comment="Number of received first transmissions" name="utNumOf1stTx" type="u16"/>
+            <member comment="Number of first receptions nacked or DTX(to calculate BLER)" name="utNumOfFailed1stTx" type="u16"/>
+            <member comment="Number of last retransmissions failed" name="utNumOfFailedLastTx" type="u16"/>
+            <member comment="Number of TTIs UL buffer status &gt;0. Active TTIs" name="utNumOfTtiPositiveUlBuf" type="u16"/>
+            <member comment="Mean value MCS at first transmission" name="utMeanUlMcs" type="u8"/>
+            <member comment="Mean value PUSCH RSSI for all transmissions" name="utMeanPuschRssi" type="u8"/>
+            <member comment="Mean value PUSCH SINR for all transmissions" name="utMeanPuschSinr" type="i8"/>
+            <member comment="Mean value estimated power headroom at first transmission" name="utMeanPhr" type="i8"/>
+            <member comment="Mean value  PUCCH RSSI" name="utMeanPucchRssi" type="u8"/>
+            <member comment="PDCCH: mean AGG (1..16) for UL grant. Required aggregation for UL  grant" name="utMeanPdcchAggUl" type="u8"/>
+            <member comment="PDCCH: mean AGG (1..16) for DL grant. Required aggregation for DL grant" name="utMeanPdcchAggDl" type="u8"/>
+         </message>
+         <message comment="DL user plane trace" name="PS_DlUserPlaneReportInd" opcode="PS_DL_USER_PLANE_REPORT_IND_MSG">
+            <member name="ueId" type="u16"/>
+            <member name="crnti" type="u16"/>
+            <member comment="Cumulative number of bytes SENT on non GBR. Sum of all non-GBR bearers" name="utDlsSentNonGbrBytes" type="u32"/>
+            <member comment="Cumulative number of bytes SENT on GBR. Sum of all GBR bearers" name="utDlsSentGbrBytes" type="u32"/>
+            <member comment="Max delay of GBR in ms. Delay inside eNB between PDCP and MAC layers" name="utMaxDelayDl" type="u16"/>
+            <member comment="Single CW Transmission: number of transmissions(all)" name="utSingleCWTx" type="u16"/>
+            <member comment="Single CW Transmission: number of first transmissions" name="utSingleCW1stTx" type="u16"/>
+            <member comment="Single CW Transmission where first transmission NACK or DTX (to calculate BLER)" name="utSingleCW1stTxNackDtx" type="u16"/>
+            <member comment="Single CW Transmission where last retransmission failed" name="utSingleCWTxFailed" type="u16"/>
+            <member comment="Dual CW Transmission: number of transmissions(all) (2 for 2 CW)" name="utDualCWTx" type="u16"/>
+            <member comment="Dual CW Transmission: number of first transmissions (2 for 2 CW)" name="utDualCW1stTx" type="u16"/>
+            <member comment="Dual CW Transmission: first transmissions nacked (to calculate BLER)(2 for 2 CW)" name="utDualCW1stTxNackDtx" type="u16"/>
+            <member comment="Dual CW Transmission: last retransmission failed" name="utDualCWTxFailed" type="u16"/>
+            <member comment="PDCCH: number of transmissions leading to no reliable no reliable ACK or NACK on PDSCH. DTX received" name="utPdcchDtx" type="u16"/>
+            <member comment="Number of TTIs DL buffer status &gt;0. Active TTIs" name="utNumOfTtiPositiveDlBuf" type="u16"/>
+            <member comment="mean deltaCQI at first transmissions (Q10)" name="utMeanDeltaCqi" type="i16"/>
+            <member comment="mean WB CQI at first transmissions(used for LA)" name="utMeanLaWbCqi" type="u8"/>
+         </message>
+         <message comment="Manage UE Indexes (FSMr2 and FSMr3) and UE Group allocations (only FSMr3)" name="PS_UeIndexMgmtReq" opcode="PS_UE_INDEX_MGMT_REQ_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="In case typeOfOperation == ueIndexFreeAll and relatedPcell (new IE) is not equal to cellId, intention is to release all Scell UE indices which are related to the given Pcell id.&#10;Before LN6.0/LNT4.0 (LTE1558): In case typeOfOperation == ueIndexFree and relatedPcell is not equal to cellId, intention is to release Scell UE index which is related to the given Pcell id.&#10;LN6.0/LNT4.0 (LTE1558) onwards: If typeOfOperation == ueIndexFree, the ueIndex to be released is provided." name="relatedPCell" type="TCellId"/>
+            <member comment="Ue Id." maxRange="MAX_NUM_USER_ID_PER_ENB - 1" minRange="0" name="ueId" type="TUeId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Type of the request" name="operationType" type="EUeIndexMgmtOperationType"/>
+            <member comment="Identifies the UE in DSP Pool.  Valid if typeOfOperation is ueIndexAllocate or ueIndexReassign, otherwise INVALID_UEINDEX.&#10;" name="ueIndex" type="TUeIndex"/>
+            <member comment="In WMP (before LBT2087): UE Group of the UE. Valid if typeOfOperation is ueIndexAllocate, ueIndexReassign or ueGroupFree, otherwise set to INVALID_UEGROUP.&#10;In DCM: Co-located UE Group (at intra-Pool HO/Reest) or INVALID_UEGROUP. Valid if typeOfOperation is ueIndexAllocate or ueIndexReassign, otherwise INVALID_UEGROUP.&#10;In Macro and uREC always INVALID_UEGROUP." name="ueGroup" rangeDescription="0.. (MAX_NUM_UEGROUP_PER_BB_POOL-1), INVALID_UEGROUP " type="TUeGroup"/>
+         </message>
+         <message comment="Response to PS_UeIndexMgmtReq" name="PS_UeIndexMgmtResp" opcode="PS_UE_INDEX_MGMT_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause. " name="messageResult" type="SMessageResult"/>
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="Ue Id." maxRange="MAX_NUM_USER_ID_PER_ENB - 1" minRange="0" name="ueId" type="TUeId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Type of the request" name="operationType" type="EUeIndexMgmtOperationType"/>
+            <member comment="Identifies the UE in DSP Pool. Optional. FTM-391.&#10;Valid if typeOfOperation is ueIndexAllocate or ueIndexReassign, otherwise can be set to 0." name="ueIndex" type="TUeIndex"/>
+            <member comment="Affected UE Group. For typeOfOperation ueIndexFreeAll value is INVALID_UEGROUP." name="ueGroup" type="TUeGroup"/>
+         </message>
+         <message comment="WMP only" name="PS_BearerModifyReq" opcode="PS_BEARER_MODIFY_REQ_MSG">
+            <member name="lnCelId" type="TOaMLnCelId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Indicates whether TTI Bundling measurements are activated for the UE." defaultValue="GLO_FALSE" maxRange="GLO_TRUE" minRange="GLO_FALSE" name="ttiBmMeasActivate" type="TBoolean"/>
+            <member name="ambrParams" optional="true" type="SAmbrParams"/>
+            <member comment="Table for DRB info." name="drbInfoList" type="SRbModifyInfo">
+               <dimension isVariableSize="true" size="MAX_NUM_DRB_PER_USER" variableSizeFieldName="numDrbs" variableSizeFieldType="TNumberOfItems"/>
+            </member>
+         </message>
+         <message comment="WMP only" name="PS_BearerModifyResp" opcode="PS_BEARER_MODIFY_RESP_MSG">
+            <member name="messageResult" type="SMessageResult"/>
+            <member name="lnCelId" type="TOaMLnCelId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_MeasGapStartReq" opcode="PS_MEAS_GAP_START_REQ_MSG">
+            <member comment="Identifies the cell, used only for tracing purposes" maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE at cell level, used only for tracing purposes" maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="The value of this field will be stored and set into the corresponding response message" maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+            <member comment="Measurement gap offset" name="measGapOffset" type="UMeasGapOffset"/>
+         </message>
+         <message name="PS_MeasGapStartResp" opcode="PS_MEAS_GAP_START_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause." name="messageResult" type="SMessageResult"/>
+            <member maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="The value is copied from the corresponding request message." maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+         </message>
+         <message name="PS_MeasGapStopReq" opcode="PS_MEAS_GAP_STOP_REQ_MSG">
+            <member comment="Identifies the cell, used only for tracing purposes" maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE at cell level, used only for tracing purposes" maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="The value of this field will be stored and set into the corresponding response message" maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+         </message>
+         <message name="PS_MeasGapStopResp" opcode="PS_MEAS_GAP_STOP_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause." name="messageResult" type="SMessageResult"/>
+            <member maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="The value is copied from the corresponding request message." maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+         </message>
+         <message name="PS_RbModifyReq" opcode="PS_RB_MODIFY_REQ_MSG">
+            <member comment="Identifies the cell, used only for tracing purposes" maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE at cell level, used only for tracing purposes" maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="The value is copied from the corresponding request message." maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+            <member comment="Boolean type parameter for SPS CRNTI allocation request. If true, SPS CRNTI is to be allocated. Valid only for DCM." name="spsCrntiAllocationReq" type="TBoolean"/>
+            <member name="ueSetupParams" optional="true" type="SUeSetupParams"/>
+            <member comment="Length of containers is always the bigger one of DCM/WMP container size." name="container" optional="true" type="UWmpDcmUserContainer"/>
+            <member name="cqiParams" optional="true" type="SCqiParams"/>
+            <member name="ueParams" optional="true" type="SUeParams"/>
+            <member comment="Transmit Power Control parameters. For DCM only." name="tpcPdcchConfigParams" optional="true" type="STpcPdcchConfigParams"/>
+            <member comment="UE specific SRS configuration.&#13;&#10;For DCM only." name="soundingRsUlConfigDedicated" optional="true" type="SSoundingRsUlConfigDedicated"/>
+            <member comment="These are the SCell CQI configuration parameters.&#10;For DCM only. Value of numOfCqiParamsScell is set to 0 in WMP product." name="cqiParamsScell" type="SCqiParamsScell">
+               <dimension isVariableSize="true" minSize="0" size="1"/>
+            </member>
+            <member comment="Table for SRB info. &#13;&#10;Note: the enclosed parameter rlcMode cannot be modified for a SRB." name="sRbInfoList" type="SSrbInfo">
+               <dimension isVariableSize="true" minSize="0" size="MAX_NUM_SRB_PER_USER" variableSizeFieldName="numSRbs"/>
+            </member>
+            <member comment="Table for DRB info. &#13;&#10;Note: the enclosed parameters rlcMode, rlcUmParameters/umRlcSnFieldLengthDownlink and umRlcSnFieldLengthUplink cannot be modified for a DRB." name="rbInfoList" type="SRbInfo">
+               <dimension isVariableSize="true" minSize="0" size="MAX_NUM_DRB_PER_USER" variableSizeFieldName="numRbs"/>
+            </member>
+         </message>
+         <message name="PS_StartSchedulingResp" opcode="PS_START_SCHEDULING_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause." name="messageResult" type="SMessageResult"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_StopSchedulingResp" opcode="PS_STOP_SCHEDULING_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause." name="messageResult" type="SMessageResult"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="List of EPS Bearers for which data forwarding was selected by FAM.&#13;&#10;numBearers is the number of valid items in the following bearerList.&#13;&#10;Value 0 in numBearers means that bearerList is empty or not used" name="bearerList" type="SBearerList">
+               <dimension isVariableSize="true" size="MAX_NUM_DRB_PER_USER" variableSizeFieldName="numBearers"/>
+            </member>
+         </message>
+         <message name="PS_UeInfoReq" opcode="PS_UE_INFO_REQ_MSG">
+            <member comment="Cell identity" name="lnCelId" type="TOaMLnCelId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member name="ueInfo" type="EUeInfo"/>
+         </message>
+         <message name="PS_UeInfoResp" opcode="PS_UE_INFO_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause." name="messageResult" type="SMessageResult"/>
+            <member comment="Cell identity" name="lnCelId" type="TOaMLnCelId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member name="ueInfo" type="UUeInfo"/>
+         </message>
+         <message name="PS_UlResourceControlReq" opcode="PS_UL_RESOURCE_CONTROL_REQ_MSG">
+            <member comment="Identifies the cell, used only for tracing purposes" maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE at cell level, used only for tracing purposes" maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="The value of this field will be stored and set into the corresponding response message." maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+            <member name="cqiParams" type="SCqiParams"/>
+            <member name="ueSetupParams" type="SUeSetupParams"/>
+            <member name="soundingRsUlConfigDedicated" type="SSoundingRsUlConfigDedicated"/>
+            <member comment="Transmit Power Control parameters. For DCM only." name="tpcPdcchConfigParams" optional="true" type="STpcPdcchConfigParams"/>
+            <member comment="Optional WMP or DCM container for additional parameters." name="container" optional="true" type="UUlResCtrlParamContainer"/>
+            <member comment="These are the SCell CQI configuration parameters. " name="cqiParamsScell" type="SCqiParamsScell">
+               <dimension isVariableSize="true" minSize="0" size="1"/>
+            </member>
+         </message>
+         <message name="PS_UlResourceControlResp" opcode="PS_UL_RESOURCE_CONTROL_RESP_MSG">
+            <member comment="The message result information is split into the following parts: status, cause and specificCause" name="messageResult" type="SMessageResult"/>
+            <member maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="The value is copied from the corresponding request message." maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+            <member comment="TDD only:&#10;Present if secondary cell to be modified.&#13;&#10;Index of the aggregated cell (secondary serving cell), also passed to UE. &#13;&#10;Default value: 1&#13;&#10;Reserved for future: 2…4" defaultValue="1" maxRange="4" minRange="1" name="sCellServCellIndex" optional="true" type="TSCellServCellIndex"/>
+            <member comment="Additional DCM specific parameters, always present in DCM product (hasContainer IE is set to TRUE). &#13;&#10;In WMP product the container is not present and hasContainer IE is set to FALSE." name="container" optional="true" type="UUlTfrParamContainer"/>
+         </message>
+         <message comment="WMP only" name="PS_UserModifyReq" opcode="PS_USER_MODIFY_REQ_MSG">
+            <member comment="Cell identity" name="lnCelId" type="TOaMLnCelId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Set to true, if measurement gaps shall be deleted otherwise set to false" maxRange="GLO_TRUE" minRange="GLO_FALSE" name="measGapStopRequired" type="TBoolean"/>
+            <member comment="Defines the used gapPattern. Used only in MAC_UserSetupReq in TDD when tti bundling is active." defaultValue="0" maxRange="2" minRange="0" name="gapPattern" type="EMeasGapOffset"/>
+            <member comment="Measurement gap offset value. Used only in MAC_UserSetupReq in TDD when tti bundling is active.&#13;&#10;Range for EMeasGapOffset_measGapPattern0: 0...39. Range for EMeasGapOffset_measGapPattern1: 0...79.&#13;&#10;" maxRange="79" minRange="0" name="measGapOffset" type="TMeasGapOffset"/>
+            <member name="ambrParams" optional="true" type="SAmbrParams"/>
+            <member name="drxParameters" optional="true" type="SDrxParameters"/>
+            <member comment="Activates the new transmission mode configured for the UE. TDD only." maxRange="8" minRange="0" name="actNewTransmMode" optional="true" type="ETransmMode"/>
+            <member name="cqiParams" optional="true" type="SCqiParams"/>
+            <member comment="Time period for UE inactivity detection; the same value is used for UL and DL direction. Step 1, unit seconds. Value 0 means disabled." name="ueInactivityTimer" optional="true" specialValue="0" type="TOaMInactivityTimer"/>
+         </message>
+         <message comment="WMP only." name="PS_UserModifyResp" opcode="PS_USER_MODIFY_RESP_MSG">
+            <member name="messageResult" type="SMessageResult"/>
+            <member comment="Cell identity" name="lnCelId" type="TOaMLnCelId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message name="PS_RrcConnectionReconfCompletedReq" opcode="PS_RRC_CONNECTION_RECONF_COMPLETED_REQ_MSG">
+            <member name="lnCelId" type="TOaMLnCelId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Describes which procedure is the corresponding procedure." defaultValue="0" name="relatedProcedure" type="ERelatedProcedure"/>
+            <member comment="TDD only:&#10;Present if secondary cell to be modified.&#13;&#10;Index of the aggregated cell (secondary serving cell), also passed to UE. &#13;&#10;Default value: 1&#13;&#10;Reserved for future: 2…4" defaultValue="1" maxRange="4" minRange="1" name="sCellServCellIndex" optional="true" type="TSCellServCellIndex"/>
+            <member comment="Contains the CSI reporting related parameters of Pcell." name="cqiParams" optional="true" type="SCqiParams"/>
+            <member name="cqiParamsScell" optional="true" type="SCqiParamsScell"/>
+         </message>
+         <message name="PS_CaUserReconfigurationReq" opcode="PS_CA_USER_RECONFIGURATION_REQ_MSG">
+            <member name="lnCelId" type="TOaMLnCelId"/>
+            <member comment="Identifies the UE at cell level" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in BTS level. " name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Describes which procedure is the corresponding procedure." defaultValue="0" name="relatedProcedure" type="ERelatedProcedure"/>
+            <member comment="Aperiodic CSI trigger parameters" name="aperiodicCsiTriggerParams" optional="true" type="SAperiodicCsiTriggerParams"/>
+            <member comment="Optional WMP container for additional WMP specific parameters. The IE hasContainer is FALSE for DCM." name="container" optional="true" type="UCaUserReconfigurationContainer"/>
+            <member comment="Not used if numOfR10n1PucchAnCsList is set to 0." name="r10n1PucchAnCsList" type="SR10n1PucchAnCsElement">
+               <dimension isVariableSize="true" minSize="0" size="2"/>
+            </member>
+            <member comment="UE specific SRS configuration." name="soundingRsUlConfigDedicated" optional="true" type="SSoundingRsUlConfigDedicated"/>
+            <member comment="These are the SCell remove parameters. " name="sCellsRemove" type="SSCellsRemove">
+               <dimension isVariableSize="true" minSize="0" size="1"/>
+            </member>
+            <member name="servingCellConfiguration" type="SServingCellConfiguration">
+               <dimension isVariableSize="true" minSize="0" size="1" variableSizeFieldComment="WMP: numOfServingCellConfiguration shall be set to 1 if relatedProcedure== ERelatedProcedure_sCellConfiguration, otherwise it shall be set to 0"/>
+            </member>
+         </message>
+         <message name="PS_CaUserReconfigurationResp" opcode="PS_CA_USER_RECONFIGURATION_RESP_MSG">
+            <member name="lnCelId" type="TOaMLnCelId"/>
+            <member comment="Identifies the UE at cell level" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in BTS level. " name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="TDD:&#10;Identifies the UE in DSP Pool ueIndexSCell&#10;FDD: set to INVALID_UEINDEX&#10;&#10;Should be removed in FB14.02" name="ueIndexSCell" type="TUeIndex"/>
+            <member comment="These are the SCell result parameters for removal. &#13;&#10;" name="sCellResultsForRemoval" type="SSCellResultsParameters">
+               <dimension isVariableSize="true" minSize="0" size="1"/>
+            </member>
+            <member comment="These are the SCell result parameters for configuration. &#13;&#10;" name="sCellResultsForConfiguration" type="SSCellResultsParameters">
+               <dimension isVariableSize="true" minSize="0" size="1"/>
+            </member>
+            <member comment="DCM: If status is NotOk all sub-procedures were failed. If status is Ok at least one sub-procedure was successful.&#10;WMP/TDD: If status is NotOk at least one sub-procedure was failed. If status is Ok all sub-procedures were successful." name="messageResult" type="SMessageResult"/>
+         </message>
+         <message comment="LTE MAC PS receives a PS_RaPdcchOrderReq message as a request to invoke a PDCCH Order RA procedure. No response required." name="PS_RaPdcchOrderReq" opcode="PS_RA_PDCCH_ORDER_REQ_MSG">
+            <member comment="Cell identity" name="lnCelId" type="TOaMLnCelId"/>
+            <member comment="Identifies the UE at cell level, used only for tracing purposes" maxRange="65535" minRange="0" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message comment="Similar to PS_StopUeReq but can include several UEs" name="PS_StopUesInCellReq" opcode="PS_STOP_UES_IN_CELL_REQ_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="Identifies the UEs in DSP Pool" name="ueToStop" type="TUeIndex">
+               <dimension isVariableSize="true" size="MAX_NUM_CA_UES"/>
+            </member>
+         </message>
+         <message name="PS_StopUesInCellResp" opcode="PS_STOP_UES_IN_CELL_RESP_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member name="messageResult" type="SMessageResult"/>
+         </message>
+         <message comment="Similar to PS_UeDeleteReq but can include several UEs" name="PS_DeleteUesInCellReq" opcode="PS_DELETE_UES_IN_CELL_REQ_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="Identifies the UEs in DSP Pool" name="ueToDelete" type="TUeIndex">
+               <dimension isVariableSize="true" size="MAX_NUM_CA_UES"/>
+            </member>
+         </message>
+         <message name="PS_DeleteUesInCellResp" opcode="PS_DELETE_UES_IN_CELL_RESP_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member name="messageResult" type="SMessageResult"/>
+         </message>
+         <message comment="A timer is expired." forceGeneration="true" name="PS_TimerServiceExpiryInd" opcode="PS_TIMER_SERVICE_EXPIRY_IND_MSG">
+            <member name="timerId" type="TMacTimerId"/>
+         </message>
+         <message comment="LTE MAC PS indicates MAC DATA to start/stop setup message collector." name="PS_InitSetupCollectorInd" opcode="PS_INIT_SETUP_COLLECTOR_IND_MSG">
+            <member name="cellSetupBuffer" type="SMemBuffer"/>
+            <member name="ueSetupBuffer" type="SMemBuffer"/>
+            <member name="rbSetupBuffer" type="SMemBuffer"/>
+         </message>
+         <message comment="UDP TTI Trace configuration, no response needed" name="PS_TtiTraceUdpConfigReq" opcode="PS_TTI_TRACE_UDP_CONFIG_REQ_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="Destination MAC address (first 6 bytes; last 2 bytes are padding bytes)" name="destMacTable" type="u8">
+               <dimension size="8"/>
+            </member>
+            <member comment="Source MAC address (first 6 bytes; last 2 bytes are padding bytes)" name="srcMacTable" type="u8">
+               <dimension size="8"/>
+            </member>
+            <member comment="Destination IP address" name="destIp" type="u8">
+               <dimension size="4"/>
+            </member>
+            <member comment="Source IP address" name="srcIp" type="u8">
+               <dimension size="4"/>
+            </member>
+            <member comment="UDP destination port" name="destPort" type="u32">
+               <dimension isVariableSize="true" size="1" variableSizeFieldComment="set to 0 to disable UDP TTI tracing" variableSizeFieldName="destPortSize" variableSizeFieldType="u32"/>
+            </member>
+         </message>
+         <message name="PS_UserDeleteInd" opcode="PS_USER_DELETE_IND_MSG">
+            <member maxRange="65535" minRange="0" name="lnCelId" type="TCellId"/>
+            <member comment="Identifies the UE at cell level.&#13;&#10;If value 0xFFFFFFFF is set in this field, the value shall not be used for UE identification (UeId is only used for identification)." maxRange="65535" minRange="0" name="crnti" specialValue="4294967295" type="TCrnti"/>
+            <member comment="This field specifies whether the &quot;ueId&quot; field contains a valid value." maxRange="1" minRange="0" name="validUeId" type="TBoolean"/>
+            <member comment="Identifies the UE in BTS level. &#13;&#10;Note: If validUeId is set to FALSE, any value (e.g. 0xFFFFFFFF) can be filled into this field." name="ueId" type="TUeId"/>
+            <member comment="The value of this field will be stored and set into the corresponding response message" maxRange="65535" minRange="0" name="transactionId" type="TTransactionID"/>
+            <member comment="Boolean type parameter for SPS CRNTI release request. Valid only for DCM." name="spsCrntiReleaseReq" type="TBoolean"/>
+            <member comment="3GPP cause value" name="ueReleaseCause" optional="true" type="ECauseLte"/>
+            <member comment="Reason for UE release request." name="specificUeReleaseCause" optional="true" type="ESpecificCauseLte"/>
+         </message>
+         <message comment="message is used only for DCM PS" name="PS_CaUserReconfigurationCompleteReq" opcode="PS_CA_USER_RECONFIGURATION_COMPLETE_REQ_MSG">
+            <member comment="Identifies the cell" name="lnCelId" type="TOaMLnCelId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+            <member comment="Describes which procedure is the corresponding procedure." name="procedureResults" type="ECAProcedureResults"/>
+         </message>
+         <message comment="message is used only for DCM PS" name="PS_CaUserReconfigurationCompleteResp" opcode="PS_CA_USER_RECONFIGURATION_COMPLETE_RESP_MSG">
+            <member name="messageResult" type="SMessageResult"/>
+            <member comment="Identifies the cell" name="lnCelId" type="TOaMLnCelId"/>
+            <member name="crnti" type="TCrnti"/>
+            <member name="ueId" type="TUeId"/>
+            <member comment="Identifies the UE in DSP Pool" name="ueIndex" type="TUeIndex"/>
+         </message>
+         <message comment="Session Data Logging Indication is used to send data collected during RRC connection from MAC-PS to UEC " name="PS_DlSdlInd" opcode="PS_DL_SDL_IND_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE at cell level" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in BTS level. " name="ueId" type="TUeId"/>
+            <member comment="connect distance estimate in meter" name="connectDistanceEstimate" type="u16"/>
+            <member comment="release distance estimate in meter" name="releaseDistanceEstimate" type="u16"/>
+            <member comment="SCell active duration in seconds" name="sCellAciveDuration" type="u16"/>
+            <member comment="last CQI" maxRange="15" minRange="0" name="lastCqi" type="u8"/>
+            <member comment="ENB transmit power. Transmit power in dBm*10" maxRange="460" minRange="0" name="enbTransmitPower" type="u16"/>
+            <member comment="MAC DL retransmit bytes" name="macDlReTxBytes" type="u32"/>
+            <member comment="DL HARQ attempts" name="harqDlAttempts" type="u32"/>
+            <member comment="DL HARQ failures" name="harqDlFailures" type="u32"/>
+         </message>
+         <message comment="Session Data Logging Indication is used to send data collected during RRC connection from MAC-PS to UEC" name="PS_UlSdlInd" opcode="PS_UL_SDL_IND_MSG">
+            <member comment="cell Id " name="cellId" type="TCellId"/>
+            <member comment="Identifies the UE at cell level" name="crnti" type="TCrnti"/>
+            <member comment="Identifies the UE in BTS level. " name="ueId" type="TUeId"/>
+            <member comment="average power headroom in db" maxRange="+127" minRange="-127" name="averagePowerHeadroom" type="i8"/>
+            <member comment="last power headroom in db" maxRange="127" minRange="-127" name="lastPowerHeadroom" type="i8"/>
+            <member comment="sinr PUSCH effective" maxRange="255" minRange="0" name="sinrPuschEffective" rangeDescription="0=-12 dB, 1=-11.75 dB, 2=-11.50 dB, ... , 255=51.75 dB" type="u8"/>
+            <member comment="UL HARQ attempts" name="harqUlAttempts" type="u32"/>
+            <member comment="UL HARQ failures" name="harqUlFailures" type="u32"/>
+         </message>
+      </messages>
+      <interfaces>
+         <interface name="PsCell" responsibleEditor="Florian Oefelein">
+            <message name="PS_CellDeleteReq"/>
+            <message name="PS_CellDeleteResp"/>
+            <typedef name="PS_UlPhyDataAddressSetReq"/>
+            <message name="PS_CellReconfigInternalReq"/>
+            <message name="PS_CellReconfigInternalResp"/>
+            <typedef name="PS_CellReconfigurationDeltaReq"/>
+            <typedef name="PS_CellReconfigurationDeltaResp"/>
+            <typedef name="PS_CellReconfigurationReq"/>
+            <typedef name="PS_CellReconfigurationResp"/>
+            <typedef name="PS_CellSetupReq"/>
+            <message name="PS_CellSetupResp"/>
+            <message name="PS_DlPhyDataAddressSetReq"/>
+            <message name="PS_AddressConfigReq"/>
+            <message name="PS_AddressConfigResp"/>
+            <typedef name="PS_RachSetupReq"/>
+            <message name="PS_RachSetupResp"/>
+            <typedef name="PS_StartRefSyncSReq"/>
+            <typedef name="PS_StartRefSyncSResp"/>
+            <typedef name="PS_StopRefSyncSReq"/>
+            <typedef name="PS_StopRefSyncSResp"/>
+            <message name="PS_StopSchedulingCellReq"/>
+            <typedef name="PS_StopSchedulingCellResp"/>
+            <typedef name="PS_TxAntennaConfChangeReq"/>
+            <typedef name="PS_TxAntennaConfChangeResp"/>
+            <message name="PS_SrioBsrBufferAddrInd"/>
+            <message name="PS_InitSetupCollectorInd"/>
+         </interface>
+         <interface name="PsUser" responsibleEditor="Florian Oefelein">
+            <message name="PS_BearerModifyReq"/>
+            <message name="PS_BearerModifyResp"/>
+            <message name="PS_ExternalAddressSetReq"/>
+            <message name="PS_HoUeAddReq"/>
+            <message name="PS_HoUeAddResp"/>
+            <message name="PS_MeasGapStartReq"/>
+            <message name="PS_MeasGapStartResp"/>
+            <message name="PS_MeasGapStopReq"/>
+            <message name="PS_MeasGapStopResp"/>
+            <message name="PS_RachParaReq"/>
+            <message name="PS_RachParaResp"/>
+            <message name="PS_RachUserSetupReq"/>
+            <message name="PS_RachUserSetupResp"/>
+            <message name="PS_RbAddReq"/>
+            <message name="PS_RbAddResp"/>
+            <message name="PS_RbDeleteReq"/>
+            <message name="PS_RbDeleteResp"/>
+            <message name="PS_RbModifyReq"/>
+            <message name="PS_RbModifyResp"/>
+            <message name="PS_StartSchedulingReq"/>
+            <message name="PS_StartSchedulingResp"/>
+            <message name="PS_StopSchedulingReq"/>
+            <message name="PS_StopSchedulingResp"/>
+            <message name="PS_StopUeReq"/>
+            <message name="PS_StopUeResp"/>
+            <message name="PS_UeDeleteReq"/>
+            <message name="PS_UeDeleteResp"/>
+            <message name="PS_UeInfoReq"/>
+            <message name="PS_UeInfoResp"/>
+            <message name="PS_UeReconfigReq"/>
+            <message name="PS_UeReconfigResp"/>
+            <message name="PS_UlResourceControlReq"/>
+            <message name="PS_UlResourceControlResp"/>
+            <message name="PS_UserModifyReq"/>
+            <message name="PS_UserModifyResp"/>
+            <typedef name="PS_DefaultUserConfigReq"/>
+            <message name="PS_DefaultUserConfigResp"/>
+            <message name="PS_CrntiReleaseReq"/>
+            <message name="PS_CaUserReconfigurationReq"/>
+            <message name="PS_CaUserReconfigurationResp"/>
+            <message name="PS_RrcConnectionReconfCompletedReq"/>
+            <message name="PS_UeIndexMgmtReq"/>
+            <message name="PS_UeIndexMgmtResp"/>
+            <message name="PS_RaPdcchOrderReq"/>
+            <message name="PS_StopUesInCellReq"/>
+            <message name="PS_StopUesInCellResp"/>
+            <message name="PS_DeleteUesInCellReq"/>
+            <message name="PS_DeleteUesInCellResp"/>
+            <message name="PS_UserDeleteInd"/>
+            <typedef name="PS_DisableDiscTimerInd"/>
+            <typedef name="PS_ResumeDiscTimerInd"/>
+            <message name="PS_CaUserReconfigurationCompleteReq"/>
+            <message name="PS_CaUserReconfigurationCompleteResp"/>
+            <message name="PS_DlSdlInd"/>
+            <message name="PS_UlSdlInd"/>
+         </interface>
+         <interface name="PsTrace" responsibleEditor="Florian Oefelein">
+            <message name="PS_DlUserPlaneReportInd"/>
+            <message name="PS_UlUserPlaneReportInd"/>
+            <message name="PS_TtiTraceUdpConfigReq"/>
+         </interface>
+      </interfaces>
+   </component>
+</system>

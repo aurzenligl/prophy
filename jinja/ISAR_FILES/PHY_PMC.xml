@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui ../configuration/if_editor.xui?><system name="PHY_PMC" xmlns:xi="http://www.nsn.com/2008/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../configuration/if_editor.xsd">
+   <xi:include href="externals.xml"  xpath="//external-definitions" />
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <component name="PHY">
+      <xi:include href="PHY.xml" xpath="//definitions[@name='Common PHY']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='Common PHY-BF']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-TX']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-RX']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-TX-BF']"/>
+      <xi:include href="PHY.xml" xpath="//definitions[@name='PHY-RX-BF']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='Common PHY']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-TX']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-TX-BF']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-RX']"/>
+      <xi:include href="PHY.xml" xpath="//messages[@name='PHY-RX-BF']"/>
+      <interfaces>
+         <interface name="PhyCell" responsibleEditor="">
+            <message name="PHY_UlCellSetupReq"/>
+            <message name="PHY_UlCellSetupResp"/>
+            <message name="PHY_UlCellDeleteReq"/>
+            <message name="PHY_UlCellDeleteResp"/>
+            <message name="PHY_UlResourceInfoReq"/>
+            <message name="PHY_UlResourceInfoResp"/>
+            <message name="PHY_PrachSetupReq"/>
+            <message name="PHY_PrachSetupResp"/>
+            <message name="PHY_PrachDeleteReq"/>
+            <message name="PHY_PrachDeleteResp"/>
+            <message name="PHY_DlCellSetupReq"/>
+            <message name="PHY_DlCellSetupResp"/>
+            <message name="PHY_DlCellDeleteReq"/>
+            <message name="PHY_DlCellDeleteResp"/>
+            <message name="PHY_DlPhysicalChannelSetupReq"/>
+            <message name="PHY_DlPhysicalChannelSetupResp"/>
+            <message name="PHY_DlPhysicalChannelDeleteReq"/>
+            <message name="PHY_DlPhysicalChannelDeleteResp"/>
+            <message name="PHY_StartRefSyncSReq"/>
+            <message name="PHY_StartRefSyncSResp"/>
+            <message name="PHY_StopRefSyncSReq"/>
+            <message name="PHY_StopRefSyncSResp"/>
+            <message name="PHY_DlCellReconfigurationReq"/>
+            <message name="PHY_DlCellReconfigurationResp"/>
+         </interface>
+         <interface name="PhyTest" responsibleEditor="">
+            <message name="PHY_Start3GppDlTestModelReq"/>
+            <message name="PHY_Start3GppDlTestModelResp"/>
+            <message name="PHY_Stop3GppDlTestModelReq"/>
+            <message name="PHY_Stop3GppDlTestModelResp"/>
+         </interface>
+      </interfaces>
+   </component>
+</system>

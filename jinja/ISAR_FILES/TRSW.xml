@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xui configuration/if_editor.xui?><system xmlns:xi="http://www.w3.org/2001/XInclude"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        name="LTE"
+        xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions" />
+   <xi:include href="globals.xml" xpath="//global-definitions[@name='LTE']"/>
+   <component name="TRSW">
+      <definitions>
+         <constant name="TRSW_MAX_NUM_CONNECTIONS" value="40"/>
+         <constant name="TRSW_MAX_NUM_META_PARAMS" value="2"/>
+         <constant name="TRSW_MAX_IP_ADDR_LEN" value="16"/>
+         <enum name="ETrswCompat">
+            <enum-member name="ETrswCompat_Undefined" value="0"/>
+            <enum-member name="ETrswCompat_Optional" value="0x1"/>
+            <enum-member name="ETrswCompat_Mandatory" value="0x2"/>
+         </enum>
+         <enum name="ETrswMetaParamId">
+            <enum-member name="ETrswMetaParamId_Undefined" value="0"/>
+            <enum-member name="ETrswMetaParamId_Cel" value="0xC0"/>
+            <enum-member name="ETrswMetaParamId_Sel" value="0xC1"/>
+            <enum-member name="ETrswMetaParamId_Uel" value="0xC2"/>
+            <enum-member name="ETrswMetaParamId_Crll" value="0xC3"/>
+            <enum-member name="ETrswMetaParamId_Srll" value="0xC4"/>
+            <enum-member name="ETrswMetaParamId_Crsl" value="0xC6"/>
+            <enum-member name="ETrswMetaParamId_Srsl" value="0xC7"/>
+            <enum-member name="ETrswMetaParamId_Cml" value="0xC9"/>
+            <enum-member name="ETrswMetaParamId_Sml" value="0xCA"/>
+            <enum-member name="ETrswMetaParamId_Uml" value="0xCB"/>
+            <enum-member name="ETrswMetaParamId_Pecl" value="0xCC"/>
+         </enum>
+         <enum name="ETrswParamId">
+            <enum-member name="ETrswParamId_Undefined"          value="0"/>
+            <enum-member name="ETrswParamId_Cause"              value="0x1"/>
+            <enum-member name="ETrswParamId_Osaid"              value="0x6"/>
+            <enum-member name="ETrswParamId_IpLc"               value="0x85"/>
+            <enum-member name="ETrswParamId_Euptid"             value="0x87"/>
+            <enum-member name="ETrswParamId_Dsaid"              value="0x88"/>
+	    <enum-member name="ETrswParamId_Sicad"              value="0x89"/>
+	    <enum-member name="ETrswParamId_EnbTEID"            value="0x8B"/>
+            <enum-member name="ETrswParamId_IpLp"               value="0x8C"/>
+            <enum-member name="ETrswParamId_EstablishmentCause" value="0x8D"/>
+	    <enum-member name="ETrswParamId_PeerTEID"           value="0x8E"/>
+            <enum-member name="ETrswParamId_UniDirectional"     value="0x91" />
+            <enum-member name="ETrswParamId_Amode"              value="0x92" />
+            <enum-member name="ETrswParamId_Qarp"               value="0x93" />
+         </enum>
+         <enum name="ETrswMsgId">
+            <enum-member name="ETrswMsgId_Undefined" value="0"/>
+            <enum-member name="ETrswMsgId_GtpErq" value="193"/>
+            <enum-member name="ETrswMsgId_GtpEcf" value="194"/>
+            <enum-member name="ETrswMsgId_GtpRel" value="195"/>
+            <enum-member name="ETrswMsgId_GtpRlc" value="196"/>
+            <enum-member name="ETrswMsgId_GtpMod" value="197"/>
+            <enum-member name="ETrswMsgId_GtpMoa" value="198"/>
+            <enum-member name="ETrswMsgId_GtpMor" value="199"/>
+            <enum-member name="ETrswMsgId_GtpRes" value="200"/>
+            <enum-member name="ETrswMsgId_GtpRsc" value="201"/>
+            <enum-member name="ETrswMsgId_R3GtpErq" value="209"/>
+            <enum-member name="ETrswMsgId_R3GtpEcf" value="210"/>
+            <enum-member name="ETrswMsgId_R3GtpRel" value="211"/>
+            <enum-member name="ETrswMsgId_R3GtpRlc" value="212"/>
+            <enum-member name="ETrswMsgId_R3GtpMod" value="213"/>
+            <enum-member name="ETrswMsgId_R3GtpMoa" value="214"/>
+            <enum-member name="ETrswMsgId_R3GtpMor" value="215"/>
+            <enum-member name="ETrswMsgId_R3GtpRes" value="216"/>
+            <enum-member name="ETrswMsgId_R3GtpRsc" value="217"/>
+         </enum>
+         <enum name="ETrswCause">
+            <enum-member name="ETrswCause_Undefined" value="0"/>
+            <enum-member name="ETrswCause_Unallocated" value="1"/>
+            <enum-member name="ETrswCause_NoRoute" value="3"/>
+            <enum-member name="ETrswCause_ExchangeRoutingError" value="25"/>
+            <enum-member name="ETrswCause_Normal" value="31"/>
+            <enum-member name="ETrswCause_NetworkOutOfOrder" value="38"/>
+            <enum-member name="ETrswCause_TemporaryFailure" value="41"/>
+            <enum-member name="ETrswCause_SwitchingEquipmentCongestion" value="42"/>
+            <enum-member name="ETrswCause_ResourceUnavailable" value="47"/>
+            <enum-member name="ETrswCause_InvalidMessage" value="95"/>
+            <enum-member name="ETrswCause_MandatoryIEMissing" value="96"/>
+            <enum-member name="ETrswCause_MessageTypeUndefined" value="97"/>
+            <enum-member name="ETrswCause_InvalidIEContents" value="100"/>
+            <enum-member name="ETrswCause_RecoveryOnTimerExpiry" value="102"/>
+            <enum-member name="ETrswCause_ParamUnrecognisedMsgDiscarded" value="110"/>
+            <enum-member name="ETrswCause_ProtocolError" value="111"/>
+            <enum-member name="ETrswCause_InsufficientTransportResources" value="112"/>
+         </enum>
+         <enum name="ETrswPreemptCapability">
+            <enum-member name="ETrswPreemptCapability_Allowed" value="0"/>
+            <enum-member name="ETrswPreemptCapability_NotAble" value="1"/>
+         </enum>
+         <enum name="ETrswQci">
+            <enum-member name="ETrswQci_Undefined" value="0" />
+            <enum-member name="ETrswQci_1" value="1"/>
+            <enum-member name="ETrswQci_2" value="2"/>
+            <enum-member name="ETrswQci_3" value="3"/>
+            <enum-member name="ETrswQci_4" value="4"/>
+         </enum>
+         <enum name="ETrswPreemptVulnerability">
+            <enum-member name="ETrswPreemptVulnerability_MayBeReleased"     value="0"/>
+            <enum-member name="ETrswPreemptVulnerability_MustNotBeReleased" value="1"/>
+         </enum>
+         <struct name="STrswParamQarp">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="prio,capability,vulnerability,qci" name="len" type="TTrswParamLen"/>
+            <member name="prio" type="TTrswArpPriority"/>
+            <member name="capability" type="ETrswPreemptCapability" />
+            <member name="vulnerability" type="ETrswPreemptVulnerability" />
+            <member name="qci" type="ETrswQci" />
+         </struct>
+         <enum name="ETrswEstablishmentCause">
+            <enum-member name="ETrswEstablishmentCause_NonGBRNormal"  value="0"/>
+            <enum-member name="ETrswEstablishmentCause_GBRNormal"    value="1"/>
+            <enum-member name="ETrswEstablishmentCause_GBREmergency" value="2"/>
+            <enum-member name="ETrswEstablishmentCause_GBRHandover"  value="3"/>
+         </enum>
+         <enum name="ETrswAmode">
+            <enum-member name="ETrswAmode_PartialAdmittance"      value="0" />
+            <enum-member name="ETrswAmode_AllOrNothingAdmittance" value="1" />
+         </enum>
+         <enum name="ETrswFieldLen">
+            <enum-member name="ETrswFieldLen_Undefined" value="0"/>
+            <enum-member name="ETrswFieldLen_ipv4" value="4"/>
+            <enum-member name="ETrswFieldLen_ipv6" value="16"/>
+         </enum>
+         <typedef name="TTrswMetaParamLen" type="u16"/>
+         <typedef name="TTrswParamLen" type="u8"/>
+         <typedef name="TTrswFlag" type="u8"/>
+         <typedef name="TTrswFieldLen" type="u8"/>
+         <typedef name="TTrswListLen" type="u8"/>
+         <typedef name="TTrswListId" type="u16"/>
+         <typedef name="TTrswOsaid" type="u32"/>
+         <typedef name="TTrswDsaid" type="u32"/>
+         <typedef name="TTrswEteid" type="u32"/>
+         <typedef name="TTrswArpPriority" type="u8" />
+	     <typedef name="TTrswPteid" type="u32"/>
+         <typedef name="TTrswIpOctet" type="u8"/>
+		 <typedef name="TTrswNodeId" type="u16"/>
+		 <typedef name="TTrswCpId" type="u16"/>
+         <typedef maxRange="16000000" minRange="0" name="TTrswIpBitRate" type="u32"/>
+         <typedef name="TTrswIpPacketSize" type="u16"/>
+         <struct name="STrswMsgHeader">
+            <member name="dsaid" type="TTrswDsaid"/>
+            <member name="msgId" type="ETrswMsgId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+         </struct>
+         <struct name="STrswList">
+            <member name="paramID" type="ETrswMetaParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="connectionsList" name="len" type="TTrswMetaParamLen"/>
+            <member name="listLen" type="TTrswListLen"/>
+            <member name="listId" optional="true" type="TTrswListId"/>
+            <member comment="listLen" name="pecList" type="STrswPecEntry" optional="true">
+               <dimension isVariableSize="true" minSize="1" size="TRSW_MAX_NUM_CONNECTIONS"/>
+            </member>
+            <member comment="listLen" name="connectionsList" type="STrswConnection" optional="true">
+               <dimension isVariableSize="true" minSize="1" size="TRSW_MAX_NUM_CONNECTIONS"/>
+            </member>
+         </struct>
+         <struct name="STrswPecEntry">
+            <member name="eteid" type="TTrswEteid" />
+            <member name="usage" type="TTrswPecUsage" />
+         </struct>
+         <typedef name="TTrswPecUsage" type="u8" />
+         <struct name="STrswIpLc">
+            <member name="guaranteedBitRate" type="TTrswIpBitRate"/>
+            <member name="maximumBitRate" type="TTrswIpBitRate"/>
+            <member name="maxPacketSize" type="TTrswIpPacketSize"/>
+            <member name="avgPacketSize" type="TTrswIpPacketSize"/>
+         </struct>
+         <struct name="STrswParamDsaid">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="dsaid" name="len" type="TTrswParamLen"/>
+            <member name="dsaid" type="TTrswDsaid"/>
+         </struct>
+         <struct name="STrswParamUniDirectional">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="flag" name="len" type="TTrswParamLen"/>
+            <member name="flag" type="TTrswFlag"/>
+         </struct>
+         <struct name="STrswParamOsaid">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="osaid" name="len" type="TTrswParamLen"/>
+            <member name="osaid" type="TTrswOsaid"/>
+         </struct>
+         <struct name="STrswParamEnbTEID">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="enbteid" name="len" type="TTrswParamLen"/>
+            <member name="enbteid" type="TTrswEteid"/>
+         </struct>
+         <struct name="STrswParamPeerTEID">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="peerteid" name="len" type="TTrswParamLen"/>
+            <member name="peerteid" type="TTrswPteid"/>
+         </struct>
+         <struct name="STrswParamSicad">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="nodeId,cpId" name="len" type="TTrswParamLen"/>
+            <member name="nodeId" type="TTrswNodeId"/>
+            <member name="cpId" type="TTrswCpId"/>
+         </struct>
+         <struct name="STrswParamEuptid">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="eteid,fieldLen,dspIpAddr" name="len" type="TTrswParamLen"/>
+            <member name="eteid" type="TTrswEteid"/>
+            <member name="fieldLen" type="ETrswFieldLen"/>
+            <member comment="fieldLen" name="dspIpAddr" type="TTrswIpOctet">
+               <dimension isVariableSize="true" minSize="4" size="TRSW_MAX_IP_ADDR_LEN"/>
+            </member>
+         </struct>
+	 <struct name="STrswParamIpLp">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="qos,fieldLenEnb,enbIpAddr,fieldLenPeer,peerIpAddr" name="len" type="TTrswParamLen"/>
+            <member name="qos" type="TTrswIpOctet" />
+            <member name="fieldLenEnb" type="ETrswFieldLen"/>
+            <member comment="fieldLenEnb" name="enbIpAddr" type="TTrswIpOctet">
+               <dimension isVariableSize="true" minSize="4" size="TRSW_MAX_IP_ADDR_LEN"/>
+            </member>
+            <member name="fieldLenPeer" type="ETrswFieldLen"/>
+            <member comment="fieldLenPeer" name="peerIpAddr" type="TTrswIpOctet">
+               <dimension isVariableSize="true" minSize="4" size="TRSW_MAX_IP_ADDR_LEN"/>
+            </member>
+	 </struct>
+         <struct name="STrswParamIpLc">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="ipLc" name="len" type="TTrswParamLen"/>
+            <member name="ipLc" type="STrswIpLc"/>
+         </struct>
+         <struct name="STrswParamIpLcDl">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="ipLc" name="len" type="TTrswParamLen"/>
+            <member name="ipLc" type="STrswIpLc"/>
+         </struct>
+         <struct name="STrswParamCause">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="cause,diagLen" name="len" type="TTrswParamLen"/>
+            <member name="cause" type="ETrswCause"/>
+            <member name="diagLen" type="TTrswFieldLen"/>
+         </struct>
+         <struct name="STrswParamEstablishmentCause">
+            <member name="paramID" type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="cause" name="len" type="TTrswParamLen"/>
+            <member name="cause" type="ETrswEstablishmentCause" />	
+         </struct>
+         <struct name="STrswParamAmode">
+            <member name="paramID"       type="ETrswParamId"/>
+            <member name="compatibility" type="ETrswCompat"/>
+            <member comment="amode" name="len" type="TTrswParamLen"/>
+            <member name="amode"         type="ETrswAmode"/>
+         </struct>
+         <struct name="STrswConnection">
+            <member name="dsaid"              optional="true" type="STrswParamDsaid"/>
+            <member name="osaid"              optional="true" type="STrswParamOsaid"/>
+            <member name="sicad"              optional="true" type="STrswParamSicad"/>
+            <member name="euptid"             optional="true" type="STrswParamEuptid"/>
+	    <member name="enbTEID"            optional="true" type="STrswParamEnbTEID"/>
+	    <member name="peerTEID"           optional="true" type="STrswParamPeerTEID"/>
+            <member name="ipLc"               optional="true" type="STrswParamIpLc"/>
+            <member name="cause"              optional="true" type="STrswParamCause"/>
+            <member name="establishmentCause" optional="true" type="STrswParamEstablishmentCause"/>
+            <member name="ipLcDl"             optional="true" type="STrswParamIpLcDl"/>
+            <member name="ipLp"               optional="true" type="STrswParamIpLp" />
+            <member name="uniDirectional"     optional="true" type="STrswParamUniDirectional" />
+            <member name="qarp"               optional="true" type="STrswParamQarp" />
+            <member name="amode"              optional="true" type="STrswParamAmode" />
+         </struct>
+         <struct name="STrswMessage"> 
+            <member name="msgHeader" type="STrswMsgHeader"/>
+            <member name="uniqueParam" optional="true" type="STrswConnection"/>
+            <member name="paramsList" type="STrswList">
+               <dimension isVariableSize="true" minSize="1" size="TRSW_MAX_NUM_META_PARAMS"/>
+            </member>
+         </struct>
+      </definitions>
+      <messages>
+         <message name="TRSW_ReceiveIpcsInd" opcode="UEC_RECV_IPCS_IND_MSG">
+            <member name="msgHeader" type="STrswMsgHeader"/>
+            <member name="uniqueParam" optional="true" type="STrswConnection"/>
+            <member name="paramsList" type="STrswList">
+               <dimension isVariableSize="true" minSize="1" size="TRSW_MAX_NUM_META_PARAMS"/>
+            </member>
+         </message>
+         <message name="TRSW_SendIpcsReq" opcode="TRSW_SEND_IPCS_REQ_MSG">
+            <member name="msgHeader" type="STrswMsgHeader"/>
+            <member name="uniqueParam" optional="true" type="STrswConnection"/>
+            <member name="paramsList" type="STrswList">
+               <dimension isVariableSize="true" minSize="1" size="TRSW_MAX_NUM_META_PARAMS"/>
+            </member>
+         </message>
+      </messages>
+      <interfaces>
+         <interface optimize="false" name="Trsw" responsibleEditor="">
+            <message name="TRSW_ReceiveIpcsInd"/>
+            <message name="TRSW_SendIpcsReq"/>
+	    <struct name="STrswMessage" />
+         </interface>
+      </interfaces>
+   </component>
+</system>
+

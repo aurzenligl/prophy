@@ -1,0 +1,1101 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui configuration/if_editor.xui?><system name="LTE" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <xi:include href="externals.xml" xpath="//external-definitions"/>
+   <global-definitions name="LTE">
+      <enum name="EAaMemLteDspPoolCategory">
+         <enum-member name="EAaMemLteDspPoolCategory_RequiredBySACK" value="0"/>
+         <enum-member name="EAaMemLteDspPoolCategory_System" value="EAaMemPoolCid_ApplicationCidStart"/>
+         <enum-member name="EAaMemLteDspPoolCategory_Phy" value="EAaMemPoolCid_ApplicationCidStart + 1"/>
+         <enum-member name="EAaMemLteDspPoolCategory_Mac" value="EAaMemPoolCid_ApplicationCidStart + 2"/>
+         <enum-member name="EAaMemLteDspPoolCategory_Tup" value="EAaMemPoolCid_ApplicationCidStart + 3"/>
+         <enum-member name="EAaMemLteDspPoolCategory_Lom" value="EAaMemPoolCid_ApplicationCidStart + 4"/>
+         <enum-member name="EAaMemLteDspPoolCategory_Shared" value="EAaMemPoolCid_ApplicationCidStart + 5"/>
+         <enum-member name="EAaMemLteDspPoolCategory_NumberOf" value="EAaMemPoolCid_ApplicationCidStart + 6"/>
+      </enum>
+      <enum forceGeneration="true" name="EAaMemLteDspPoolIdShared">
+         <enum-member comment="This enum member has been added to satisfy the SACK rule, which demands that each enum should start with a 0-value member." name="EAaMemLteDspPoolIdShared_FirstMemberSackRequirement" value="0"/>
+         <enum-member comment="(EAaMemLteDspPoolCategory_Shared &lt;&lt; 16) | 0" name="EAaMemLteDspPoolIdShared_PhyDataUplink" value="bitMaskOr(shiftLeft(EAaMemLteDspPoolCategory_Shared, 16), 0)"/>
+      </enum>
+      <enum forceGeneration="true" name="EL3SignallingType">
+         <enum-member name="EL3SignallingType_Common" value="0"/>
+         <enum-member name="EL3SignallingType_Dedicated" value="1"/>
+      </enum>
+      <enum comment="Carrier bandwidth of the cell, in number of PRBs." name="ECarrierBandwidth">
+         <enum-member name="ECarrierBandwidth_NotDefined" value="0"/>
+         <enum-member comment="Not supported by DCM" name="ECarrierBandwidth_1_4MHz" value="6"/>
+         <enum-member comment="Not supported by DCM" name="ECarrierBandwidth_3MHz" value="15"/>
+         <enum-member comment="In case of Coefficient Value Request procedure, coefficients for 210UEs capacity with 1Cell/FSP configuration (originally for 5 Mhz cell)." name="ECarrierBandwidth_5MHz" value="25"/>
+         <enum-member comment="In case of Coefficient Value Request procedure, coefficients for 420UEs capacity with 1Cell/FSP configuration (originally for 10 Mhz cell)." name="ECarrierBandwidth_10MHz" value="50"/>
+         <enum-member comment="In case of Coefficient Value Request procedure, coefficients for 630UEs capacity with 1Cell/FSP configuration (originally for 15 Mhz cell)." name="ECarrierBandwidth_15MHz" value="75"/>
+         <enum-member comment="In case of Coefficient Value Request procedure, coefficients for 840UEs capacity with 1Cell/FSP configuration (originally for 20 Mhz cell)." name="ECarrierBandwidth_20MHz" value="100"/>
+         <enum-member comment="coefficients for 210UEs capacity with 2Cell/FSP configuration (originally for 5MHz cell in case of 5+5 Mhz)" name="ECarrierBandwidth_05_05MHz" value="2525"/>
+         <enum-member comment="coefficients for 210UEs capacity with 2Cell/FSP configuration (originally for 5MHz cell in case of 5+10 Mhz) , the same coefficients with ECarrierBandwidth_05_05MHz shall be set." name="ECarrierBandwidth_05_10MHz" value="2550"/>
+         <enum-member comment="coefficients for 336UEs (MAC) / 420UEs (TUPu) capacity with 2Cell/FSP configuration (originally for 10MHz cell in case of 5+10 Mhz) , the same coefficients with ECarrierBandwidth_10_10MHz shall be set." name="ECarrierBandwidth_10_05MHz" value="5025"/>
+         <enum-member comment="coefficients for 336UEs (MAC) / 420UEs (TUPu) capacity with 2Cell/FSP configuration (originally for 10MHz cell in case of 10+10 Mhz)." name="ECarrierBandwidth_10_10MHz" value="5050"/>
+      </enum>
+      <enum name="ECellOperationalState">
+         <enum-member comment="cell is disabled" name="ECellOperationalState_disabled" value="0"/>
+         <enum-member comment="cell is enabled" name="ECellOperationalState_enabled" value="1"/>
+      </enum>
+      <enum comment="indicates if the request could be executed successfully or not" name="EStatusLte">
+         <enum-member name="EStatusLte_Ok" value="0"/>
+         <enum-member name="EStatusLte_NotOk" value="1"/>
+         <enum-member comment="WMP only" name="EStatusLte_None" value="2"/>
+      </enum>
+      <enum comment="3GPP cause value" name="ECauseLte">
+         <enum-member name="ECauseLte_NotDefined" value="0"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_Unspecified" value="1"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_HandoverTriggered" value="2"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_Tx2RelocOverallExpiry" value="3"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_ReleaseDueToEUtranGeneratedReason" value="4"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_HandoverCancelled" value="5"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_PartialHandover" value="6"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_HoFailureInTargetEpcEnbOrTargetSystem" value="7"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_HoTargetNotAllowed" value="8"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_TS1RelocOverallExpiry" value="9"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_TS1RelocPrepExpiry" value="10"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_CellNotAvailable" value="11"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_UnknownTargetId" value="12"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_NoRadioResourcesAvailableInTargetCell" value="13"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_UnknownMmeUeS1ApId" value="14"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_UnknownEnbUeS1ApId" value="15"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_UnknownPairUeS1ApId" value="16"/>
+         <enum-member name="ECauseLte_RadioNetworkLayer_GracefulCellShutdownAborted" value="17"/>
+         <enum-member comment="WMP only" name="ECauseLte_RadioNetworkLayer_RadioConnectionWithUELost" value="18"/>
+         <enum-member name="ECauseLte_TransportLayer_TransportResourceUnavailable" value="101"/>
+         <enum-member name="ECauseLte_TransportLayer_Unspecified" value="102"/>
+         <enum-member name="ECauseLte_Nas_NormalRelease" value="201"/>
+         <enum-member name="ECauseLte_Nas_AuthenticationFailure" value="202"/>
+         <enum-member name="ECauseLte_Nas_Detach" value="203"/>
+         <enum-member name="ECauseLte_Nas_Unspecified" value="204"/>
+         <enum-member name="ECauseLte_Protocol_TransferSyntaxError" value="301"/>
+         <enum-member name="ECauseLte_Protocol_AbstractSyntaxErrorReject" value="302"/>
+         <enum-member name="ECauseLte_Protocol_AbstractSyntaxErrorIgnoreAndNotify" value="303"/>
+         <enum-member name="ECauseLte_Protocol_MessageNotCompatibleWithReceiverState" value="304"/>
+         <enum-member name="ECauseLte_Protocol_SemanticError" value="305"/>
+         <enum-member name="ECauseLte_Protocol_AbstractSyntaxErrorFalselyConstructedMessage" value="306"/>
+         <enum-member name="ECauseLte_Protocol_Unspecified" value="307"/>
+         <enum-member name="ECauseLte_Misc_ControlProcessingOverload" value="401"/>
+         <enum-member name="ECauseLte_Misc_NotEnoughUserPlaneProcessingResourcesAvailable" value="402"/>
+         <enum-member name="ECauseLte_Misc_HardwareFailure" value="403"/>
+         <enum-member name="ECauseLte_Misc_OmIntervention" value="404"/>
+         <enum-member name="ECauseLte_Misc_Unspecified" value="405"/>
+         <enum-member name="ECauseLte_Misc_UnknownPlmn" value="406"/>
+         <enum-member name="ECauseLte_BCCHSchedulingError" value="500"/>
+         <enum-member name="ECauseLte_MaxRlcRetransExceeded" value="501"/>
+      </enum>
+      <enum comment="a subcomponent specific error cause. please adhere to the ranges defined by the constants SPECIFIC_CAUSE_START_xxx and SPECIFIC_CAUSE_END_xxx" name="ESpecificCauseLte">
+         <enum-member name="ESpecificCauseLte_NotDefined" value="0"/>
+         <enum-member name="ESpecificCauseLte_TUP_Unspecified" value="1"/>
+         <enum-member name="ESpecificCauseLte_TUP_AlreadyActivated_Allocated" value="2"/>
+         <enum-member name="ESpecificCauseLte_TUP_ParameterOutOfRange" value="3"/>
+         <enum-member name="ESpecificCauseLte_TUP_ResourceUnavailable_Unspecified" value="4"/>
+         <enum-member name="ESpecificCauseLte_TUP_ResourceUnavailable" value="5"/>
+         <enum-member name="ESpecificCauseLte_TUP_NotEnoughResources" value="6"/>
+         <enum-member name="ESpecificCauseLte_TUP_UnsuccessfulTransmission" value="7"/>
+         <enum-member name="ESpecificCauseLte_TUP_OutOfMemory" value="8"/>
+         <enum-member name="ESpecificCauseLte_TUP_LinkUnavailable" value="9"/>
+         <enum-member name="ESpecificCauseLte_TUP_ConnectionUnavailable" value="10"/>
+         <enum-member name="ESpecificCauseLte_TUP_LinkAlreadyActivated_Allocated" value="11"/>
+         <enum-member name="ESpecificCauseLte_TUP_ConnectionAlreadyActivated_Allocated" value="12"/>
+         <enum-member name="ESpecificCauseLte_TUP_ResourceInUse" value="13"/>
+         <enum-member name="ESpecificCauseLte_TUP_UeConfigurationError" value="14"/>
+         <enum-member name="ESpecificCauseLte_TUP_BearerConfigurationError" value="15"/>
+         <enum-member name="ESpecificCauseLte_TUP_MaximumNumberOfUesExceeded" value="16"/>
+         <enum-member name="ESpecificCauseLte_MAC_Unspecified" value="1000"/>
+         <enum-member name="ESpecificCauseLte_MAC_AlreadyActivated_Allocated" value="1001"/>
+         <enum-member name="ESpecificCauseLte_MAC_InvalidParameter" value="1002"/>
+         <enum-member name="ESpecificCauseLte_MAC_ResourceUnavailable" value="1003"/>
+         <enum-member name="ESpecificCauseLte_MAC_OutOfMemory" value="1004"/>
+         <enum-member name="ESpecificCauseLte_MAC_NoAnswerFromMacSubSys" value="1005"/>
+         <enum-member name="ESpecificCauseLte_MAC_NoAnswerFromPhy" value="1006"/>
+         <enum-member name="ESpecificCauseLte_MAC_ObjectDoesNotExist" value="1007"/>
+         <enum-member name="ESpecificCauseLte_MAC_ErrorInObjectCreation" value="1008"/>
+         <enum-member name="ESpecificCauseLte_MAC_BearerConfigurationError" value="1009"/>
+         <enum-member name="ESpecificCauseLte_MAC_UeConfigurationError" value="1010"/>
+         <enum-member name="ESpecificCauseLte_MAC_NoConfigurationMessage" value="1011"/>
+         <enum-member name="ESpecificCauseLte_MAC_ErrorInObjectDeletion" value="1012"/>
+         <enum-member comment="Cell setup is rejected due to too many RRC_connected UE on existing cell." name="ESpecificCauseLte_MAC_TooHighBbUsageRatio" value="1013"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionOnPDCCHDL" value="1014"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionOnPDCCHUL" value="1015"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionOnPDCCH" value="1016"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionOnPUSCH" value="1017"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionOnPDSCH" value="1018"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionSolvingCompleted" value="1019"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionSolvingPartlyCompleted" value="1020"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionSolvingIntentionallyIgnored" value="1021"/>
+         <enum-member comment="Only WMP" name="ESpecificCauseLte_MAC_GBRCongestionSolvingUnintentionallyNotHandled" value="1022"/>
+         <enum-member name="ESpecificCauseLte_MAC_LackOfUlResources" value="1023"/>
+         <enum-member comment="Reservation. Not used." name="ESpecificCauseLte_MAC_MaximumNumberOfUesExceeded" value="1024"/>
+         <enum-member name="ESpecificCauseLte_MAC_CrntiNotFree" value="1025"/>
+         <enum-member name="ESpecificCauseLte_MAC_SCellDoesNotExist" value="1026"/>
+         <enum-member name="ESpecificCauseLte_MAC_SCellReconfigrationFailed" value="1027"/>
+         <enum-member name="ESpecificCauseLte_UEC_Unspecified" value="2000"/>
+         <enum-member name="ESpecificCauseLte_UEC_CellSetup" value="2001"/>
+         <enum-member comment="Returned in CellSetupResp from LTE UEC to LTE RROM when LTE CELLC didn't sent the response on CELLC_UECRegistrationReq." name="ESpecificCauseLte_UEC_NoCellcUecRegistrationRespReceived" value="2002"/>
+         <enum-member name="ESpecificCauseLte_UEC_NetworkConfiguration" value="2010"/>
+         <enum-member name="ESpecificCauseLte_UEC_ReleaseUe_S1Reset" value="2020"/>
+         <enum-member name="ESpecificCauseLte_UEC_ReleaseUe_SctpLinkError" value="2021"/>
+         <enum-member name="ESpecificCauseLte_UEC_ReleaseUe_GtpuError" value="2022"/>
+         <enum-member name="ESpecificCauseLte_UEC_UnknownCellId" value="2023"/>
+         <enum-member name="ESpecificCauseLte_UEC_ResourceInconsistency" value="2024"/>
+         <enum-member comment="If no proper cause value defined this value is used." name="ESpecificCauseLte_CELLC_Unspecified" value="3000"/>
+         <enum-member comment="Second cell setup for the same cell is received." name="ESpecificCauseLte_CELLC_CellIdAlreadyKnown" value="3001"/>
+         <enum-member comment="Returned if MAC configuration for Sys Info Broadcast failed." name="ESpecificCauseLte_CELLC_MacSysInfoActivationFailed" value="3002"/>
+         <enum-member comment="Informs that O&amp;M Parameter is out of range; The requested procedure could no be finished successful. Resources related to the cell are released." name="ESpecificCauseLte_CELLC_OMParameterOutOfRange" value="3003"/>
+         <enum-member name="ESpecificCauseLte_CELLC_StateChangeToDisableNotSupported" value="3004"/>
+         <enum-member comment="Maximum number of supported cells per Cellc/FSPx is reached and new request is rejected" name="ESpecificCauseLte_CELLC_MaxNumOfSupportedCellsReached" value="3005"/>
+         <enum-member comment="Returned when provided parameter in a request has an invalid value (e.g. mapping not possible, parameter out of range, etc)" name="ESpecificCauseLte_CELLC_InvalidParameterValue" value="3006"/>
+         <enum-member comment="Configuration of system info broadcast in MAC during cell setup procedure failed." name="ESpecificCauseLte_CELLC_MacSysInfoConfigurationFailed" value="3007"/>
+         <enum-member comment="Any messsage received in a state of LTE CELLC where it is not expected." name="ESpecificCauseLte_CELLC_MessageReceivedInWrongState" value="3008"/>
+         <enum-member comment="SRS configuration parameter are not in expected range" name="ESpecificCauseLte_CELLC_SrsConfigurationParameterConsistencyCheckFailure" value="3009"/>
+         <enum-member comment="To be used when PhyUlResourceInfo procedure fails during cell setup" name="ESpecificCauseLte_CELLC_PhyUlResourceInfoFailure" value="3010"/>
+         <enum-member comment="To be used when BCCH modification towards MAC has failed." name="ESpecificCauseLte_CELLC_MacBcchModIndFailed" value="3011"/>
+         <enum-member comment="Indicates that the L2 resource usage measurement initiation procedure in LTE MAC failed" name="ESpecificCauseLte_CELLC_MacMeasurementInitiationFailed" value="3012"/>
+         <enum-member comment="To be retruned in CELLC_CellSetupResp when feature carrier aggregation is enabled (actDLCAggr) and the O&amp;M parameter values are not as described in LTE_CP_957." name="ESpecificCauseLte_CELLC_OaMParameterForCarrierAggregationForSubfeatureAOutOfRange" value="3013"/>
+         <enum-member comment="To be retruned in CELLC_CellSetupResp when ulChBw is 1.4 MHz and prachConfigIndex O&amp;M parameter values are not as described in LTE_CP_32587." name="ESpecificCauseLte_CELLC_OaMParameterPrachConfigIndexNotSupported" value="3014"/>
+         <enum-member comment="No resources free to accept the new call or data bearer; Returned on call reason Srb_Setup, Ho_Setup" name="ESpecificCauseLte_CELLC_RrmNoFreeResources" value="3100"/>
+         <enum-member comment="Requested Ambr is outside of the allowed range." name="ESpecificCauseLte_CELLC_RrmAmbrOutsideRange" value="3101"/>
+         <enum-member comment="RacReleaseReq: UeId not stored in Cellcs data base" name="ESpecificCauseLte_CELLC_RrmUeIdNotKnown" value="3102"/>
+         <enum-member comment="Call Reason set to --- SRB Setup and UeId already known --- DRB Setup and UeId not known  --- HoSetup, not for INC15" name="ESpecificCauseLte_CELLC_RrmWrongCallReason" value="3103"/>
+         <enum-member comment="Returned if rrm request for allocation is received when cell is in disabled state." name="ESpecificCauseLte_CELLC_Rrm_InvalidOperationalState" value="3104"/>
+         <enum-member comment="Returned if mandatory parameter is missing in request (AMBR for DRB/HO Setup)" name="ESpecificCauseLte_CELLC_Rrm_MandatoryParameterMissing" value="3105"/>
+         <enum-member comment="Returned, when RRM Call reason set to Srb_Setup or Ho_Setup and UE Id already known in cellc (resources allocated)" name="ESpecificCauseLte_CELLC_Rrm_UeIdAlreadyKnown" value="3106"/>
+         <enum-member comment="For one UE only one DRB in total is allowed and second DRB was requested" name="ESpecificCauseLte_CELLC_Rrm_MaxNumberOfDrbsPerUeReached" value="3107"/>
+         <enum-member comment="To be used when drxStartOffset calculation requested and drxCycleLength and cqiPerNp (cqi periodicity) have an invalid relation. drxCycleLength and cqiPerNp must be equal or drxCycleLength a multiple of cqiPerNp" name="ESpecificCauseLte_CELLC_Rrm_InvalidDrxCycleLengthCqiPerNpRelation" value="3108"/>
+         <enum-member comment="Cause used on source side as part of intra-cell handover preparation. If any bearer of the UE is in pre-empted state the intra cell handover is not allowed to be executed. " name="ESpecificCauseLte_CELLC_RrmUeHasPreemptedBearer" value="3109"/>
+         <enum-member comment="This cause is returned when LTE CELLC has received a request for a SCell which is not known in LTE CELLC context (LTE1089 Carrier Aggregation)" name="ESpecificCauseLte_CELLC_SCellNotFound" value="3110"/>
+         <enum-member comment="This cause is returned when LTE CELLC has received a request for a SCell but no HARQ resources are available for allocation (LTE1089 Carrier Aggregation)" name="ESpecificCauseLte_CELLC_NoHarqResourcesLeftForSCellConfiguration" value="3111"/>
+         <enum-member comment="Returned, when a cellc internal procedure could not be executet (creation of new cell resources failed, but resources are available, etc)" name="ESpecificCauseLte_CELLC_Generic_UnexpectedInternalSwError" value="3200"/>
+         <enum-member comment="Returned if cell id in request is unknown in cellc (Cell State Change/Rac Request/ Rac Release)" name="ESpecificCauseLte_CELLC_Generic_CellIdUnknown" value="3201"/>
+         <enum-member comment="Unknown error" name="ESpecificCauseLte_ENBC_Unspecified" value="4000"/>
+         <enum-member comment="UEID/TEID allocation blocked" name="ESpecificCauseLte_ENBC_UEID_TEID_AllocationBlocked" value="4001"/>
+         <enum-member comment="TE ID allocation blocked" name="ESpecificCauseLte_ENBC_TEID_AllocationBlocked" value="4002"/>
+         <enum-member comment="Unrecognised Cell ID" name="ESpecificCauseLte_ENBC_UnknownCellID" value="4003"/>
+         <enum-member comment="Unrecognised S1/X2 link ID received" name="ESpecificCauseLte_ENBC_UnknownLinkID" value="4006"/>
+         <enum-member comment="Unrecognised Tracking Area Identifier received" name="ESpecificCauseLte_ENBC_UnknownTAI" value="4007"/>
+         <enum-member name="ESpecificCauseLte_ENBC_LinkDeactivationOngoing" value="4008"/>
+         <enum-member name="ESpecificCauseLte_ENBC_MmeCodeMismatch" value="4009"/>
+         <enum-member name="ESpecificCauseLte_ENBC_PlmnIdMismatch" value="4010"/>
+         <enum-member comment="Network Configuration failed due to TUP ENBC Registration failure" name="ESpecificCauseLte_ENBC_TUP_RegistrationFailed" value="4016"/>
+         <enum-member name="ESpecificCauseLte_ENBC_MmeOverloaded" value="4017"/>
+         <enum-member name="ESpecificCauseLte_ENBC_InvalidMmeGroupID" value="4018"/>
+         <enum-member comment="Used if no proper cause value is defined." name="ESpecificCauseLte_RROM_Unspecified" value="5000"/>
+         <enum-member comment="RROM internal error" name="ESpecificCauseLte_RROM_InternalError" value="5001"/>
+         <enum-member comment="Not enough memory available" name="ESpecificCauseLte_RROM_OutOfMemory" value="5002"/>
+         <enum-member comment="Message not expected in current state" name="ESpecificCauseLte_RROM_UnexpectedMessage" value="5003"/>
+         <enum-member comment="mandatary parameter missing" name="ESpecificCauseLte_RROM_MandatoryParameterMissing" value="5004"/>
+         <enum-member comment="parameter out of Range" name="ESpecificCauseLte_RROM_ParameterOutOfRange" value="5005"/>
+         <enum-member comment="Message too long" name="ESpecificCauseLte_RROM_InvalidMessageLength" value="5006"/>
+         <enum-member comment="Registration not possible" name="ESpecificCauseLte_RROM_Registration" value="5100"/>
+         <enum-member comment="Parameter indicationType in request is empty" name="ESpecificCauseLte_RROM_IndicationTypeEmpty" value="5101"/>
+         <enum-member comment="Invalid parameter values in HW Configuration Data" name="ESpecificCauseLte_RROM_HwConfigurationData" value="5110"/>
+         <enum-member comment="HW mapping not possible or HW mapping incorrect" name="ESpecificCauseLte_RROM_HwMapping" value="5111"/>
+         <enum-member comment="Distribution of internal addresses to TUP, MAC, PHY UL or PHY DL failed" name="ESpecificCauseLte_RROM_InternalAddressDistributionFailed" value="5120"/>
+         <enum-member comment="PHY_StartRefSyncSReq failed" name="ESpecificCauseLte_RROM_PHYStartRefSyncS" value="5220"/>
+         <enum-member comment="CELLC_CellStateChangeReq failed" name="ESpecificCauseLte_RROM_CELLCCellStateChange" value="5221"/>
+         <enum-member comment="Unknown LCR Id in request" name="ESpecificCauseLte_RROM_UnknownLcrId" value="5222"/>
+         <enum-member comment="failed request to set up a cell on an external system component (negative response or time out)" name="ESpecificCauseLte_RROM_CellSetupFailure" value="5250"/>
+         <enum-member comment="failed request to delete a cell on an external system component (negative response or time out)" name="ESpecificCauseLte_RROM_CellDeletionFailure" value="5251"/>
+         <enum-member comment="failed request to register for an indication (negative response or time out)" name="ESpecificCauseLte_RROM_RegistrationFailure" value="5252"/>
+         <enum-member comment="3GPP Test Model parameter in NPF does not match test model requirements" name="ESpecificCauseLte_RROM_NotInTestDedicatedState" value="5300"/>
+         <enum-member comment="Oven clock oscillator not warmed up yet. No 'oven ready' indication received from HWAPI so far." name="ESpecificCauseLte_RROM_OvenOscillatorNotWarmedUp" value="5301"/>
+         <enum-member comment="failed request to start 3GPP test model on external system component (negative response or time out)" name="ESpecificCauseLte_RROM_Start3GPPTestModelFailure" value="5303"/>
+         <enum-member comment="failed request to stop 3GPP test model on external system component (negative response or time out)" name="ESpecificCauseLte_RROM_Stop3GPPTestModelFailure" value="5304"/>
+         <enum-member comment="A conflicting 3GPP test model is already running" name="ESpecificCauseLte_RROM_Conflicting3GPPTestModelRunning" value="5305"/>
+         <enum-member comment="no 3GPP test model is running" name="ESpecificCauseLte_RROM_No3GPPTestModelRunning" value="5306"/>
+         <enum-member comment="parameter mismatch in 3 GPP Test Model command" name="ESpecificCauseLte_RROM_3GPPTestModelParameterMismatch" value="5307"/>
+         <enum-member comment="Shutdown not executed as cell operational state is disabled" name="ESpecificCauseLte_RROM_CellOperationalStateDisabled" value="5310"/>
+         <enum-member comment="X2 link with the neighbor eNB is blacklisted " name="ESpecificCauseLte_RROM_X2LinkBlacklisted" value="5320"/>
+         <enum-member comment="received adjacent cells configuration data from X2 link is inconsistent with adjacent cell configuration data stored in the LTE RROM data repository" name="ESpecificCauseLte_RROM_AdjCellConfigurationInconsistency" value="5321"/>
+         <enum-member comment="Antenna Carrier Calibration Setup failed at BTSOM" name="ESpecificCauseLte_RROM_AntennaCarrierCalibrationSetupFailureAtBTSOM" value="5330"/>
+         <enum-member comment="Invalid parameter values in TRSW Configuration Data" name="ESpecificCauseLte_RROM_TrswConfigurationData" value="5340"/>
+         <enum-member comment="Invalid parameter values in Mobility Settings Change Request" name="ESpecificCauseLte_RROM_MobilitySettingsChangeData" value="5341"/>
+         <enum-member comment="Used if no proper cause value is defined." name="ESpecificCauseLte_SMC_Unspecified" value="6000"/>
+         <enum-member comment="Message not expected in current state" name="ESpecificCauseLte_SMC_UnexpectedMessage" value="6001"/>
+         <enum-member comment="Invalid Board ID" name="ESpecificCauseLte_SMC_InvalidBoardId" value="6002"/>
+         <enum-member comment="Message too long" name="ESpecificCauseLte_SMC_InvalidMessageLength" value="6003"/>
+         <enum-member comment="Distribution of internal addresses to TUP, MAC, PHY UL or PHY DL failed" name="ESpecificCauseLte_SMC_InternalAddressDistributionFailed" value="6100"/>
+         <enum-member comment="TUP_NetworkConfigReq failed" name="ESpecificCauseLte_SMC_TupNetworkConfigFailed" value="6104"/>
+         <enum-member comment="Used if no proper cause value is defined." name="ESpecificCauseLte_PHY_Unspecified" value="7000"/>
+         <enum-member comment="Unrecognized Cell ID" name="ESpecificCauseLte_PHY_UnknownCellId" value="7001"/>
+         <enum-member comment="Second cell setup for the same cell is received" name="ESpecificCauseLte_PHY_CellIdAlreadyInUse" value="7002"/>
+         <enum-member comment="Parameter check failed" name="ESpecificCauseLte_PHY_InvalidParam" value="7003"/>
+         <enum-member comment="Not enough resources available" name="ESpecificCauseLte_PHY_NotEnoughResources" value="7004"/>
+         <enum-member comment="Out of memory" name="ESpecificCauseLte_PHY_OutOfMemory" value="7005"/>
+         <enum-member comment="Internal address request not received" name="ESpecificCauseLte_PHY_InternalAddrReqNotReceived" value="7006"/>
+         <enum-member comment="LTE timer not running" name="ESpecificCauseLte_PHY_LteTimerNotRunning" value="7007"/>
+         <enum-member comment="Cell setup failed in DSP HWAPI AIF" name="ESpecificCauseLte_PHY_AifFailure" value="7008"/>
+         <enum-member comment="Message not expected in current state" name="ESpecificCauseLte_PHY_UnexpectedMessage" value="7009"/>
+         <enum-member comment="PRACH has not been initialized before PRACH delete request" name="ESpecificCauseLte_PHY_PrachNotInitialized" value="7100"/>
+         <enum-member comment="Second PRACH setup for the same cell is received" name="ESpecificCauseLte_PHY_PrachAlreadyInUse" value="7101"/>
+         <enum-member comment="Cell or Physical channel configuration not supported for testmodel; &#13;&#10;Cell/Physical channel configuration not set as required for the specific testmodel (e.g. parametervalues different to values required for specific 3GPP testmodel)" name="ESpecificCauseLte_PHY_TestmodelUnsupportedCellConfig" value="7202"/>
+         <enum-member comment="Cell configuration not supported for testloops; &#13;&#10;Cell configuration not set as required for testloops feature (e.g. parametervalues different to values as specifiedl)" name="ESpecificCauseLte_PHY_TestloopUnsupportedCellConfig" value="7203"/>
+         <enum-member comment="The configured deployment is not supported by PHY." name="ESpecificCauseLte_PHY_DeploymentNotSupported" value="7300"/>
+         <enum-member comment="The downlink physical channels are already in use for this cell." name="ESpecificCauseLte_PHY_DlPhyChanAlreadyInUse" value="7400"/>
+         <enum-member comment="Task was not done before deadline" name="ESpecificCauseLte_PHY_DeadlineMissed" value="7500"/>
+         <enum-member name="ESpecificCauseLte_Unspecified" value="8001"/>
+         <enum-member name="ESpecificCauseLte_SWError" value="8002"/>
+         <enum-member name="ESpecificCauseLte_InvalidParameter" value="8003"/>
+         <enum-member name="ESpecificCauseLte_ParameterOutOfRange" value="8004"/>
+         <enum-member name="ESpecificCauseLte_OutOfMemory" value="8005"/>
+         <enum-member name="ESpecificCauseLte_ResourceUnavailable" value="8006"/>
+         <enum-member comment="There are not enough resources to fulfill a request" name="ESpecificCauseLte_NotEnoughResources" value="8007"/>
+         <enum-member comment="a resource has been already activated or allocated" name="ESpecificCauseLte_AlreadyActivatedAllocated" value="8008"/>
+         <enum-member name="ESpecificCauseLte_MessageReceivedInWrongState" value="8009"/>
+         <enum-member comment="message buffer too short or length in the  message header does not match with the message payload size" name="ESpecificCauseLte_InvalidMessageLength" value="8010"/>
+         <enum-member comment="WMP only" name="ESpecificCauseLte_AbnormalRelease" value="8011"/>
+         <enum-member comment="WMP only. Used only in pronto NA05197120 for incoming S1 handover." name="ESpecificCauseLte_S1APIdErrorInIncomingRequestBeforeL3ConnSetup" value="8012"/>
+      </enum>
+      <enum comment="Indicates whether bearer is mapped to RLC TM, UM, AM" name="ERlcMode">
+         <enum-member comment="Transparent Mode" name="ERlcMode_TM" value="0"/>
+         <enum-member comment="Unacknowledged Mode" name="ERlcMode_UM" value="1"/>
+         <enum-member comment="Acknowledged Mode" name="ERlcMode_AM" value="2"/>
+      </enum>
+      <enum comment="Enum for PHICG Resource Size" name="ESysInfoPhichResourceSize">
+         <enum-member comment="Mapps to PHICH resource size&#13;&#10;1/6 or Integer(0)" name="ESysInfoPhichResourceSize_ResourceSize1" value="0"/>
+         <enum-member comment="Mapps to PHICH resource size&#13;&#10;1/2 or Integer (1)" name="ESysInfoPhichResourceSize_ResourceSize2" value="1"/>
+         <enum-member comment="Mapps to PHICH resource size&#13;&#10;1 or Integer (2)" name="ESysInfoPhichResourceSize_ResourceSize3" value="2"/>
+         <enum-member comment="Mapps to PHICH resource size&#13;&#10;2 or Integer(3)" name="ESysInfoPhichResourceSize_ResourceSize4" value="3"/>
+      </enum>
+      <enum name="ESysInfoPhichDuration">
+         <enum-member comment="Normal =&gt; 1" name="ESysInfoPhichDuration_Normal" value="0"/>
+         <enum-member comment="Extended =&gt; 3" name="ESysInfoPhichDuration_Extended" value="1"/>
+      </enum>
+      <enum name="ETimeAlignTimer">
+         <enum-member name="ETimeAlignTimer_NotDefined" value="0"/>
+         <enum-member name="ETimeAlignTimer_500" value="500"/>
+         <enum-member name="ETimeAlignTimer_750" value="750"/>
+         <enum-member name="ETimeAlignTimer_1280" value="1280"/>
+         <enum-member name="ETimeAlignTimer_1920" value="1920"/>
+         <enum-member name="ETimeAlignTimer_2560" value="2560"/>
+         <enum-member name="ETimeAlignTimer_5120" value="5120"/>
+         <enum-member name="ETimeAlignTimer_10240" value="10240"/>
+      </enum>
+      <enum name="EInterfaceType">
+         <enum-member name="EInterfaceType_AIF" value="0"/>
+         <enum-member name="EInterfaceType_S1" value="1"/>
+         <enum-member comment="X2 interface downlink forwarding" name="EInterfaceType_X2_DlFwd" value="2"/>
+         <enum-member comment="X2 interface uplink forwarding" name="EInterfaceType_X2_UlFwd" value="3"/>
+      </enum>
+      <enum name="ETestModelId">
+         <enum-member name="ETestModelId_Invalid" value="0"/>
+         <enum-member name="ETestModelId_E_TM1_1" value="101"/>
+         <enum-member name="ETestModelId_E_TM1_2" value="102"/>
+         <enum-member name="ETestModelId_E_TM2" value="200"/>
+         <enum-member name="ETestModelId_E_TM3_1" value="301"/>
+         <enum-member name="ETestModelId_E_TM3_2" value="302"/>
+         <enum-member name="ETestModelId_E_TM3_3" value="303"/>
+         <enum-member comment="Internal MIMO testmodel based on E_TM3_1&#13;&#10;Only WMP and for FSMr3" hideInSpec="true" name="ETestModelId_MIMO_TM3_1" value="1000"/>
+      </enum>
+      <enum name="EReferenceChannelNumber">
+         <enum-member name="EReferenceChannelNumber_Invalid" value="0"/>
+         <enum-member name="EReferenceChannelNumber_A1_1" value="101"/>
+         <enum-member name="EReferenceChannelNumber_A1_2" value="102"/>
+         <enum-member name="EReferenceChannelNumber_A1_3" value="103"/>
+         <enum-member name="EReferenceChannelNumber_A1_4" value="104"/>
+         <enum-member name="EReferenceChannelNumber_A1_5" value="105"/>
+         <enum-member name="EReferenceChannelNumber_A2_1" value="201"/>
+         <enum-member name="EReferenceChannelNumber_A2_2" value="202"/>
+         <enum-member name="EReferenceChannelNumber_A2_3" value="203"/>
+         <enum-member name="EReferenceChannelNumber_A3_1" value="301"/>
+         <enum-member name="EReferenceChannelNumber_A3_2" value="302"/>
+         <enum-member name="EReferenceChannelNumber_A3_3" value="303"/>
+         <enum-member name="EReferenceChannelNumber_A3_4" value="304"/>
+         <enum-member name="EReferenceChannelNumber_A3_5" value="305"/>
+         <enum-member name="EReferenceChannelNumber_A3_6" value="306"/>
+         <enum-member name="EReferenceChannelNumber_A3_7" value="307"/>
+         <enum-member name="EReferenceChannelNumber_A4_1" value="401"/>
+         <enum-member name="EReferenceChannelNumber_A4_2" value="402"/>
+         <enum-member name="EReferenceChannelNumber_A4_3" value="403"/>
+         <enum-member name="EReferenceChannelNumber_A4_4" value="404"/>
+         <enum-member name="EReferenceChannelNumber_A4_5" value="405"/>
+         <enum-member name="EReferenceChannelNumber_A4_6" value="406"/>
+         <enum-member name="EReferenceChannelNumber_A4_7" value="407"/>
+         <enum-member name="EReferenceChannelNumber_A4_8" value="408"/>
+         <enum-member name="EReferenceChannelNumber_A5_1" value="501"/>
+         <enum-member name="EReferenceChannelNumber_A5_2" value="502"/>
+         <enum-member name="EReferenceChannelNumber_A5_3" value="503"/>
+         <enum-member name="EReferenceChannelNumber_A5_4" value="504"/>
+         <enum-member name="EReferenceChannelNumber_A5_5" value="505"/>
+         <enum-member name="EReferenceChannelNumber_A5_6" value="506"/>
+         <enum-member name="EReferenceChannelNumber_A5_7" value="507"/>
+         <enum-member name="EReferenceChannelNumber_A7_1" value="701"/>
+         <enum-member name="EReferenceChannelNumber_A7_2" value="702"/>
+         <enum-member name="EReferenceChannelNumber_A7_3" value="703"/>
+         <enum-member name="EReferenceChannelNumber_A7_4" value="704"/>
+         <enum-member name="EReferenceChannelNumber_A7_5" value="705"/>
+         <enum-member name="EReferenceChannelNumber_A7_6" value="706"/>
+         <enum-member name="EReferenceChannelNumber_A8_1" value="801"/>
+         <enum-member name="EReferenceChannelNumber_A8_2" value="802"/>
+         <enum-member name="EReferenceChannelNumber_A8_3" value="803"/>
+         <enum-member name="EReferenceChannelNumber_A8_4" value="804"/>
+         <enum-member name="EReferenceChannelNumber_A8_5" value="805"/>
+         <enum-member name="EReferenceChannelNumber_A8_6" value="806"/>
+         <enum-member name="EReferenceChannelNumber_DCM_1" value="1001"/>
+         <enum-member name="EReferenceChannelNumber_DCM_2" value="1002"/>
+         <enum-member name="EReferenceChannelNumber_DCM_3" value="1003"/>
+         <enum-member name="EReferenceChannelNumber_DCM_4" value="1004"/>
+         <enum-member name="EReferenceChannelNumber_DCM_5" value="1005"/>
+         <enum-member name="EReferenceChannelNumber_DCM_6" value="1006"/>
+         <enum-member name="EReferenceChannelNumber_DCM_7" value="1007"/>
+         <enum-member name="EReferenceChannelNumber_DCM_8" value="1008"/>
+      </enum>
+      <enum name="EDataForwarding">
+         <enum-member name="EDataForwarding_NoForwarding" value="0"/>
+         <enum-member name="EDataForwarding_DlForwarding" value="1"/>
+         <enum-member name="EDataForwarding_UlForwarding" value="2"/>
+         <enum-member name="EDataForwarding_DlUlForwarding" value="3"/>
+      </enum>
+      <enum name="ESrPeriod">
+         <enum-member name="ESrPeriod_5ms" value="0"/>
+         <enum-member name="ESrPeriod_10ms" value="1"/>
+         <enum-member name="ESrPeriod_20ms" value="2"/>
+         <enum-member name="ESrPeriod_40ms" value="3"/>
+         <enum-member name="ESrPeriod_80ms" value="4"/>
+      </enum>
+      <enum comment="type of link" name="ELinkType">
+         <enum-member name="ELinkType_S1" value="0"/>
+         <enum-member name="ELinkType_X2" value="1"/>
+      </enum>
+      <enum comment="type of reset that should be executed" name="EResetRequestType">
+         <enum-member comment="No Reset required" name="EResetRequestType_NoReset" value="0"/>
+         <enum-member comment="BTS Site Reset required" name="EResetRequestType_BtsSiteReset" value="1"/>
+         <enum-member name="EResetRequestType_BtsReset" value="2"/>
+      </enum>
+      <enum comment="MIMO mode to use in DL: single TX, TX diversity or dual stream spatial multiplexing.&#13;&#10;In the dynamic MIMO modes, the MIMO mode is dynamically chosen per UE, depending on the channel condition." name="EDlMimoMode">
+         <enum-member name="EDlMimoMode_SingleTx" value="0"/>
+         <enum-member name="EDlMimoMode_TxDiversity" value="1"/>
+         <enum-member comment="Not used in WMP FDD and TDD products" name="EDlMimoMode_DualStreamMimo" value="2"/>
+         <enum-member name="EDlMimoMode_DynMimoOpenLoop" value="3"/>
+         <enum-member name="EDlMimoMode_DynMimoClosedLoop" value="4"/>
+         <enum-member comment="TDD only" name="EDlMimoMode_SingleStreamBF" value="5"/>
+         <enum-member comment="TDD only" name="EDlMimoMode_DualStreamBF" value="6"/>
+         <enum-member comment="WMP only" name="EDlMimoMode_Dyn4x2MimoClosedLoop" value="7"/>
+         <enum-member comment="WMP only" name="EDlMimoMode_TxDiversity4Ant" value="8"/>
+         <enum-member comment="TDD only" name="EDlMimoMode_Dyn8x2MimoClosedLoop" value="9"/>
+      </enum>
+      <enum name="EHandoverType">
+         <enum-member name="EHandoverType_NoHandover" value="0"/>
+         <enum-member comment="Intra FSPx HO; in FSM rel. 3 this HO type is used for Intra BB pool HO (Intra FSPx)" name="EHandoverType_IntraFspx" value="1"/>
+         <enum-member comment="Inter FSPx HO; in FSM rel. 3 this HO type is used for any Inter BB pool HO (Intra FSPx and Inter FSPx)" name="EHandoverType_InterFspx" value="2"/>
+         <enum-member comment="Inter FTM/FSM HO" name="EHandoverType_InterFtmFsm" value="3"/>
+         <enum-member comment="Inter eNB over X2 interface HO" name="EHandoverType_InterEnb" value="4"/>
+         <enum-member comment="Intra Cell HO" name="EHandoverType_IntraCell" value="5"/>
+         <enum-member comment="Inter RAT to LTE HO" name="EHandoverType_InterRatToLte" value="6"/>
+         <enum-member comment="Inter RAT to WCDMA HO" name="EHandoverType_InterRatToWcdma" value="7"/>
+         <enum-member comment="Intra Cell re-establishment without HO (UC#2)" name="EHandoverType_IntraCellReestablishment" value="8"/>
+         <enum-member comment="Intra FSPx re-establishment without HO (UC#3)" name="EHandoverType_IntraFspxReestablishment" value="9"/>
+         <enum-member comment="Inter FSPx re-establishment without HO (UC#4)" name="EHandoverType_InterFspxReestablishment" value="10"/>
+         <enum-member comment="Intra eNB source, Intra Cell re-establishment with HO (UC#5)" name="EHandoverType_IntraEnbSourceIntraCellReestablishmentWithHO" value="11"/>
+         <enum-member comment="Intra eNB source, Intra FSPx re-establishment with HO (UC#6)" name="EHandoverType_IntraEnbSourceIntraFspxReestablishmentWithHO" value="12"/>
+         <enum-member comment="Intra eNB source, Inter FSPx re-establishment with HO (UC#7)" name="EHandoverType_IntraEnbSourceInterFspxReestablishmentWithHO" value="13"/>
+         <enum-member comment="Inter eNB X2 source, Intra Cell re-establishment with HO (UC#11)" name="EHandoverType_InterEnbX2SourceIntraCellReestablishmentWithHO" value="14"/>
+         <enum-member comment="Inter eNB X2 source, Intra FSPx re-establishment with HO (UC#12)" name="EHandoverType_InterEnbX2SourceIntraFspxReestablishmentWithHO" value="15"/>
+         <enum-member comment="Inter eNB X2 source, Inter FSPx re-establishment with HO (UC#13)" name="EHandoverType_InterEnbX2SourceInterFspxReestablishmentWithHO" value="16"/>
+         <enum-member comment="Inter RAT to WCDMA, Intra Cell re-establishment with HO (UC#17)" name="EHandoverType_InterRatToWcdmaIntraCellReestablishmentWithHO" value="17"/>
+         <enum-member comment="Inter RAT to WCDMA, Intra FSPx re-establishment with HO (UC#18)" name="EHandoverType_InterRatToWcdmaIntraFspxReestablishmentWithHO" value="18"/>
+         <enum-member comment="Inter RAT to WCDMA, Inter FSPx re-establishment with HO (UC#19)" name="EHandoverType_InterRatToWcdmaInterFspxReestablishmentWithHO" value="19"/>
+         <enum-member comment="Intra eNB target, Intra Cell re-establishment with HO (UC#8)" name="EHandoverType_IntraEnbTargetIntraCellReestablishmentWithHO" value="20"/>
+         <enum-member comment="Intra eNB target, Intra FSPx re-establishment with HO (UC#9)" name="EHandoverType_IntraEnbTargetIntraFspxReestablishmentWithHO" value="21"/>
+         <enum-member comment="Void - not used in DCM and WMP.&#10;(DCM: UC#10 merged to UC#5, UC#6 and UC#7)&#10;Intra eNB target, Inter FSPx re-establishment with HO (UC#10)" name="EHandoverType_IntraEnbTargetInterFspxReestablishmentWithHO" value="22"/>
+         <enum-member comment="Inter eNB X2 target, Intra Cell re-establishment with HO (UC#14)" name="EHandoverType_InterEnbX2TargetIntraCellReestablishmentWithHO" value="23"/>
+         <enum-member comment="Inter eNB X2 target, Intra FSPx re-establishment with HO (UC#15)" name="EHandoverType_InterEnbX2TargetIntraFspxReestablishmentWithHO" value="24"/>
+         <enum-member comment="Inter eNB X2 target, Inter FSPx re-establishment with HO (UC#16)" name="EHandoverType_InterEnbX2TargetInterFspxReestablishmentWithHO" value="25"/>
+         <enum-member comment="Inter RAT to LTE, Intra Cell re-establishment with HO (UC#20)" name="EHandoverType_InterRatToLteIntraCellReestablishmentWithHO" value="26"/>
+         <enum-member comment="Inter RAT to LTE,  Intra FSPx re-establishment with HO (UC#21)" name="EHandoverType_InterRatToLteIntraFspxReestablishmentWithHO" value="27"/>
+         <enum-member comment="Inter RAT to LTE,  Inter FSPx re-establishment with HO (UC#22)" name="EHandoverType_InterRatToLteInterFspxReestablishmentWithHO" value="28"/>
+      </enum>
+      <enum name="EUlCtrlChannelMeasType">
+         <enum-member comment="This value is same as EUlCtrlChannelMeasType_Pucch in Rel.10" name="EUlCtrlChannelMeasType_PucchAck" value="0"/>
+         <enum-member name="EUlCtrlChannelMeasType_Prach" value="1"/>
+         <enum-member name="EUlCtrlChannelMeasType_PucchCqi" value="2"/>
+         <enum-member name="EUlCtrlChannelMeasType_PuschHarqAck" value="3"/>
+         <enum-member comment="Format 1b: The number of encoded ACK/NAK bits per sub-frame is equal to 4 bits (AAAA), ACK/NAK repetitions are disabled for PUCCH transmission" name="EUlCtrlChannelMeasType_PucchAckFormat1bWithChannelSelection" value="4"/>
+      </enum>
+      <enum name="EHsTrainScenario">
+         <enum-member name="EHsTrainScenario_NotApplied" value="0"/>
+         <enum-member name="EHsTrainScenario_1" value="1"/>
+         <enum-member name="EHsTrainScenario_3" value="2"/>
+      </enum>
+      <enum name="EDigitalOutputType">
+         <enum-member name="EDigitalOutputType_BinaryHarq" value="0"/>
+         <enum-member name="EDigitalOutputType_SerialAgilent" value="1"/>
+         <enum-member name="EDigitalOutputType_SerialRs" value="2"/>
+      </enum>
+      <enum comment="Same value must be selected for SG. Only 115.2 kbps functionality has been verified." name="EDigitalOutputBitRate">
+         <enum-member name="EDigitalOutputBitRate_115Dot2Kbps" value="0"/>
+         <enum-member name="EDigitalOutputBitRate_460Dot8Kbps" value="1"/>
+         <enum-member name="EDigitalOutputBitRate_1Dot92Mbps" value="2"/>
+      </enum>
+      <enum name="EDigitalOutputBBSelector">
+         <enum-member name="EDigitalOutputBBSelector_00" value="0"/>
+         <enum-member name="EDigitalOutputBBSelector_01" value="1"/>
+         <enum-member name="EDigitalOutputBBSelector_10" value="2"/>
+         <enum-member name="EDigitalOutputBBSelector_11" value="3"/>
+      </enum>
+      <enum forceGeneration="true" name="EExtraFaultInfo">
+         <enum-member name="EExtraFaultInfo_GlobalEnbIdDuplication" value="0"/>
+         <enum-member name="EExtraFaultInfo_PhyCellIdDuplication" value="1"/>
+         <enum-member name="EExtraFaultInfo_EnbInitiated" value="2"/>
+         <enum-member name="EExtraFaultInfo_MmeInitiated" value="3"/>
+         <enum-member name="EExtraFaultInfo_AdjEnbInitiated" value="4"/>
+         <enum-member name="EExtraFaultInfo_SetupRejectedByMme" value="5"/>
+         <enum-member name="EExtraFaultInfo_NoResponseFroMme" value="6"/>
+         <enum-member name="EExtraFaultInfo_SetupRejectedByEnb" value="7"/>
+         <enum-member name="EExtraFaultInfo_NoResponseFromAdjEnb" value="8"/>
+         <enum-member name="EExtraFaultInfo_SetupRejectedByAdjEnb" value="9"/>
+         <enum-member name="EExtraFaultInfo_NotNeeded" value="10"/>
+         <enum-member name="EExtraFaultInfo_IpAdressNotPresentInPciIpAdrMap" value="11"/>
+         <enum-member name="EExtraFaultInfo_IpAdressPresentInPciIpAdrMapX2LinkAlreadyEstablished" value="12"/>
+         <enum-member name="EExtraFaultInfo_IpAdressPresentInPciIpAdrMapSctpAssociationEstablishmentFailed" value="13"/>
+         <enum-member name="EExtraFaultInfo_TraceReferenceInUseTraceCannotBeStarted" value="14"/>
+         <enum-member name="EExtraFaultInfo_MaxNumberOfUeTraceSessionExceededTraceCannotBeStarted" value="15"/>
+         <enum-member name="EExtraFaultInfo_SubscriberAndEquipmentTraceFeatureNotEnabled" value="16"/>
+         <enum-member name="EExtraFaultInfo_TraceSessionCannotBeStartedDueToOngoingHandoverForTheUe" value="17"/>
+         <enum-member name="EExtraFaultInfo_TraceSessionCannotBeStoppedDueToOngoingHandoverForTheUe" value="18"/>
+         <enum-member name="EExtraFaultInfo_CellTraceFeatureIsNotEnabled" value="19"/>
+         <enum-member name="EExtraFaultInfo_CsgIdReceived" value="20"/>
+      </enum>
+      <enum name="EUlCombinationMode">
+         <enum-member comment="MRC" name="EUlCombinationMode_MRC" value="0"/>
+         <enum-member comment="IRC" name="EUlCombinationMode_IRC" value="1"/>
+      </enum>
+      <enum comment="to select statically between two solution for sector beamforming" name="ESectorBeamformingMode">
+         <enum-member comment="ESectorBeamformingMode_Solution1: sector Beamforming solution 1;" name="ESectorBeamformingMode_Solution1" value="0"/>
+         <enum-member comment="ESectorBeamformingMode_Solution2: sector Beamforming solution 2;" name="ESectorBeamformingMode_Solution2" value="1"/>
+      </enum>
+      <enum comment="The parameter defines the Downlink Sector Beamforming Weight Mode for sector beamforming solution 1.&#13;&#10;TDD specific.&#13;&#10;" name="ESectorBeamformingWeightMode">
+         <enum-member comment="8 pipe CMCC mode" name="ESectorBeamformingWeightMode_8PipeCmcc" value="0"/>
+         <enum-member comment="8 pipe NSN mode" name="ESectorBeamformingWeightMode_8PipeNsn" value="1"/>
+         <enum-member comment="2 pipe mode" name="ESectorBeamformingWeightMode_2Pipe" value="2"/>
+         <enum-member comment="4 pipe mode" name="ESectorBeamformingWeightMode_4Pipe" value="3"/>
+      </enum>
+      <enum comment="Technology information to support common code" name="ETechnology">
+         <enum-member name="ETechnology_Fdd" value="0"/>
+         <enum-member name="ETechnology_Tdd" value="1"/>
+      </enum>
+      <enum comment="FDD specific comment: Downlink channel bandwidth defines the DL bandwidth for the eNode-B transmission in a cell, and also defines the number of available Physical Resource Blocks.&#13;&#10;The downlink channel bandwidth mapping to number of Physical Resource Blocks is:&#13;&#10;1.4 MHz = 6 DL PRBS&#13;&#10;3.0 MHz = 15 DL PRBS&#13;&#10;5.0 MHz = 25 DL PRBS &#13;&#10;10.0 MHz = 50 DL PRBS &#13;&#10;15.0 MHz = 75 DL PRBS&#13;&#10;20.0 MHz = 100 DL PRBS&#13;&#10;This parameter is one of the parameters in a set which defines the maximum PUCCH allocation called as MaxPucchResourceSize. All the rest of the parameters are related to each others according to this formula:&#13;&#10;MaxPucchResourceSize = nCqiRb + roundup{[((maxNumOfCce) + n1PucchAn - pucchNAnCs * 3 / deltaPucchShift ) * deltaPucchShift] / (3*12)} + roundup (pucchNAnCs / 8)&#13;&#10;maxNumOfCce depends on dlChBw parameter:&#13;&#10;- if dlChBw is 5MHz then maxNumOfCce is 21&#13;&#10;- if dlChBw is 10MHz then maxNumOfCce is 43&#13;&#10;- if dlChBw is 15MHz then maxNumOfCce is 65&#13;&#10;- if dlChBw is 20MHz then maxNumOfCce is 87&#13;&#10;All the rest of the parameters in formula are O&amp;M parameters, and MaxPucchResourceSize has a maximum allowed value, which shall not be exceeded &#13;&#10;Maximum 10 MHz downlink channel bandwidth may be used with a single FSMD to configure more than 2 cells or with a single FSME to configure more than 3 cells.&#13;&#10;&#13;&#10;TDD specific comment: Channel Bandwidth defines the Downlink and Uplink bandwidth for the eNode-B transmission in a cell, and also defines the number of available Physical Resource Blocks which is transmitted in the MIB. The Channel Bandwidth mapping to Number of Physical Resource Blocks is: (1) 1.4 MHz = 6 PRB; (2) 3.0 MHz = 15 PRB; (3) 5.0 MHz = 25 PRB; (4) 10.0 MHz = 50 PRB; (5) 15.0 MHz = 75 PRB; (6) 20.0 MHz = 100 PRB. &#13;&#10;IMPORTANT NOTE: For the TRIAL the allowed value range is restricted to 10MHz (50PRB) and 20MHz (100PRB), where the Bandwidth selection differs to the final setting: (3) 10.0 MHz = 50 PRB; (4) 20.0 MHz = 100 PRB&#13;&#10;Whenever there are more than one cell configured, the bandwidth of all need to be identical.&#13;&#10;&#13;&#10;defaultValueFdd=&quot;3&quot; defaultValueTdd=&quot;5&quot;&#13;&#10;" name="EOaMDlChBw">
+         <enum-member name="EOaMDlChBw_Undefined" value="0"/>
+         <enum-member name="EOaMDlChBw_1Dot4MHzFdd" value="14"/>
+         <enum-member name="EOaMDlChBw_3MHzFdd" value="30"/>
+         <enum-member name="EOaMDlChBw_5MHzFdd" value="2"/>
+         <enum-member name="EOaMDlChBw_10MHz" value="3"/>
+         <enum-member name="EOaMDlChBw_15MHzFdd" value="4"/>
+         <enum-member name="EOaMDlChBw_20MHz" value="5"/>
+      </enum>
+      <enum name="ESupportedTracingFunctionalities">
+         <enum-member comment="Support for LTE163 Subscriber and Equipment Trace" name="ESupportedTracingFunctionalities_SubscriberTrace" value="0"/>
+         <enum-member comment="Support for reporting S1AP:CellTraficTrace in scope of Cell Trace with IMSI" name="ESupportedTracingFunctionalities_CellTrafficTraceReporting" value="1"/>
+      </enum>
+      <enum comment="EBrowserObjectName lists the names of all logical objects, on which the Browser operates, to be used as database keys, in order to retrieve data from the system, or to be used to start measurements, whereby a measurement is seen as an independent active object, from Browser point of view." forceGeneration="true" name="EBrowserObjectName">
+         <enum-member comment="dummy enumerator value required by the SACK rules" name="EBrowserObjectName_Undefined" value="0"/>
+         <enum-member name="EBrowserObjectName_LteCell" value="1000"/>
+         <enum-member name="EBrowserObjectName_LteUser" value="1001"/>
+         <enum-member name="EBrowserObjectName_LteRadioBearer" value="1002"/>
+         <enum-member name="EBrowserObjectName_LteAccessBearerUser" value="1003"/>
+         <enum-member name="EBrowserObjectName_LtePlmn" value="1004"/>
+         <enum-member name="EBrowserObjectName_LteRepositoryL3" value="1050"/>
+         <enum-member name="EBrowserObjectName_LocalBrowserRepository" value="1051"/>
+         <enum-member name="EBrowserObjectName_LteMacTtiTrace" value="1100"/>
+         <enum-member name="EBrowserObjectName_LtePhyTtiTrace" value="1101"/>
+         <enum-member name="EBrowserObjectName_LteRssi" value="1102"/>
+         <enum-member name="EBrowserObjectName_LteModulationConstellation" value="1103"/>
+         <enum-member name="EBrowserObjectName_LteInterferencePlusNoisePerPrb" value="1104"/>
+         <enum-member name="EBrowserObjectName_LteSnr" value="1105"/>
+         <enum-member name="EBrowserObjectName_LteCellTotalRxPower" value="1106"/>
+         <enum-member name="EBrowserObjectName_LteBler" value="1107"/>
+         <enum-member name="EBrowserObjectName_LteSpectrumSnapshot" value="1108"/>
+         <enum-member name="EBrowserObjectName_LteCounter" value="1123"/>
+         <enum-member name="EBrowserObjectName_LteStatisticalMeas" value="1124"/>
+         <enum-member name="EBrowserObjectName_LteMeasS1Tup" value="1125"/>
+         <enum-member name="EBrowserObjectName_LteMeasX2Tup" value="1126"/>
+         <enum-member name="EBrowserObjectName_LteMeasEnbTup" value="1127"/>
+         <enum-member name="EBrowserObjectName_LteMeasCellTup" value="1128"/>
+         <enum-member name="EBrowserObjectName_LteMeasUserTup" value="1129"/>
+         <enum-member name="EBrowserObjectName_LteMeasS1AP" value="1130"/>
+         <enum-member name="EBrowserObjectName_LteMeasCellLoad" value="1131"/>
+         <enum-member name="EBrowserObjectName_LteMeasRLC" value="1132"/>
+         <enum-member name="EBrowserObjectName_LteMeasPDCPData" value="1133"/>
+         <enum-member name="EBrowserObjectName_LteMeasTransportLoad" value="1134"/>
+         <enum-member name="EBrowserObjectName_LteMeasPowerAndQualityUL" value="1135"/>
+         <enum-member name="EBrowserObjectName_LteMeasEPSBearer" value="1136"/>
+         <enum-member name="EBrowserObjectName_LteMeasRadioBearer" value="1137"/>
+         <enum-member name="EBrowserObjectName_LteMeasRRC" value="1138"/>
+         <enum-member name="EBrowserObjectName_LteMeasIntraENBHandover" value="1139"/>
+         <enum-member name="EBrowserObjectName_LteMeasPowerAndQualityDL" value="1140"/>
+         <enum-member name="EBrowserObjectName_LteMeasCellResource" value="1141"/>
+         <enum-member name="EBrowserObjectName_LteMeasCellThroughput" value="1142"/>
+         <enum-member name="EBrowserObjectName_LteMeasUEState" value="1143"/>
+         <enum-member name="EBrowserObjectName_LteMeasInterENBHandover" value="1144"/>
+         <enum-member name="EBrowserObjectName_LteMeasNeighbourCellRelatedHandover" value="1145"/>
+         <enum-member name="EBrowserObjectName_LteMeasInterSystemHandover" value="1146"/>
+         <enum-member name="EBrowserObjectName_LteMeasGeneralHandover" value="1147"/>
+         <enum-member name="EBrowserObjectName_LteCellPhy" value="1200"/>
+         <enum-member name="EBrowserObjectName_LteCellPlmnPhy" value="1201"/>
+         <enum-member name="EBrowserObjectName_LteCellUlPhy" value="1230"/>
+         <enum-member name="EBrowserObjectName_LteCellDlPhy" value="1270"/>
+         <enum-member name="EBrowserObjectName_LteCellMac" value="1301"/>
+         <enum-member name="EBrowserObjectName_LteUserMac" value="1302"/>
+         <enum-member name="EBrowserObjectName_LteMacDlCqiCirTable" value="1303"/>
+         <enum-member name="EBrowserObjectName_LteMacDlPsCellParams" value="1304"/>
+         <enum-member name="EBrowserObjectName_LteCellMacTm" value="1305"/>
+         <enum-member name="EBrowserObjectName_LteUserMacTm" value="1306"/>
+         <enum-member name="EBrowserObjectName_LteMacUlBasicDelayWeightQ10Table" value="1307"/>
+         <enum-member name="EBrowserObjectName_LteMacDlDelayBasedPrioQ10Table" value="1308"/>
+         <enum-member name="EBrowserObjectName_LteMacCqi2AggregationTable" value="1309"/>
+         <enum-member name="EBrowserObjectName_LteMacActivityFactorTenthTable" value="1310"/>
+         <enum-member name="EBrowserObjectName_LteCellPlmnMac" value="1311"/>
+         <enum-member name="EBrowserObjectName_LteCellTup" value="1401"/>
+         <enum-member name="EBrowserObjectName_LteAccessBearerTup" value="1402"/>
+         <enum-member name="EBrowserObjectName_LteUserTup" value="1403"/>
+         <enum-member name="EBrowserObjectName_LteS1Tup" value="1404"/>
+         <enum-member name="EBrowserObjectName_LteX2Tup" value="1405"/>
+         <enum-member name="EBrowserObjectName_LteEnbTup" value="1406"/>
+         <enum-member name="EBrowserObjectName_LteCellPlmnTup" value="1407"/>
+         <enum-member name="EBrowserObjectName_LteCellL3" value="1501"/>
+         <enum-member name="EBrowserObjectName_LteUserL3" value="1502"/>
+         <enum-member name="EBrowserObjectName_LteRadioBearerL3" value="1503"/>
+         <enum-member name="EBrowserObjectName_LteEnbL3" value="1504"/>
+         <enum-member name="EBrowserObjectName_LteEnbL3Uec" value="1505"/>
+         <enum-member name="EBrowserObjectName_LteEnbL3Enbc" value="1506"/>
+         <enum-member name="EBrowserObjectName_LteCellInfo" value="1601"/>
+         <enum-member name="EBrowserObjectName_ClientLteBr" value="1702"/>
+         <enum-member name="EBrowserObjectName_MeasurementListLteBr" value="1704"/>
+         <enum-member name="EBrowserObjectName_LteCpu" value="1801"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceS1Enbc" value="1901"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceX2Enbc" value="1902"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceS1Uec" value="1903"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceX2Uec" value="1904"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceDlCellL2" value="1905"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceUlCellL2" value="1906"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceS1" value="1907"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceX2" value="1908"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceRrcCellc" value="1909"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceRrcUec" value="1910"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_LteTraceRrc" value="1911"/>
+         <enum-member name="EBrowserObjectName_CombinedMeasurements" value="2001"/>
+         <enum-member name="EBrowserObjectName_IPDataRateForUL" value="2002"/>
+         <enum-member name="EBrowserObjectName_IPDataRateForDL" value="2003"/>
+         <enum-member name="EBrowserObjectName_LteCellEnbc" value="2101"/>
+         <enum-member name="EBrowserObjectName_LteCellPlmnEnbc" value="2102"/>
+         <enum-member name="EBrowserObjectName_LteCellUec" value="2201"/>
+         <enum-member name="EBrowserObjectName_LteCellAdjUec" value="2202"/>
+         <enum-member name="EBrowserObjectName_LteCellAdjUtraUec" value="2203"/>
+         <enum-member name="EBrowserObjectName_LteCellAdjGsmUec" value="2204"/>
+         <enum-member name="EBrowserObjectName_LteCellPlmnUec" value="2205"/>
+         <enum-member name="EBrowserObjectName_HrpdBandClassUec" value="2206"/>
+         <enum-member name="EBrowserObjectName_LteCellCellc" value="2301"/>
+         <enum-member name="EBrowserObjectName_LteRawData" value="2401"/>
+         <enum-member name="EBrowserObjectName_ClientDct" value="10001"/>
+         <enum-member name="EBrowserObjectName_MeasurementListDct" value="10002"/>
+         <enum-member name="EBrowserObjectName_LteMacGenCell" value="10003"/>
+         <enum-member name="EBrowserObjectName_LteMacGenUser" value="10004"/>
+         <enum-member name="EBrowserObjectName_LteMacPsCell" value="10005"/>
+         <enum-member name="EBrowserObjectName_LteMacPsUser" value="10006"/>
+         <enum-member name="EBrowserObjectName_LteCellL2" value="10007"/>
+         <enum-member name="EBrowserObjectName_LteUserL2" value="10008"/>
+         <enum-member name="EBrowserObjectName_DctDlLevL1Cell" value="10010"/>
+         <enum-member name="EBrowserObjectName_DctDlPdcpSdu" value="10011"/>
+         <enum-member name="EBrowserObjectName_DctDlsch0" value="10012"/>
+         <enum-member name="EBrowserObjectName_DctDlsch1" value="10013"/>
+         <enum-member name="EBrowserObjectName_DctDlschData0" value="10014"/>
+         <enum-member name="EBrowserObjectName_DctDlschData1" value="10015"/>
+         <enum-member name="EBrowserObjectName_DctMacPduDump" value="10016"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_DctPersistentUlschData" value="10017"/>
+         <enum-member comment="Obsolete!" name="EBrowserObjectName_DctPersistentDlschData" value="10018"/>
+         <enum-member name="EBrowserObjectName_DctRlcAmPdu" value="10019"/>
+         <enum-member name="EBrowserObjectName_DctRlcUmPdu" value="10020"/>
+         <enum-member name="EBrowserObjectName_DctUlLevL1Cell" value="10021"/>
+         <enum-member name="EBrowserObjectName_DctUlLevL1Ue" value="10022"/>
+         <enum-member name="EBrowserObjectName_DctUlPdpcPdu" value="10023"/>
+         <enum-member name="EBrowserObjectName_DctUlsch0" value="10024"/>
+         <enum-member name="EBrowserObjectName_DctUlsch1" value="10025"/>
+         <enum-member name="EBrowserObjectName_DctUlschData0" value="10026"/>
+         <enum-member name="EBrowserObjectName_DctUlschData1" value="10027"/>
+         <enum-member name="EBrowserObjectName_DctDlschData2" value="10028"/>
+         <enum-member name="EBrowserObjectName_DctDlRlcAmPdu" value="10029"/>
+         <enum-member name="EBrowserObjectName_DctDlRlcUmPdu" value="10030"/>
+         <enum-member name="EBrowserObjectName_DctDlMacPduDump" value="10031"/>
+         <enum-member name="EBrowserObjectName_DctUlMacPduDump" value="10032"/>
+         <enum-member name="EBrowserObjectName_DctUlRlcAmPdu" value="10033"/>
+         <enum-member name="EBrowserObjectName_DctUlRlcUmPdu" value="10034"/>
+         <enum-member name="EBrowserObjectName_DctUci" value="10035"/>
+         <enum-member name="EBrowserObjectName_DctRa" value="10036"/>
+         <enum-member name="EBrowserObjectName_DctUlsch1Tm" value="10037"/>
+         <enum-member name="EBrowserObjectName_DctDlsch1Tm" value="10038"/>
+         <enum-member name="EBrowserObjectName_DctDlschData2Tm" value="10039"/>
+         <enum-member name="EBrowserObjectName_DctUlschData1Tm" value="10040"/>
+         <enum-member name="EBrowserObjectName_DctUlschData0Tm" value="10041"/>
+         <enum-member name="EBrowserObjectName_DctUlLevL1CellTm" value="10042"/>
+         <enum-member name="EBrowserObjectName_DctDlschData3" value="10043"/>
+         <enum-member name="EBrowserObjectName_DctUlschData2" value="10044"/>
+         <enum-member name="EBrowserObjectName_DctUlschData2Tm" value="10045"/>
+         <enum-member name="EBrowserObjectName_DctDlRlcSdu" value="10046"/>
+         <enum-member name="EBrowserObjectName_LteCpuLoad" value="10047"/>
+         <enum-member name="EBrowserObjectName_LteCycleCpuLoad" value="10048"/>
+         <enum-member name="EBrowserObjectName_Last" value="10049"/>
+      </enum>
+      <enum comment="Enumeration for browsing object id types." forceGeneration="true" name="EBrowserObjectIdType">
+         <enum-member comment="Object id User type - UE id." name="EBrowserObjectIdType_Ue" value="0"/>
+         <enum-member comment="Object id Cell type - Cell id." name="EBrowserObjectIdType_Cell" value="1"/>
+      </enum>
+      <enum comment="Enumeration for discriminating fault location" forceGeneration="true" name="EFaultLocationType">
+         <enum-member comment="No location provided" name="EFaultLocationType_NoLocation" value="0"/>
+         <enum-member comment="SIC address" name="EFaultLocationType_SICAD" value="1"/>
+         <enum-member comment="Unit address" name="EFaultLocationType_UnitAddr" value="2"/>
+         <enum-member comment="Cell id" name="EFaultLocationType_CellId" value="3"/>
+         <enum-member comment="Local cell resource id" name="EFaultLocationType_LcrId" value="4"/>
+         <enum-member comment="Local cell group id" name="EFaultLocationType_LcgId" value="5"/>
+         <enum-member comment="User id" name="EFaultLocationType_UserId" value="6"/>
+         <enum-member comment="Link identifier" name="EFaultLocationType_LinkId" value="7"/>
+         <enum-member comment="Some other" name="EFaultLocationType_Other" value="8"/>
+         <enum-member comment="LNADJ" name="EFaultLocationType_LnAdjId" value="9"/>
+         <enum-member comment="LNMME" name="EFaultLocationType_LnMmeId" value="10"/>
+         <enum-member comment="SCTP" name="EFaultLocationType_SCTP" value="11"/>
+         <enum-member comment="LNBTS" name="EFaultLocationType_LNBTS" value="12"/>
+         <enum-member comment="LNADJG" name="EFaultLocationType_LnAdjgId" value="13"/>
+      </enum>
+      <enum comment="SCTP Link direction." name="EL3LinkDirection">
+         <enum-member name="EL3LinkDirection_Incoming" value="0"/>
+         <enum-member name="EL3LinkDirection_Outgoing" value="1"/>
+      </enum>
+      <enum name="EDeploymentInfo">
+         <enum-member comment="Dummy value in case deployment info is not relevant, e.g. FSMr2 or FDD until deployment selection is also supported for FDD." name="EDeploymentInfo_NotUsed" value="0"/>
+         <enum-member comment="Deployment for TDD 2 pipe with 3 DSPs per pool.  &#13;&#10;(obsolete in LNT3.0 when both LTE961 and LTE1392-A-a are in place)" name="EDeploymentInfo_TDD_2_pipe" value="1"/>
+         <enum-member comment="Deployment for TDD 4 pipe with 3 DSPs per pool. &#13;&#10;(obsolete in LNT3.0 with LTE568-C-aa)" name="EDeploymentInfo_TDD_4_pipe" value="2"/>
+         <enum-member comment="Deployment for TDD 8 pipe with 4 DSPs per pool.&#13;&#10;(obsolete in LNT3.0 with LTE1392-B-a)" name="EDeploymentInfo_TDD_8_pipe" value="3"/>
+         <enum-member comment="Deployment for FDD with 2 DSPs per pool (final RL40 deployment)" name="EDeploymentInfo_FDD_2DspPool" value="4"/>
+         <enum-member comment="obsolete" name="EDeploymentInfo_FDD_3DspPool" value="5"/>
+         <enum-member comment="Deployment for FDD with 4 DSPs per pool (for LTE72 and LTE568)&#13;&#10;(obsolete in LN6.0 with LTE1332-B)" name="EDeploymentInfo_FDD_4DspPool" value="6"/>
+         <enum-member comment="Deployment for TDD with 2 DSPs per pool (for LTE961)" name="EDeploymentInfo_TDD_2DspPool" value="7"/>
+         <enum-member comment="Deployment for TDD with 3 DSPs per pool (for LTE1392-A-a)" name="EDeploymentInfo_TDD_3DspPool" value="8"/>
+         <enum-member comment="Deployment for TDD with 4 DSPs per pool&#13;&#10;(obsolete in LNT4.0 when both LBT1825-B and LTE1510-A-h are in place)" name="EDeploymentInfo_TDD_4DspPool" value="9"/>
+         <enum-member comment="Deployment for TDD with 5 DSPs per pool (for LTE993 in LNT3.1 only)" name="EDeploymentInfo_TDD_5DspPool" value="10"/>
+         <enum-member comment="Deployment for FZM FDD with 8 Core DSP (for LTE 1627)" name="EDeploymentInfo_FZM_FDD_8Core" value="11"/>
+         <enum-member comment="Deployment for TDD 8 pipe with 3 DSPs per pool (for LBT1825-B and LTE1510-A-h)" name="EDeploymentInfo_TDD_3DspPool_8Pipe" value="12"/>
+         <enum-member comment="Deployment for FDD with 4 DSPs per pool&#13;&#10;" name="EDeploymentInfo_FDD_4DspPool_Part1" value="13"/>
+         <enum-member comment="Deployment for FDD with 4 DSPs per pool&#13;&#10;" name="EDeploymentInfo_FDD_4DspPool_Part2" value="14"/>
+         <enum-member comment="Deployment for FDD with one 4 DSP pool and one 2DSP pool. The 2 DSP pool is unused in LN6.0." name="EDeploymentInfo_FDD_4DspPool_2DspPool" value="15"/>
+         <enum-member comment="Deployment for FZM RL45FZ" name="EDeploymentInfo_FZM_TDD_8Core" value="16"/>
+      </enum>
+      <enum comment="MIMO mode to use in DL: single TX, TX diversity or dual stream spatial multiplexing.&#13;&#10;In the dynamic MIMO modes, the MIMO mode is dynamically chosen per UE, depending on the channel condition." name="ESpatialMode">
+         <enum-member name="ESpatialMode_SingleTx" value="0"/>
+         <enum-member name="ESpatialMode_TxDiversity" value="1"/>
+         <enum-member name="ESpatialMode_SpatialMultiplexing" value="2"/>
+         <enum-member comment="TDD-BF specific" name="ESpatialMode_SingleStreamBF" value="3"/>
+         <enum-member comment="TDD-BF specific" name="ESpatialMode_TM8_Port7" value="4"/>
+         <enum-member comment="TDD-BF specific" name="ESpatialMode_TM8_Port8" value="5"/>
+         <enum-member comment="TDD-BF specific" name="ESpatialMode_TM8_Port78" value="6"/>
+         <enum-member comment="TDD-BF specific" name="ESpatialMode_TM9_Port7" value="7"/>
+         <enum-member comment="TDD-BF specific" name="ESpatialMode_TM9_Port8" value="8"/>
+         <enum-member comment="TDD-BF specific" name="ESpatialMode_TM9_UpTo8LayersTx" value="9"/>
+      </enum>
+      <enum comment="Modulation scheme" name="EModulation">
+         <enum-member name="EModulation_Bpsk" value="0"/>
+         <enum-member name="EModulation_Qpsk" value="1"/>
+         <enum-member name="EModulation_16qam" value="2"/>
+         <enum-member name="EModulation_64qam" value="3"/>
+      </enum>
+      <enum name="EL2DeployableNode">
+         <enum-member name="EL2DeployableNode_Basic1" value="0"/>
+         <enum-member name="EL2DeployableNode_Basic2" value="1"/>
+         <enum-member name="EL2DeployableNode_Basic3" value="2"/>
+         <enum-member name="EL2DeployableNode_Basic4" value="3"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended1" value="10"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended2" value="11"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended3" value="12"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended4" value="13"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended5" value="14"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended6" value="15"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended7" value="16"/>
+         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended8" value="17"/>
+         <enum-member name="EL2DeployableNode_ArmL2Master" value="20"/>
+         <enum-member name="EL2DeployableNode_ArmL2Slave" value="21"/>
+         <enum-member name="EL2DeployableNode_DcmLrcPsMaster" value="22"/>
+         <enum-member name="EL2DeployableNode_DcmLrcPsSlave" value="23"/>
+      </enum>
+      <typedef name="TOaMEarfcnDL" type="u16">
+         <constant name="OAM_EARFCNDL_MIN" value="0"/>
+         <constant name="OAM_EARFCNDL_MAX" value="65535"/>
+      </typedef>
+      <typedef comment="obsolete" maxRange="7690" minRange="0" name="TTaReportValue" specialValue="65535" type="u16"/>
+      <typedef name="TBcchId" type="u32"/>
+      <typedef name="TPcchId" type="u32"/>
+      <typedef forceGeneration="true" name="THbc" type="u32"/>
+      <typedef name="TSubFrameNumber" pointer="false" type="u32"/>
+      <typedef maxRange="65535" minRange="0" name="TCrnti" pointer="false" specialValue="4294967295" type="u32"/>
+      <typedef name="TL3LinkId" pointer="false" type="u32"/>
+      <typedef name="TGtpTeid" pointer="false" type="u32"/>
+      <typedef comment="Message Unit Identifier. Used as transaction ID in L3  signalling over MAC.&#13;&#10;" name="TMui" type="u32"/>
+      <typedef comment="HARQ New Data Indicator&#13;&#10;0 - new transmission&#13;&#10;1 - re-transmission" maxRange="1" minRange="0" name="TNewDataIndicator" type="u32"/>
+      <typedef comment=" HARQ process number " maxRange="15" minRange="0" name="THarqProcessNumber" type="u32"/>
+      <typedef comment="Power received in the antenna connector over the used bandwidth on which the UE transmitted. &#13;&#10;In case of multiple receiver antennas, the value shall be the linear average across the powers of individual antennas. &#13;&#10;Decibel scale, unit = 0.001 dBm." maxRange="-50000" minRange="-126000" name="TRxPower" type="i32"/>
+      <typedef comment="Unit is the basic timing unit Ts, ref. to 36.211. Ts = 1/(15000 x 2048) seconds." maxRange="20512" minRange="0" name="TAbsoluteTimingAdvance" type="u32"/>
+      <typedef name="TRadioBearerId" type="u32"/>
+      <typedef comment="Identifies an UE in BTS level" maxRange="(MAX_NUM_USER_ID_PER_ENB - 1)" minRange="0" name="TUeId" type="u32"/>
+      <typedef name="TFamUeId" type="u32"/>
+      <typedef name="TL3MsgSize" type="u32"/>
+      <typedef forceGeneration="true" name="TL3ConnectionId" type="u32"/>
+      <typedef forceGeneration="true" name="TUeContextId" type="u32"/>
+      <typedef comment="Tracking Area Code is the identifier of&#13;&#10;the tracking are." maxRange="65535" minRange="1" name="TTrackingAreaCode" type="u32"/>
+      <typedef maxRange="3" minRange="2" name="TMncLength" type="u32"/>
+      <typedef comment="Type for Mobile Network Code" name="TMnc" type="u32"/>
+      <typedef comment="Type for Mobile Country Code" name="TMcc" type="u32"/>
+      <typedef comment="TX power spectral density in dBm per subcarrier.  Step size is 1/100 dBm.  " name="TTxPower" pointer="false" type="i32"/>
+      <typedef comment="Maximum TX power per antenna in dBm. Step size is 1/10 dBm." maxRange="500" minRange="-120" name="TMaxTxPower" type="i32"/>
+      <typedef comment="Loop power in dBm. Step size is 1/100 dBm." name="TPowerLoop" type="i32"/>
+      <typedef comment="Number of RX or TX antennas." name="TNumAntennas" type="u32"/>
+      <typedef name="TFrameRepeatRate" type="u32"/>
+      <typedef comment="Type for mmec (uniquely identifies a MME within a MME pool area)" name="TMmeCode" type="u8"/>
+      <typedef comment="Type for Temporary Mobile Subscriber Identity" name="TMTMsi" type="u32"/>
+      <typedef comment="Type def for IMSI which is defined on S1 as octet string with size 3 to 8" name="TImsi" type="u64"/>
+      <typedef comment="type definition for Tracking Area Id,&#13;&#10;is a structure containing PLMNId and&#13;&#10;Tracking Area Code.&#13;&#10;Final specification needs to be done&#13;&#10;for INC15 before C Milestone.&#13;&#10;" name="TTrackingAreaId" type="u32"/>
+      <typedef comment="Number of external IP adresses of own eNB" name="TNumEnbIpAddr" type="u32"/>
+      <typedef comment="Scheduling weight type for uplink and downlink for MAC scheduler configuration." name="TSchedulingWeight" type="u32"/>
+      <typedef name="TSiPeriodicity" type="u32"/>
+      <typedef comment="Offset defines the subframe to be choosen for scheduling request. Range is 0 to scheduling request period -1" name="TSrOffset" type="u32"/>
+      <typedef comment="Identifies the resource in a subframe to be used for PUCCH report. Building rule: PRB number in PUCCH * max cyclic shift + cyclic shift in choosen PRB" name="TPucchResourceIndex" type="u32"/>
+      <typedef name="TResourceIndexCqi" type="u32"/>
+      <typedef name="TSrbId" type="u32"/>
+      <typedef name="TDrbId" type="u32"/>
+      <typedef name="TConfigurationId" type="u32"/>
+      <typedef name="TN1PucchAn" type="u32"/>
+      <typedef name="TDeltaPucchShift" type="u32"/>
+      <typedef name="TPucchNAnCs" type="u32"/>
+      <typedef name="TNCqiRb" type="u32"/>
+      <typedef name="TCqiPerMaxNumOfUesTti" type="u32"/>
+      <typedef comment="MME Group Id defined in 23.003" name="TMmeGroupId" type="u16"/>
+      <typedef comment="DCI format type according to 3GPP 25.212. The following hexadecimal-based encoding shall be used: DCI format is represented by u8 primitive value. In hexadecimal format it is 0xab.&#13;&#10;&#13;&#10;abcd – type indicated as number in 3GPP.&#13;&#10;a&#9;| Format type&#13;&#10;----------------------&#13;&#10;0x0&#9;| 0&#13;&#10;0x1&#9;| 1&#13;&#10;0x2&#9;| 2&#13;&#10;0x3&#9;| 3&#13;&#10;&#13;&#10;b – sub-type indicated by a letter in 3GPP&#13;&#10;b&#9;| Sub-type&#13;&#10;---------------------&#13;&#10;0x0&#9;| &lt;no letter&gt;&#13;&#10;0x1&#9;| A&#13;&#10;0x2&#9;| B&#13;&#10;0x3&#9;| C&#13;&#10;0x4 &#9;| A (SyncRequest)&#13;&#10;&#13;&#10;Example: DCI format type 3A is encoded as 0x31.&#13;&#10;Example: DCI Format type 1A (Sync Request) is encoded as (0x14) (is set for “SYNCREQ UE”)" name="TDciFormatType" type="u8"/>
+      <typedef name="TRelativeMMECapacity" type="u8"/>
+      <typedef maxRange="99" minRange="0" name="TResourceBlock" type="u32"/>
+      <typedef name="TSubframes" type="u32"/>
+      <typedef comment="Transport Network Identifier" name="TTransportNetworkId" type="u32"/>
+      <typedef comment="identification of the S1 link" name="TS1LinkId" type="u32"/>
+      <typedef comment="from MAC spec" name="TNumHarqTransmissions" type="i32"/>
+      <typedef comment="from MAC spec" name="TTimerPollReTransmit" type="u32"/>
+      <typedef comment="from MAC spec" name="TTimerReordering" type="u32"/>
+      <typedef comment="from MAC spec" name="TTimerStatusProhibit" type="u32"/>
+      <typedef comment="reporting time interval in seconds" name="TReportingTimeInterval" type="u32"/>
+      <typedef comment="Actual throughput ratio is between 0 and 1, but value from Client (and MAC) gives the first 8 decimals of the original value, so 12345678 means 0,12345678 and 123456 means 0,00123456 and 100000000 means 1,00000000." name="TThroughputResult" type="u32"/>
+      <typedef comment="DSCP value set to IP header TOS field in case of GTP-U management messages." maxRange="63" minRange="0" name="TDscp" type="u32"/>
+      <typedef name="TCounterLte" type="u64"/>
+      <typedef name="TCounterCtrlLte" type="u32"/>
+      <typedef comment="Control information MCS offset determination table index.&#13;&#10;See chapter 8.6.3 from 36.213 specification." maxRange="15" minRange="0" name="TPuschControlOffsetIndex" type="u32"/>
+      <typedef name="TPrachConfIndex" type="u32"/>
+      <typedef comment="TDD special subframe configuration according to 36.211, 4.2" maxRange="8" minRange="0" name="TTddSpecialSubframeConf" type="u32"/>
+      <typedef name="TPrachFreqOff" type="u32"/>
+      <typedef comment="TDD uplink downlink configuration according to 36.211, 4.2" maxRange="6" minRange="0" name="TTddUplinkDownlinkConf" type="u32"/>
+      <typedef comment="Values are represented internally as integers (multiplied with 1000000), i.e. value 56000 represents 0.056000 and 288 represents 0.000288 etc.&#13;&#10;" maxRange="100000000" minRange="0" name="TCoEffValue" type="u32"/>
+      <typedef comment="Selection of antennaports.&#13;&#10;To select more than one port combine values as defined by ANTENNA_PORT_PORTx by bitwise OR operator (&quot;|&quot;)." maxRange="ANTENNA_PORT_ALL" minRange="ANTENNA_PORT_PORT0" name="TAntennaPort" rangeDescription="ANTENNA_PORT_PORT0 ANTENNA_PORT_PORT1 ANTENNA_PORT_PORT2 ANTENNA_PORT_PORT3 ANTENNA_PORT_ALL" type="u32"/>
+      <typedef comment="Handle to object in Lom." forceGeneration="true" name="TLomHandle" type="u32"/>
+      <typedef comment="Session identifier" forceGeneration="true" name="TLomSessionId" type="u32"/>
+      <typedef forceGeneration="true" maxRange="16777215" minRange="0" name="TUeS1X2Id" type="u32"/>
+      <typedef comment="Maximum bitrate for uplink configuration of DRB; Stepsize 50; All ranges in Kilobit per second; Defined in RRM SFS;" forceGeneration="true" name="TCellcMaxDrbBitrateUl" type="u32"/>
+      <typedef comment="Maximum bitrate for downlink configuration of DRB; Stepsize 50; All ranges in Kilobit per second; Defined in RRM SFS;" forceGeneration="true" name="TCellcMaxDrbBitrateDl" type="u32"/>
+      <typedef comment="Minimum bitrate for uplink configuration of DRB; All ranges in Kilobit per second; Defined in RRM SFS" forceGeneration="true" name="TCellcMinDrbBitrateUl" type="u32"/>
+      <typedef comment="Minimum bitrate for downlink configuration of DRB (KB/s); Stepsize 5; All ranges in Kilobit per second; Defined in RRM SFS" forceGeneration="true" name="TCellcMinDrbBitrateDl" type="u32"/>
+      <typedef comment="Number of transmission layers" maxRange="4" minRange="1" name="TNumOfLayers" type="u32"/>
+      <typedef comment="Codebook index for spatial multiplexing" name="TCodebookIndex" rangeDescription="16 MSBs: 0…15, 16 LSBs: 0…15" type="u32"/>
+      <typedef comment="Soft buffer size for the transport block: nIr = INT[ Nsoft / (Kmimo * min(Mdl_harq, Mlimit) ] (see 36.212)" maxRange="3667200" minRange="15648" name="TNIr" type="u32"/>
+      <typedef comment="Number of Physical Resource Blocks" maxRange="100" minRange="0" name="TNumPrbs" type="u32"/>
+      <typedef comment="Pointer to short term beamforming weight, only valid for BF case&#13;&#10;TDD specific addition.&#13;&#10;" name="TStBFWeightPointer" type="u32"/>
+      <typedef comment="Transport block size in bit, according to 3GPP TS 36.213" maxRange="75376" minRange="16" name="TTbSize" type="u32"/>
+      <typedef comment="Redundancy version for rate matching" maxRange="3" minRange="0" name="TRedundancyVersion" type="u32"/>
+      <typedef comment="Index of the code word for MIMO transmission" maxRange="1" minRange="0" name="TCodeWordIndex" type="u32"/>
+      <typedef comment="Control Format Indicator with value 1...3 for number of OFDM symbols to be used for transmission of PDCCHs in a subframe" maxRange="3" minRange="1" name="TCfi" type="u32"/>
+      <typedef comment="16-bit type for CRNTI." name="TCrntiU16" type="u16"/>
+      <typedef comment="One byte definition for TBoolean." maxRange="GLO_TRUE" minRange="GLO_FALSE" name="TBooleanU8" type="u8"/>
+      <typedef comment="8-bit type for cfi (control format indicator)." name="TCfiU8" type="u8"/>
+      <typedef comment="One byte definition for the HARQ process number" maxRange="15" minRange="0" name="THarqProcessNumberU8" type="u8"/>
+      <typedef comment="One byte defintion for the HARQ New Data Indicator&#13;&#10;0 - new transmission&#13;&#10;1 - re-transmission" maxRange="1" minRange="0" name="TNewDataIndicatorU8" type="u8"/>
+      <typedef comment="One byte definition for the redundancy version for rate matching" maxRange="3" minRange="0" name="TRedundancyVersionU8" type="u8"/>
+      <typedef comment="One byte enum definition that replaces EModulation.&#13;&#10;Note: Constants in the original enum must be within the 0..255 range." name="TEModulationU8" rangeDescription="EModulation" type="u8"/>
+      <typedef name="TPoolId" type="u32"/>
+      <typedef name="TUeCategory" type="u32"/>
+      <constant comment="maximal value of u32" forceGeneration="true" name="MAX_UINT32" value="0xFFFFFFFF"/>
+      <constant comment="maximal value of i32" forceGeneration="true" name="MAX_SINT32" value="0x7FFFFFFF"/>
+      <constant comment="maximal value of u16" forceGeneration="true" name="MAX_UINT16" value="0xFFFF"/>
+      <constant comment="maximal value of i16" forceGeneration="true" name="MAX_SINT16" value="0x7FFF"/>
+      <constant forceGeneration="true" name="MAX_DRB_ID" value="32"/>
+      <constant forceGeneration="true" name="MAX_SRB_ID" value="2"/>
+      <constant forceGeneration="true" name="MAX_RB_ID" value="34"/>
+      <constant forceGeneration="true" name="MAX_NUM_PRBS_DIV32" value="4"/>
+      <constant forceGeneration="true" name="MAX_NR_OF_PHY_ENTITY" value="2"/>
+      <constant comment="maximal number of control units present in eNB" forceGeneration="true" name="MAX_NUM_OF_C_UNIT" value="1"/>
+      <constant comment="maximal number of FSP boards present in eNB" forceGeneration="true" name="MAX_NUM_OF_BB_UNIT" value="3"/>
+      <constant comment="maximal number of DSPs in each FSPx board" forceGeneration="true" name="MAX_NUM_OF_DSP" value="9"/>
+      <constant comment="maximal number of cores in each faraday" forceGeneration="true" name="MAX_NUM_OF_CORES_IN_FARADAY" value="3"/>
+      <constant comment="maximal number of local cell resources supported" forceGeneration="true" name="MAX_NUM_OF_LCR" value="18"/>
+      <constant forceGeneration="true" name="MAX_NUM_RB_PER_USER" value="(MAX_NUM_SRB_PER_USER + MAX_NUM_DRB_PER_USER)"/>
+      <constant forceGeneration="true" name="MAX_NUM_SRB_PER_USER" value="2"/>
+      <constant forceGeneration="true" name="MAX_NUM_DRB_PER_USER" value="8"/>
+      <constant forceGeneration="true" name="MAX_NMBR_OF_TEIDS" value="(2 * MAX_NUM_DRB_PER_USER)"/>
+      <constant forceGeneration="true" name="MAX_NMBR_CODEWORDS" value="2"/>
+      <constant forceGeneration="true" name="MAX_NUM_OF_S1_LINK" value="300"/>
+      <constant forceGeneration="true" name="MAX_USERS_IN_NODEB_LTE" value="2520"/>
+      <constant forceGeneration="true" name="MAX_NUM_CELL_PER_ENB" value="6"/>
+      <constant forceGeneration="true" name="MAX_NUM_USER_PER_CELL" value="840"/>
+      <constant forceGeneration="true" name="MAX_NUM_USER_ID_PER_ENB" value="(((MAX_NUM_CELL_PER_ENB*MAX_NUM_USER_PER_CELL)) + MAX_NUM_USER_ID_RESERVED_FOR_TM)"/>
+      <constant forceGeneration="true" name="MAX_NUM_USER_ID_RESERVED_FOR_TM" value="71"/>
+      <constant comment="Maximum number o X2 links&#13;&#10;LTE782 introduced restriction to 256 X2 links" forceGeneration="true" name="MAX_NUM_X2_SCTP_LINKS" value="256"/>
+      <constant comment="Maximum supported number of S1 links" forceGeneration="true" name="MAX_NUM_S1_SCTP_LINKS" value="16"/>
+      <constant forceGeneration="true" name="MAX_NUM_SCTP_ASSOCIATIONS" value="(MAX_NUM_S1_SCTP_LINKS+MAX_NUM_X2_SCTP_LINKS)"/>
+      <constant comment="MAX SI length in bytes. &#13;&#10;Determined on basis of TS36.213, ver. 8.6.0 (2009-03). TB Size for SI-RNTI is 2216 bits, which equals to 277 bytes and is rounded up to 280 bytes.&#13;&#10;" forceGeneration="true" name="MAX_SI_DATA" value="280"/>
+      <constant comment="MAX RLC SDU length in bytes (based on PDCP SDU max length 8188 bytes and PDCP PDU header 5 bytes for SRB (2 bytes for DRB))" forceGeneration="true" name="MAX_RLC_DATA" value="8193"/>
+      <constant comment="MAX length in bytes." forceGeneration="true" name="MAX_PCCH_DATA" value="425"/>
+      <constant comment="MAX length in bytes. " forceGeneration="true" name="MAX_CCCH_DATA" value="5120"/>
+      <constant comment="MAX length in bytes. " name="MAX_CCCH_DATA_UL" value="6"/>
+      <constant comment="This includes also MIB" forceGeneration="true" name="MAX_NUM_SIS" value="17"/>
+      <constant comment="One address in case of WMP" forceGeneration="true" name="MAX_NUM_OF_ENB_IP_ADDR" value="4"/>
+      <constant comment="Maximum number of SRBs without SRB0 and SRB1&#13;&#10;&#13;&#10;ISAR tool is not able to deal with (MAX_NUM_SRB_PER_USER-1)" forceGeneration="true" name="MAX_NUM_SRB_PER_USER_WO_SRB1" value="1"/>
+      <constant comment="Maximum length of transport layer address" forceGeneration="true" name="MAX_TRANSPORT_LAYER_ADDRESS_LENGTH" value="16"/>
+      <constant comment="Max 8 Paging items" forceGeneration="true" name="MAX_PAGING_ITEMS" value="8"/>
+      <constant forceGeneration="true" name="MAX_MEAS_GROUP_TYPE_ID" value="22"/>
+      <constant forceGeneration="true" name="MAX_MEAS_TYPE_ID" value="18"/>
+      <constant forceGeneration="true" name="TUP_DATA_BLOCK_SIZE" value="2048"/>
+      <constant forceGeneration="true" name="TUP_MAX_PAYLOAD_SIZE" value="8188"/>
+      <constant name="MAX_NUM_MEAS_REPORT_VALUE" value="6"/>
+      <constant name="MAX_PAGING_BITMAP_DATA" value="4"/>
+      <constant comment="MAX number of segments for a segmented SI message" name="MAX_NUM_SI_SEGMENT" value="64"/>
+      <constant comment="MAX length of all segments of a segmented SI altogether (a summed up length). &#13;&#10;3GPP 36.413 defines max size for a Warning message as 9600 bytes.  &#13;&#10;Assumption: MAX_SI_SEGMENT_DATA is 9600 bytes + 64 segments * 10 bytes (for RRC segment headers) = 10240 bytes." name="MAX_SI_SEGMENT_DATA" value="10240"/>
+      <constant comment="Dummy constant to be used as array size for array with variable size" name="VARIABLE_SIZE_ARRAY_DUMMY" value="65535"/>
+      <constant comment="maximum number of BB Usage coefficient sets" name="MAX_NUM_COEFF_BW" value="8"/>
+      <constant name="MAX_LENGTH_FILENAME" value="300"/>
+      <constant name="MAX_LENGTH_MMENAME" value="150"/>
+      <constant name="MAX_NUM_SERVED_PLMN" value="32"/>
+      <constant name="ANTENNA_PORT_PORT0" value="1"/>
+      <constant name="ANTENNA_PORT_PORT1" value="2"/>
+      <constant name="ANTENNA_PORT_PORT2" value="4"/>
+      <constant name="ANTENNA_PORT_PORT3" value="8"/>
+      <constant name="ANTENNA_PORT_ALL" value="65535"/>
+      <constant comment="in units of milli-seconds&#13;&#10;" forceGeneration="true" name="TIMEOUT_PATH_SUP_RESP_FROM_TRSW" value="1000"/>
+      <constant comment="in units of milli-seconds&#13;&#10;" forceGeneration="true" name="TIMEOUT_PATH_SUP_RESP_FROM_TUPU" value="(TIMEOUT_PATH_SUP_RESP_FROM_TRSW + 1000)"/>
+      <constant name="MAX_NUM_OF_S1_LINK_ID" value="16"/>
+      <constant name="MAX_NUM_CUPLANE_ADDRESSES" value="6"/>
+      <constant forceGeneration="true" name="MAX_NUM_CELL_PER_MCU" value="6"/>
+      <constant forceGeneration="true" name="MAX_NUM_USER_PER_MCU" value="2520"/>
+      <constant comment="to be defined as maximum of MAX_NUM_CELL_PER_BB_POOL_FDD and MAX_NUM_CELL_PER_BB_POOL_TDD" forceGeneration="true" name="MAX_NUM_CELL_PER_BB_POOL" value="2"/>
+      <constant comment="to be defined as maximum of MAX_NUM_USER_PER_BB_POOL_FDD and MAX_NUM_USER_PER_BB_POOL_TDD" forceGeneration="true" name="MAX_NUM_USER_PER_BB_POOL" value="840"/>
+      <constant forceGeneration="true" name="MAX_NUM_CELL_PER_BB_POOL_FDD" value="2"/>
+      <constant name="MAX_NUM_USER_PER_BB_POOL_FDD" value="840"/>
+      <constant forceGeneration="true" name="MAX_NUM_CELL_PER_BB_POOL_TDD" value="1"/>
+      <constant comment="Maximum number of UEs in DSP Pool in TDD product." forceGeneration="true" name="MAX_NUM_USER_PER_BB_POOL_TDD" value="600"/>
+      <constant comment="Maximum number of parallel procedures supported, used by LTE MAC and LTE TUPu." forceGeneration="true" name="MAX_NUM_OF_PARALLEL_PROCEDURES" value="40"/>
+      <constant comment="Each antenna group contains the two orthogonally polarized direction antennas. " name="NUM_OF_ANTENNAGROUPS" value="4"/>
+      <constant comment="Maximum Number of Logical Channels per User" name="MAX_LCID" value="10"/>
+      <constant comment="Number of bits reserved for ueGroup presentation in TUeIndex definition. FSMr2." name="NUM_UEGROUP_BITS_FSM2" value="0"/>
+      <constant comment="Number of bits reserved for ueGroup presentation in TUeIndex definition. FSMr3." name="NUM_UEGROUP_BITS_FSM3" value="2"/>
+      <constant comment="Number of bits reserved for ueGroup presentation in TUeIndex definition. FSMr3 in RL70 and HDBDE.&#13;&#10;A temporary constant created to support implementation for ueGroup increase. After implementation is done,  NUM_UEGROUP_BITS_FSM3 is set to 4 and this constant is removed." name="NUM_UEGROUP_BITS_FSM3_RL70" value="4"/>
+      <constant comment="((1) &lt;&lt; NUM_UEGROUP_BITS_FSM2)&#13;&#10;&#13;&#10;Number of UE Groups per DSP Pool in FSM2 (1).&#13;&#10;Possible values are power of two." name="NUM_UEGROUP_PER_BB_POOL_FSM2" value="1"/>
+      <constant comment="((1) &lt;&lt; NUM_UEGROUP_BITS_FSM3)&#13;&#10;&#13;&#10;Number of UE Groups per DSP Pool in FSM3 (4).&#13;&#10;Possible values are power of two." name="NUM_UEGROUP_PER_BB_POOL_FSM3" value="4"/>
+      <constant comment="Number of UE Groups per DSP Pool in RL70 and HDBDE (12).&#13;&#10;A temporary constant created to support implementation for ueGroup increase. After the implementation is done,  NUM_UEGROUP_PER_BB_POOL_FSM3 is to be set to 12 and this constant is removed." name="NUM_UEGROUP_PER_BB_POOL_FSM3_RL70" value="12"/>
+      <constant comment="Maximum number of UE Groups per DSP Pool. Possible values are power of two, range [1, 2, 4, 8, 16]." name="MAX_NUM_UEGROUP_PER_BB_POOL" value="NUM_UEGROUP_PER_BB_POOL_FSM3"/>
+      <constant comment="Maximum number of UE Groups per DSP Pool. Possible values are power of two, range [1, 2, 4, 8 and 16].&#13;&#10;A temporary constant created to support implementation for ueGroup increase. After the implementation is done, NUM_UEGROUP_PER_BB_POOL is to be set to 16 and this constant is removed." name="MAX_NUM_UEGROUP_PER_BB_POOL_RL70" value="16"/>
+      <constant comment="Maximum number of permanent UEs in DSP Pool in low capacity deployment." name="MAX_NUM_USER_PERM_PER_BB_POOL_LOW" value="840"/>
+      <constant comment="Maximum number of permanent UEs in DSP Pool in high capacity deployment. Only FSMr3." name="MAX_NUM_USER_PERM_PER_BB_POOL_HIGH" value="1200"/>
+      <constant comment="Maximum number of permanent UEs in DSP Pool in TDD product super cell." name="MAX_NUM_USER_PER_BB_POOL_TDD_SUPER_CELL" value="480"/>
+      <constant comment="Maximum number of temporary UEs in DCM product." name="MAX_NUM_USER_TEMP_PER_BB_POOL_DCM" value="200"/>
+      <constant comment="Maximum number of UEs in DSP Pool in low capacity deployment, including temporary UEs." name="MAX_NUM_USER_PER_BB_POOL_LOW" value="(MAX_NUM_USER_PERM_PER_BB_POOL_LOW+MAX_NUM_USER_TEMP_PER_BB_POOL_DCM)"/>
+      <constant comment="Maximum number of UEs in DSP Pool in high capacity deployment, including temporary UEs. &#13;&#10;Note: High capacity deployment is not supported in DCM so far, thus no need to include temporary UEs for this deployment.&#13;&#10;" name="MAX_NUM_USER_PER_BB_POOL_HIGH" value="1200"/>
+      <constant comment="Maximum UE index (for PhyData interface)." name="MAX_UE_INDEX" value="(MAX_NUM_USER_PER_BB_POOL_HIGH-1)"/>
+      <constant comment="Maximum UE index in TDD product (for PhyData interface)." name="MAX_UE_INDEX_TDD" value="(MAX_NUM_USER_PER_BB_POOL_TDD-1)"/>
+      <constant comment="will be removed. Should be replaced by INVALID_UEINDEX" name="UE_INDEX_INVALID" value="0xFFFF"/>
+      <constant forceGeneration="true" name="INVALID_UEINDEX" value="0xFFFF"/>
+      <constant comment="Maximum number of physical antennas in a cell" name="MAX_NUM_OF_ANT_IN_CELL" value="12"/>
+      <constant comment="Maximum number of sub-cells in a cell" name="MAX_NUM_OF_SUBCELLS" value="12"/>
+      <constant name="MAX_NUM_CELL_PER_ADJ_ENB" value="24"/>
+      <constant name="MAX_NUM_OF_L2DEPLOYABLE_NODE" value="8"/>
+      <constant comment="invalid UE group (TUeGroup)" name="INVALID_UEGROUP" value="0xFFFFFFFF"/>
+      <struct name="SMessageResult">
+         <member name="status" type="EStatusLte"/>
+         <member name="cause" type="ECauseLte"/>
+         <member name="specificCause" type="ESpecificCauseLte"/>
+      </struct>
+      <struct name="SPlmnId">
+         <member comment="Length of the mobile country code" name="mncLength" type="TMncLength"/>
+         <member comment="Mobile Network Code part of the PLMN" name="mnc" type="TMnc"/>
+         <member comment="Mobile country code of the PLMN" name="mcc" type="TMcc"/>
+      </struct>
+      <struct comment="Internal rappresentation for the Global Unique MME Identity" name="SGummei">
+         <member name="PlmnIdentity" type="SPlmnId"/>
+         <member name="mmeGroupId" type="TMmeGroupId"/>
+         <member name="mmeCode" type="TMmeCode"/>
+      </struct>
+      <struct comment="Structure for internal usage of S1AP S-TMSI" name="SSTMsi">
+         <member comment="Temporary Mobile Subscriber Identity; M-TMSI is unique within MME that allocated it" name="mTMsi" type="TMTMsi"/>
+         <member comment="MME Code to uniquely identify a MME within an MME pool area" name="mmeCode" type="TMmeCode"/>
+      </struct>
+      <struct name="STransportLayerAddress">
+         <member comment="IPv4: Encoding of address field is IP w.x.y.z. byte 0: w byte 1: x byte 2: y byte 3: z.&#13;&#10;IPv6: 128-bit IPv6 address." name="address" type="u8">
+            <dimension isVariableSize="true" minSize="4" size="MAX_TRANSPORT_LAYER_ADDRESS_LENGTH" variableSizeFieldName="addressLength"/>
+         </member>
+      </struct>
+      <struct name="SGcadAddress">
+         <member comment="Event Queue Identifier" name="eqid" type="TEqId"/>
+         <member comment="Communication Context Identifier" name="ccid" type="TCcId"/>
+      </struct>
+      <struct name="SResultCounters">
+         <member comment="number of received bits" name="numberOfReceivedBits" type="TCounterLte"/>
+         <member comment="number of defective bits" name="numberOfDefectiveBits" type="TCounterLte"/>
+         <member comment="number of received transmission blocks" name="numberOfReceivedTransmissionBlocks" type="TCounterLte"/>
+         <member comment="number of unreceived transmission blocks" name="numberOfUnreceivedTransmissionBlocks" type="TCounterLte"/>
+      </struct>
+      <struct name="SUlCtrlChannelMeasCounters">
+         <member comment="1) For PucchAck: number of detected ACKs when ACK send from signal generator&#13;&#10;2) For PucchCqi: number of detected CQIs when CQI send from signal generator&#13;&#10;3) For Prach: number of detected correct Preambles when preamble send from signal generator&#13;&#10;4) For PuschHarqAck: number of detected ACKs when PUSCH with ack send from signal generator" name="detectedCounter" type="TCounterCtrlLte"/>
+         <member comment="1) For PucchAck: number of missed ACKs when ACK send&#13;&#10;2) For PucchCqi: number of missed CQIs when CQI send&#13;&#10;3) For Prach: number of missed Preambles when preamble send. Also details of reasons for missed preambles is send:&#13;&#10;-noPaCounter&#13;&#10;-wrongPaCounter&#13;&#10;-wrongTimingCounter&#13;&#10;4) For PuschHarqAck: number of missed ACKs when PUSCH with ACK send" name="missedCounter" type="TCounterCtrlLte"/>
+         <member comment="1) For PucchAck: number of detected ACKs in the idle period (nothing send)&#13;&#10;2) For PucchCqi: number of detected CQIs in the idle period (nothing send)&#13;&#10;3) For Prach: number of detected Preambles in the idle period (nothing send)&#13;&#10;4) For PuschHarqAck: number of detected ACKs during data only transmissions" name="falseCounter" type="TCounterCtrlLte"/>
+         <member comment="1...3) For PucchAck, PucchCqi, Prach: total number of idle sub-frames during reporting period&#13;&#10;4) For PuschHarqAck: number of data only transmission sub-frames" name="idlePeriodCounter" type="TCounterCtrlLte"/>
+      </struct>
+      <struct comment="only valid if measType == &quot;Prach&quot;" name="SUlCtrlChannelMeasCountersMissedPrach">
+         <member comment="cases of not detecting a preamble at all" name="noPaCounter" type="TCounterCtrlLte"/>
+         <member comment="cases of detecting different preamble than the one that was sent" name="wrongPaCounter" type="TCounterCtrlLte"/>
+         <member comment="cases of correct preamble detection but with the wrong timing estimation" name="wrongTimingCounter" type="TCounterCtrlLte"/>
+      </struct>
+      <struct name="SUlCtrlChannelPrachParams">
+         <member comment="Supported range of prachConfIndex is 3..8, 19..24&#13;&#10;value is ignored since MAC use constantOffset parameter to define ideal reception timing" maxRange="63" minRange="0" name="prachConfIndex" type="TPrachConfIndex"/>
+         <member comment="The same preamble as signal generator transmit." maxRange="63" minRange="0" name="preambleIndex" type="u32"/>
+         <member comment="Used to calculate if preamble timing is within accepted limit. Value depend on channel profile under test, see details in 3GPP 36.141. Unit nanosecond. &#13;&#10;Typical values: acceptedTimingError 1040 ns (1.04 us) for AWGN and 2080 ns for ETU70 profile." maxRange="999999" minRange="0" name="acceptedTimingError" type="u32"/>
+         <member comment="Used to calculate if preamble timing is within accepted limit. Value depend on channel profile under test, see details in 3GPP 36.141. Unit nanosecond.&#13;&#10;Typical values:&#13;&#10;constantOffset=Nsc/2 [ns] + channel delay. Channel delay is 0 ns for AWGN and 310 ns for ETU70&#13;&#10;&#13;&#10;user must ensure constantOffset+acceptedTimingError (+delay) &lt; 1 ms  to avoid exceeding subframe duration" maxRange="999999" minRange="0" name="constantOffset" type="u32"/>
+         <member comment="Duration for each delay pattern step, whole pattern takes 10*SingleStepDuration (first step with delay 0 us, second step 0.1 us, ... tenth step 0.9 us, then restart from the beginning). MAC adds timing offset scheme value to constantOffset parameter to define ideal timing.&#13;&#10;Value 0 means that delay pattern is not used&#13;&#10;Unit ms." maxRange="1000" minRange="0" name="delayPatternSingleStepDuration" type="u32"/>
+      </struct>
+      <struct name="SUlCtrlChannelPucchAckParams">
+         <member comment="Value according to 3GPP. &#13;&#10;5MHz: 0…20, 10MHz: 0…42, 15MHz: 0…64, 20MHz: 0…86.&#13;&#10;pucchAckFormat1bWithChannelSelection: PUCCH resource index for HARQ-ACK of Pcell." maxRange="86" minRange="0" name="pucchResourceIndexAn" type="TPucchResourceIndex"/>
+         <member comment="DCM specific&#13;&#10;Range:0..86,  0xFFFFFFFF (default, means 'not used').&#13;&#10;pucchAckFormat1bWithChannelSelection:  PUCCH resource index for HARQ-ACK of Scell. Index shall equal to neither corresponding pucchResourceIndexAn of Pcell nor corresponding pucchResourceIndexAn of Pcell + 1.&#13;&#10;Default value means no second user allocated&#13;&#10;Value according to 3GPP. &#13;&#10;5MHz: 0…20, 10MHz: 0…42, 15MHz: 0…64, 20MHz: 0…86." name="pucchResourceIndexSecond" type="TPucchResourceIndex"/>
+         <member comment="DCM specific&#13;&#10;Range:0..86,  0xFFFFFFFF (default, means 'not used').&#13;&#10;pucchAckFormat1bWithChannelSelection:  not used, value is 0xFFFF. &#13;&#10;Default value means no third user allocated&#13;&#10;Value according to 3GPP. &#13;&#10;5MHz: 0…20, 10MHz: 0…42, 15MHz: 0…64, 20MHz: 0…86." name="pucchResourceIndexThird" type="TPucchResourceIndex"/>
+         <member comment="DCM specific&#13;&#10;Range:0..86,  0xFFFFFFFF (default, means 'not used')&#13;&#10;Default value means no fourth user allocated&#13;&#10;Value according to 3GPP. &#13;&#10;5MHz: 0…20, 10MHz: 0…42, 15MHz: 0…64, 20MHz: 0…86." name="pucchResourceIndexFourth" type="TPucchResourceIndex"/>
+      </struct>
+      <struct name="SUlCtrlChannelPucchCqiParams">
+         <member comment="In practice 0…240." maxRange="1185" minRange="0" name="pucchResourceIndexCqi" type="TResourceIndexCqi"/>
+         <member comment="DCM specific&#13;&#10;Range:0..1185,  0xFFFFFFFF (default)&#13;&#10;Default value means no second user allocated" name="pucchResourceIndexSecond" type="TResourceIndexCqi"/>
+         <member comment="DCM specific&#13;&#10;Range:0..1185,  0xFFFFFFFF (default)&#13;&#10;Default value means no third user allocated" name="pucchResourceIndexThird" type="TResourceIndexCqi"/>
+         <member comment="DCM specific&#13;&#10;Range:0..1185,  0xFFFFFFFF (default)&#13;&#10;Default value means no fourth user allocated" name="pucchResourceIndexFourth" type="TResourceIndexCqi"/>
+      </struct>
+      <struct name="SUlCtrlChannelPuschHarqAckParams">
+         <member comment="A3-1, A4-3 (LTE116), A4-4 (LTE117), A4-5, A4-6, A4-7, A4-8." name="referenceChannelNumber" type="EReferenceChannelNumber"/>
+         <member comment="Default 0. Resource block allocation offset. &#13;&#10;Allowed values per FRC/BW:&#13;&#10;FRC ; BW&#9;Range: &#13;&#10;A3-1 ; 1.4&#9;0…5&#13;&#10;A3-1 ; 3  &#9;0…14&#13;&#10;A3-1 ; 5  &#9;0...24&#13;&#10;A3-1 ; 10&#9;0...49&#13;&#10;A3-1 ; 15&#9;0...74&#13;&#10;A3-1 ; 20&#9;0...99&#13;&#10;A4-3 ; 1.4&#9;0&#13;&#10;A4-4 ; 3  &#9;0    &#13;&#10;A4-5 ; 5  &#9;0&#13;&#10;A4-6 ; 10&#9;0&#13;&#10;A4-7 ; 15&#9;0&#13;&#10;A4-8 ; 20&#9;0" maxRange="99" minRange="0" name="resourceBlockOffset" type="TResourceBlock"/>
+      </struct>
+      <struct comment="The following fixed values are used (must be selected in signal generator):&#13;&#10;-ackDefinition: NEG meaning 1 (high) is ack.&#13;&#10;-nbrOfStopBits: number of stop bits, only 1 supported. Stop bit state is always 1 (high). &#13;&#10;-startBit is always one bit with state 0 (low).  &#13;&#10;-idleState when no data (rest of the subframe after data bits sent) is high meaning output returns always to state 1 (high) when no data send to SG.&#13;&#10;-parityBit: only no parity bit supported &#13;&#10;-dataLength and format according to signal generator specification&#13;&#10;-bitOrder: Only LSB first supported. Send bit pattern is idle, [start, d0, d1,…dN, stop], idle." name="SUlTestModelsDigitalOutputParams">
+         <member comment="With binaryHarq whole subframe is with same ack or nack state.&#13;&#10;With Serial Agilent output is adjusted to Agilent N5106 PXB serial data.&#13;&#10;With serialRs output is adjusted to R&amp;S SMU serial data." name="digitalOutputType" type="EDigitalOutputType"/>
+         <member comment="The same value must be selected for SG." name="bitRate" type="EDigitalOutputBitRate"/>
+         <member comment="Valid only if digitalOutputType is serialRs. Not used with Agilent SG." name="bBSelector" type="EDigitalOutputBBSelector"/>
+      </struct>
+      <struct name="SPucchConfiguration">
+         <member comment="Cyclic shift length of the cell set of PUCCH orthogonal sequences ." maxRange="3" minRange="1" name="deltaPucchShift" type="TDeltaPucchShift"/>
+         <member comment="Number of cyclic shifts for format 1/1a/1b transmissions in mixed format PRB.&#13;&#10;Value 0 defines that there is no mixed format PRB.&#13;&#10;" maxRange="7" minRange="0" name="pucchNAnCs" type="TPucchNAnCs"/>
+         <member comment="Resource blocks reserved for PUCCH format 2/2a/2b transmissions exclusively." maxRange="98" minRange="0" name="nCqiRb" type="TNCqiRb"/>
+         <member comment="Offset value to divide resources between dynamic Ack/Nack and SPS Ack/Nacks / SR, used to calculate ACK/NACK resource from PDCCH CCE." maxRange="2047" minRange="0" name="n1PucchAn" type="TN1PucchAn"/>
+      </struct>
+      <struct comment="Control information MCS offset determination.&#13;&#10;See chapter 8.6.3 from 36.213 specification" name="SPuschControlOffsets">
+         <member comment="Mapping of HARQ-ACK offset values and the index signalled by higher layers.&#13;&#10;Index to table 8.6.3-1 in 36.213.&#13;&#10;" maxRange="14" minRange="0" name="puschAckOffI" type="TPuschControlOffsetIndex"/>
+         <member comment="Mapping of RI offset values and the index signalled by higher layers.&#13;&#10;Index to table 8.6.3-2 in 36.213.&#13;&#10;" maxRange="12" minRange="0" name="puschRiOffI" type="TPuschControlOffsetIndex"/>
+         <member comment="Mapping of CQI offset values and the index signalled by higher layers.&#13;&#10;Index to table 8.6.3-3 in 36.213.&#13;&#10;" maxRange="15" minRange="0" name="puschCqiOffI" type="TPuschControlOffsetIndex"/>
+      </struct>
+      <struct name="SCalibrationSets">
+         <member comment="0: Rx calibration&#13;&#10;1: Tx calibration&#13;&#10;255: Not Valid" name="calRxTxFlag" type="u32"/>
+         <member comment="Indicates when it takes place with regard to start of calibration period." maxRange="4095" minRange="0" name="calFrameOffset" type="u32"/>
+         <member comment="Half frame indication&#13;&#10;1: subframe 1&#13;&#10;6: subframe 6" name="halfFrameIndication" type="u32"/>
+         <member comment="AntennaBitMap encoded as a bitmap, where bit Nb is set to &quot;0&quot; if an antenna path with Np = N-1 is not permit to calibration, and set to &quot;1&quot; if the antenna path with Np = N-1 is permitted to calibration; &#13;&#10;N = 1 to 8; bit 1 of the bitmap is the Least Significant Bit of the bit string. &#13;&#10;Np = 0 to 7; is the antenna path index" maxRange="255" minRange="0" name="antennaBitMap" type="u32"/>
+      </struct>
+      <struct comment="This contains information about the MMEs towards which adjacent eNB has S1 connectivity&#13;&#10;in comparison to local eNB's connectivity to MMEs." name="SS1SignallingConnectivityInfoOfAdjEnb">
+         <member comment="This is the list of S1 link Ids corresponding to the MMEs to which both adjacent eNB and&#13;&#10;local eNB have connectivity. If the flag s1SignallingConnectivityToAdjENB is &quot;true&quot; then&#13;&#10;this list is non-empty. But if the s1SignallingConnectivityToAdjENB is &quot;false&quot; then this list&#13;&#10;is empty and implies that adjacent eNB has no connectivity to any of the MMEs to which&#13;&#10;the local eNB is connected (Used for target cell selection during inter-eNB handover.&#13;&#10;Ref MM.1530 &amp; MM.467)." name="s1LinkId" type="TL3LinkId">
+            <dimension isVariableSize="true" size="MAX_NUM_OF_S1_LINK_ID"/>
+         </member>
+      </struct>
+      <struct name="SCandUPlaneIpAddresses">
+         <member comment="Transport Network Identifier" name="transportNetworkId" type="TTransportNetworkId"/>
+         <member comment="C-Plane IP address, see WBTS_OPR_57343" name="cPlaneIpAddress" type="STransportLayerAddress"/>
+         <member comment="U-Plane IP address, see WBTS_OPR_57343" name="uPlaneIpAddress" type="STransportLayerAddress"/>
+      </struct>
+      <struct comment="Beamforming specific parameters. Please refer to LTE_CP_21833." name="SSectorBfWeightforAntenna">
+         <member comment="Imag part of complex beamforming weight. Step size is 1/10000" maxRange="10000" minRange="-10000" name="bfWeigthImag" type="i16"/>
+         <member comment="Real part of complex beamforming weight. Step size is 1/10000." maxRange="10000" minRange="-10000" name="bfWeightReal" type="i16"/>
+      </struct>
+      <struct comment="Resources to use for downlink transport block on PDSCH.&#13;&#10;Two PRB maps are provided, one for slot #0 and another one for slot #1 of a TTI. In this way VRBs of distributed type can be supported by selecting different PRB maps for slot #0 and slot #1. In  case of VBRs of localized type, identical maps are provided both for slot #0 and slot #1." name="SPdschResources">
+         <member comment="Number of physical resource blocks in the  allocation. Must match number of bits set to '1' in prbMap" maxRange="100" minRange="1" name="numPrbs" type="TNumPrbs"/>
+         <member comment="PRB map to be used in slot #0 of TTI.&#13;&#10;If (prbMap[j]&gt;&gt;i)&amp;1 equals 1, PRB number i+32*j is included in the allocation. See L1 SFS for definition of PRB number. See TPrbNumber for definition of the range of the PRB number" name="prbMap0" type="u32">
+            <dimension size="MAX_NUM_PRBS_DIV32"/>
+         </member>
+         <member comment="PRB map to be used in slot #1 of TTI.&#13;&#10;If (prbMap[j]&gt;&gt;i)&amp;1 equals 1, PRB number i+32*j is included in the allocation. See L1 SFS for definition of PRB number. See TPrbNumber for definition of the range of the PRB number" name="prbMap1" type="u32">
+            <dimension size="MAX_NUM_PRBS_DIV32"/>
+         </member>
+      </struct>
+      <struct comment="Beamforming specific parameters&#13;&#10;&#13;&#10;" name="SDlBfTbFormat">
+         <member comment="Weight factor for long term  beamforming. there are total 8 element for this parameter, each is a 32bits complex value. I occupies the higher 16 bits, Q the lower 16 bits.&#13;&#10;TDD specific addition.&#13;&#10;" maxRange="0xFFFFFFFF" minRange="0" name="bfWeight" type="u32">
+            <dimension size="4"/>
+         </member>
+         <member comment="Pointer to short term beamforming weight, only valid for BF case&#13;&#10;TDD specific addition.&#13;&#10;" name="stBFWeight" type="TStBFWeightPointer"/>
+         <member comment="Indicate the scrambling identity field of DCI format 2B or 2C" maxRange="1" minRange="0" name="nSCID" type="u16"/>
+         <member comment="Indicate the PMI validity for the current codeword." maxRange="1" minRange="0" name="cbiValidity" type="u16"/>
+         <member comment="Number of physical resource blocks that shared with other UEs in the allocation. Must match number of bits set to '1' in prbMap for shared PRBs." maxRange="100" minRange="1" name="numMuPrbs" type="TNumPrbs"/>
+         <member comment="PRB map for shared PRBs to be used in slot #0 of TTI.&#13;&#10;If (prbMap[j]&gt;&gt;i)&amp;1 equals 1, PRB number i+32*j is included in the allocation. See L1 SFS for definition of PRB number. See TPrbNumber for definition of the range of the PRB number&#13;&#10;" name="muPrbMapSlot0" type="u32">
+            <dimension size="MAX_NUM_PRBS_DIV32"/>
+         </member>
+         <member comment="PRB map for shared PRBs to be used in slot #1 of TTI.&#13;&#10;If (prbMap[j]&gt;&gt;i)&amp;1 equals 1, PRB number i+32*j is included in the allocation. See L1 SFS for definition of PRB number. See TPrbNumber for definition of the range of the PRB number&#13;&#10;" name="muPrbMapSlot1" type="u32">
+            <dimension size="MAX_NUM_PRBS_DIV32"/>
+         </member>
+      </struct>
+      <struct comment="Transport block format in downlink" name="SDlTbFormat">
+         <member comment="Modulation scheme QPSK, 16QAM, 64QAM" maxRange="EModulation_64qam" minRange="EModulation_Qpsk" name="modulation" type="EModulation"/>
+         <member comment="Redundancy version for rate matching" maxRange="3" minRange="0" name="redundancyVersion" type="TRedundancyVersion"/>
+         <member comment="MIMO mode to be used in DL: single TX, TX diversity or spatial multiplexing" maxRange="ESpatialMode_SpatialMultiplexing" minRange="ESpatialMode_SingleTx" name="spatialMode" type="ESpatialMode"/>
+         <member comment="Number of transmission layers" maxRange="2" minRange="1" name="numOfLayers" type="TNumOfLayers"/>
+         <member comment="Codebook index for spatial multiplexing. In FDD, bit 4 – bit 31 are always 0.In TDD, If spatialMode is one of ESpatialMode_TM9_Port7 and ESpatialMode_TM9_Port8 and ESpatialMode_TM9_UpTo8LayersTx, the  bit 0 – bit 3 reprensent the codebook index i1 and the  bit 4 – bit 7 represent the codebook index i2." name="codebookIndex" rangeDescription="Bit  8 – bit 31: 0,Bit 4 – bit 7: 0…15,Bit 0 – bit 3: 0…15" type="TCodebookIndex"/>
+         <member comment="Index of the code word for MIMO transmission" maxRange="1" minRange="0" name="codeWordIndex" type="TCodeWordIndex"/>
+         <member comment="Soft buffer size for the transport block: nIr = INT[ Nsoft / (Kmimo * min(Mdl_harq, Mlimit) ] (see 36.212)" maxRange="3667200" minRange="15648" name="nIr" type="TNIr"/>
+      </struct>
+      <struct name="STxAntennaMapping">
+         <member comment="corresponds to the position of the TX resource in txAntennasInLocalCell array of the associated local cell in Local_2_CellResMapToAntennasReq message" maxRange="MAX_NUM_OF_ANT_IN_CELL-1" minRange="0" name="txAntIndex" type="u32"/>
+         <member comment="Sub Cell ID that contains above specified antenna" maxRange="MAX_NUM_OF_SUBCELLS" minRange="0" name="subCellId" type="u32"/>
+      </struct>
+      <struct name="SRxAntennaMapping">
+         <member comment="corresponds to the position of the RX resource in rxAntennasInLocalCell array of the associated local cell in Local_2_CellResMapToAntennasReq message" maxRange="MAX_NUM_OF_ANT_IN_CELL-1" minRange="0" name="rxAntIndex" type="u32"/>
+         <member comment="Sub Cell ID that contains above specified antenna" name="subCellId" type="u32"/>
+      </struct>
+      <typedef comment="Defines the mapping of RP3 IQ data amplitude to the received signal power.&#13;&#10;A rxPowerScaling value is given for each RX antenna.&#13;&#10;Format is [dBm], step size is 0.01 [dBm].&#13;&#10;Although the value is negative, it is given as absolute value without minus sign.&#13;&#10;Default value is 11722 for WMP only.&#13;&#10;For DCM, see &quot;Super 3G BTS FSM/FRR/RF Interface Specification&quot;, chapter 2.1.9.&#13;&#10;Note. Only the first  numOfRxDivAntennas values are valid. The rest of the values shall be set to 0. For TDD, only the first value is valid when super cell is enabled." maxRange="20000" minRange="0" name="TRxPowerScaling" type="u32"/>
+      <typedef comment="Scaling of the TX IQ data.&#13;&#10;Defined as Root Mean Square (RMS) average of TX IQ data on RP3 link for maximal output power.&#13;&#10;Default is 3277 for DCM, 4024 for WMP(FDD/TDD).&#13;&#10;For DCM, see &quot;Super 3G BTS FSM/FRR/RF Interface Specification&quot;, chapter 2.1.9." maxRange="10000" minRange="1" name="TTxPowerScaling" type="u32"/>
+      <typedef name="TPeriod" type="u32"/>
+      <typedef comment="Identifies the measurement set in FSP level." maxRange="65535" minRange="0" name="TMeasurementId" type="u32"/>
+      <enum name="EDirection">
+         <enum-member name="EDirection_Dl" value="0"/>
+         <enum-member name="EDirection_Ul" value="1"/>
+         <enum-member name="EDirection_Dl_Ul" value="2"/>
+      </enum>
+      <typedef name="TMeasurementValue" type="u32"/>
+      <struct name="SMeasReportValue">
+         <member comment="Status defines if the measurement of this measurement value was succesful or not" name="status" type="EStatusLte"/>
+         <member name="measurementValue" type="TMeasurementValue"/>
+      </struct>
+      <typedef comment="Physical layer cell identity.  " maxRange="503" minRange="0" name="TPhyCellId" type="u32"/>
+      <typedef name="TLcp" type="u32"/>
+      <typedef name="TFlagOverflowDiscard" type="u32"/>
+      <typedef name="TThOverflowDiscard" type="u32"/>
+      <typedef name="TDiscBuffThr" type="u32"/>
+      <typedef name="TRaPreamble" type="u32"/>
+      <struct name="SRaPreambleList">
+         <member name="RAPreamble" type="TRaPreamble"/>
+      </struct>
+      <struct name="SRaPreambleResList">
+         <member name="RAPreamble" type="TRaPreamble"/>
+         <member name="crnti" type="TCrnti"/>
+         <member name="status" type="EStatusLte"/>
+      </struct>
+      <struct name="SL2PoolInfo">
+         <member comment="Pool ID&#13;&#10;In a non Super Pool configuration can be set to 0." name="poolId" type="TPoolId"/>
+         <member comment="NID for each deployable node type." name="deploymentInfo" type="SL2DeploymentInfo">
+            <dimension isVariableSize="true" minSize="1" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldComment="Currently either 4 or 8" variableSizeFieldName="numOfDeploymentInfo"/>
+         </member>
+      </struct>
+      <struct name="SL2DeploymentInfo">
+         <member comment="Deployable node type" name="l2NodeType" type="EL2DeployableNode"/>
+         <member comment="NID" name="nodeAddr" type="TAaSysComNid"/>
+      </struct>
+      <typedef name="TRaContResoT" type="u32"/>
+      <typedef comment="Type definition for UE Group" name="TUeGroup" rangeDescription="0.. (MAX_NUM_UEGROUP_PER_BB_POOL-1)" type="u32"/>
+      <typedef comment="Type definition for ueIndex, which identifies the UE in DSP Pool. &#13;&#10;ueIndex is coded into bits 0..12 (LSB). &#13;&#10;&#13;&#10;Range in FDD PhyData interface (permanent and temporary UEs, both low and high capacity deployments): [0... MAX_UE_INDEX].&#13;&#10;&#13;&#10;Range in TDD PhyData interface (permanent UEs): [0... MAX_UE_INDEX_TDD].&#13;&#10;&#13;&#10;Range in FDD MAC and TUPu (permanent UEs): [0... ( MAX_NUM_USER_PERM_PER_BB_POOL_LOW -1)] for low capacity deployment;&#13;&#10;[0..(MAX_NUM_USER_PERM_PER_BB_POOL_HIGH-1)] for high capacity deployment.&#13;&#10;&#13;&#10;Range in DCM MAC (both permanent and temporary UEs): [0... ( MAX_NUM_USER_PER_BB_POOL_LOW -1)]  for low capacity deployment;&#13;&#10;[0..(MAX_NUM_USER_PER_BB_POOL_HIGH-1)]  for high capacity deployment.&#13;&#10;&#13;&#10;Range in TDD MAC and TUPu (permanent UEs only): [0... (MAX_NUM_USER_PER_BB_POOL_TDD -1)] for TDD 2-pipe/4-pipe/8-pipe deployments;&#13;&#10;[0..( MAX_NUM_USER_PER_BB_POOL_TDD_SUPER_CELL -1)] for super cell deployment.&#13;&#10;&#13;&#10;ueGroup is coded into LSB bits 0..i, where i depends on number of ueGroups in use (e.g i=1/2/3 for 2/4/8 ueGroups). Only FSMr3.&#13;&#10;&#13;&#10;Bits 13...14 are reserved.&#13;&#10;&#13;&#10;Bit 15 (MSB) is reserved for a flag in PhyData interface." name="TUeIndex" type="u16"/>
+      <typedef comment="Event Queue Identifier" name="TEqId" type="u32"/>
+      <typedef comment="Communication Context Identifier" name="TCcId" type="u32"/>
+      <constant name="MAX_NUM_OF_POOLS_IN_SUPER_POOL" value="2"/>
+      <constant name="NUM_PHY_PER_LSP_IN_LRC" value="6"/>
+      <constant name="NUM_K2_PER_LSP_IN_LRC" value="3"/>
+   </global-definitions>
+</system>

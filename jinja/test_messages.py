@@ -120,3 +120,15 @@ def test_of_message_with_two_fields_size_and_isVariable():
     a = writer.PythonSerializer()._serialize_msgs([msg_h])
     print a
     out = "class MAC_CellSetupReq(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',aprot.array(EMeasurementGroupType,bound='tmpName'))]\n"
+
+def test_of_message_with_one_dim_size():
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "SCqiParams"
+    member_h = data_holder.MemberHolder('iRi','TIRi')
+    member_h.add_to_list("size", "MAX_NUM_OF_RI_PMI_INFORMATION")
+    msg_h.add_to_list(member_h)
+
+    a = writer.PythonSerializer()._serialize_msgs([msg_h])
+    print a
+    out = "class SCqiParams(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('iRi',aprot.array(TIRi,bound='tmpName'))]\n"

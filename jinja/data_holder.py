@@ -38,16 +38,18 @@ class ConstantHolder(Holder):
 
     def __sort_list(self,list):
         out_list = []
+
         for t in list:
             key, val = t
             if "_" not in val:
-                out_list.insert(0,key)
+                out_list.insert(0,(key,val))
             else:
-                if val in out_list:
-                    index = out_list.index(val)
-                    out_list.insert(index + 1, key)
+                if (key,val) in out_list:
+                    index = out_list.index((key,val))
+                    out_list.insert(index + 1, (key,val))
                 else:
-                    out_list.append(key)
+                    out_list.append((key,val))
+
         return out_list
 
     def get_sorted_list(self):

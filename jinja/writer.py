@@ -19,7 +19,7 @@ class PythonSerializer(object):
     def serialize(self, dataHolder):
         out = ""
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
-        out += self._serialize_constant(dataHolder.constant.get_list()) + os.linesep
+        out += self._serialize_constant(dataHolder.constant) + os.linesep
         out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
         out += self._serialize_msgs(dataHolder.struct_list)
@@ -44,15 +44,15 @@ class PythonSerializer(object):
         return out
 
     def _serialize_include(self, include_list):
-        out = ""
+        out = "import aprot \n"
         for inc in include_list:
             out += "from " + inc + " import *" + '\n'
         return out
 
-    def _serialize_constant(self, constant_list):
+    def _serialize_constant(self, constant):
         out = ""
-        for key, val in constant_list:
-            out += key + " = " +val+ '\n'
+        for key,val in constant.get_sorted_list():
+            out += key + " = " + val + '\n'
         return out
 
     def _serialize_msgs(self,msgs_list):
@@ -92,10 +92,10 @@ class PythonSerializer(object):
         if len(member.list) == 5:
             str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,member.list[variable_type_index].dimension_field_value)
             str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
-        if len(member.list) == 4 and variable_type_index == -1 and variable_name_index != -1:
+        if  variable_type_index == -1 and variable_name_index != -1:
             str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,'TNumberOfItems')
             str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
-        if len(member.list) == 4 and variable_name_index == -1 and variable_type_index != -1:
+        if variable_name_index == -1 and variable_type_index != -1:
             str += "('{0}',{1}), " .format('tmpName',member.list[variable_type_index].dimension_field_value)
             str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
         if len(member.list) == 3 and variable_name_index == -1 and variable_type_index == -1 and size_index != -1 and min_size_index != -1:
@@ -104,18 +104,24 @@ class PythonSerializer(object):
         if len(member.list) == 2 and size_index != -1 and is_variable_index != -1:
             str += "('{0}',{1}), " .format('tmpName','TNumberOfItems')
             str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+        if len(member.list) == 1 and size_index != -1:
+            str += "('{0}',{1}), " .format('tmpName','TNumberOfItems')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
 
         return str
 
 
 class WriterFabric(object):
     @staticmethod
-    def get_writer(file_name, writer = "txt", mode = "w+"):
-        return WriterTxt(file_name, mode)
+    def get_writer(directory,file_name, writer = "txt", mode = "w+"):
+        return WriterTxt(directory,file_name, mode)
 
 class WriterTxt(object):
-    def __init__(self, file_name, mode):
-        self.__file_h = open(file_name, mode)
+    def __init__(self,directory, file_name, mode):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        file_dest=os.path.join(directory, file_name)
+        self.__file_h = open(file_dest, mode)
 
     def write_to_file(self, tekst):
         self.__file_h.write(tekst)

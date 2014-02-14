@@ -1,0 +1,1366 @@
+<?xml version="1.0" encoding="UTF-8"?><?xui configuration/if_editor.xui?><system name="LTE" xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="configuration/if_editor.xsd">
+   <external-definitions>
+      <include name="glo_def.h">
+         <typedef name="u8" primitiveType="8 bit integer unsigned"/>
+         <typedef name="u16" primitiveType="16 bit integer unsigned"/>
+         <typedef name="u32" primitiveType="32 bit integer unsigned"/>
+         <typedef name="u64" primitiveType="64 bit integer unsigned"/>
+         <typedef name="i8" primitiveType="8 bit integer signed"/>
+         <typedef name="i16" primitiveType="16 bit integer signed"/>
+         <typedef name="i32" primitiveType="32 bit integer signed"/>
+         <typedef name="i64" primitiveType="64 bit integer signed"/>
+         <typedef maxRange="1" minRange="0" name="TBoolean" primitiveType="32 bit integer unsigned"/>
+         <typedef name="r32" primitiveType="32 bit float"/>
+         <typedef name="r64" primitiveType="64 bit float"/>
+         <constant name="MAX_NUM_OF_FAULT_INFO" value="12"/>
+         <constant name="GLO_TRUE" value="1"/>
+         <constant name="GLO_FALSE" value="0"/>
+      </include>
+      <include name="IfAaSysCom.h">
+         <typedef name="TAaSysComSicad" primitiveType="32 bit integer unsigned"/>
+         <typedef name="TAaSysComNid" primitiveType="16 bit integer unsigned"/>
+      </include>
+      <include name="TBoardId.h">
+         <typedef name="TBoardId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TNumberOfItems.h">
+         <typedef name="TNumberOfItems" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TLocalCellGroupId.h">
+         <typedef name="TLocalCellGroupId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TIpAddress.h">
+         <typedef name="TIpAddress" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="ERadioResourceType.h">
+         <enum name="ERadioResourceType">
+            <enum-member name="ERadioResourceType_Rx" value="0"/>
+            <enum-member name="ERadioResourceType_Tx" value="1"/>
+         </enum>
+      </include>
+      <include name="EAvailability.h">
+         <enum name="EAvailability">
+            <enum-member name="EAvailability_NotAvailable" value="0"/>
+            <enum-member name="EAvailability_Available" value="1"/>
+            <enum-member name="EAvailability_BasebandDisabled" value="2"/>
+         </enum>
+      </include>
+      <include name="TCarrierResourceId.h">
+         <typedef name="TCarrierResourceId" type="u8">
+            <dimension size="MAX_SIZE_OF_CR_ID"/>
+         </typedef>
+      </include>
+      <include name="ELinkState.h">
+         <enum name="ELinkState">
+            <enum-member name="ELinkState_InService" value="0"/>
+            <enum-member name="ELinkState_OutOfService" value="1"/>
+            <enum-member name="ELinkState_DeactivationOngoing" value="2"/>
+            <enum-member name="ELinkState_LinkDeleted" value="3"/>
+         </enum>
+      </include>
+      <include name="EState.h">
+         <enum name="EState">
+            <enum-member name="EState_Enabled" value="0"/>
+            <enum-member name="EState_Disabled" value="1"/>
+         </enum>
+      </include>
+      <include name="TTransportLayerAddress.h">
+         <typedef name="TTransportLayerAddress" type="u8">
+            <dimension size="20"/>
+         </typedef>
+      </include>
+      <include name="TCellId.h">
+         <typedef name="TCellId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="EStatus.h">
+         <enum name="EStatus">
+            <enum-member name="EStatus_NoError" value="0"/>
+            <enum-member name="EStatus_UndefinedError" value="1"/>
+            <enum-member name="EStatus_UserInSync" value="2"/>
+            <enum-member name="EStatus_UserOutOfSync" value="3"/>
+            <enum-member name="EStatus_InvalidParam" value="4"/>
+            <enum-member name="EStatus_Timeout" value="5"/>
+            <enum-member name="EStatus_Initialized" value="6"/>
+            <enum-member name="EStatus_NotInitialized" value="7"/>
+            <enum-member name="EStatus_Active" value="8"/>
+            <enum-member name="EStatus_InActive" value="9"/>
+            <enum-member name="EStatus_ParallelOperationOngoing" value="10"/>
+            <enum-member name="EStatus_ErroneusValueInMessage" value="300"/>
+            <enum-member name="EStatus_CellIdAlreadyInUse" value="301"/>
+            <enum-member name="EStatus_NoSpaceForCell" value="302"/>
+            <enum-member name="EStatus_UnknownCellID" value="303"/>
+            <enum-member name="EStatus_LinkOutOfService" value="304"/>
+            <enum-member name="EStatus_ErroneusCellState" value="305"/>
+            <enum-member name="EStatus_CellNotConfigured" value="306"/>
+            <enum-member name="EStatus_NoWspResources" value="307"/>
+            <enum-member name="EStatus_NoResponseFromCoPro" value="308"/>
+            <enum-member name="EStatus_FeatureAlreadyActivated" value="309"/>
+            <enum-member name="EStatus_WspcPpcLoadLimitAdjusted" value="310"/>
+            <enum-member name="EStatus_PseudoLoadAdjusted" value="311"/>
+            <enum-member name="EStatus_UnknownAtmMcu" value="312"/>
+            <enum-member name="EStatus_UnknownWspId" value="313"/>
+            <enum-member name="EStatus_UnknownAal2Id" value="314"/>
+            <enum-member name="EStatus_RbusSynchronizationFailure" value="400"/>
+            <enum-member name="EStatus_ResourceUnavailable" value="401"/>
+            <enum-member name="EStatus_BB_AlreadyActivated" value="0x8001"/>
+            <enum-member name="EStatus_BB_NotActivated" value="0x8002"/>
+            <enum-member name="EStatus_WTR_NotInitialised" value="0x9001"/>
+            <enum-member name="EStatus_WTR_InvalidFrequencyBand" value="0x9002"/>
+            <enum-member name="EStatus_WTR_ChannelIsBarred" value="0x9003"/>
+         </enum>
+      </include>
+      <include name="ECause.h">
+         <enum name="ECause">
+            <enum-member name="ECause_NoCause" value="0"/>
+            <enum-member name="ECause_SynchronizationFailure" value="1"/>
+            <enum-member name="ECause_HardwareOverload" value="2"/>
+            <enum-member name="ECause_OAMIntervention" value="3"/>
+            <enum-member name="ECause_CellRestartNotAllowed" value="4"/>
+            <enum-member name="ECause_SignalingBearerOverflow" value="5"/>
+            <enum-member name="ECause_NormalEvent_Unspecified" value="6"/>
+            <enum-member name="ECause_EquipmentFailure" value="7"/>
+            <enum-member name="ECause_UnspecifiedCell" value="8"/>
+            <enum-member name="ECause_HWResourceNotAvailable" value="9"/>
+            <enum-member name="ECause_NotEnoughResources" value="10"/>
+            <enum-member name="ECause_ResourceUnavailable_Unspecified" value="11"/>
+            <enum-member name="ECause_BSCapabilityFailure" value="12"/>
+            <enum-member name="ECause_NoCapabilityToCombineIndicatedCells" value="13"/>
+            <enum-member name="ECause_ParallelTransactionNotSupported" value="14"/>
+            <enum-member name="ECause_ServiceOrOptionNotAvailable_Implemented_Unspecified" value="15"/>
+            <enum-member name="ECause_TransferSyntaxError" value="16"/>
+            <enum-member name="ECause_AbstractSyntaxError_Reject" value="17"/>
+            <enum-member name="ECause_AbstractSyntaxError_Notify" value="18"/>
+            <enum-member name="ECause_AbstractSyntaxError_FalselyConstructedMessage" value="19"/>
+            <enum-member name="ECause_SemanticError" value="20"/>
+            <enum-member name="ECause_MessageNotCompatibleWithReceiverState" value="21"/>
+            <enum-member name="ECause_AlreadyActivated_Allocated" value="22"/>
+            <enum-member name="ECause_NotActivated_Allocated" value="23"/>
+            <enum-member name="ECause_ParameterOutOfRange" value="24"/>
+            <enum-member name="ECause_InvalidCMSettings" value="25"/>
+            <enum-member name="ECause_ParallelTransactionNotAllowed" value="26"/>
+            <enum-member name="ECause_BCCHSchedulingError" value="27"/>
+            <enum-member name="ECause_ReconfigurationCFNNotElapsed" value="28"/>
+            <enum-member name="ECause_ProtocolError_Unspecified" value="29"/>
+            <enum-member name="ECause_MeasurementNotSupportedForTheObject" value="30"/>
+            <enum-member name="ECause_MeasurementTemporarilyNotAvailable" value="31"/>
+            <enum-member name="ECause_CellNotAvailable" value="32"/>
+            <enum-member name="ECause_OverlappingULCMSequences" value="33"/>
+            <enum-member name="ECause_ThreeLastULFramesCompressed" value="34"/>
+            <enum-member name="ECause_NotEnoughULSlotsBetweenGaps" value="35"/>
+            <enum-member name="ECause_OverlappingDLCMSequences" value="36"/>
+            <enum-member name="ECause_ThreeLastDLFramesCompressed" value="37"/>
+            <enum-member name="ECause_NotEnoughDLSlotsBetweenGaps" value="38"/>
+         </enum>
+      </include>
+      <include name="TFrameNumber.h">
+         <typedef name="TFrameNumber" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TLocalCellResId.h">
+         <typedef name="TLocalCellResId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="Glo_bs.h">
+         <constant name="MAX_NUM_OF_TX_RESOURCES" value="48"/>
+         <constant name="MAX_NUM_OF_RX_RESOURCES" value="48"/>
+         <constant name="MAX_SIZE_OF_CR_ID" value="16"/>
+      </include>
+      <include name="TFrameOffset.h">
+         <typedef name="TFrameOffset" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TBitRate.h">
+         <typedef name="TBitRate" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TTransactionID.h">
+         <typedef name="TTransactionID" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="EFaultId.h">
+         <enum name="EFaultId">
+            <enum-member name="EFaultId_ChangeFanAl" value="0"/>
+            <enum-member name="EFaultId_FanPowerAl" value="1"/>
+            <enum-member name="EFaultId_UnitOverheatAl" value="2"/>
+            <enum-member name="EFaultId_TempValueAl" value="3"/>
+            <enum-member name="EFaultId_AmbientTemperatureBelowMinAl" value="4"/>
+            <enum-member name="EFaultId_AmbientTemperatureAboveMaxAl" value="5"/>
+            <enum-member name="EFaultId_SwDownloadAl" value="6"/>
+            <enum-member name="EFaultId_FileNotInFlashAl" value="7"/>
+            <enum-member name="EFaultId_DacWordLimitAl" value="8"/>
+            <enum-member name="EFaultId_DacWordChangeAl" value="9"/>
+            <enum-member name="EFaultId_NoConnectionToUnitAl" value="10"/>
+            <enum-member name="EFaultId_WamBrokenAl" value="11"/>
+            <enum-member name="EFaultId_TcomConfigAl" value="12"/>
+            <enum-member name="EFaultId_AtmConfigAl" value="13"/>
+            <enum-member name="EFaultId_AxuConfigAl" value="14"/>
+            <enum-member name="EFaultId_InitializationAl" value="15"/>
+            <enum-member name="EFaultId_SynchronizationAl" value="16"/>
+            <enum-member name="EFaultId_CnbapLinkAl" value="17"/>
+            <enum-member name="EFaultId_DnbapLinkAl" value="18"/>
+            <enum-member name="EFaultId_Aal2LinkAl" value="19"/>
+            <enum-member name="EFaultId_SfnReqAl" value="20"/>
+            <enum-member name="EFaultId_AxuResetAl" value="21"/>
+            <enum-member name="EFaultId_WscPhaseDiffJammedAl" value="22"/>
+            <enum-member name="EFaultId_IncompatibleSwVersionAl" value="23"/>
+            <enum-member name="EFaultId_ObsoleteSwVersionAl" value="24"/>
+            <enum-member name="EFaultId_NtpTimeSetAl" value="25"/>
+            <enum-member name="EFaultId_NtpTimeNotSetAl" value="26"/>
+            <enum-member name="EFaultId_FileServerAl" value="27"/>
+            <enum-member name="EFaultId_SwPackageAl" value="28"/>
+            <enum-member name="EFaultId_FileCorruptionAl" value="29"/>
+            <enum-member name="EFaultId_SwUpdateAl" value="30"/>
+            <enum-member name="EFaultId_CommDataAl" value="31"/>
+            <enum-member name="EFaultId_UnitResetAl" value="32"/>
+            <enum-member name="EFaultId_LockAl" value="33"/>
+            <enum-member name="EFaultId_BlockAl" value="34"/>
+            <enum-member name="EFaultId_UnitIsNotInUse" value="35"/>
+            <enum-member name="EFaultId_WPAShutDownAl" value="36"/>
+            <enum-member name="EFaultId_MainsBreakAl" value="37"/>
+            <enum-member name="EFaultId_DelayedCellShutdownAl" value="38"/>
+            <enum-member name="EFaultId_ImmediateCellShutdownAl" value="39"/>
+            <enum-member name="EFaultId_LCS_RTT_Al" value="40"/>
+            <enum-member name="EFaultId_WSPC_PPC_SFN_PollingSynchAl" value="41"/>
+            <enum-member name="EFaultId_WSPC_PPC_SFN_PollingTimeoutAl" value="42"/>
+            <enum-member name="EFaultId_DSP_PollingTimeoutAl" value="43"/>
+            <enum-member name="EFaultId_ATM_SFN_PollingSynchAl" value="44"/>
+            <enum-member name="EFaultId_ATM_SFN_PollingTimeoutAl" value="45"/>
+            <enum-member name="EFaultId_WAM_SFN_PollingSynchAl" value="46"/>
+            <enum-member name="EFaultId_WAM_SFN_PollingTimeoutAl" value="47"/>
+            <enum-member name="EFaultId_UnitBlockedAl" value="48"/>
+            <enum-member name="EFaultId_CellBlockedAl" value="49"/>
+            <enum-member name="EFaultId_BTSBlockedAl" value="50"/>
+            <enum-member name="EFaultId_Wsp_PostAl" value="51"/>
+            <enum-member name="EFaultId_UnitAutonomousResetAl" value="52"/>
+            <enum-member name="EFaultId_LicensedChannelFileErrorAl" value="53"/>
+            <enum-member name="EFaultId_WtrbWsmaVersionConflictAl" value="54"/>
+            <enum-member name="EFaultId_WsmaWsmbVersionConflictAl" value="55"/>
+            <enum-member name="EFaultId_WtraWtrbVersionConflictInCellAl" value="56"/>
+            <enum-member name="EFaultId_WpaPowerLevelChangedAl" value="57"/>
+            <enum-member name="EFaultId_FrequencyBandConflictInCellAl" value="58"/>
+            <enum-member name="EFaultId_SrcDlConfigurationErrorInCellAl" value="59"/>
+            <enum-member name="EFaultId_NotEnoughWspResourcesPerCellAl" value="60"/>
+            <enum-member name="EFaultId_WafTxConnectorOverloadAl" value="61"/>
+            <enum-member name="EFaultId_NoWsmForWtrInSubrackAl" value="62"/>
+            <enum-member name="EFaultId_NotEnoughWamResourcesPerWspInSubrackAl" value="63"/>
+            <enum-member name="EFaultId_NoWspInSubrackAl" value="64"/>
+            <enum-member name="EFaultId_UnitNotMappedToLcrAl" value="65"/>
+            <enum-member name="EFaultId_WspAssignedToDefaultLcgAl" value="66"/>
+            <enum-member name="EFaultId_CellAssignedToDefaultLcgAl" value="67"/>
+            <enum-member name="EFaultId_WpaWsmaVersionConflictAl" value="68"/>
+            <enum-member name="EFaultId_Post_test_failedAl" value="69"/>
+            <enum-member name="EFaultId_UnableToDetectEacAlarmsAl" value="70"/>
+            <enum-member name="EFaultId_WSPBlockedAl" value="71"/>
+            <enum-member name="EFaultId_TestDedicatedAl" value="72"/>
+            <enum-member name="EFaultId_AntennaRSCAl" value="73"/>
+            <enum-member name="EFaultId_UnitDeletedAl" value="74"/>
+            <enum-member name="EFaultId_WSP_memory_concistency_err1" value="75"/>
+            <enum-member name="EFaultId_WSP_memory_concistency_err2" value="76"/>
+            <enum-member name="EFaultId_WSP_memory_concistency_err3" value="77"/>
+            <enum-member name="EFaultId_WSP_memory_concistency_err4" value="78"/>
+            <enum-member name="EFaultId_WSP_memory_concistency_err5" value="79"/>
+            <enum-member name="EFaultId_WSP_memory_concistency_err6" value="80"/>
+            <enum-member name="EFaultId_WSP_memory_concistency_err7" value="81"/>
+            <enum-member name="EFaultId_NoPrimaryWsmInSubRackAl" value="82"/>
+            <enum-member name="EFaultId_WtraWsmaWspaNotSupportedInCabinetAl" value="83"/>
+            <enum-member name="EFaultId_RomDiskCorruptedAl" value="84"/>
+            <enum-member name="EFaultId_WSP_no_resp_from_PPC" value="85"/>
+            <enum-member name="EFaultId_UnitInitStarted" value="86"/>
+            <enum-member name="EFaultId_CommDataConfParam" value="87"/>
+            <enum-member name="EFaultId_CommDataCellParam" value="88"/>
+            <enum-member name="EFaultId_RecoverySiteResetAl" value="89"/>
+            <enum-member name="EFaultId_CommissioningFileNotSupportedAl" value="90"/>
+            <enum-member name="EFaultId_WrongUnitTypeInCabinetAl" value="91"/>
+            <enum-member name="EFaultId_WPA_single_carrier_rule_Al" value="92"/>
+            <enum-member name="EFaultId_UnknownProductCode" value="93"/>
+            <enum-member name="EFaultId_UnknownUnitType" value="94"/>
+            <enum-member name="EFaultId_NotSupportedUnit" value="95"/>
+            <enum-member name="EFaultId_InternalCellBlockedAl" value="96"/>
+            <enum-member name="EFaultId_WamWspOutOfSyncAl" value="97"/>
+            <enum-member name="EFaultId_NotEnoughWafResourcesPerCellAl" value="98"/>
+            <enum-member name="EFaultId_TooManyCarriersPerWpaAl" value="99"/>
+            <enum-member name="EFaultId_DpsAtmCapacityAl" value="100"/>
+            <enum-member name="EFaultId_NoResponseAl" value="101"/>
+            <enum-member name="EFaultId_RncConfigRequestAl" value="102"/>
+            <enum-member name="EFaultId_MeasurementAl" value="103"/>
+            <enum-member name="EFaultId_UnknownMsgRecAl" value="104"/>
+            <enum-member name="EFaultId_MsgInWrongStateRecAl" value="105"/>
+            <enum-member name="EFaultId_MsgFromWrongSenderRecAl" value="106"/>
+            <enum-member name="EFaultId_WrongParamAl" value="107"/>
+            <enum-member name="EFaultId_TcomSwBugAl" value="108"/>
+            <enum-member name="EFaultId_TcomSlaveRegAl" value="109"/>
+            <enum-member name="EFaultId_UnitRnwConfigAl" value="110"/>
+            <enum-member name="EFaultId_TcomSlaveConfigAl" value="111"/>
+            <enum-member name="EFaultId_RncTtpFailureAckAl" value="112"/>
+            <enum-member name="EFaultId_TcomRnwReconfigAl" value="113"/>
+            <enum-member name="EFaultId_RncHoRespAl" value="114"/>
+            <enum-member name="EFaultId_CellEnablingFailureAl" value="115"/>
+            <enum-member name="EFaultId_CellDisablingFailureAl" value="116"/>
+            <enum-member name="EFaultId_InitCalibAl" value="117"/>
+            <enum-member name="EFaultId_GainAdjustAl" value="118"/>
+            <enum-member name="EFaultId_WspAllocationAl" value="119"/>
+            <enum-member name="EFaultId_InitCalibNotStartedAl" value="120"/>
+            <enum-member name="EFaultId_TransmitterPowerOnAl" value="121"/>
+            <enum-member name="EFaultId_TransmitterPowerOffAl" value="122"/>
+            <enum-member name="EFaultId_NotEnoughWspFreeCapasityAl" value="123"/>
+            <enum-member name="EFaultId_NotEnoughWspCapasitySetupCellAl" value="124"/>
+            <enum-member name="EFaultId_CellPowerAl" value="125"/>
+            <enum-member name="EFaultId_CellPowerParameterOutOfRangeAl" value="126"/>
+            <enum-member name="EFaultId_InvalidCarrierInWtr" value="127"/>
+            <enum-member name="EFaultId_WrongLtxFrequencyOrderErr" value="128"/>
+            <enum-member name="EFaultId_DspHoldAl" value="129"/>
+            <enum-member name="EFaultId_MinimumNumberOfClusterFractionsUnavailableAl" value="130"/>
+            <enum-member name="EFaultId_FirstDspHoldAl" value="131"/>
+            <enum-member name="EFaultId_NoBBCapasityForCommonChannels" value="132"/>
+            <enum-member name="EFaultId_RxAntennaSignalLevelTooLowAl" value="133"/>
+            <enum-member name="EFaultId_RxAntennaSignalLevelDifferenceTooHighAl" value="134"/>
+            <enum-member name="EFaultId_HsupaCapacityDecreasedAl" value="135"/>
+            <enum-member name="EFaultId_TcomConfFileAl" value="136"/>
+            <enum-member name="EFaultId_TcomPrintingsDisabledAl" value="137"/>
+            <enum-member name="EFaultId_Hsdpa16UsersPerCellAllocationFailedAl" value="138"/>
+            <enum-member name="EFaultId_DspModeChangeFailAl" value="139"/>
+            <enum-member name="EFaultId_LowHsdpaLicenseCapacityAl" value="140"/>
+            <enum-member name="EFaultId_ReducedRachPreambleSignaturesAl" value="141"/>
+            <enum-member name="EFaultId_NoDspResourcesForLcgAl" value="142"/>
+            <enum-member name="EFaultId_PicPoolIdAssignmentMismatchAl" value="143"/>
+            <enum-member name="EFaultId_DspConfigurationFailureAl" value="144"/>
+            <enum-member name="EFaultId_ResourceBlockNotAvailableAl" value="145"/>
+            <enum-member name="EFaultId_ResourceBlockOccupiedAl" value="146"/>
+            <enum-member name="EFaultId_ApiI2cBusAl" value="200"/>
+            <enum-member name="EFaultId_ApiBiosAl" value="201"/>
+            <enum-member name="EFaultId_ApiCdAl" value="202"/>
+            <enum-member name="EFaultId_ApiCdDriverAl" value="203"/>
+            <enum-member name="EFaultId_ApiInetAl" value="204"/>
+            <enum-member name="EFaultId_ApiUdpLinkAl" value="205"/>
+            <enum-member name="EFaultId_AifBusAl" value="206"/>
+            <enum-member name="EFaultId_DscNodeAl" value="207"/>
+            <enum-member name="EFaultId_DscNodeBlockedAl" value="208"/>
+            <enum-member name="EFaultId_DscSystemFailureAl" value="209"/>
+            <enum-member name="EFaultId_DscBusParityAl" value="210"/>
+            <enum-member name="EFaultId_DscBusTimeoutAl" value="211"/>
+            <enum-member name="EFaultId_DscDrvAl" value="212"/>
+            <enum-member name="EFaultId_DscInvalidMsgLenAl" value="213"/>
+            <enum-member name="EFaultId_FlashWrAl" value="214"/>
+            <enum-member name="EFaultId_FlashRdAl" value="215"/>
+            <enum-member name="EFaultId_FlashEraseAl" value="216"/>
+            <enum-member name="EFaultId_FlashDrvAl" value="217"/>
+            <enum-member name="EFaultId_FlashDbChksumAl" value="218"/>
+            <enum-member name="EFaultId_SfclkMssAl" value="219"/>
+            <enum-member name="EFaultId_ApiI2cBusJammedAl" value="220"/>
+            <enum-member name="EFaultId_SfclkDeviationAl" value="221"/>
+            <enum-member name="EFaultId_SfclkInitAl" value="222"/>
+            <enum-member name="EFaultId_PhaseMeasureAl" value="223"/>
+            <enum-member name="EFaultId_UnitInitAl" value="224"/>
+            <enum-member name="EFaultId_PCIInvalidDeviceAl" value="225"/>
+            <enum-member name="EFaultId_PCITargetNotFoundAl" value="226"/>
+            <enum-member name="EFaultId_PCITargetDSPAmountAl" value="227"/>
+            <enum-member name="EFaultId_PCISWDLMemoryCorruptedAl" value="228"/>
+            <enum-member name="EFaultId_PCIDSPSWBootAl" value="229"/>
+            <enum-member name="EFaultId_PCIIRQDSPAllocNOKAl" value="230"/>
+            <enum-member name="EFaultId_PCIDLTimeOutAl" value="231"/>
+            <enum-member name="EFaultId_LoadAlarm" value="232"/>
+            <enum-member name="EFaultId_AtmRmCommAl" value="300"/>
+            <enum-member name="EFaultId_SwBugAl" value="301"/>
+            <enum-member name="EFaultId_SwCausedBufferOverflowAl" value="302"/>
+            <enum-member name="EFaultId_TrafficFlowAl" value="303"/>
+            <enum-member name="EFaultId_TrafficCausedBufferOverflowAl" value="304"/>
+            <enum-member name="EFaultId_CongestionAl" value="305"/>
+            <enum-member name="EFaultId_CellLossAl" value="306"/>
+            <enum-member name="EFaultId_ReTransmissionAl" value="307"/>
+            <enum-member name="EFaultId_CdBusFaultAl" value="308"/>
+            <enum-member name="EFaultId_AtMuxAl" value="309"/>
+            <enum-member name="EFaultId_HwSemaphoreFaultAl" value="310"/>
+            <enum-member name="EFaultId_DataCorruptionAl" value="311"/>
+            <enum-member name="EFaultId_Aal2TrafficFlowAl" value="312"/>
+            <enum-member name="EFaultId_SwOverloadAl" value="313"/>
+            <enum-member name="EFaultId_FpTimingAl" value="314"/>
+            <enum-member name="EFaultId_A2eaConfigAl" value="315"/>
+            <enum-member name="EFaultId_QosCodepointAl" value="316"/>
+            <enum-member name="EFaultId_TupBufferAllocationAl" value="317"/>
+            <enum-member name="EFaultId_AlreadyReceived" value="400"/>
+            <enum-member name="EFaultId_BufferAllocation" value="401"/>
+            <enum-member name="EFaultId_ConfigurationErr" value="402"/>
+            <enum-member name="EFaultId_CrcError" value="403"/>
+            <enum-member name="EFaultId_DlDataDiscarded" value="404"/>
+            <enum-member name="EFaultId_DlDataTooLate" value="405"/>
+            <enum-member name="EFaultId_DscBufferSizeExceeded" value="406"/>
+            <enum-member name="EFaultId_DscReceiverTaskUnknown" value="407"/>
+            <enum-member name="EFaultId_DiscardOldTrchData" value="408"/>
+            <enum-member name="EFaultId_ErroneousMessage" value="409"/>
+            <enum-member name="EFaultId_InvalidTransportFormatCombination" value="410"/>
+            <enum-member name="EFaultId_IradError" value="411"/>
+            <enum-member name="EFaultId_LostFrameSync" value="412"/>
+            <enum-member name="EFaultId_McbspFifoFull" value="413"/>
+            <enum-member name="EFaultId_McbspMessagePoolExhausted" value="414"/>
+            <enum-member name="EFaultId_McbspRSyncError" value="415"/>
+            <enum-member name="EFaultId_MessageLengthZero" value="416"/>
+            <enum-member name="EFaultId_MissedRadioFrame" value="417"/>
+            <enum-member name="EFaultId_OseFatalErr" value="418"/>
+            <enum-member name="EFaultId_OseNonFatalErr" value="419"/>
+            <enum-member name="EFaultId_OutOfData" value="420"/>
+            <enum-member name="EFaultId_OutOfMemory" value="421"/>
+            <enum-member name="EFaultId_PowerCtrlRachTooLate" value="422"/>
+            <enum-member name="EFaultId_PMMAllocError" value="423"/>
+            <enum-member name="EFaultId_RachMessageTooLate" value="424"/>
+            <enum-member name="EFaultId_RbusError" value="425"/>
+            <enum-member name="EFaultId_RlSetup" value="426"/>
+            <enum-member name="EFaultId_SfnMismatch" value="427"/>
+            <enum-member name="EFaultId_SystemFrameNumberParity" value="428"/>
+            <enum-member name="EFaultId_TbusLeftParity" value="429"/>
+            <enum-member name="EFaultId_TbusMiddleParity" value="430"/>
+            <enum-member name="EFaultId_TbusRightParity" value="431"/>
+            <enum-member name="EFaultId_TfciMismatch" value="432"/>
+            <enum-member name="EFaultId_TfiMismatch" value="433"/>
+            <enum-member name="EFaultId_TfMismatch" value="434"/>
+            <enum-member name="EFaultId_TpcTooLate" value="435"/>
+            <enum-member name="EFaultId_TMMAllocError" value="436"/>
+            <enum-member name="EFaultId_TvdError" value="437"/>
+            <enum-member name="EFaultId_UndefinedDch" value="438"/>
+            <enum-member name="EFaultId_UndefinedUser" value="439"/>
+            <enum-member name="EFaultId_UnexpectedMessage" value="440"/>
+            <enum-member name="EFaultId_UnknownFaultId" value="441"/>
+            <enum-member name="EFaultId_UnknownMessages" value="442"/>
+            <enum-member name="EFaultId_UnknownReceiverTask" value="443"/>
+            <enum-member name="EFaultId_WrongSwsVersion" value="444"/>
+            <enum-member name="EFaultId_DeinterleaverDataTimeout" value="445"/>
+            <enum-member name="EFaultId_McbspSwsError" value="446"/>
+            <enum-member name="EFaultId_DscXboffIsr" value="447"/>
+            <enum-member name="EFaultId_RachModeMismatch" value="448"/>
+            <enum-member name="EFaultId_InvalidDatabaseParameter" value="449"/>
+            <enum-member name="EFaultId_BerMismatch" value="450"/>
+            <enum-member name="EFaultId_BufferNumberMismatch" value="451"/>
+            <enum-member name="EFaultId_RbusParityError" value="452"/>
+            <enum-member name="EFaultId_ActiveFaultBufferOverFlow" value="453"/>
+            <enum-member name="EFaultId_RepeatFaultBufferOverFlow" value="454"/>
+            <enum-member name="EFaultId_UnClassifiedError" value="455"/>
+            <enum-member name="EFaultId_RachCellIndexMismatch" value="456"/>
+            <enum-member name="EFaultId_TcpError" value="457"/>
+            <enum-member name="EFaultId_VcpError" value="458"/>
+            <enum-member name="EFaultId_CslTcpError" value="459"/>
+            <enum-member name="EFaultId_CslVcpError" value="460"/>
+            <enum-member name="EFaultId_CslEdmaError" value="461"/>
+            <enum-member name="EFaultId_ApplicationSwWarning" value="462"/>
+            <enum-member name="EFaultId_UnrecognizedMessage" value="463"/>
+            <enum-member name="EFaultId_DlDataTooLate_HsPdsch" value="464"/>
+            <enum-member name="EFaultId_DlDataTooLate_HsScch" value="465"/>
+            <enum-member name="EFaultId_MacHsFault" value="466"/>
+            <enum-member name="EFaultId_HsupaL2Fault" value="467"/>
+            <enum-member name="EFaultId_TxcrflError" value="468"/>
+            <enum-member name="EFaultId_RacflError" value="469"/>
+            <enum-member name="EFaultId_ResourceNotAvailable" value="470"/>
+            <enum-member name="EFaultId_MessageParameterValueOutOfRange" value="471"/>
+            <enum-member name="EFaultId_UnexpectedMessageParameterValue" value="472"/>
+            <enum-member name="EFaultId_MissedInterrupt" value="473"/>
+            <enum-member name="EFaultId_DataCorrupted" value="474"/>
+            <enum-member name="EFaultId_PlatformSwWarning" value="475"/>
+            <enum-member name="EFaultId_Rp3BusError" value="476"/>
+            <enum-member name="EFaultId_EmacError" value="477"/>
+            <enum-member name="EFaultId_CmRunTimeError" value="478"/>
+            <enum-member name="EFaultId_RacWarning" value="479"/>
+            <enum-member name="EFaultId_RacError" value="480"/>
+            <enum-member name="EFaultId_NoDlDataAl" value="481"/>
+            <enum-member name="EFaultId_ResetVectorAl" value="482"/>
+            <enum-member name="EFaultId_InterCoreCommError" value="483"/>
+            <enum-member name="EFaultId_MacHsCellNotFoundInScheduler" value="484"/>
+            <enum-member name="EFaultId_MacHsNoTxCarrierPwrReports" value="485"/>
+            <enum-member name="EFaultId_MacHsInternalErrorInScheduler" value="486"/>
+            <enum-member name="EFaultId_MacHsDataTransferError" value="487"/>
+            <enum-member name="EFaultId_MacHsCorruptDataFromTup" value="488"/>
+            <enum-member name="EFaultId_MacHsUnequalPriorityQueueAmount" value="489"/>
+            <enum-member name="EFaultId_HsupaL2GrantSendingTooLate" value="490"/>
+            <enum-member name="EFaultId_HsupaL2RtwpNotUpdated" value="491"/>
+            <enum-member name="EFaultId_HsupaL2InterClusterUserTransferTimeout" value="492"/>
+            <enum-member name="EFaultId_HsupaL2HwModificationRejected" value="493"/>
+            <enum-member name="EFaultId_HsupaL2ResourceAlreadyAllocated" value="494"/>
+            <enum-member name="EFaultId_HsupaL2DataTransferError" value="495"/>
+            <enum-member name="EFaultId_DchUserSyncSupervision" value="496"/>
+            <enum-member name="EFaultId_RecoverableError" value="497"/>
+            <enum-member name="EFaultId_PlatformSwException" value="498"/>
+            <enum-member name="EFaultId_NoBchDataAl" value="499"/>
+            <enum-member name="EFaultId_AtmMcuBrokenAl" value="590"/>
+            <enum-member name="EFaultId_SarChipBrokenAl" value="591"/>
+            <enum-member name="EFaultId_UxAsicAl" value="592"/>
+            <enum-member name="EFaultId_AtmHostBrokenAl" value="593"/>
+            <enum-member name="EFaultId_SfnIrqFailureAl" value="594"/>
+            <enum-member name="EFaultId_AtmDscFaultAl" value="595"/>
+            <enum-member name="EFaultId_PlatoAsicAl" value="596"/>
+            <enum-member name="EFaultId_DscFaultAl" value="597"/>
+            <enum-member name="EFaultId_TxSynthAl" value="600"/>
+            <enum-member name="EFaultId_TxLevelAl" value="601"/>
+            <enum-member name="EFaultId_TxSupplyAl" value="602"/>
+            <enum-member name="EFaultId_ClkSignMssAl" value="603"/>
+            <enum-member name="EFaultId_WtrTempAl" value="604"/>
+            <enum-member name="EFaultId_RtBusClkAl" value="605"/>
+            <enum-member name="EFaultId_RtBusSyncAl" value="606"/>
+            <enum-member name="EFaultId_RtBusParityAl" value="607"/>
+            <enum-member name="EFaultId_RxSupplyAl" value="608"/>
+            <enum-member name="EFaultId_RxSynthAl" value="609"/>
+            <enum-member name="EFaultId_VcxoNotLockedAl" value="610"/>
+            <enum-member name="EFaultId_LoopSynAl" value="611"/>
+            <enum-member name="EFaultId_WtrRtBusSyncLost" value="612"/>
+            <enum-member name="EFaultId_WtrRrBusSyncLost" value="613"/>
+            <enum-member name="EFaultId_TxPowerAlarm" value="614"/>
+            <enum-member name="EFaultId_TxShutdownAlarm" value="615"/>
+            <enum-member name="EFaultId_TxPowerAlarmCancel" value="616"/>
+            <enum-member name="EFaultId_WtrSystemClockMss" value="617"/>
+            <enum-member name="EFaultId_ProductionCalibDataMssAl" value="618"/>
+            <enum-member name="EFaultId_BarredChannelAl" value="619"/>
+            <enum-member name="EFaultId_InvalidFrequencyBandAl" value="620"/>
+            <enum-member name="EFaultId_WtrbTxLoLockAlarm" value="650"/>
+            <enum-member name="EFaultId_WtrbTxRfLockAlarm1" value="651"/>
+            <enum-member name="EFaultId_WtrbTxLevelAlarm1" value="652"/>
+            <enum-member name="EFaultId_WtrbRxRfLockAlarm1" value="653"/>
+            <enum-member name="EFaultId_WtrbVcxoLockAlarm" value="654"/>
+            <enum-member name="EFaultId_WtrbLoopSynAlarm" value="655"/>
+            <enum-member name="EFaultId_WtrbTxLevelAlarm2" value="656"/>
+            <enum-member name="EFaultId_WtrbTxRfLockAlarm2" value="657"/>
+            <enum-member name="EFaultId_WtrbRxRfLockAlarm2" value="658"/>
+            <enum-member name="EFaultId_TxSynthAl2" value="660"/>
+            <enum-member name="EFaultId_TxLevelAl2" value="661"/>
+            <enum-member name="EFaultId_ClkSignMssAl2" value="662"/>
+            <enum-member name="EFaultId_RtBusClkAl2" value="663"/>
+            <enum-member name="EFaultId_RtBusSyncAl2" value="664"/>
+            <enum-member name="EFaultId_RtBusParityAl2" value="665"/>
+            <enum-member name="EFaultId_WtrRtBusSyncLost2" value="666"/>
+            <enum-member name="EFaultId_TxRfAlarm1" value="667"/>
+            <enum-member name="EFaultId_TxRfAlarm2" value="668"/>
+            <enum-member name="EFaultId_PowerSupplyAl" value="700"/>
+            <enum-member name="EFaultId_WpaTempAl" value="701"/>
+            <enum-member name="EFaultId_InputOverDriveAl" value="702"/>
+            <enum-member name="EFaultId_LinearizationAl" value="703"/>
+            <enum-member name="EFaultId_VswrAl" value="704"/>
+            <enum-member name="EFaultId_GainAl" value="705"/>
+            <enum-member name="EFaultId_WpaFaultyAl" value="706"/>
+            <enum-member name="EFaultId_Lna1Al" value="800"/>
+            <enum-member name="EFaultId_Lna2Al" value="801"/>
+            <enum-member name="EFaultId_Mha1Al" value="802"/>
+            <enum-member name="EFaultId_Mha2Al" value="803"/>
+            <enum-member name="EFaultId_Ant1Al" value="804"/>
+            <enum-member name="EFaultId_Lna3Al" value="805"/>
+            <enum-member name="EFaultId_Lna4Al" value="806"/>
+            <enum-member name="EFaultId_Mha3Al" value="807"/>
+            <enum-member name="EFaultId_Mha4Al" value="808"/>
+            <enum-member name="EFaultId_Ant2Al" value="809"/>
+            <enum-member name="EFaultId_Lna5Al" value="810"/>
+            <enum-member name="EFaultId_Lna6Al" value="811"/>
+            <enum-member name="EFaultId_Mha5Al" value="812"/>
+            <enum-member name="EFaultId_Mha6Al" value="813"/>
+            <enum-member name="EFaultId_Ant3Al" value="814"/>
+            <enum-member name="EFaultId_TransmissionClkMss" value="900"/>
+            <enum-member name="EFaultId_OcxoHeatingAl" value="901"/>
+            <enum-member name="EFaultId_ReferenceClkMss" value="902"/>
+            <enum-member name="EFaultId_OcxoClkMss" value="903"/>
+            <enum-member name="EFaultId_ClkAl" value="904"/>
+            <enum-member name="EFaultId_DualWscStokMss" value="905"/>
+            <enum-member name="EFaultId_DualWscDacAdjustAlarm" value="906"/>
+            <enum-member name="EFaultId_DualWscDacWordAlarm" value="907"/>
+            <enum-member name="EFaultId_DualWscRefrclkMss" value="908"/>
+            <enum-member name="EFaultId_DualWscTrclkMss" value="909"/>
+            <enum-member name="EFaultId_DualWscBrclkMss" value="910"/>
+            <enum-member name="EFaultId_DualWscOcxoClkMss" value="911"/>
+            <enum-member name="EFaultId_DualWscOvAMss" value="912"/>
+            <enum-member name="EFaultId_SystemFrameClkMss" value="1000"/>
+            <enum-member name="EFaultId_RedundantClkMss" value="1001"/>
+            <enum-member name="EFaultId_MasterClkMss" value="1002"/>
+            <enum-member name="EFaultId_TransmissionClk0Mss" value="1003"/>
+            <enum-member name="EFaultId_TransmissionClk1Mss" value="1004"/>
+            <enum-member name="EFaultId_ReferenceReturnClkMss" value="1005"/>
+            <enum-member name="EFaultId_BaseBandReferenceClkMss" value="1006"/>
+            <enum-member name="EFaultId_WciStokMss" value="1007"/>
+            <enum-member name="EFaultId_WciClkMss" value="1008"/>
+            <enum-member name="EFaultId_RclkMss" value="1009"/>
+            <enum-member name="EFaultId_TrclkMss" value="1010"/>
+            <enum-member name="EFaultId_CabReferenceClkFail" value="1011"/>
+            <enum-member name="EFaultId_WciInitAl" value="1012"/>
+            <enum-member name="EFaultId_Wtr0ParityErr1" value="1100"/>
+            <enum-member name="EFaultId_Wtr0ParityErr2" value="1101"/>
+            <enum-member name="EFaultId_Wtr0SyncErr1" value="1102"/>
+            <enum-member name="EFaultId_Wtr0SyncErr2" value="1103"/>
+            <enum-member name="EFaultId_Wtr1ParityErr1" value="1104"/>
+            <enum-member name="EFaultId_Wtr1ParityErr2" value="1105"/>
+            <enum-member name="EFaultId_Wtr1SyncErr1" value="1106"/>
+            <enum-member name="EFaultId_Wtr1SyncErr2" value="1107"/>
+            <enum-member name="EFaultId_WsmSrLeftParityErr1" value="1108"/>
+            <enum-member name="EFaultId_WsmSrLeftParityErr2" value="1109"/>
+            <enum-member name="EFaultId_WsmSrLeftSyncErr1" value="1110"/>
+            <enum-member name="EFaultId_WsmSrLeftSyncErr2" value="1111"/>
+            <enum-member name="EFaultId_WsmSrRightParityErr1" value="1112"/>
+            <enum-member name="EFaultId_WsmSrRightParityErr2" value="1113"/>
+            <enum-member name="EFaultId_WsmSrRightSyncErr1" value="1114"/>
+            <enum-member name="EFaultId_WsmSrRightSyncErr2" value="1115"/>
+            <enum-member name="EFaultId_WsmStLeftParityErr1" value="1116"/>
+            <enum-member name="EFaultId_WsmStLeftParityErr2" value="1117"/>
+            <enum-member name="EFaultId_WsmStLeftSyncErr1" value="1118"/>
+            <enum-member name="EFaultId_WsmStLeftSyncErr2" value="1119"/>
+            <enum-member name="EFaultId_WsmStRightParityErr1" value="1120"/>
+            <enum-member name="EFaultId_WsmStRightParityErr2" value="1121"/>
+            <enum-member name="EFaultId_WsmStRightSyncErr1" value="1122"/>
+            <enum-member name="EFaultId_WsmStRightSyncErr2" value="1123"/>
+            <enum-member name="EFaultId_Wsp0ParityErr1" value="1124"/>
+            <enum-member name="EFaultId_Wsp0ParityErr2" value="1125"/>
+            <enum-member name="EFaultId_Wsp0SyncErr1" value="1126"/>
+            <enum-member name="EFaultId_Wsp0SyncErr2" value="1127"/>
+            <enum-member name="EFaultId_Wsp1ParityErr1" value="1128"/>
+            <enum-member name="EFaultId_Wsp1ParityErr2" value="1129"/>
+            <enum-member name="EFaultId_Wsp1SyncErr1" value="1130"/>
+            <enum-member name="EFaultId_Wsp1SyncErr2" value="1131"/>
+            <enum-member name="EFaultId_Wsp2ParityErr1" value="1132"/>
+            <enum-member name="EFaultId_Wsp2ParityErr2" value="1133"/>
+            <enum-member name="EFaultId_Wsp2SyncErr1" value="1134"/>
+            <enum-member name="EFaultId_Wsp2SyncErr2" value="1135"/>
+            <enum-member name="EFaultId_Wsp3ParityErr1" value="1136"/>
+            <enum-member name="EFaultId_Wsp3ParityErr2" value="1137"/>
+            <enum-member name="EFaultId_Wsp3SyncErr1" value="1138"/>
+            <enum-member name="EFaultId_Wsp3SyncErr2" value="1139"/>
+            <enum-member name="EFaultId_Wsp4ParityErr1" value="1140"/>
+            <enum-member name="EFaultId_Wsp4ParityErr2" value="1141"/>
+            <enum-member name="EFaultId_Wsp4SyncErr1" value="1142"/>
+            <enum-member name="EFaultId_Wsp4SyncErr2" value="1143"/>
+            <enum-member name="EFaultId_Wsp5ParityErr1" value="1144"/>
+            <enum-member name="EFaultId_Wsp5ParityErr2" value="1145"/>
+            <enum-member name="EFaultId_Wsp5SyncErr1" value="1146"/>
+            <enum-member name="EFaultId_Wsp5SyncErr2" value="1147"/>
+            <enum-member name="EFaultId_Wspc0ParityErr1" value="1148"/>
+            <enum-member name="EFaultId_Wspc0ParityErr2" value="1149"/>
+            <enum-member name="EFaultId_Wspc0SyncErr1" value="1150"/>
+            <enum-member name="EFaultId_Wspc0SyncErr2" value="1151"/>
+            <enum-member name="EFaultId_Wspc1ParityErr1" value="1152"/>
+            <enum-member name="EFaultId_Wspc1ParityErr2" value="1153"/>
+            <enum-member name="EFaultId_Wspc1SyncErr1" value="1154"/>
+            <enum-member name="EFaultId_Wspc1SyncErr2" value="1155"/>
+            <enum-member name="EFaultId_Wspc2ParityErr1" value="1156"/>
+            <enum-member name="EFaultId_Wspc2ParityErr2" value="1157"/>
+            <enum-member name="EFaultId_Wspc2SyncErr1" value="1158"/>
+            <enum-member name="EFaultId_Wspc2SyncErr2" value="1159"/>
+            <enum-member name="EFaultId_Wspc3ParityErr1" value="1160"/>
+            <enum-member name="EFaultId_Wspc3ParityErr2" value="1161"/>
+            <enum-member name="EFaultId_Wspc3SyncErr1" value="1162"/>
+            <enum-member name="EFaultId_Wspc3SyncErr2" value="1163"/>
+            <enum-member name="EFaultId_Wspc4ParityErr1" value="1164"/>
+            <enum-member name="EFaultId_Wspc4ParityErr2" value="1165"/>
+            <enum-member name="EFaultId_Wspc4SyncErr1" value="1166"/>
+            <enum-member name="EFaultId_Wspc4SyncErr2" value="1167"/>
+            <enum-member name="EFaultId_Wspc5ParityErr1" value="1168"/>
+            <enum-member name="EFaultId_Wspc5ParityErr2" value="1169"/>
+            <enum-member name="EFaultId_Wspc5SyncErr1" value="1170"/>
+            <enum-member name="EFaultId_Wspc5SyncErr2" value="1171"/>
+            <enum-member name="EFaultId_St_l0ParityErr1" value="1172"/>
+            <enum-member name="EFaultId_St_l0ParityErr2" value="1173"/>
+            <enum-member name="EFaultId_St_l0SyncErr1" value="1174"/>
+            <enum-member name="EFaultId_St_l0SyncErr2" value="1175"/>
+            <enum-member name="EFaultId_St_l1ParityErr1" value="1176"/>
+            <enum-member name="EFaultId_St_l1ParityErr2" value="1177"/>
+            <enum-member name="EFaultId_St_l1SyncErr1" value="1178"/>
+            <enum-member name="EFaultId_St_l1SyncErr2" value="1179"/>
+            <enum-member name="EFaultId_St_r0ParityErr1" value="1180"/>
+            <enum-member name="EFaultId_St_r0ParityErr2" value="1181"/>
+            <enum-member name="EFaultId_St_r0SyncErr1" value="1182"/>
+            <enum-member name="EFaultId_St_r0SyncErr2" value="1183"/>
+            <enum-member name="EFaultId_St_r1ParityErr1" value="1184"/>
+            <enum-member name="EFaultId_St_r1ParityErr2" value="1185"/>
+            <enum-member name="EFaultId_St_r1SyncErr1" value="1186"/>
+            <enum-member name="EFaultId_St_r1SyncErr2" value="1187"/>
+            <enum-member name="EFaultId_Rr0_0ParityErr1" value="1188"/>
+            <enum-member name="EFaultId_Rr0_0ParityErr2" value="1189"/>
+            <enum-member name="EFaultId_Rr0_0SyncErr1" value="1190"/>
+            <enum-member name="EFaultId_Rr0_0SyncErr2" value="1191"/>
+            <enum-member name="EFaultId_Rr0_1ParityErr1" value="1192"/>
+            <enum-member name="EFaultId_Rr0_1ParityErr2" value="1193"/>
+            <enum-member name="EFaultId_Rr0_1SyncErr1" value="1194"/>
+            <enum-member name="EFaultId_Rr0_1SyncErr2" value="1195"/>
+            <enum-member name="EFaultId_Rr1_0ParityErr1" value="1196"/>
+            <enum-member name="EFaultId_Rr1_0ParityErr2" value="1197"/>
+            <enum-member name="EFaultId_Rr1_0SyncErr1" value="1198"/>
+            <enum-member name="EFaultId_Rr1_0SyncErr2" value="1199"/>
+            <enum-member name="EFaultId_Rr1_1ParityErr1" value="1200"/>
+            <enum-member name="EFaultId_Rr1_1ParityErr2" value="1201"/>
+            <enum-member name="EFaultId_Rr1_1SyncErr1" value="1202"/>
+            <enum-member name="EFaultId_Rr1_1SyncErr2" value="1203"/>
+            <enum-member name="EFaultId_Srl0_0ParityErr1" value="1204"/>
+            <enum-member name="EFaultId_Srl0_0ParityErr2" value="1205"/>
+            <enum-member name="EFaultId_Srl0_0SyncErr1" value="1206"/>
+            <enum-member name="EFaultId_Srl0_0SyncErr2" value="1207"/>
+            <enum-member name="EFaultId_Srl0_1ParityErr1" value="1208"/>
+            <enum-member name="EFaultId_Srl0_1ParityErr2" value="1209"/>
+            <enum-member name="EFaultId_Srl0_1SyncErr1" value="1210"/>
+            <enum-member name="EFaultId_Srl0_1SyncErr2" value="1211"/>
+            <enum-member name="EFaultId_Srl1_0ParityErr1" value="1212"/>
+            <enum-member name="EFaultId_Srl1_0ParityErr2" value="1213"/>
+            <enum-member name="EFaultId_Srl1_0SyncErr1" value="1214"/>
+            <enum-member name="EFaultId_Srl1_0SyncErr2" value="1215"/>
+            <enum-member name="EFaultId_Srl1_1ParityErr1" value="1216"/>
+            <enum-member name="EFaultId_Srl1_1ParityErr2" value="1217"/>
+            <enum-member name="EFaultId_Srl1_1SyncErr1" value="1218"/>
+            <enum-member name="EFaultId_Srl1_1SyncErr2" value="1219"/>
+            <enum-member name="EFaultId_SRr0_0ParityErr1" value="1220"/>
+            <enum-member name="EFaultId_SRr0_0ParityErr2" value="1221"/>
+            <enum-member name="EFaultId_SRr0_0SyncErr1" value="1222"/>
+            <enum-member name="EFaultId_SRr0_0SyncErr2" value="1223"/>
+            <enum-member name="EFaultId_SRr0_1ParityErr1" value="1224"/>
+            <enum-member name="EFaultId_SRr0_1ParityErr2" value="1225"/>
+            <enum-member name="EFaultId_SRr0_1SyncErr1" value="1226"/>
+            <enum-member name="EFaultId_SRr0_1SyncErr2" value="1227"/>
+            <enum-member name="EFaultId_Srr1_0ParityErr1" value="1228"/>
+            <enum-member name="EFaultId_Srr1_0ParityErr2" value="1229"/>
+            <enum-member name="EFaultId_Srr1_0SyncErr1" value="1230"/>
+            <enum-member name="EFaultId_Srr1_0SyncErr2" value="1231"/>
+            <enum-member name="EFaultId_Srr1_1ParityErr1" value="1232"/>
+            <enum-member name="EFaultId_Srr1_1ParityErr2" value="1233"/>
+            <enum-member name="EFaultId_Srr1_1SyncErr1" value="1234"/>
+            <enum-member name="EFaultId_Srr1_1SyncErr2" value="1235"/>
+            <enum-member name="EFaultId_Rr2BusSyncErr2" value="1236"/>
+            <enum-member name="EFaultId_Rr2BusSyncErr1" value="1237"/>
+            <enum-member name="EFaultId_Rr2BusParityErr2" value="1238"/>
+            <enum-member name="EFaultId_Rr2BusParityErr1" value="1239"/>
+            <enum-member name="EFaultId_Rr1BusSyncErr2" value="1240"/>
+            <enum-member name="EFaultId_Rr1BusSyncErr1" value="1241"/>
+            <enum-member name="EFaultId_Rr1BusParityErr2" value="1242"/>
+            <enum-member name="EFaultId_Rr1BusParityErr1" value="1243"/>
+            <enum-member name="EFaultId_Wsp1TbusParityErr1" value="1244"/>
+            <enum-member name="EFaultId_Wsp0TbusParityErr1" value="1245"/>
+            <enum-member name="EFaultId_Wsp1TbusSyncErr1" value="1246"/>
+            <enum-member name="EFaultId_Wsp0TbusSyncErr1" value="1247"/>
+            <enum-member name="EFaultId_Wsp1TbusParityErr2" value="1248"/>
+            <enum-member name="EFaultId_Wsp0TbusParityErr2" value="1249"/>
+            <enum-member name="EFaultId_Wsp1TbusSyncErr2" value="1250"/>
+            <enum-member name="EFaultId_Wsp0TbusSyncErr2" value="1251"/>
+            <enum-member name="EFaultId_Dsax_HwResetStatusErr" value="1252"/>
+            <enum-member name="EFaultId_Dsax_SfclkStatusNegErr" value="1253"/>
+            <enum-member name="EFaultId_Dsax_SfclkStatusPosErr" value="1254"/>
+            <enum-member name="EFaultId_Umax_HwResetStatusErr" value="1255"/>
+            <enum-member name="EFaultId_Umax_SfclkStatusErr" value="1256"/>
+            <enum-member name="EFaultId_DoorAl0" value="1300"/>
+            <enum-member name="EFaultId_WpsPwrOutVoltage" value="1301"/>
+            <enum-member name="EFaultId_WpsPwrInVoltage" value="1302"/>
+            <enum-member name="EFaultId_RegulatorAl" value="1303"/>
+            <enum-member name="EFaultId_BatteryVoltageAl" value="1304"/>
+            <enum-member name="EFaultId_BackupTimeAl" value="1305"/>
+            <enum-member name="EFaultId_BatteryTempAl" value="1306"/>
+            <enum-member name="EFaultId_BatteryFailure" value="1307"/>
+            <enum-member name="EFaultId_CellBalanceAl" value="1308"/>
+            <enum-member name="EFaultId_ACLineBreakAl" value="1309"/>
+            <enum-member name="EFaultId_SmokeAl" value="1310"/>
+            <enum-member name="EFaultId_ExtAl0" value="1400"/>
+            <enum-member name="EFaultId_ExtAl1" value="1401"/>
+            <enum-member name="EFaultId_ExtAl2" value="1402"/>
+            <enum-member name="EFaultId_ExtAl3" value="1403"/>
+            <enum-member name="EFaultId_ExtAl4" value="1404"/>
+            <enum-member name="EFaultId_ExtAl5" value="1405"/>
+            <enum-member name="EFaultId_ExtAl6" value="1406"/>
+            <enum-member name="EFaultId_ExtAl7" value="1407"/>
+            <enum-member name="EFaultId_ExtAl8" value="1408"/>
+            <enum-member name="EFaultId_ExtAl9" value="1409"/>
+            <enum-member name="EFaultId_ExtAl10" value="1410"/>
+            <enum-member name="EFaultId_ExtAl11" value="1411"/>
+            <enum-member name="EFaultId_ExtAl12" value="1412"/>
+            <enum-member name="EFaultId_ExtAl13" value="1413"/>
+            <enum-member name="EFaultId_ExtAl14" value="1414"/>
+            <enum-member name="EFaultId_ExtAl15" value="1415"/>
+            <enum-member name="EFaultId_ExtAl16" value="1416"/>
+            <enum-member name="EFaultId_ExtAl17" value="1417"/>
+            <enum-member name="EFaultId_ExtAl18" value="1418"/>
+            <enum-member name="EFaultId_ExtAl19" value="1419"/>
+            <enum-member name="EFaultId_ExtAl20" value="1420"/>
+            <enum-member name="EFaultId_ExtAl21" value="1421"/>
+            <enum-member name="EFaultId_ExtAl22" value="1422"/>
+            <enum-member name="EFaultId_ExtAl23" value="1423"/>
+            <enum-member name="EFaultId_ExtAl24" value="1424"/>
+            <enum-member name="EFaultId_ExtAl25" value="1425"/>
+            <enum-member name="EFaultId_RFDownlinkAl" value="1500"/>
+            <enum-member name="EFaultId_DownlinkOpticalAl" value="1501"/>
+            <enum-member name="EFaultId_DownlinkOpticalAGCAl" value="1502"/>
+            <enum-member name="EFaultId_DownlinkLaserAl" value="1503"/>
+            <enum-member name="EFaultId_DownlinkCommunicationAl" value="1504"/>
+            <enum-member name="EFaultId_UplinkRFAl" value="1505"/>
+            <enum-member name="EFaultId_ShortCircuit" value="1506"/>
+            <enum-member name="EFaultId_UplinkCommunicationAl" value="1507"/>
+            <enum-member name="EFaultId_UplinkOpticalAl" value="1508"/>
+            <enum-member name="EFaultId_UplinkOpticalAGCAl" value="1509"/>
+            <enum-member name="EFaultId_AIRTemperaturelAl" value="1510"/>
+            <enum-member name="EFaultId_AIRPowerSupplyAl" value="1511"/>
+            <enum-member name="EFaultId_InternalBusError" value="1512"/>
+            <enum-member name="EFaultId_MajorAl" value="1513"/>
+            <enum-member name="EFaultId_MinorAl" value="1514"/>
+            <enum-member name="EFaultId_FatalAl" value="1515"/>
+            <enum-member name="EFaultId_SWDownloadingErrorAl" value="1516"/>
+            <enum-member name="EFaultId_POWER_CONTROLLER_UNIT_FAIL" value="1700"/>
+            <enum-member name="EFaultId_PSM_ALARM_1" value="1701"/>
+            <enum-member name="EFaultId_PSM_ALARM_2" value="1702"/>
+            <enum-member name="EFaultId_PSM_ALARM_3" value="1703"/>
+            <enum-member name="EFaultId_RECTIFIER_CAPACITY_LOW" value="1704"/>
+            <enum-member name="EFaultId_RECTIFIER_UNIT_FAILED" value="1705"/>
+            <enum-member name="EFaultId_DC_DISTRIBUTION_FAILURE" value="1706"/>
+            <enum-member name="EFaultId_MAINS_BREAK_DOWN_PHASE_1" value="1707"/>
+            <enum-member name="EFaultId_MAINS_BREAK_DOWN_PHASE_2" value="1708"/>
+            <enum-member name="EFaultId_MAINS_BREAK_DOWN_PHASE_3" value="1709"/>
+            <enum-member name="EFaultId_LOW_BATTERY_WARNING_ALARM" value="1710"/>
+            <enum-member name="EFaultId_CABINET_DOOR_OPEN" value="1711"/>
+            <enum-member name="EFaultId_CABINET_SMOKE_ALARM" value="1712"/>
+            <enum-member name="EFaultId_BTSFansDegradedAl" value="1800"/>
+            <enum-member name="EFaultId_SecondaryWamMissingAl" value="1801"/>
+            <enum-member name="EFaultId_FileRequestFlashAl" value="1802"/>
+            <enum-member name="EFaultId_FileParsingFailedAl" value="1803"/>
+            <enum-member name="EFaultId_UnknownCabinetTypeAl" value="1804"/>
+            <enum-member name="EFaultId_UnreliableFingerPrintAl" value="1805"/>
+            <enum-member name="EFaultId_CommunicationFailureAl" value="1806"/>
+            <enum-member name="EFaultId_InvalidFrequencyChannelForBTSHW" value="1807"/>
+            <enum-member name="EFaultId_IncorrectCarrierCandidateAl" value="1808"/>
+            <enum-member name="EFaultId_CellInactiveAl" value="1809"/>
+            <enum-member name="EFaultId_VSWRThresholdTuningOngoingAl" value="1810"/>
+            <enum-member name="EFaultId_BbBus_ConfFailedAl" value="1811"/>
+            <enum-member name="EFaultId_UnitPollFailedAl" value="1812"/>
+            <enum-member name="EFaultId_FDEnabledAl" value="1813"/>
+            <enum-member name="EFaultId_HWCapacityTooLowAl" value="1814"/>
+            <enum-member name="EFaultId_BbBus_SyncFailedAl" value="1815"/>
+            <enum-member name="EFaultId_Trans_Clk_MsgAl" value="1816"/>
+            <enum-member name="EFaultId_Ov_Osc_HeatAl" value="1817"/>
+            <enum-member name="EFaultId_Ov_OscAl" value="1818"/>
+            <enum-member name="EFaultId_OcxoClkMissAl" value="1819"/>
+            <enum-member name="EFaultId_OcxoPulseMissingAl" value="1820"/>
+            <enum-member name="EFaultId_FcmSysClockFault" value="1821"/>
+            <enum-member name="EFaultId_Fr_SyncAl" value="1822"/>
+            <enum-member name="EFaultId_ClkSwitchFailAl" value="1823"/>
+            <enum-member name="EFaultId_AtmPostFailAl" value="1824"/>
+            <enum-member name="EFaultId_PublicIPmissingAl" value="1825"/>
+            <enum-member name="EFaultId_TrParamMissingAl" value="1826"/>
+            <enum-member name="EFaultId_StartTempBelowMinAl" value="1827"/>
+            <enum-member name="EFaultId_FpgaSwDownloadAl" value="1828"/>
+            <enum-member name="EFaultId_ConnToTransBrokenAl" value="1829"/>
+            <enum-member name="EFaultId_FpgaCrcCheckFailAl" value="1830"/>
+            <enum-member name="EFaultId_ActiveClkTuningAl" value="1831"/>
+            <enum-member name="EFaultId_AcdcModuleFailAl" value="1832"/>
+            <enum-member name="EFaultId_LicenceMissingAl" value="1833"/>
+            <enum-member name="EFaultId_AboveCurrentWindowAl" value="1834"/>
+            <enum-member name="EFaultId_BelowCurrentWindowAl" value="1835"/>
+            <enum-member name="EFaultId_ALOvercurrentAl" value="1836"/>
+            <enum-member name="EFaultId_VSWRMajorAl" value="1837"/>
+            <enum-member name="EFaultId_VSWRMinorAl" value="1838"/>
+            <enum-member name="EFaultId_LNAFailureAl" value="1839"/>
+            <enum-member name="EFaultId_TuningFailureAl" value="1840"/>
+            <enum-member name="EFaultId_UnitFaultyAl" value="1841"/>
+            <enum-member name="EFaultId_MotorJamAl" value="1842"/>
+            <enum-member name="EFaultId_ActuatorJamAl" value="1843"/>
+            <enum-member name="EFaultId_NotCalibratedAl" value="1844"/>
+            <enum-member name="EFaultId_NotConfiguredAl" value="1845"/>
+            <enum-member name="EFaultId_ActuatorInterferenceAl" value="1846"/>
+            <enum-member name="EFaultId_HardwareErrorAl" value="1847"/>
+            <enum-member name="EFaultId_WorkingSoftwareMissingAl" value="1848"/>
+            <enum-member name="EFaultId_CommunicationFailedAl" value="1849"/>
+            <enum-member name="EFaultId_SwCorruptedAl" value="1850"/>
+            <enum-member name="EFaultId_CommDataNetworkParamAl" value="1851"/>
+            <enum-member name="EFaultId_SystemClockExtensionNotAvailableAl" value="1852"/>
+            <enum-member name="EFaultId_FSPBlockedAl" value="1853"/>
+            <enum-member name="EFaultId_FSPFaultyAl" value="1854"/>
+            <enum-member name="EFaultId_AxuNetworkParamsChangedAl" value="1855"/>
+            <enum-member name="EFaultId_IncoherencyInCellConfigurationAl" value="1856"/>
+            <enum-member name="EFaultId_IncoherencyWithRFModulesAl" value="1857"/>
+            <enum-member name="EFaultId_FaultyFcmConfigurationAl" value="1858"/>
+            <enum-member name="EFaultId_WaitingRfConnectionAl" value="1859"/>
+            <enum-member name="EFaultId_HeatingMatNotWorkingAl" value="1860"/>
+            <enum-member name="EFaultId_NotEnoughFspResourcesPerCellAl" value="1861"/>
+            <enum-member name="EFaultId_NoFspInFsmAl" value="1862"/>
+            <enum-member name="EFaultId_LtxNotMappedToLcrAl" value="1863"/>
+            <enum-member name="EFaultId_BTSConfigErrorAl" value="1864"/>
+            <enum-member name="EFaultId_LcrCarrierFreqLcgAl" value="1865"/>
+            <enum-member name="EFaultId_RulesMissingAl" value="1866"/>
+            <enum-member name="EFaultId_RulesParsingAl" value="1867"/>
+            <enum-member name="EFaultId_NotEnoughHwForLcrAl" value="1868"/>
+            <enum-member name="EFaultId_MinorTMAFaultAl" value="1869"/>
+            <enum-member name="EFaultId_MajorTMAFaultAl" value="1870"/>
+            <enum-member name="EFaultId_BusyAl" value="1871"/>
+            <enum-member name="EFaultId_FormatErrorAl" value="1872"/>
+            <enum-member name="EFaultId_UnsupportedProcedureAl" value="1873"/>
+            <enum-member name="EFaultId_OutOfRangeAl" value="1874"/>
+            <enum-member name="EFaultId_SRAMRdAl" value="1875"/>
+            <enum-member name="EFaultId_SRAMWrAl" value="1876"/>
+            <enum-member name="EFaultId_ResetNeededForLicenceAl" value="1877"/>
+            <enum-member name="EFaultId_Missing8WPowerLicenceAl" value="1878"/>
+            <enum-member name="EFaultId_Missing40WPowerLicenceAl" value="1879"/>
+            <enum-member name="EFaultId_MissingMultiCarrierLicenceAl" value="1880"/>
+            <enum-member name="EFaultId_MinorCommFailureAl" value="1881"/>
+            <enum-member name="EFaultId_SelfTestFailedAl" value="1882"/>
+            <enum-member name="EFaultId_Missing20WMastHeadPowerLicenseAl" value="1883"/>
+            <enum-member name="EFaultId_IpConfigurationChangedAl" value="1884"/>
+            <enum-member name="EFaultId_MissingLicenseAl" value="1885"/>
+            <enum-member name="EFaultId_IncoherencyOfSystemModuleAl" value="1886"/>
+            <enum-member name="EFaultId_MissingMhaSupportLicenceAl" value="1887"/>
+            <enum-member name="EFaultId_AlConfigurationFailureAl" value="1888"/>
+            <enum-member name="EFaultId_Aal2LinkRnDAl" value="1889"/>
+            <enum-member name="EFaultId_SynchTimingDifferenceAl" value="1890"/>
+            <enum-member name="EFaultId_MuksuReleaseFromResetFailedAl" value="1891"/>
+            <enum-member name="EFaultId_ExternalFilterMissingFromLcrAl" value="1892"/>
+            <enum-member name="EFaultId_InternalDelayMeasurementFailureAl" value="1893"/>
+            <enum-member name="EFaultId_RecoveryResetAl" value="1894"/>
+            <enum-member name="EFaultId_RnwConfigurationFileNotSupportedAl" value="1895"/>
+            <enum-member name="EFaultId_RnwParameterMismatchAl" value="1896"/>
+            <enum-member name="EFaultId_InvalidRnwConfigurationFileAl" value="1897"/>
+            <enum-member name="EFaultId_PpsRefMissAl" value="1898"/>
+            <enum-member name="EFaultId_2MExtRefMissAl" value="1899"/>
+            <enum-member name="EFaultId_FrConfiguringFailed" value="1900"/>
+            <enum-member name="EFaultId_FrCriticalFileNotFound" value="1901"/>
+            <enum-member name="EFaultId_FrFileNotFound" value="1902"/>
+            <enum-member name="EFaultId_FrFrameClockMissing" value="1903"/>
+            <enum-member name="EFaultId_FrRfBbBusSynchError" value="1904"/>
+            <enum-member name="EFaultId_FrRfBbBusConfigError" value="1905"/>
+            <enum-member name="EFaultId_FrRfBbBusConnTransError" value="1906"/>
+            <enum-member name="EFaultId_FrTxOutOfOrder" value="1907"/>
+            <enum-member name="EFaultId_FrGainAdjust" value="1908"/>
+            <enum-member name="EFaultId_FrBbEnergyTooHigh" value="1909"/>
+            <enum-member name="EFaultId_FrFilterInputPowerMissing" value="1910"/>
+            <enum-member name="EFaultId_FrRxOutOfOrder" value="1911"/>
+            <enum-member name="EFaultId_FrOutOfOrder" value="1912"/>
+            <enum-member name="EFaultId_FrOverheat" value="1913"/>
+            <enum-member name="EFaultId_FrTempValueMissing" value="1914"/>
+            <enum-member name="EFaultId_FrAmbientTempLow" value="1915"/>
+            <enum-member name="EFaultId_FrAmbientTempHigh" value="1916"/>
+            <enum-member name="EFaultId_FrFanOutOfOrder" value="1917"/>
+            <enum-member name="EFaultId_FrPowerOutputFault" value="1918"/>
+            <enum-member name="EFaultId_FrRfTestLoopFault" value="1919"/>
+            <enum-member name="EFaultId_FrNoFeedBackSignal" value="1920"/>
+            <enum-member name="EFaultId_FrTransmissionQualityDetoriated" value="1921"/>
+            <enum-member name="EFaultId_FrTemperatureTooLow" value="1922"/>
+            <enum-member name="EFaultId_FrUnitUnidentified" value="1923"/>
+            <enum-member name="EFaultId_FrConfigurationFileCorrupted" value="1924"/>
+            <enum-member name="EFaultId_FrPostTestFailed" value="1925"/>
+            <enum-member name="EFaultId_FrModuleClockFaulty" value="1926"/>
+            <enum-member name="EFaultId_FrPowerDecreased" value="1927"/>
+            <enum-member name="EFaultId_FrFpgaSwUpdateFailed" value="1928"/>
+            <enum-member name="EFaultId_FrOptIfConfFailAl" value="1929"/>
+            <enum-member name="EFaultId_FRLossOfSecondaryOptIf" value="1930"/>
+            <enum-member name="EFaultId_FrBlocked" value="1931"/>
+            <enum-member name="EFaultId_FrNoFansDetected" value="1932"/>
+            <enum-member name="EFaultId_FrFanBroken" value="1933"/>
+            <enum-member name="EFaultId_FrFanReducedSetSpeed" value="1934"/>
+            <enum-member name="EFaultId_FrFanOverSpeed" value="1935"/>
+            <enum-member name="EFaultId_FrTempHigh" value="1936"/>
+            <enum-member name="EFaultId_FrDangerouslyOverheat" value="1937"/>
+            <enum-member name="EFaultId_FrPipeOverheat" value="1938"/>
+            <enum-member name="EFaultId_FrAmbientTempViolation" value="1939"/>
+            <enum-member name="EFaultId_FrTemperatureValueMissing" value="1940"/>
+            <enum-member name="EFaultId_FrOverTempAl" value="1941"/>
+            <enum-member name="EFaultId_FrOverVoltageProtectionFaulty" value="1942"/>
+            <enum-member name="EFaultId_ConverterGpsClockAbnormalAl" value="1943"/>
+            <enum-member name="EFaultId_CpriOpticalPortFailureAl" value="1944"/>
+            <enum-member name="EFaultId_AbnormalGps1ppsSignalAl" value="1945"/>
+            <enum-member name="EFaultId_UnavailableGpsSatelliteSignalAl" value="1946"/>
+            <enum-member name="EFaultId_AbnormalSynchronizationOfEnbAl" value="1947"/>
+            <enum-member name="EFaultId_AbnormalOpticalSfpOfIrInterfaceAl" value="1948"/>
+            <enum-member name="EFaultId_DateRateMismatchOfOpticalSfpAl" value="1949"/>
+            <enum-member name="EFaultId_AbnormalOpticalSignalStrengthAl" value="1950"/>
+            <enum-member name="EFaultId_IrLinkBrokenAl" value="1951"/>
+            <enum-member name="EFaultId_OIC_TxAl" value="2000"/>
+            <enum-member name="EFaultId_OIC_PresAl" value="2001"/>
+            <enum-member name="EFaultId_OIC_RxAl" value="2002"/>
+            <enum-member name="EFaultId_OIC_CleanerLockAl" value="2003"/>
+            <enum-member name="EFaultId_OIC_LVDSRecAl" value="2004"/>
+            <enum-member name="EFaultId_OIC_SyncChAl" value="2005"/>
+            <enum-member name="EFaultId_OIC_DBRxFullAl" value="2006"/>
+            <enum-member name="EFaultId_OIC_DBTxFullAl" value="2007"/>
+            <enum-member name="EFaultId_OIC_CBRxFullAl" value="2008"/>
+            <enum-member name="EFaultId_OIC_CBTxFullAl" value="2009"/>
+            <enum-member name="EFaultId_OIC_EBFullAl" value="2010"/>
+            <enum-member name="EFaultId_OIC_MCUBFullAl" value="2011"/>
+            <enum-member name="EFaultId_OIC_RP1BFullAl" value="2012"/>
+            <enum-member name="EFaultId_OIC_Rp1CrcAl" value="2013"/>
+            <enum-member name="EFaultId_Muksu_SFCRCompDevAl" value="2014"/>
+            <enum-member name="EFaultId_Muksu_SFCRCrcAl" value="2015"/>
+            <enum-member name="EFaultId_Muksu_SMTimeOffAl" value="2016"/>
+            <enum-member name="EFaultId_Muksu_SRx10b8bAl" value="2017"/>
+            <enum-member name="EFaultId_Muksu_StxPortCollAl" value="2018"/>
+            <enum-member name="EFaultId_Muksu_SsubMmAl" value="2019"/>
+            <enum-member name="EFaultId_Muksu_StypeMmAl" value="2020"/>
+            <enum-member name="EFaultId_Muksu_StsMmAl" value="2021"/>
+            <enum-member name="EFaultId_Muksu_SoflowAl" value="2022"/>
+            <enum-member name="EFaultId_Muksu_SuflowAl" value="2023"/>
+            <enum-member name="EFaultId_Muksu_SresetAl" value="2024"/>
+            <enum-member name="EFaultId_Transu_TbusBosAl" value="2025"/>
+            <enum-member name="EFaultId_Transu_TbusBocAl" value="2026"/>
+            <enum-member name="EFaultId_Transu_TbusParityAl" value="2027"/>
+            <enum-member name="EFaultId_Transu_InSynchChAl" value="2028"/>
+            <enum-member name="EFaultId_Transu_CRCAl" value="2029"/>
+            <enum-member name="EFaultId_Transu_CompDevBbRfAl" value="2030"/>
+            <enum-member name="EFaultId_Transu_DlDbSynchChAl" value="2031"/>
+            <enum-member name="EFaultId_Transu_TxFsmStChAl" value="2032"/>
+            <enum-member name="EFaultId_Transu_UlDbSyncChAl" value="2033"/>
+            <enum-member name="EFaultId_Transu_RxFsmStChAl" value="2034"/>
+            <enum-member name="EFaultId_Transu_FrSyncLostAl" value="2035"/>
+            <enum-member name="EFaultId_Transu_SfnSignalAl" value="2036"/>
+            <enum-member name="EFaultId_Transu_RxUnEIdleAl" value="2037"/>
+            <enum-member name="EFaultId_Transu_RxByteAl" value="2038"/>
+            <enum-member name="EFaultId_Transu_RxMsgGrpAl" value="2039"/>
+            <enum-member name="EFaultId_Transu_RxDispAl" value="2040"/>
+            <enum-member name="EFaultId_Transu_Rp3CtrlMsgAl" value="2041"/>
+            <enum-member name="EFaultId_CASA2_OxcoFault" value="2042"/>
+            <enum-member name="EFaultId_CASA2_PPSFault" value="2043"/>
+            <enum-member name="EFaultId_TransuSMTimeOffAl" value="2044"/>
+            <enum-member name="EFaultId_TransuSyncAl" value="2045"/>
+            <enum-member name="EFaultId_TransuWarningAl" value="2046"/>
+            <enum-member name="EFaultId_OicFrSyncLostAl" value="2047"/>
+            <enum-member name="EFaultId_Casa2Rp1CrcAl" value="2048"/>
+            <enum-member name="EFaultId_Casa2Rp1FramePhaseAl" value="2049"/>
+            <enum-member name="EFaultId_Casa2Rp1FrameNumberAl" value="2050"/>
+            <enum-member name="EFaultId_Muksu_BufferAl" value="2051"/>
+            <enum-member name="EFaultId_OicRp1FcbAl" value="2052"/>
+            <enum-member name="EFaultId_AsngwConnectionFailureAl" value="2100"/>
+            <enum-member name="EFaultId_RnwParameterConfigAl" value="2101"/>
+            <enum-member name="EFaultId_SynchronisationError" value="2102"/>
+            <enum-member name="EFaultId_OsError" value="2103"/>
+            <enum-member name="EFaultId_FileOpenError" value="2104"/>
+            <enum-member name="EFaultId_FpgaOverHeatAl" value="2105"/>
+            <enum-member name="EFaultId_SrioLinkLostAl" value="2106"/>
+            <enum-member name="EFaultId_FpgaConfigAl" value="2107"/>
+            <enum-member name="EFaultId_DspCommunicationAl" value="2108"/>
+            <enum-member name="EFaultId_Rp3linkConfigAl" value="2109"/>
+            <enum-member name="EFaultId_DspAntennaConfigAl" value="2110"/>
+            <enum-member name="EFaultId_Rp3LinkAl" value="2111"/>
+            <enum-member name="EFaultId_BbOverloadAl" value="2112"/>
+            <enum-member name="EFaultId_FpgaErrorAl" value="2113"/>
+            <enum-member name="EFaultId_DSPOverheatAl" value="2114"/>
+            <enum-member name="EFaultId_PostFailedAl" value="2115"/>
+            <enum-member name="EFaultId_RfModuleClockFaulty" value="2200"/>
+            <enum-member name="EFaultId_RfTempValueMissing" value="2201"/>
+            <enum-member name="EFaultId_RfAmbientTempLow" value="2202"/>
+            <enum-member name="EFaultId_RfAmbientTempHigh" value="2203"/>
+            <enum-member name="EFaultId_RfOverheat" value="2204"/>
+            <enum-member name="EFaultId_RfTempTooLow" value="2205"/>
+            <enum-member name="EFaultId_RfOutOfOrder" value="2206"/>
+            <enum-member name="EFaultId_RfRxOutOfOrder" value="2207"/>
+            <enum-member name="EFaultId_RfTxOutOfOrder" value="2208"/>
+            <enum-member name="EFaultId_RfTxDisabled" value="2209"/>
+            <enum-member name="EFaultId_RfConfiguringFailed" value="2210"/>
+            <enum-member name="EFaultId_RfVswrWarning" value="2211"/>
+            <enum-member name="EFaultId_RfVswrFault" value="2212"/>
+            <enum-member name="EFaultId_RfGainAdjust" value="2213"/>
+            <enum-member name="EFaultId_RfOverload" value="2214"/>
+            <enum-member name="EFaultId_RfSynchronisationError" value="2215"/>
+            <enum-member name="EFaultId_RfPostTestFailed" value="2216"/>
+            <enum-member name="EFaultId_RfBasebandDataError" value="2217"/>
+            <enum-member name="EFaultId_RfTxQualityDeteriorated" value="2218"/>
+            <enum-member name="EFaultId_RfUnitUnidentified" value="2219"/>
+            <enum-member name="EFaultId_AldCurrentLimit" value="2220"/>
+            <enum-member name="EFaultId_RfFanOutOfOrder" value="2221"/>
+            <enum-member name="EFaultId_RfRssiWarning" value="2222"/>
+            <enum-member name="EFaultId_RfSTuFFault" value="2223"/>
+            <enum-member name="EFaultId_FpSocketError" value="2300"/>
+            <enum-member name="EFaultId_FpNotSupportedCtrlFrameType" value="2301"/>
+            <enum-member name="EFaultId_RsaInitializationError" value="2302"/>
+            <enum-member name="EFaultId_RsaDriver" value="2303"/>
+            <enum-member name="EFaultId_RsaDriverOutput" value="2304"/>
+            <enum-member name="EFaultId_RsaDriverCorrelation" value="2305"/>
+            <enum-member name="EFaultId_RsaDriverStatus" value="2306"/>
+            <enum-member name="EFaultId_DspOverloadAi" value="2307"/>
+            <enum-member name="EFaultId_DecoderUndefinedUser" value="2308"/>
+            <enum-member name="EFaultId_LatencyBudgetAl" value="2309"/>
+            <enum-member name="EFaultId_PicStreamFailure" value="2310"/>
+            <enum-member name="EFaultId_SystemModuleFailure" value="3000"/>
+            <enum-member name="EFaultId_EubbWsmAl" value="3001"/>
+            <enum-member name="EFaultId_EubbWspAl" value="3002"/>
+            <enum-member name="EFaultId_RfModuleFailure" value="3010"/>
+            <enum-member name="EFaultId_BaseBandBusFailure" value="3020"/>
+            <enum-member name="EFaultId_FailureInOptical_Rp3Interface" value="3030"/>
+            <enum-member name="EFaultId_TemperatureAlarm" value="3040"/>
+            <enum-member name="EFaultId_FanFailure" value="3050"/>
+            <enum-member name="EFaultId_CommissioningError" value="3060"/>
+            <enum-member name="EFaultId_ConfigurationError" value="3070"/>
+            <enum-member name="EFaultId_BtsReferenceClockMissing" value="3080"/>
+            <enum-member name="EFaultId_BtsInternalSwManagementProblem" value="3090"/>
+            <enum-member name="EFaultId_AntennaLineFailure" value="3100"/>
+            <enum-member name="EFaultId_AntennaTiltingFailure" value="3110"/>
+            <enum-member name="EFaultId_MastHeadAmplifierFault" value="3120"/>
+            <enum-member name="EFaultId_NoConnectionToFtAl" value="3511"/>
+            <enum-member name="EFaultId_IncoherencyInConfiguration" value="4000"/>
+            <enum-member name="EFaultId_BtsResetNeededAl" value="4001"/>
+            <enum-member name="EFaultId_LicenceExpired" value="4002"/>
+            <enum-member name="EFaultId_TxFailureTurnMimoOffAl" value="4003"/>
+            <enum-member name="EFaultId_TooManyLCGForHwAl" value="4004"/>
+            <enum-member name="EFaultId_HWInventoryNotInSynchAl" value="4005"/>
+            <enum-member name="EFaultId_ReferenceMissRnDAl" value="4006"/>
+            <enum-member name="EFaultId_InternalReferenceClkAl" value="4007"/>
+            <enum-member name="EFaultId_PowerLevelNotSupportedAl" value="4008"/>
+            <enum-member name="EFaultId_RnwParameterMissingAl" value="4009"/>
+            <enum-member name="EFaultId_PLLStatusNotLockedAl" value="4010"/>
+            <enum-member name="EFaultId_GPSSystemElementAl" value="4011"/>
+            <enum-member name="EFaultId_Missing60WPowerLicenceAl" value="4012"/>
+            <enum-member name="EFaultId_MissingBranchActivationLicenceAl" value="4013"/>
+            <enum-member name="EFaultId_BOFUFrameNumberAndMasterFrameTimerSyncFailAl" value="4014"/>
+            <enum-member name="EFaultId_Srio_ConfFailedAl" value="4015"/>
+            <enum-member name="EFaultId_Srio_TestFailedWithinBoardAl" value="4016"/>
+            <enum-member name="EFaultId_OptFiberLengthAl" value="4018"/>
+            <enum-member name="EFaultId_KeepAliveStatusErrorAl" value="4019"/>
+            <enum-member name="EFaultId_BOFU_Post_failedAl" value="4021"/>
+            <enum-member name="EFaultId_FrParameterWriteFailedAl" value="4022"/>
+            <enum-member name="EFaultId_FrParameterReadFailedAl" value="4023"/>
+            <enum-member name="EFaultId_CableLengthChangeAl" value="4024"/>
+            <enum-member name="EFaultId_MtuConfigurationFailureAl" value="4025"/>
+            <enum-member name="EFaultId_TogglingAl" value="4026"/>
+            <enum-member name="EFaultId_BbBusPollingMuksuFailureAl" value="4027"/>
+            <enum-member name="EFaultId_BbBusPollingFrxFailureAl" value="4028"/>
+            <enum-member name="EFaultId_SwCorruptedPermanentAl" value="4029"/>
+            <enum-member name="EFaultId_NoCommDataAl" value="4030"/>
+            <enum-member name="EFaultId_ImaLicenceMissingAl" value="4034"/>
+            <enum-member name="EFaultId_ConfigurationFileNotSupportedAl" value="4035"/>
+            <enum-member name="EFaultId_InvalidConfigurationFileAl" value="4036"/>
+            <enum-member name="EFaultId_FailureInLicenceActivationAl" value="4037"/>
+            <enum-member name="EFaultId_RadioMasterConflictAl" value="4038"/>
+            <enum-member name="EFaultId_Rp301LinkConflictAl" value="4039"/>
+            <enum-member name="EFaultId_InitFaultManAl" value="4040"/>
+            <enum-member name="EFaultId_FrParameterMOExistenceCheckFailedAl" value="4041"/>
+            <enum-member name="EFaultId_WrongModuleIdAl" value="4042"/>
+            <enum-member name="EFaultId_TuningFrequencyOutOfRangeAl" value="4043"/>
+            <enum-member name="EFaultId_IncoherencyCellConfigurationAl" value="4044"/>
+            <enum-member name="EFaultId_AntennaLineFaultyAl" value="4045"/>
+            <enum-member name="EFaultId_AntennaLineDegradedAl" value="4046"/>
+            <enum-member name="EFaultId_FileCrcErrorAl" value="4047"/>
+            <enum-member name="EFaultId_FileContentErrorAl" value="4048"/>
+            <enum-member name="EFaultId_WsmfAxcfInterconnectionFailureAl" value="4049"/>
+            <enum-member name="EFaultId_ConnectionToUnitLostAl" value="4052"/>
+            <enum-member name="EFaultId_SrioChainTestFailureAl" value="4053"/>
+            <enum-member name="EFaultId_BbBusPollingFrxFailure2Al" value="4054"/>
+            <enum-member name="EFaultId_Missing4WayRxDiversityLicenceAl" value="4055"/>
+            <enum-member name="EFaultId_TargetIdVerificationFailureAl" value="4056"/>
+            <enum-member name="EFaultId_RfSwitchedOffAl" value="4057"/>
+            <enum-member name="EFaultId_TopRefClkMissingAl" value="4058"/>
+            <enum-member name="EFaultId_CommissionedAntConfNotSupportedByHwAl" value="4060"/>
+            <enum-member name="EFaultId_NotSupportedModuleMixAl" value="4063"/>
+            <enum-member name="EFaultId_MissingRp301LinkAl" value="4064"/>
+            <enum-member name="EFaultId_BbResetAl" value="4065"/>
+            <enum-member name="EFaultId_SrioMulticastConfFailedAl" value="4066"/>
+            <enum-member name="EFaultId_CalibrationInitAl" value="4067"/>
+            <enum-member name="EFaultId_FspResetAl" value="4068"/>
+            <enum-member name="EFaultId_Rs485PowerFailureAl" value="4069"/>
+            <enum-member name="EFaultId_OngoingUnitBlockAl" value="4070"/>
+            <enum-member name="EFaultId_SysDangerouslyOverheatAl" value="4071"/>
+            <enum-member name="EFaultId_ParallelLinkDifferenceTooLargeAl" value="4072"/>
+            <enum-member name="EFaultId_BofuSfnSignalError" value="5000"/>
+            <enum-member name="EFaultId_BofuLcvError" value="5001"/>
+            <enum-member name="EFaultId_BofuRxClkError" value="5002"/>
+            <enum-member name="EFaultId_BofuRxAlignErr" value="5003"/>
+            <enum-member name="EFaultId_BofuSfclkErr" value="5004"/>
+            <enum-member name="EFaultId_BofuUlBufErr" value="5005"/>
+            <enum-member name="EFaultId_BofuDlBufErr" value="5006"/>
+            <enum-member name="EFaultId_BofuFrameSyncErr" value="5007"/>
+            <enum-member name="EFaultId_BofuSfnSigErr" value="5008"/>
+            <enum-member name="EFaultId_BofuTbusDataSaturated" value="5009"/>
+            <enum-member name="EFaultId_BofuRbusParityError" value="5010"/>
+            <enum-member name="EFaultId_BofuRbusClockError" value="5011"/>
+            <enum-member name="EFaultId_BofuRbusSyncLost" value="5012"/>
+            <enum-member name="EFaultId_PhyRxAlivePollingTimeout" value="6050"/>
+            <enum-member name="EFaultId_LteMacInternalErrorInScheduler" value="6100"/>
+            <enum-member name="EFaultId_DspSwReconfFailureAl" value="6101"/>
+            <enum-member name="EFaultId_DcmAlgorithmDataError" value="6102"/>
+            <enum-member name="EFaultId_DcmAlgorithmDataAl" value="6103"/>
+            <enum-member name="EFaultId_DcmDlCellError" value="6104"/>
+            <enum-member name="EFaultId_DcmDlCellAl" value="6105"/>
+            <enum-member name="EFaultId_DcmDlSchedError" value="6106"/>
+            <enum-member name="EFaultId_DcmDlSchedAl" value="6107"/>
+            <enum-member name="EFaultId_DcmUlCellError" value="6108"/>
+            <enum-member name="EFaultId_DcmUlCellAl" value="6109"/>
+            <enum-member name="EFaultId_DcmUlSchedError" value="6110"/>
+            <enum-member name="EFaultId_DcmUlSchedAl" value="6111"/>
+            <enum-member name="EFaultId_PhichPowerBoostAl" value="6112"/>
+            <enum-member name="EFaultId_GtpuPathFailure" value="6150"/>
+            <enum-member name="EFaultId_SctpPathAl" value="6200"/>
+            <enum-member name="EFaultId_SctpEndpointAl" value="6201"/>
+            <enum-member name="EFaultId_S1SctpEndpointAl" value="6202"/>
+            <enum-member name="EFaultId_X2SctpEndpointAl" value="6203"/>
+            <enum-member name="EFaultId_S1SctpPathAl" value="6204"/>
+            <enum-member name="EFaultId_NoLcrCouldBeMappedToFspAl" value="6250"/>
+            <enum-member name="EFaultId_RegistrationForOvenReadyIndicationFailed" value="6251"/>
+            <enum-member name="EFaultId_FailureInNetworkPlanFile" value="6252"/>
+            <enum-member name="EFaultId_CellSetupFailed" value="6253"/>
+            <enum-member name="EFaultId_NetworkConfigurationFailed" value="6254"/>
+            <enum-member name="EFaultId_InternalAddressDistributionFailed" value="6255"/>
+            <enum-member name="EFaultId_CellDeletionFailed" value="6256"/>
+            <enum-member name="EFaultId_CellReconfigurationFailed" value="6257"/>
+            <enum-member name="EFaultId_NetworkReconfigurationFailed" value="6258"/>
+            <enum-member name="EFaultId_AntennaCarrierMessageFailed" value="6259"/>
+            <enum-member name="EFaultId_NeighborResolutionFailure" value="6260"/>
+            <enum-member name="EFaultId_TraceConnectionFaultyAl" value="6261"/>
+            <enum-member name="EFaultId_InvalidVendorSpecificFile" value="6262"/>
+            <enum-member name="EFaultId_TraceSessionAl" value="6263"/>
+            <enum-member name="EFaultId_S1ZeroCapPlmns" value="6264"/>
+            <enum-member name="EFaultId_ENBResetS1" value="6300"/>
+            <enum-member name="EFaultId_MMEResetS1" value="6301"/>
+            <enum-member name="EFaultId_ENBResetS1RetryOut" value="6302"/>
+            <enum-member name="EFaultId_X2ResetRetryOut" value="6303"/>
+            <enum-member name="EFaultId_X2SetupRetryOut" value="6304"/>
+            <enum-member name="EFaultId_X2SetupFailureFromENB" value="6305"/>
+            <enum-member name="EFaultId_X2SetupFailureToENB" value="6306"/>
+            <enum-member name="EFaultId_X2NeighbourCellInfoInconsistency" value="6307"/>
+            <enum-member name="EFaultId_S1SetupRetryOut" value="6308"/>
+            <enum-member name="EFaultId_S1SetupFailureFromMME" value="6309"/>
+            <enum-member name="EFaultId_X2Reset" value="6310"/>
+            <enum-member name="EFaultId_ErrorIndicationForX2SetupFromENB" value="6311"/>
+            <enum-member name="EFaultId_ErrorIndicationForX2ResetFromENB" value="6312"/>
+            <enum-member name="EFaultId_X2ResetFromENB" value="6313"/>
+            <enum-member name="EFaultId_ErrorIndicationForS1ResetFromMME" value="6314"/>
+            <enum-member name="EFaultId_ErrorIndicationForS1SetupFromMME" value="6315"/>
+            <enum-member name="EFaultId_S1Reset" value="6316"/>
+            <enum-member name="EFaultId_S1ResetRetryOut" value="6317"/>
+            <enum-member name="EFaultId_X2SetupFailure" value="6318"/>
+            <enum-member name="EFaultId_S1SetupFailure" value="6319"/>
+            <enum-member name="EFaultId_PeriodicCqiResources50PercentOccupied" value="6350"/>
+            <enum-member name="EFaultId_SystemInfoValueTagHandlingFailed" value="6351"/>
+            <enum-member name="EFaultId_TechnicalLogUploadRecommended" value="6450"/>
+            <enum-member name="EFaultId_HighCPULoadAl" value="6500"/>
+            <enum-member name="EFaultId_HighCPUBackgroundLoadAl" value="6501"/>
+            <enum-member name="EFaultId_HighMemoryConsumptionAl" value="6502"/>
+            <enum-member name="EFaultId_InvalidMsgLenghtAl" value="6550"/>
+            <enum-member name="EFaultId_UnknownMessageReceivedAl" value="6551"/>
+            <enum-member name="EFaultId_MessageReceivedInWrongStateAl" value="6552"/>
+            <enum-member name="EFaultId_SWErrorAl" value="6553"/>
+            <enum-member name="EFaultId_InvalidParameterAl" value="6554"/>
+            <enum-member name="EFaultId_ParameterOutOfRangeAl" value="6555"/>
+            <enum-member name="EFaultId_NoResponseFromServerAl" value="6556"/>
+            <enum-member name="EFaultId_ResourceAlreadyInUseAl" value="6557"/>
+            <enum-member name="EFaultId_UnknownResourceIdAl" value="6558"/>
+            <enum-member name="EFaultId_BufferAllocationAl" value="6559"/>
+            <enum-member name="EFaultId_DataTransferErrorAl" value="6560"/>
+         </enum>
+      </include>
+      <include name="EFaultState.h">
+         <enum name="EFaultState">
+            <enum-member name="EFaultState_Cancel" value="0"/>
+            <enum-member name="EFaultState_Start" value="1"/>
+            <enum-member name="EFaultState_Event" value="2"/>
+         </enum>
+      </include>
+      <include name="EFaultSeverity.h">
+         <enum name="EFaultSeverity">
+            <enum-member name="EFaultSeverity_Working" value="0"/>
+            <enum-member name="EFaultSeverity_OutOfOrder" value="1"/>
+            <enum-member name="EFaultSeverity_Degraded" value="2"/>
+            <enum-member name="EFaultSeverity_Info" value="3"/>
+         </enum>
+      </include>
+      <include name="TFaultInfo.h">
+         <typedef name="TFaultInfo" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TBrowserContextId.h">
+         <typedef name="TBrowserContextId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TBrowserProcedureId.h">
+         <typedef name="TBrowserProcedureId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TDataCount.h">
+         <typedef name="TDataCount" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TDynamicData.h">
+         <typedef name="TDynamicData" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="IfAaSysTime.h">
+         <struct name="SAaTime">
+            <member name="year" type="u32"/>
+            <member name="month" type="u32"/>
+            <member name="day" type="u32"/>
+            <member name="hour" type="u32"/>
+            <member name="minute" type="u32"/>
+            <member name="second" type="u32"/>
+            <member name="millisec" type="u32"/>
+         </struct>
+         <typedef name="TAaSysTime" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TSfn.h">
+         <typedef name="TSfn" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TPercentage.h">
+         <typedef comment="Represents the percentage value in steps of 0.1 %. &#13;&#10;Encoding: percentage value = value x 0.1. &#13;&#10;maxRange=&quot;1000&quot; &#13;&#10;minRange=&quot;0&quot;" name="TPercentage" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="ERadSwDomain.h">
+         <enum name="ERadSwDomain">
+            <enum-member comment="BTS old R&amp;D parameter (sw_conf_table)" name="ERadSwDomain_Legacy" value="0"/>
+            <enum-member comment="CCS depended parameters" name="ERadSwDomain_Ccs" value="1"/>
+            <enum-member comment="HWAPI depended parameters" name="ERadSwDomain_HwApi" value="2"/>
+            <enum-member comment="DFT depended parameters" name="ERadSwDomain_Dft" value="3"/>
+            <enum-member name="ERadSwDomain_Telecom" value="4"/>
+            <enum-member name="ERadSwDomain_TUP" value="5"/>
+            <enum-member name="ERadSwDomain_DSPCodec" value="6"/>
+            <enum-member name="ERadSwDomain_DSPRake" value="7"/>
+            <enum-member name="ERadSwDomain_DSPMac_hs" value="8"/>
+            <enum-member name="ERadSwDomain_DSPHsupaL2" value="9"/>
+            <enum-member name="ERadSwDomain_LteMac" value="10"/>
+            <enum-member name="ERadSwDomain_LteMacUl" value="11"/>
+            <enum-member name="ERadSwDomain_LteMacDl" value="12"/>
+            <enum-member name="ERadSwDomain_LteTupUl" value="13"/>
+            <enum-member name="ERadSwDomain_LteTupDl" value="14"/>
+            <enum-member name="ERadSwDomain_LteCellC" value="15"/>
+            <enum-member name="ERadSwDomain_LteCommon" value="16"/>
+            <enum-member name="ERadSwDomain_LteEnbc" value="17"/>
+            <enum-member name="ERadSwDomain_LteRrom" value="18"/>
+            <enum-member name="ERadSwDomain_LteUec" value="19"/>
+            <enum-member name="ERadSwDomain_LteLom" value="20"/>
+            <enum-member name="ERadSwDomain_LteTupC" value="21"/>
+            <enum-member name="ERadSwDomain_LteUlPhy" value="22"/>
+            <enum-member name="ERadSwDomain_LteDlPhy" value="23"/>
+            <enum-member name="ERadSwDomain_LteSmc" value="24"/>
+            <enum-member name="ERadSwDomain_Oam" value="25"/>
+            <enum-member name="ERadSwDomain_Trs" value="26"/>
+            <enum-member name="ERadSwDomain_DspHwApi" value="27"/>
+            <enum-member name="ERadSwDomain_LOM" value="28"/>
+            <enum-member name="ERadSwDomain_LteMacTddPs" value="29"/>
+            <enum-member name="ERadSwDomain_LteMacFddPs" value="30"/>
+            <enum-member name="ERadSwDomain_LteMacDcmPs" value="31"/>
+            <enum-member name="ERadSwDomain_LteMacPsCommon" value="32"/>
+            <enum-member name="ERadSwDomain_BM" value="33"/>
+            <enum-member comment="Not usable value, leave always to last!" name="ERadSwDomain_Last" value="34"/>
+         </enum>
+      </include>
+      <include name="TTti.h">
+         <typedef name="TTti" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TCpuId.h">
+         <typedef name="TCpuId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="IfAaMem.h">
+         <enum name="EAaMemPoolCid">
+            <enum-member name="EAaMemPoolCid_System" value="0"/>
+            <enum-member name="EAaMemPoolCid_Dynamic" value="1"/>
+            <enum-member name="EAaMemPoolCid_ApplicationCidStart" value="2"/>
+         </enum>
+      </include>
+      <include name="DOpenIUBCommonDefsPlatform.h">
+         <constant name="MAX_NUM_OF_TX_ANTENNAS_IN_LOCAL_CELL" value="2"/>
+         <constant name="MAX_NUM_OF_RX_ANTENNAS_IN_LOCAL_CELL" value="4"/>
+      </include>
+      <include name="TBrowserObjectId.h">
+         <typedef comment="This defintion is used generic for any object identifier." name="TBrowserObjectId" primitiveType="32 bit integer unsigned"/>
+      </include>
+      <include name="TTraceHandle.h">
+         <typedef name="TTraceHandle" type="u32"/>
+      </include>
+      <include name="IfAaPro.h">
+         <constant name="EU_PRIORITY_01" value="0"/>
+         <constant name="EU_PRIORITY_02" value="1"/>
+         <constant name="EU_PRIORITY_03" value="2"/>
+         <constant name="EU_PRIORITY_04" value="3"/>
+         <constant name="EU_PRIORITY_05" value="4"/>
+         <constant name="EU_PRIORITY_06" value="5"/>
+         <constant name="EU_PRIORITY_07" value="6"/>
+         <constant name="EU_PRIORITY_08" value="7"/>
+         <constant name="EU_PRIORITY_09" value="8"/>
+         <constant name="EU_PRIORITY_10" value="9"/>
+         <constant name="EU_PRIORITY_11" value="10"/>
+         <constant name="EU_PRIORITY_12" value="11"/>
+         <constant name="EU_PRIORITY_13" value="12"/>
+         <constant name="EU_PRIORITY_14" value="13"/>
+         <constant name="EU_PRIORITY_15" value="14"/>
+         <constant name="EU_PRIORITY_16" value="15"/>
+         <constant name="EU_PRIORITY_17" value="16"/>
+         <constant name="EU_PRIORITY_18" value="17"/>
+         <constant name="EU_PRIORITY_19" value="18"/>
+         <constant name="EU_PRIORITY_20" value="19"/>
+         <constant name="EU_PRIORITY_21" value="20"/>
+         <constant name="EU_PRIORITY_22" value="21"/>
+         <constant name="EU_PRIORITY_23" value="22"/>
+         <constant name="EU_PRIORITY_24" value="23"/>
+         <constant name="EU_PRIORITY_25" value="24"/>
+         <constant name="EU_PRIORITY_26" value="25"/>
+         <constant name="EU_PRIORITY_27" value="26"/>
+         <constant name="EU_PRIORITY_28" value="27"/>
+         <constant name="EU_PRIORITY_29" value="28"/>
+         <constant name="EU_PRIORITY_30" value="29"/>
+         <constant name="EU_PRIORITY_31" value="30"/>
+         <constant name="EU_PRIORITY_32" value="31"/>
+         <constant name="EU_PRIORITY_DEFAULT" value="12"/>
+         <constant name="EU_PRIORITY_INVALID" value="0xFF"/>
+      </include>
+      <include name="TSize.h">
+         <typedef name="TSize" primitiveType="32 bit integer unsigned"/>
+      </include>
+   </external-definitions>
+</system>
