@@ -5,9 +5,9 @@ import data_holder
 import writer
 
 linux_hashes = {
-"test_of_PythonSerializer" : "8095a37d6d2cbbaa3b3ca05fa99842b7",
+"test_of_PythonSerializer" : "5c2d6d350fdea2c825ed8e8fcd875f10",
 "test_of_PythonSerializer_enum" : "26f524cefc1243e04e18bbee34eac884",
-"test_of_PythonSerializer_import" : "42b158e97a9e205de2178d6befaeed35"
+"test_of_PythonSerializer_import" : "da45c13ad54818957c1b932d8beb56f4"
 }
 
 windows_hashes = {

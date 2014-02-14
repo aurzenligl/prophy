@@ -10,7 +10,8 @@ def test_of_sorting_of_constant():
     cho.add_to_list("C_B","3");
     cho.add_to_list("C_C","C_A + C_B");
 
-    l = ['C_B', 'C_A', 'C_C']
+    l = [('C_B', '3'), ('C_A', '5'), ('C_C', 'C_A + C_B')]
+    print cho.get_sorted_list()
     assert l == cho.get_sorted_list()
 
 def test_of_sorter():
