@@ -83,6 +83,9 @@ class MemberHolder(Holder):
         else:
             return -1
 
+    def __str__(self):
+        return "name="+str(self.name)+ " type="+str(self.type) + " list=" + str(len(self.list))
+
 class MessageHolder(Holder):
 
     def __init__(self):
@@ -91,6 +94,9 @@ class MessageHolder(Holder):
 
     def add_to_list(self,member):
         self.list.append(member)
+
+    def __str__(self):
+        return "name="+ self.name + "list=" + str(self.list)
 
 class DataHolder(object):
 
@@ -116,3 +122,5 @@ class DataHolder(object):
                 else:
                     out_list.append(key)
         return out_list
+    def __str__(self):
+        return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))

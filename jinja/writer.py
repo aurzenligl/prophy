@@ -71,14 +71,13 @@ class PythonSerializer(object):
                 else:
                     desc.append("('{0}',{1}{2})" .format(member.name ,lib_imp, member.type))
             return ", ".join(desc)
-
         for key in msgs_list:
-            out += "class {0}({1}struct):" .format(key.name,self.lib_imp) + "\n"
+            out += "class {0}({1}struct):" .format(key.name, self.lib_imp) + "\n"
             out += "    __metaclass__ = aprot.struct_generator" + "\n"
             out += "    _descriptor = [" + serialize_members(key.get_list()) + "]\n"
         return out
 
-    def _serialize_msg_member(self,member):
+    def _serialize_msg_member(self, member):
         str = ""
         variable_name_index = member.get_dimension_field_index('variableSizeFieldName')
         variable_type_index = member.get_dimension_field_index('variableSizeFieldType')
@@ -87,26 +86,28 @@ class PythonSerializer(object):
         is_variable_index = member.get_dimension_field_index('isVariableSize')
 
         if len(member.list) == 4 and variable_name_index != -1 and variable_type_index != -1 :
-            str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,member.list[variable_type_index].dimension_field_value)
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
+            str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value, member.list[variable_type_index].dimension_field_value)
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type, member.list[variable_name_index].dimension_field_value)
         if len(member.list) == 5:
-            str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,member.list[variable_type_index].dimension_field_value)
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
+            str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value, member.list[variable_type_index].dimension_field_value)
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type, member.list[variable_name_index].dimension_field_value)
         if  variable_type_index == -1 and variable_name_index != -1:
             str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,'TNumberOfItems')
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type, member.list[variable_name_index].dimension_field_value)
         if variable_name_index == -1 and variable_type_index != -1:
-            str += "('{0}',{1}), " .format('tmpName',member.list[variable_type_index].dimension_field_value)
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+            str += "('{0}',{1}), " .format('tmpName', member.list[variable_type_index].dimension_field_value)
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type,'tmpName')
+        if variable_name_index == -1 and variable_type_index == -1:
+            str += "\" variable_name_index == -1 and variable_type_index == -1\""
         if len(member.list) == 3 and variable_name_index == -1 and variable_type_index == -1 and size_index != -1 and min_size_index != -1:
             str += "('{0}',{1}), " .format('tmpName','TNumberOfItems')
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type,'tmpName')
         if len(member.list) == 2 and size_index != -1 and is_variable_index != -1:
             str += "('{0}',{1}), " .format('tmpName','TNumberOfItems')
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type,'tmpName')
         if len(member.list) == 1 and size_index != -1:
             str += "('{0}',{1}), " .format('tmpName','TNumberOfItems')
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type,'tmpName')
 
         return str
 

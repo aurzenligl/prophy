@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys
 import hashlib
 
@@ -68,3 +70,53 @@ def test_of_PythonSerializer_import():
     ps = writer.PythonSerializer()
     o = ps._serialize_include(l)
     assert hashes["test_of_PythonSerializer_import"] == hashlib.md5(o).hexdigest()
+
+def test_of_error_int_PHY():
+    xml = """
+         <struct comment="" name="SPuschReceiveReq">
+            <member comment="" name="cqiRespDBuffer" type="SPhyDataBuffer"/>
+            <member comment="" name="measRespBuffer" type="SPhyDataBuffer"/>
+            <member comment="" name="measRespBuffer2" type="SPhyDataBuffer"/>
+            <member comment="" name="cellMeasRespBuffer" type="SPhyDataBuffer"/>
+            <member comment="" name="rfLoopFlag" type="TBoolean"/>
+            <member comment="" name="numOfDelayedUe" rangeDescription="0..MAX_PUSCH_UES_PER_TTI_5MHZ, 0..MAX_PUSCH_UES_PER_TTI_10MHZ, 0..MAX_PUSCH_UES_PER_TTI_15MHZ, 0..MAX_PUSCH_UES_PER_TTI_20MHZ" type="TNumberOfItems"/>
+            <member comment="" maxRange="MAX_UINT16" minRange="0" name="delayedUe" type="TCrntiU16">
+               <dimension minSize="1" size="MAX_PUSCH_UES_PER_TTI_20MHZ"/>
+            </member>
+            <member comment="" name="numOfSCellAddressingInfo" rangeDescription="For FSMr3: 0… MAX_NUM_SCELLS; For FSMr2: 0." type="TNumberOfItems"/>
+            <member comment="" maxRange="MAX_NUM_OF_PUSCH_RECEIVE_REQ" minRange="0" name="numOfUePuschReq" type="TNumberOfItems"/>
+            <member name="uePuschReq" type="SPuschUeReceiveReq">
+               <dimension size="THIS_IS_VARIABLE_SIZE_ARRAY"/>
+            </member>
+         </struct>
+"""
+    xml = """
+         <struct comment="" name="SPuschReceiveReq">
+            <member comment="" maxRange="MAX_UINT16" minRange="0" name="delayedUe" type="TCrntiU16">
+               <dimension minSize="1" size="MAX_PUSCH_UES_PER_TTI_20MHZ"/>
+            </member>
+         </struct>
+"""
+    from xml.dom import minidom
+    xml_dom_model = minidom.parseString(xml)
+    import messages
+    dh =  messages.Parser().parsing_xml_files(xml_dom_model, data_holder.DataHolder())
+    o = writer.PythonSerializer().serialize(dh)
+    print o
+    c = """
+    class SPuschReceiveReq(aprot.struct):
+        __metaclass__ = aprot.struct_generator
+            _descriptor = [
+            ('cqiRespDBuffer',SPhyDataBuffer), 
+            ('measRespBuffer',SPhyDataBuffer),
+            ('measRespBuffer2',SPhyDataBuffer), 
+            ('cellMeasRespBuffer',SPhyDataBuffer), 
+            ('rfLoopFlag',TBoolean),
+            ('numOfDelayedUe',TNumberOfItems),
+            , 
+            ('numOfSCellAddressingInfo',TNumberOfItems),
+            ('numOfUePuschReq',TNumberOfItems), 
+            ('tmpName',TNumberOfItems),
+            ('uePuschReq',aprot.array(SPuschUeReceiveReq,bound='tmpName'))
+            ]
+            """
