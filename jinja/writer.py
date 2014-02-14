@@ -82,6 +82,10 @@ class PythonSerializer(object):
         str = ""
         variable_name_index = member.get_dimension_field_index('variableSizeFieldName')
         variable_type_index = member.get_dimension_field_index('variableSizeFieldType')
+        size_index = member.get_dimension_field_index('size')
+        min_size_index = member.get_dimension_field_index('minSize')
+        is_variable_index = member.get_dimension_field_index('isVariableSize')
+
         if len(member.list) == 4 and variable_name_index != -1 and variable_type_index != -1 :
             str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,member.list[variable_type_index].dimension_field_value)
             str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
@@ -94,6 +98,13 @@ class PythonSerializer(object):
         if len(member.list) == 4 and variable_name_index == -1 and variable_type_index != -1:
             str += "('{0}',{1}), " .format('tmpName',member.list[variable_type_index].dimension_field_value)
             str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+        if len(member.list) == 3 and variable_name_index == -1 and variable_type_index == -1 and size_index != -1 and min_size_index != -1:
+            str += "('{0}',{1}), " .format('tmpName','TNumberOfItems')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+        if len(member.list) == 2 and size_index != -1 and is_variable_index != -1:
+            str += "('{0}',{1}), " .format('tmpName','TNumberOfItems')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
+
         return str
 
 

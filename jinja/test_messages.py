@@ -93,3 +93,30 @@ def test_of_message_with_four_dim_without_min_size():
     out = "class SSiList(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('size',TL3MsgSize), ('data',aprot.array(u8,bound='size'))]\n"
     assert out == a
 
+def test_of_message_with_three_fields_without_variable_name_and_variable_type():
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_CellSetupReq"
+    member_h = data_holder.MemberHolder('rlcDlLcpInfo','SRlcLcpInfo')
+    member_h.add_to_list("isVariableSize", "true")
+    member_h.add_to_list("size", "MAX_SI_DATA")
+    member_h.add_to_list("minSize", "1")
+    msg_h.add_to_list(member_h)
+
+    a = writer.PythonSerializer()._serialize_msgs([msg_h])
+    print a
+    out = "class MAC_CellSetupReq(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',aprot.array(SRlcLcpInfo,bound='tmpName'))]\n"
+
+def test_of_message_with_two_fields_size_and_isVariable():
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_MeasurementReportInd"
+    member_h = data_holder.MemberHolder('measurementGroupTypeList','EMeasurementGroupType')
+    member_h.add_to_list("isVariableSize", "true")
+    member_h.add_to_list("size", "MAX_MEAS_GROUP_TYPE_ID_MAC")
+
+    msg_h.add_to_list(member_h)
+
+    a = writer.PythonSerializer()._serialize_msgs([msg_h])
+    print a
+    out = "class MAC_CellSetupReq(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',aprot.array(EMeasurementGroupType,bound='tmpName'))]\n"
