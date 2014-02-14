@@ -76,3 +76,20 @@ def test_of_message_with_five_dim():
     print a
     out = "class MAC_CcchDataReceiveInd(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('maxNumOfUes',u32), ('msg3Info',aprot.array(SMsg3Info,bound='maxNumOfUes'))]\n"
     assert out == a
+
+def test_of_message_with_four_dim_without_min_size():
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "SSiList"
+    member_h = data_holder.MemberHolder('data','u8')
+    member_h.add_to_list("isVariableSize", "true")
+    member_h.add_to_list("size", "MAX_SI_DATA")
+    member_h.add_to_list("variableSizeFieldName", "size")
+    member_h.add_to_list("variableSizeFieldType", "TL3MsgSize")
+    msg_h.add_to_list(member_h)
+
+    a = writer.PythonSerializer()._serialize_msgs([msg_h])
+    print a
+    out = "class SSiList(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('size',TL3MsgSize), ('data',aprot.array(u8,bound='size'))]\n"
+    assert out == a
+

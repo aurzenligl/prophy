@@ -80,18 +80,19 @@ class PythonSerializer(object):
 
     def _serialize_msg_member(self,member):
         str = ""
+        variable_name_index = member.get_dimension_field_index('variableSizeFieldName')
+        variable_type_index = member.get_dimension_field_index('variableSizeFieldType')
+        if len(member.list) == 4 and variable_name_index != -1 and variable_type_index != -1 :
+            str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,member.list[variable_type_index].dimension_field_value)
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
         if len(member.list) == 5:
-            var_field_name_index = member.get_dimension_field_index('variableSizeFieldName')
-            var_field_type_index = member.get_dimension_field_index('variableSizeFieldType')
-            str += "('{0}',{1}), " .format(member.list[var_field_name_index].dimension_field_value,member.list[var_field_type_index].dimension_field_value)
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[var_field_name_index].dimension_field_value)
-        if len(member.list) == 4 and "variableSizeFieldType" not in member.list:
-            var_field_name_index = member.get_dimension_field_index('variableSizeFieldName')
-            str += "('{0}',{1}), " .format(member.list[var_field_name_index].dimension_field_value,'TNumberOfItems')
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[var_field_name_index].dimension_field_value)
-        if len(member.list) == 4 and "variableSizeFieldName" not in member.list and "variableSizeFieldType" in member.list:
-            var_field_type_index = member.get_dimension_field_index('variableSizeFieldType')
-            str += "('{0}',{1}), " .format('tmpName',member.list[var_field_type_index].dimension_field_value)
+            str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,member.list[variable_type_index].dimension_field_value)
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
+        if len(member.list) == 4 and variable_type_index == -1 and variable_name_index != -1:
+            str += "('{0}',{1}), " .format(member.list[variable_name_index].dimension_field_value,'TNumberOfItems')
+            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,member.list[variable_name_index].dimension_field_value)
+        if len(member.list) == 4 and variable_name_index == -1 and variable_type_index != -1:
+            str += "('{0}',{1}), " .format('tmpName',member.list[variable_type_index].dimension_field_value)
             str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name,self.lib_imp,member.type,'tmpName')
         return str
 

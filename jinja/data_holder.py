@@ -79,7 +79,7 @@ class MemberHolder(Holder):
         if element_name in self.dimension_field_name_list:
             return self.dimension_field_name_list.index(element_name)
         else:
-            return "element not found"
+            return -1
 
 class MessageHolder(Holder):
 
