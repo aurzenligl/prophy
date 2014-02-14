@@ -8,8 +8,10 @@ class MyOptionParser(OptionParser):
 def getOptions():
     parser = MyOptionParser()
     parser.add_option("-i", "--isar_path", help="path to isar dir", type="string", action="store", dest="isar_path", default=".")
-    parser.add_option("-o", "--output", help="output format", type="string", action="store", dest='output',
-    default='python') #teraz ta opcja bedzie potrzebna w wyborze "grupy" serializotorow do tekstu pythonnowego a nie jak do tej pory do wybrania fabryki
+    parser.add_option("-o", "--output", help="output director", type="string", action="store", dest='out_path',
+            default='Out_files') 
+    parser.add_option("-f", "--format", help="output format", type="string", action="store", dest="out_format",
+            default="python")
     return parser.parse_args()
 
 if __name__ == "__main__":

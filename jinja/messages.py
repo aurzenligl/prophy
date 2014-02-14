@@ -95,7 +95,7 @@ if __name__ == "__main__":
     reader.read_files()
     tree_files = reader.return_tree_files()
     template_name = "temp.txt"
-    directory_dst = "Out_files"
+    directory_dst = options.out_path
     for file_name,tree_node in tree_files.iteritems():
           data_holder = parser.parsing_xml_files(tree_node,data_holder)
           w=writer.WriterTxt(directory_dst,file_name+".py","w")
