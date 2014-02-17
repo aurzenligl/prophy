@@ -1,3 +1,7 @@
+import os
+
+from writer import TemplateFabric
+
 class PythonSerializer(object):
     def __init__(self):
         self.lib_imp="aprot."

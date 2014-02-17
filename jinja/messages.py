@@ -1,7 +1,8 @@
 ﻿import os
 from collections import OrderedDict
-import writer
 
+import writer
+import Serializers
 import options
 from reader import XmlReader
 from Parser import Parser
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     for file_name,tree_node in tree_files.iteritems():
           data_holder = parser.parsing_xml_files(tree_node)
           w=writer.WriterTxt(directory_dst,file_name+".py","w")
-          ps = writer.PythonSerializer()
+          ps = Serializers.PythonSerializer()
           o = ps.serialize(data_holder)
           w.write_to_file(o)
 
