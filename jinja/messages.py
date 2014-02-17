@@ -20,7 +20,7 @@ if __name__ == "__main__":
     directory_dst = options.out_path
     for file_name,tree_node in tree_files.iteritems():
           data_holder = parser.parsing_xml_files(tree_node)
-          w=writer.WriterTxt(directory_dst,file_name+".py","w")
+          w = writer.WriterFabric.get_writer(directory_dst, file_name+".py")
           ps = Serializers.PythonSerializer()
           o = ps.serialize(data_holder)
           w.write_to_file(o)
