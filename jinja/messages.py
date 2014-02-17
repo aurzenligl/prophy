@@ -18,7 +18,7 @@ if __name__ == "__main__":
     template_name = "temp.txt"
     directory_dst = options.out_path
     for file_name,tree_node in tree_files.iteritems():
-          data_holder = parser.parsing_xml_files(tree_node) #WTF?? czemu tutaj wsadzamy data holder a potema jest ona pramaterem wyjsciwym
+          data_holder = parser.parsing_xml_files(tree_node)
           w=writer.WriterTxt(directory_dst,file_name+".py","w")
           ps = writer.PythonSerializer()
           o = ps.serialize(data_holder)
