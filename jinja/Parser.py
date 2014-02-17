@@ -2,6 +2,10 @@
 
 from collections import OrderedDict
 from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,MemberHolder,MessageHolder, DataHolder
+import options
+
+def get_parser():
+    return Parser()
 
 class Parser(object):
 

@@ -12,23 +12,16 @@ class TemplateFabric(object):
         template = env.get_template(template_name)
         return template
 
-
-
-class WriterFabric(object):
-    @staticmethod
-    def get_writer(directory,file_name, writer = "txt"):
-        mode = WriterFabric.__get_mode()
-        return WriterTxt(directory,file_name, mode)
-
-    @staticmethod
-    def __get_mode():
-        return "w"
+def get_writer(file_name):
+    mode = "w"
+    directory = options.getOptions()[0].out_path
+    return  WriterTxt(directory, file_name, mode)
 
 class WriterTxt(object):
-    def __init__(self,directory, file_name, mode):
+    def __init__(self, directory, file_name, mode):
         if not os.path.exists(directory):
             os.makedirs(directory)
-        file_dest=os.path.join(directory, file_name)
+        file_dest = os.path.join(directory, file_name)
         self.__file_h = open(file_dest, mode)
 
     def write_to_file(self, tekst):

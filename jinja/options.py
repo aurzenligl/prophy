@@ -7,10 +7,12 @@ class MyOptionParser(OptionParser):
 
 def getOptions():
     parser = MyOptionParser()
-    parser.add_option("-i", "--isar_path", help="path to isar dir", type="string", action="store", dest="isar_path", default=".")
-    parser.add_option("-o", "--output", help="output director", type="string", action="store", dest='out_path',
-            default='Out_files') 
-    parser.add_option("-f", "--format", help="output format", type="string", action="store", dest="out_format",
+    parser.add_option("--in_put_path", help="input direcotry", type="string", action="store", dest="in_path")
+    parser.add_option("--out_put_path", help="output director", type="string", action="store", dest='out_path',
+            default='Out_files')
+    parser.add_option("--in_format", help="input format ISAR/SACK", type="string", action="store",
+            dest="in_format", default="ISAR")
+    parser.add_option("--out_format", help="output format: python", type="string", action="store", dest="out_format",
             default="python")
     return parser.parse_args()
 

@@ -1,6 +1,12 @@
 import os
-
+import options
 from writer import TemplateFabric
+
+def get_serializer():
+    form = options.getOptions()[0].out_format
+    a = {"python" : PythonSerializer()}
+    return a[form]
+
 
 class PythonSerializer(object):
     def __init__(self):
