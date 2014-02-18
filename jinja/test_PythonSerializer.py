@@ -2,9 +2,9 @@
 
 import sys
 import hashlib
-
+import Serializers
 import data_holder
-import writer
+
 
 linux_hashes = {
 "test_of_PythonSerializer" : "5c2d6d350fdea2c825ed8e8fcd875f10",
@@ -13,9 +13,9 @@ linux_hashes = {
 }
 
 windows_hashes = {
-"test_of_PythonSerializer" : "af8c4ee390b6e906d2dfdf9336bf90c9",
+"test_of_PythonSerializer" : "0a0ccd81755e94db599e0a0e8e6aa6db",
 "test_of_PythonSerializer_enum" : "275bf674a0c1025d10e929b39896213f",
-"test_of_PythonSerializer_import" : "42b158e97a9e205de2178d6befaeed35"
+"test_of_PythonSerializer_import" : "da45c13ad54818957c1b932d8beb56f4"
 }
 
 hashes = linux_hashes if sys.platform == "linux2" else windows_hashes
@@ -49,13 +49,13 @@ def test_of_PythonSerializer():
     dh = data_holder.DataHolder( include = ih, typedef = th , constant = const, msgs_list = [msg_h])
     dh.enum_dict["test"] = enum
 
-    ps = writer.PythonSerializer()
+    ps = Serializers.get_serializer()
     o =  ps.serialize(dh)
     assert hashes["test_of_PythonSerializer"] == hashlib.md5( o ).hexdigest()
 
 
 def test_of_PythonSerializer_enum():
-    ps = writer.PythonSerializer()
+    ps = Serializers.get_serializer()
     enum = data_holder.EnumHolder()
     for x in range(1, 200):
         enum.add_to_list("elem_" + str(x), "val_"+ str(x))
@@ -67,7 +67,7 @@ def test_of_PythonSerializer_import():
     l = []
     for x in range(20, 400, 3):
         l.append("test_include_"+str(x))
-    ps = writer.PythonSerializer()
+    ps = Serializers.get_serializer()
     o = ps._serialize_include(l)
     assert hashes["test_of_PythonSerializer_import"] == hashlib.md5(o).hexdigest()
 
@@ -94,7 +94,8 @@ def test_of_error_in_SPuschReceiveReq():
     xml_dom_model = minidom.parseString(xml)
     import Parser
     dh =  Parser.Parser().parsing_xml_files(xml_dom_model)
-    o = writer.PythonSerializer().serialize(dh)
+    ps = Serializers.get_serializer()
+    o = ps.serialize(dh)
 
 def test_of_backward_compatibility_serialization():
     xml = """
@@ -120,7 +121,8 @@ def test_of_backward_compatibility_serialization():
     xml_dom_model = minidom.parseString(xml)
     import Parser
     dh =  Parser.Parser().parsing_xml_files(xml_dom_model)
-    o = writer.PythonSerializer()._serialize_msgs(dh.struct_list)
+    ps = Serializers.get_serializer()
+    o = ps._serialize_msgs(dh.struct_list)
     c = """class SPuschUeReceiveMeasResp(aprot.struct):
     __metaclass__ = aprot.struct_generator
     _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',aprot.i16), ('ulCompUsage',aprot.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',aprot.u8), ('explicitPadding2',aprot.u16)]
