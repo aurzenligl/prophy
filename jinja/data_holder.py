@@ -22,6 +22,7 @@ class EnumHolder(Holder):
     def __init__(self):
         self.list=[]
         self.enum=namedtuple('enum','enum_name enum_value')
+        self.special={}
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.enum(element_name,element_value))
@@ -100,7 +101,6 @@ class MessageHolder(Holder):
 
 class DataHolder(object):
 
-
     def __init__(self, include = IncludeHolder(), typedef = TypeDefHolder(), constant = ConstantHolder(), msgs_list =
             [],  enum_dict = {}, struct_list = [] ): 
         self.msgs_list = msgs_list
@@ -110,17 +110,5 @@ class DataHolder(object):
         self.typedef = typedef
         self.constant = constant
 
-    def sort_list(self, dic):
-        out_list = []
-        for key, val in dic.iteritems():
-            if "_" not in val:
-                out_list.insert(0,key)
-            else:
-                if val in out_list:
-                    index = out_list.index(val)
-                    out_list.insert(index + 1, key)
-                else:
-                    out_list.append(key)
-        return out_list
     def __str__(self):
         return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))

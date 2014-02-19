@@ -55,7 +55,6 @@ class PythonSerializer(object):
         out = ""
 
         def serialize_members(keys):
-            lib_imp = self.lib_imp
             desc = []
             for member in keys:
                 if member.type.startswith('u') or member.type.startswith('i') or member.type.startswith('r')  :
@@ -78,38 +77,32 @@ class PythonSerializer(object):
             return  "('{0}',{1}), " .format(a, b)
         def format_array(a, b, c, d):
             return "('{0}',{1}array({2},bound='{3}'))" .format(a, b,c,d)
+        def format_bytes_list(a,b,c):
+            return  "('{0}',{1}bytes(size={2}))" .format(a,b,c)
+        def format_variable_bytes_list(a,b,c,d):
+            return  "('{0}',{1}bytes(size={2},bound='{3}')), " .format(a,b,c,d)
 
         str = ""
         variable_name_index = member.get_dimension_field_index('variableSizeFieldName')
         variable_type_index = member.get_dimension_field_index('variableSizeFieldType')
         size_index = member.get_dimension_field_index('size')
-        min_size_index = member.get_dimension_field_index('minSize')
         is_variable_index = member.get_dimension_field_index('isVariableSize')
 
-        if len(member.list) == 4 and variable_name_index != -1 and variable_type_index != -1 :
-            str += format_simple_list(member.list[variable_name_index].dimension_field_value, member.list[variable_type_index].dimension_field_value)
-#            str += format_array(member.name, self.lib_imp, member.type, member.list[variable_name_index].dimensimn_field_value)
-        if len(member.list) == 5:
-            str += format_simple_list(member.list[variable_name_index].dimension_field_value, member.list[variable_type_index].dimension_field_value)
-            str += format_array(member.name, self.lib_imp, member.type, member.list[variable_name_index].dimension_field_value)
-        if  variable_type_index == -1 and variable_name_index != -1:
-            str += format_simple_list(member.list[variable_name_index].dimension_field_value,'TNumberOfItems')
-            str += format_array(member.name, self.lib_imp, member.type, member.list[variable_name_index].dimension_field_value)
-        if len(member.list) == 3 and variable_name_index == -1 and variable_type_index == -1 and size_index != -1 and min_size_index != -1:
-            str += format_simple_list('tmpName','TNumberOfItems')
-            str += format_array(member.name, self.lib_imp, member.type,'tmpName')
-        if len(member.list) == 2 and size_index != -1 and is_variable_index != -1:
-            str += format_simple_list('tmpName','TNumberOfItems')
-            str += format_array(member.name, self.lib_imp, member.type,'tmpName')
-        if len(member.list) == 1 and size_index != -1:
-            str +=  format_simple_list('tmpName','TNumberOfItems')
-            str += format_array(member.name, self.lib_imp, member.type,'tmpName')
+        if variable_name_index == -1:
+            variable_name = "tmpName"
+        else:
+            variable_name = member.list[variable_name_index].dimension_field_value
 
-        if variable_name_index == -1 and variable_type_index != -1:
-            str += "('{0}',{1}), " .format('tmpName', member.list[variable_type_index].dimension_field_value)
-            str += "('{0}',{1}array({2},bound='{3}'))" .format(member.name, self.lib_imp, member.type,'tmpName')
-        if variable_name_index == -1 and variable_type_index == -1:
-            str += "\" variable_name_index == -1 and variable_type_index == -1\""
+        if variable_type_index == -1:
+            variable_type = "TNumberOfItems"
+        else:
+            variable_type = member.list[variable_type_index].dimension_field_value
+
+        if len(member.list) == 1 and size_index != -1:
+            str += format_bytes_list(member.name, self.lib_imp,member.list[size_index].dimension_field_value )
+        else:
+            str += format_simple_list(variable_name,variable_type)
+            str += format_array(member.name, self.lib_imp, member.type,variable_name)
 
         return str
 

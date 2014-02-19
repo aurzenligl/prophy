@@ -2,7 +2,7 @@
 
 from collections import OrderedDict
 from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,MemberHolder,MessageHolder, DataHolder
-import options
+
 
 def get_parser():
     return Parser()
@@ -47,6 +47,10 @@ class Parser(object):
                 member = enum_element.getElementsByTagName('enum-member')
                 for member_enum_element in member:
                     value = member_enum_element.getAttribute('value')
+                    if "bitMaskOr" in value:
+                        value = 2
+                    elif "EAaMemPoolCid_ApplicationCidStart" in value:
+                        value = value.replace("EAaMemPoolCid_ApplicationCidStart",'2')
                     enum.add_to_list(member_enum_element.attributes["name"].value,value)
                 dict[name] = enum
         return dict
@@ -81,10 +85,10 @@ class Parser(object):
             return "i64"
         elif "32 bit float" in value:
             # should be r32 ale nie ma teraz w aprocie obsługi
-            return "i32"
+            return "r32"
         elif "64 bit float" in value:
             # should be r64 ale nie ma teraz w aprocie obsługi
-            return "i64"
+            return "r64"
 
 
     def __constant_parse(self, tree_node):

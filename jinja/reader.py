@@ -5,6 +5,8 @@ import options
 def get_reader():
     path = options.getOptions()[0].in_path
     in_format = options.getOptions()[0].in_format
+    print path
+    print in_format
     a = {"ISAR": XmlReader(path), "SACK": CppReader(path)}
     return a[in_format]
 
