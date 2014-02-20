@@ -85,4 +85,3 @@ def test_complex_struct(tmpdir_cwd):
     call(cmd)
     import complex
 
-test_complex_struct("")

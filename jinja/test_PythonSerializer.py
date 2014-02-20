@@ -13,8 +13,8 @@ linux_hashes = {
 }
 
 windows_hashes = {
-"test_of_PythonSerializer" : "188956a8a6982ab61bab795134d797bf",
-"test_of_PythonSerializer_enum" : "2f9ad39ea4a993cbca326536810d0423",
+"test_of_PythonSerializer" : "e97d84b382a9dab4bc88c28d7186fe49",
+"test_of_PythonSerializer_enum" : "6f62fd4477ab100751664167b82ab9f4",
 "test_of_PythonSerializer_import" : "9ae94212935c6897ec77401d99191e90"
 }
 

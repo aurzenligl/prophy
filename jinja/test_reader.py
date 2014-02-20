@@ -3,7 +3,7 @@ import reader
 import os
 import shutil
 
-def test_of_xml_reader():
+def test_of_xml_reader(tmpdir_cwd):
     test_dir_name = "xml_test_files"
     shutil.rmtree(test_dir_name, ignore_errors=True)
     os.mkdir(test_dir_name)
@@ -32,7 +32,7 @@ def test_of_xml_reader():
     r.read_files()
     assert 10 == len(r.return_tree_files())
 
-def test_of_xml_reader_1():
+def test_of_xml_reader_1(tmpdir_cwd):
     test_dir_name = "xml_test_files"
     shutil.rmtree(test_dir_name, ignore_errors=True)
     os.mkdir(test_dir_name)
