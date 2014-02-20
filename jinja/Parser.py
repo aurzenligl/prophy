@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,MemberHolder,MessageHolder, DataHolder
+from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,MemberHolder,MessageHolder, DataHolder, UnionHolder
 
 
 def get_parser():
@@ -54,6 +54,13 @@ class Parser(object):
                     enum.add_to_list(member_enum_element.attributes["name"].value,value)
                 dict[name] = enum
         return dict
+
+    def __union_parse(self,tree_node):
+        union_list=UnionHolder()
+        union_nodes = tree_node.getElementsByTagName('union')
+        for union_element in union_nodes:
+            union_list.add_to_list(union_element.getAttribute('name'))
+        return union_list
 
     def __typedef_parse(self, tree_node):
         typedef_dict = TypeDefHolder()
@@ -117,5 +124,6 @@ class Parser(object):
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")
         data_holder.include = self.__get_include(tree_node)
+        data_holder.union = self.__union_parse(tree_node)
         return data_holder
 

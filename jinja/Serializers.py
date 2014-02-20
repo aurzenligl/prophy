@@ -14,12 +14,15 @@ class PythonSerializer(object):
 
     def serialize(self, dataHolder):
         out = ""
+        
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
+        out += self._serialize_union(dataHolder.union.get_list()) + os.linesep
         out += self._serialize_constant(dataHolder.constant) + os.linesep
         out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
         out += self._serialize_msgs(dataHolder.sort_struct())
         out += self._serialize_msgs(dataHolder.msgs_list)
+
 
         return out
 
@@ -58,6 +61,12 @@ class PythonSerializer(object):
         out = ""
         for key,val in constant.get_sorted_list():
             out += key + " = " + val + '\n'
+        return out
+
+    def _serialize_union(self, union):
+        out = ""
+        for key in union:
+            out += key +" = " + self.lib_imp + "i32" + '\n'
         return out
 
     def _serialize_msgs(self,msgs_list):

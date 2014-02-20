@@ -3,4 +3,11 @@ To do:
 - Unions
 - Dimension cases
 - Test of verification of structures dependencies
--
+
+
+-there is no implematation of r32 and r64 in protophy
+-hardcoded in parser.py :  if "bitMaskOr" in value:
+                        		value = 2
+                    	   elif "EAaMemPoolCid_ApplicationCidStart" in value:
+                        		value = value.replace("EAaMemPoolCid_ApplicationCidStart",'2')
+- there is a problem with typedef = struct

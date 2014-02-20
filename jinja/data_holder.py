@@ -65,6 +65,14 @@ class TypeDefHolder(Holder):
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.typedef(element_name,element_value))
+class UnionHolder(Holder):
+
+    def __init__(self):
+        self.list=[]
+
+
+    def add_to_list(self,element_name):
+        self.list.append(element_name)
 
 class MemberHolder(Holder):
 
@@ -110,6 +118,7 @@ class DataHolder(object):
         self.include = include
         self.typedef = typedef
         self.constant = constant
+        self.union = []
 
     def __str__(self):
         return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))
@@ -126,7 +135,7 @@ class DataHolder(object):
                 list.insert(index,struct_element)
                 index += 1
             else:
-                list.insert(index,struct_element)
+                list.append(struct_element)
             is_base_type = 0
         return list
 
