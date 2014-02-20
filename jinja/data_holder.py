@@ -8,7 +8,8 @@ class Holder(object):
         pass
     def get_list(self):
         return self.list
-
+    def get_list_len(self):
+        return len(self.list)
 class IncludeHolder(Holder):
 
     def __init__(self):
@@ -112,3 +113,20 @@ class DataHolder(object):
 
     def __str__(self):
         return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))
+
+    def sort_struct(self):
+        list = []
+        is_base_type = 0
+        index = 0
+        for struct_element in self.struct_list:
+            for i in xrange(struct_element.get_list_len()):
+                if struct_element.list[i].type.startswith('S') or struct_element.list[i].type.startswith('U'):
+                    is_base_type += 1
+            if is_base_type == 0:
+                list.insert(index,struct_element)
+                index += 1
+            else:
+                list.insert(index,struct_element)
+            is_base_type = 0
+        return list
+

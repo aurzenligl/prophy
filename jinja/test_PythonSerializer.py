@@ -13,9 +13,9 @@ linux_hashes = {
 }
 
 windows_hashes = {
-"test_of_PythonSerializer" : "0a0ccd81755e94db599e0a0e8e6aa6db",
-"test_of_PythonSerializer_enum" : "275bf674a0c1025d10e929b39896213f",
-"test_of_PythonSerializer_import" : "da45c13ad54818957c1b932d8beb56f4"
+"test_of_PythonSerializer" : "188956a8a6982ab61bab795134d797bf",
+"test_of_PythonSerializer_enum" : "2f9ad39ea4a993cbca326536810d0423",
+"test_of_PythonSerializer_import" : "9ae94212935c6897ec77401d99191e90"
 }
 
 hashes = linux_hashes if sys.platform == "linux2" else windows_hashes
@@ -123,8 +123,8 @@ def test_of_backward_compatibility_serialization():
     dh =  Parser.Parser().parsing_xml_files(xml_dom_model)
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs(dh.struct_list)
-    c = """class SPuschUeReceiveMeasResp(aprot.struct):
-    __metaclass__ = aprot.struct_generator
-    _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',aprot.i16), ('ulCompUsage',aprot.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',aprot.u8), ('explicitPadding2',aprot.u16)]
+    c = """class SPuschUeReceiveMeasResp(protophy.struct):
+    __metaclass__ = protophy.struct_generator
+    _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',protophy.i16), ('ulCompUsage',protophy.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',protophy.u8), ('explicitPadding2',protophy.u16)]
 """
     assert c == o

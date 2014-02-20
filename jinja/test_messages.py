@@ -21,7 +21,7 @@ def test_of_message_simple():
     o = ps._serialize_msgs([msg_h])
 
 
-    out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('messageResult',SMessageResult)]\n"
+    out = "class MAC_L2CallConfigResp(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('messageResult',SMessageResult)]\n"
     assert out == o
 
 def test_of_message_complex():
@@ -43,7 +43,7 @@ def test_of_message_complex():
 
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs([msg_h])
-    out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti), ('ueId',TUeId), ('ueGroup',TUeGroup), ('transactionId',TTransactionID), ('spsCrnti',TCrnti), ('macUserAddress',TAaSysComSicad), ('raPreambleIndex',TRaPreambleIndex), ('prachMaskIndex',TPrachMaskIndex), ('sRbList',SSRbList), ('dRbList',SDRbList)]\n"
+    out = "class MAC_L2CallConfigResp(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti), ('ueId',TUeId), ('ueGroup',TUeGroup), ('transactionId',TTransactionID), ('spsCrnti',TCrnti), ('macUserAddress',TAaSysComSicad), ('raPreambleIndex',TRaPreambleIndex), ('prachMaskIndex',TPrachMaskIndex), ('sRbList',SSRbList), ('dRbList',SDRbList)]\n"
     assert out == o
 
 def test_of_message_with_four_dim_without_field_type():
@@ -60,7 +60,7 @@ def test_of_message_with_four_dim_without_field_type():
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs([msg_h])
     print o
-    out = "class MAC_L2CallConfigResp(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',aprot.array(SSRbList,bound='numSRbs'))]\n"
+    out = "class MAC_L2CallConfigResp(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',protophy.array(SSRbList,bound='numSRbs'))]\n"
     assert out == o
 
 def test_of_message_with_five_dim():
@@ -78,7 +78,7 @@ def test_of_message_with_five_dim():
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs([msg_h])
     print o
-    out = "class MAC_CcchDataReceiveInd(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('maxNumOfUes',u32), ('msg3Info',aprot.array(SMsg3Info,bound='maxNumOfUes'))]\n"
+    out = "class MAC_CcchDataReceiveInd(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('maxNumOfUes',u32), ('msg3Info',protophy.array(SMsg3Info,bound='maxNumOfUes'))]\n"
     assert out == o
 
 def test_of_message_with_four_dim_without_min_size():
@@ -95,7 +95,7 @@ def test_of_message_with_four_dim_without_min_size():
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs([msg_h])
     print o
-    out = "class SSiList(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('size',TL3MsgSize), ('data',aprot.array(u8,bound='size'))]\n"
+    out = "class SSiList(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('size',TL3MsgSize), ('data',protophy.array(u8,bound='size'))]\n"
 
 
 def test_of_message_with_three_fields_without_variable_name_and_variable_type():
@@ -111,7 +111,7 @@ def test_of_message_with_three_fields_without_variable_name_and_variable_type():
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs([msg_h])
     print o
-    out = "class MAC_CellSetupReq(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',aprot.array(SRlcLcpInfo,bound='tmpName'))]\n"
+    out = "class MAC_CellSetupReq(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',protophy.array(SRlcLcpInfo,bound='tmpName'))]\n"
 
 def test_of_message_with_two_fields_size_and_isVariable():
 
@@ -126,7 +126,7 @@ def test_of_message_with_two_fields_size_and_isVariable():
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs([msg_h])
     print o
-    out = "class MAC_CellSetupReq(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',aprot.array(EMeasurementGroupType,bound='tmpName'))]\n"
+    out = "class MAC_CellSetupReq(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',protophy.array(EMeasurementGroupType,bound='tmpName'))]\n"
 
 def test_of_message_with_one_dim_size():
 
@@ -139,4 +139,4 @@ def test_of_message_with_one_dim_size():
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs([msg_h])
     print o
-    out = "class SCqiParams(aprot.struct):\n    __metaclass__ = aprot.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('iRi',aprot.array(TIRi,bound='tmpName'))]\n"
+    out = "class SCqiParams(protophy.struct):\n    __metaclass__ = protophy.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('iRi',protophy.array(TIRi,bound='tmpName'))]\n"

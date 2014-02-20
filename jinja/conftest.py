@@ -1,6 +1,9 @@
 import pytest
 import string
 import random
+import sys
+import os
+
 
 random.seed(1984)
 
@@ -13,3 +16,12 @@ def setup_file_to_read(request):
     f = open(f_name, "w")
     f.write(id_generator(24))
     return f_name
+
+@pytest.yield_fixture
+def tmpdir_cwd(tmpdir):
+    orig_dir = os.getcwd()
+    os.chdir(str(tmpdir))
+    sys.path.insert(0, str(tmpdir))
+    yield tmpdir
+    sys.path.pop(0)
+    os.chdir(orig_dir)

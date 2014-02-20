@@ -10,7 +10,7 @@ def get_serializer():
 
 class PythonSerializer(object):
     def __init__(self):
-        self.lib_imp="aprot."
+        self.lib_imp="protophy."
 
     def serialize(self, dataHolder):
         out = ""
@@ -18,16 +18,25 @@ class PythonSerializer(object):
         out += self._serialize_constant(dataHolder.constant) + os.linesep
         out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
-        out += self._serialize_msgs(dataHolder.struct_list)
+        out += self._serialize_msgs(dataHolder.sort_struct())
         out += self._serialize_msgs(dataHolder.msgs_list)
+
         return out
 
     def _serialize_enum(self, enum_dic):
-        template = TemplateFabric().get_template("enum.txt");
+        def serialize_enum_members(list):
+            desc = []
+            for member in list:
+                    k,v = member
+                    desc.append("('{0}',{1})" .format(k , v))
+            return ", ".join(desc)
         out = ""
+
         for key, val in enum_dic.iteritems():
-            out += template.render(key = key, value = val.list)
-            out += os.linesep
+            out += "class {0}({1}enum):" .format(key, self.lib_imp) + "\n"
+            out += "    __metaclass__ = {0}enum_generator" .format(self.lib_imp) + "\n"
+            out += "    _enumerators  = [" + serialize_enum_members(val.list) + "]\n"
+
         return out
 
     def _serialize_typedef(self, typedef_list):
@@ -40,7 +49,7 @@ class PythonSerializer(object):
         return out
 
     def _serialize_include(self, include_list):
-        out = "import aprot \n"
+        out = "import {0} \n" .format(self.lib_imp[:-1])
         for inc in include_list:
             out += "from " + inc + " import *" + '\n'
         return out
@@ -68,7 +77,7 @@ class PythonSerializer(object):
             return ", ".join(desc)
         for key in msgs_list:
             out += "class {0}({1}struct):" .format(key.name, self.lib_imp) + "\n"
-            out += "    __metaclass__ = aprot.struct_generator" + "\n"
+            out += "    __metaclass__ = {0}struct_generator" .format(self.lib_imp) + "\n"
             out += "    _descriptor = [" + serialize_members(key.get_list()) + "]\n"
         return out
 
