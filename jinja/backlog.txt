@@ -1,0 +1,5 @@
+
+To do:
+- Unions
+- Dimension cases
+- Test of verification of structures dependencies
