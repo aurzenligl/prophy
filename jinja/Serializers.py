@@ -18,7 +18,7 @@ class PythonSerializer(object):
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
         out += self._serialize_union(dataHolder.union.get_list()) + os.linesep
         out += self._serialize_constant(dataHolder.constant) + os.linesep
-        out += self._serialize_typedef(dataHolder.typedef.get_list()) + os.linesep
+        out += self._serialize_typedef(dataHolder) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
         out += self._serialize_msgs(dataHolder.sort_struct())
         out += self._serialize_msgs(dataHolder.msgs_list)
@@ -42,14 +42,31 @@ class PythonSerializer(object):
 
         return out
 
-    def _serialize_typedef(self, typedef_list):
+    def _serialize_typedef(self, dataHolder):
+        typedef_list = dataHolder.typedef.get_list()
+        struct_list = dataHolder.struct_list
+        list_used_structed = []
         out = ""
         for key, val in typedef_list:
             if val.startswith('u') or val.startswith('i') or val.startswith('r'):
                 out += key + " = " + self.lib_imp + val + '\n'
+            elif val.startswith('S'):
+                if val not in list_used_structed:
+                    out += self._get_struct_for_typedef(val,struct_list) + '\n'  
+                list_used_structed.append(val)
+                out += key + " = "  + val + '\n'
             else:
                 out += key + " = "  + val + '\n'
         return out
+
+    def _get_struct_for_typedef(self,val,struct_list):
+        out = ""
+        for i in xrange(len(struct_list)):
+            if struct_list[i].name == val:
+                x = struct_list.pop(i)
+                return self._serialize_msgs([x])
+        print struct_list[i].name,val
+        return "1"
 
     def _serialize_include(self, include_list):
         out = "import {0} \n" .format(self.lib_imp[:-1])

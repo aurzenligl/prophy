@@ -43,17 +43,41 @@ simple_isar = """<dom>
 
 complex_isar = """<dom>
       <typedef name="u32" type="protophy.u32"/>
+      <struct name="S">
+         <member name="l2NodeType" type="S1"/>
+            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
+         <member name="blabla" type="u32"/>
+      </struct>
       <struct name="x">
          <member name="poolId" type="u32"/>
          <member name="deploymentInfo" type="S">
             <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
          </member>
       </struct>
+      
+      <struct name="S1">
+         <member name="l2NodeType" type="u32"/>
+         <member name="blabla" type="u32"/>
+      </struct>
+     </dom>
+"""
+
+
+
+to_sort = """<dom>
+      <typedef name="u32" type="protophy.u32"/>
       <struct name="S">
          <member name="l2NodeType" type="S1"/>
             <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
          <member name="blabla" type="u32"/>
       </struct>
+      <struct name="x">
+         <member name="poolId" type="u32"/>
+         <member name="deploymentInfo" type="S">
+            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
+         </member>
+      </struct>
+      
       <struct name="S1">
          <member name="l2NodeType" type="u32"/>
          <member name="blabla" type="u32"/>
@@ -85,3 +109,11 @@ def test_complex_struct(tmpdir_cwd):
     call(cmd)
     import complex
 
+
+def test_struct_sort(tmpdir_cwd):
+    open("sort.xml", "w").write(to_sort)
+    cmd = prophyc + " --in_put_path . --out_put_path ."
+    call(cmd)
+    import sort 
+
+test_complex_struct("")

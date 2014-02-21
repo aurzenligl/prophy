@@ -111,31 +111,53 @@ class MessageHolder(Holder):
 class DataHolder(object):
 
     def __init__(self, include = IncludeHolder(), typedef = TypeDefHolder(), constant = ConstantHolder(), msgs_list =
-            [],  enum_dict = {}, struct_list = [] ): 
+            [],  enum_dict = {}, struct_list = [] ,union = UnionHolder()): 
         self.msgs_list = msgs_list
         self.enum_dict = enum_dict
         self.struct_list = struct_list
         self.include = include
         self.typedef = typedef
         self.constant = constant
-        self.union = []
+        self.union = union
 
     def __str__(self):
         return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))
 
     def sort_struct(self):
-        list = []
+        out_list = []
         is_base_type = 0
+
         index = 0
+        index2 = 0
         for struct_element in self.struct_list:
             for i in xrange(struct_element.get_list_len()):
-                if struct_element.list[i].type.startswith('S') or struct_element.list[i].type.startswith('U'):
-                    is_base_type += 1
+                is_base_type += self.__struct_element_list_type(struct_element.list[i])
             if is_base_type == 0:
-                list.insert(index,struct_element)
+                if struct_element not in out_list:
+                    out_list.insert(0,struct_element)
                 index += 1
             else:
-                list.append(struct_element)
+                for j in xrange(struct_element.get_list_len()):
+                    member_type = struct_element.list[j].type
+                    if member_type.startswith('S'):
+                        for x in self.struct_list:
+                            if member_type in x.name:
+                                y = self.struct_list.index(x)
+                                if self.struct_list[y] not in out_list:
+                                    out_list.insert(index,self.struct_list[y])
+                                else:
+                                    index2 = out_list.index(self.struct_list[y])
+                                    out_list.insert(index -1,out_list.pop(index2))
+                                index += 1
+                if struct_element not in out_list:
+                    out_list.insert(index,struct_element)
+                    index += 1
             is_base_type = 0
-        return list
+        return out_list
+        
 
+    def __struct_element_list_type(self,element):
+        if element.type.startswith('S') or element.type.startswith('U'):   
+            return 1
+        else:
+            return 0

@@ -8,6 +8,7 @@ def get_reader():
     print path
     print in_format
     a = {"ISAR": XmlReader(path), "SACK": CppReader(path)}
+    
     return a[in_format]
 
 class CppReader(object):

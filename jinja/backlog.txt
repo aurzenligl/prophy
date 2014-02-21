@@ -5,9 +5,27 @@ To do:
 - Test of verification of structures dependencies
 
 
--there is no implematation of r32 and r64 in protophy
+-need a implematation of r32 and r64 in protophy
+-problem with composite u32 tylko ( i32)
 -hardcoded in parser.py :  if "bitMaskOr" in value:
                         		value = 2
                     	   elif "EAaMemPoolCid_ApplicationCidStart" in value:
                         		value = value.replace("EAaMemPoolCid_ApplicationCidStart",'2')
 - there is a problem with typedef = struct
+
+
+
+- File "D:\userdata\majchrzy\Desktop\Isar_parsing2\sackparser\jinja\Out_files\ASN.py", line 6302, in <module>
+    class SS1apCancelledCellinTAI(protophy.struct):
+  File "C:\Python27\lib\site-packages\protophy\composite.py", line 84, in __init__
+    add_properties(cls, descriptor)
+  File "C:\Python27\lib\site-packages\protophy\composite.py", line 16, in add_properties
+    add_repeated(cls, field_name, field_type)
+  File "C:\Python27\lib\site-packages\protophy\composite.py", line 39, in add_repeated
+    raise Exception("array must be bound to an unsigned integer")
+Exception: array must be bound to an unsigned integer
+
+	czyli jest i32 a obsługuje tylko u32
+
+
+
