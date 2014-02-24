@@ -126,6 +126,7 @@ class DataHolder(object):
     def sort_struct(self):
         out_list = []
         is_base_type = 0
+        is_base_type2 = 0
 
         index = 0
         index2 = 0
@@ -147,12 +148,18 @@ class DataHolder(object):
                                     out_list.insert(index,self.struct_list[y])
                                 else:
                                     index2 = out_list.index(self.struct_list[y])
-                                    out_list.insert(index -1,out_list.pop(index2))
+                                    for element in out_list[index2].get_list():
+                                        is_base_type2 += self.__struct_element_list_type(element)
+                                    if is_base_type2 == 0:
+                                        out_list.insert(0,out_list.pop(index2))
+                                    else:
+                                        out_list.insert(index -1,out_list.pop(index2))
                                 index += 1
                 if struct_element not in out_list:
                     out_list.insert(index,struct_element)
                     index += 1
             is_base_type = 0
+            is_base_type2 = 0
         return out_list
         
 
