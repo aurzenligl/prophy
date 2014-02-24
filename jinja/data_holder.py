@@ -51,7 +51,6 @@ class ConstantHolder(Holder):
                     out_list.insert(index + 1, (key,val))
                 else:
                     out_list.append((key,val))
-
         return out_list
 
     def get_sorted_list(self):
@@ -69,7 +68,6 @@ class UnionHolder(Holder):
 
     def __init__(self):
         self.list=[]
-
 
     def add_to_list(self,element_name):
         self.list.append(element_name)
@@ -101,10 +99,15 @@ class MessageHolder(Holder):
     def __init__(self):
         self.list=[]
         self.name = ""
-
+        self.base_type = 0
+    def __is_base_type(self,member):
+        if member.type.startswith('U') or member.type.startswith('S'):
+            self.base_type = 1
     def add_to_list(self,member):
         self.list.append(member)
-
+        self.__is_base_type(member)
+    def message_type(self):
+        return self.base_type
     def __str__(self):
         return "name="+ self.name + "list=" + str(self.list)
 
@@ -125,15 +128,11 @@ class DataHolder(object):
 
     def sort_struct(self):
         out_list = []
-        is_base_type = 0
-        is_base_type2 = 0
-
+       
         index = 0
         index2 = 0
         for struct_element in self.struct_list:
-            for i in xrange(struct_element.get_list_len()):
-                is_base_type += self.__struct_element_list_type(struct_element.list[i])
-            if is_base_type == 0:
+            if struct_element.message_type() == 0:
                 if struct_element not in out_list:
                     out_list.insert(0,struct_element)
                 index += 1
@@ -145,12 +144,13 @@ class DataHolder(object):
                             if member_type in x.name:
                                 y = self.struct_list.index(x)
                                 if self.struct_list[y] not in out_list:
-                                    out_list.insert(index,self.struct_list[y])
+                                    if self.struct_list[y].message_type() == 0:
+                                        out_list.insert(0,self.struct_list[y])
+                                    else:
+                                        out_list.insert(index,self.struct_list[y])
                                 else:
                                     index2 = out_list.index(self.struct_list[y])
-                                    for element in out_list[index2].get_list():
-                                        is_base_type2 += self.__struct_element_list_type(element)
-                                    if is_base_type2 == 0:
+                                    if out_list[index2].message_type() == 0:
                                         out_list.insert(0,out_list.pop(index2))
                                     else:
                                         out_list.insert(index -1,out_list.pop(index2))
@@ -158,8 +158,6 @@ class DataHolder(object):
                 if struct_element not in out_list:
                     out_list.insert(index,struct_element)
                     index += 1
-            is_base_type = 0
-            is_base_type2 = 0
         return out_list
         
 
