@@ -51,7 +51,6 @@ class ConstantHolder(Holder):
                     out_list.insert(index + 1, (key,val))
                 else:
                     out_list.append((key,val))
-
         return out_list
 
     def get_sorted_list(self):
@@ -69,7 +68,6 @@ class UnionHolder(Holder):
 
     def __init__(self):
         self.list=[]
-
 
     def add_to_list(self,element_name):
         self.list.append(element_name)
@@ -101,10 +99,18 @@ class MessageHolder(Holder):
     def __init__(self):
         self.list=[]
         self.name = ""
-
+        self.base_type = 0
+    def __is_base_type(self,member):
+        if member.type.startswith('S'):
+            self.base_type = 1
     def add_to_list(self,member):
-        self.list.append(member)
-
+        self.__is_base_type(member)
+        if self.message_type == 0:
+            self.list.insert(0,member)
+        else:
+            self.list.append(member)
+    def message_type(self):
+        return self.base_type
     def __str__(self):
         return "name="+ self.name + "list=" + str(self.list)
 
@@ -119,52 +125,39 @@ class DataHolder(object):
         self.typedef = typedef
         self.constant = constant
         self.union = union
+        self.struct_dict = {}
 
     def __str__(self):
         return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))
+    
+    def get_struct_name_and_index(self):
+        for x in self.struct_list:
+            index = self.struct_list.index(x)
+            self.struct_dict[x.name] = index 
 
     def sort_struct(self):
-        out_list = []
-        is_base_type = 0
-        is_base_type2 = 0
-
         index = 0
-        index2 = 0
-        for struct_element in self.struct_list:
-            for i in xrange(struct_element.get_list_len()):
-                is_base_type += self.__struct_element_list_type(struct_element.list[i])
-            if is_base_type == 0:
-                if struct_element not in out_list:
-                    out_list.insert(0,struct_element)
-                index += 1
-            else:
-                for j in xrange(struct_element.get_list_len()):
-                    member_type = struct_element.list[j].type
-                    if member_type.startswith('S'):
-                        for x in self.struct_list:
-                            if member_type in x.name:
-                                y = self.struct_list.index(x)
-                                if self.struct_list[y] not in out_list:
-                                    out_list.insert(index,self.struct_list[y])
-                                else:
-                                    index2 = out_list.index(self.struct_list[y])
-                                    for element in out_list[index2].get_list():
-                                        is_base_type2 += self.__struct_element_list_type(element)
-                                    if is_base_type2 == 0:
-                                        out_list.insert(0,out_list.pop(index2))
-                                    else:
-                                        out_list.insert(index -1,out_list.pop(index2))
-                                index += 1
-                if struct_element not in out_list:
-                    out_list.insert(index,struct_element)
-                    index += 1
-            is_base_type = 0
-            is_base_type2 = 0
+        out_list = []
+        self.get_struct_name_and_index()
+        for struct_elem_index in xrange(len(self.struct_list)):
+            out_list.extend(self.__get_list_of_dependency(struct_elem_index,out_list))
         return out_list
-        
 
-    def __struct_element_list_type(self,element):
-        if element.type.startswith('S') or element.type.startswith('U'):   
-            return 1
-        else:
-            return 0
+    def __get_list_of_dependency(self,index,out_list,lista=[]):
+        element = self.struct_list[index]
+        element_name = element.name
+        for member_elem in element.get_list():
+            member_type = member_elem.type
+            if member_type.startswith('S') and member_type in self.struct_dict:
+                index = self.struct_dict[member_type]
+                x = self.struct_list[index]
+                if x not in out_list:
+                    out_list.extend(self.__get_list_of_dependency(index,out_list))
+            else:
+                for x in self.struct_list:
+                    if member_type in x.name:
+                        if x not in out_list:
+                            out_list.append(x)
+        if element not in out_list:
+            out_list.append(element)
+        return lista
