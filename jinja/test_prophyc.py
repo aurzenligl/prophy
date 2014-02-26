@@ -115,5 +115,3 @@ def test_struct_sort(tmpdir_cwd):
     cmd = prophyc + " --in_put_path . --out_put_path ."
     call(cmd)
     import sort 
-
-test_complex_struct("")
