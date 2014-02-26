@@ -64,6 +64,8 @@ def _get_config_file():
 	    output = channel.makefile('rb', -1).readlines()
 	    return output
 
+
+	os.system("curl -k -u Nemuadmin:nemuuser https://192.168.255.129/protected/enableSsh.cgi")
 	ssh = ssh_connect(host=addr,
 	                  username=user,
 	                  private_key=private_key)
@@ -71,7 +73,6 @@ def _get_config_file():
 
 	print"INF: Download config file from BTS"
 
-	os.system("curl -k -u Nemuadmin:nemuuser https://192.168.255.129/protected/enableSsh.cgi")
 	if "true\n" in exec_cmd(ssh, "[ -e /flash/config/config ] && echo \"true\" || echo \"false\""):
 		config_content = exec_cmd(ssh, "cat /flash/config/config")
 		with open("config_from_bts", "w") as f:
