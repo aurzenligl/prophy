@@ -1,6 +1,7 @@
 ﻿import os
 from xml.dom import minidom
 import options
+import collections
 
 def get_reader():
     path = options.getOptions()[0].in_path
@@ -12,9 +13,31 @@ def get_reader():
     return a[in_format]
 
 class CppReader(object):
-    def __init__(self, sack_dir_path):
-        pass
 
+    def __init__(self, sack_dir_path):
+        self.dirs = []
+        self.files = collections.OrderedDict()   #dict files key file_name, value path
+        self.__get_files_and_dict(sack_dir_path)
+
+    def __get_files_and_dict(self, path):
+        for root, dirs, files in os.walk(path):
+            if len(dirs) != 0:
+                for d in dirs:
+                    self.dirs.append(os.path.join(root, d))
+            if len(files) != 0:
+                for f in files:
+                    if f.endswith(".h"):
+                        self.files[f[:-2]] = os.path.join(root, f)  
+
+    def open_file(self, file_path):
+        with open(file_path, "r") as f:
+            return f
+
+    def get_structure(self):
+        return self.dirs
+
+    def get_files(self):
+        return self.files
 
 class XmlReader(object):
     files = []
