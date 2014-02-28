@@ -8,11 +8,11 @@ def get_reader():
     in_format = options.getOptions()[0].in_format
     print path
     print in_format
-    a = {"ISAR": XmlReader(path), "SACK": CppReader(path)}
+    a = {"ISAR": XmlReader(path), "SACK": HReader(path)}
     
     return a[in_format]
 
-class CppReader(object):
+class HReader(object):
 
     def __init__(self, sack_dir_path):
         self.dirs = []

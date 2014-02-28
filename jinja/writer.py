@@ -26,3 +26,15 @@ class WriterTxt(object):
 
     def write_to_file(self, tekst):
         self.__file_h.write(tekst)
+
+class MakeStructure(object):
+    def __init__(self, dirs):
+        out_path = options.getOptions()[0].out_path
+        in_path = options.getOptions()[0].in_path
+        for element in dirs:
+            element = element.replace(in_path, out_path)
+            if not os.path.exists(element):
+                os.makedirs(element)
+
+
+
