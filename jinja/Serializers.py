@@ -115,7 +115,7 @@ class PythonSerializer(object):
         def format_bytes_list(a,b,c):
             return  "('{0}',{1}bytes(size={2}))" .format(a,b,c)
         def format_variable_bytes_list(a,b,c,d):
-            return  "('{0}',{1}bytes(size={2},bound='{3}')), " .format(a,b,c,d)
+            return  "('{0}',{1}bytes(size={2},bound='{3}'))" .format(a,b,c,d)
 
         str = ""
         variable_name_index = member.get_dimension_field_index('variableSizeFieldName')

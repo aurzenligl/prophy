@@ -140,10 +140,10 @@ class DataHolder(object):
         out_list = []
         self.get_struct_name_and_index()
         for struct_elem_index in xrange(len(self.struct_list)):
-            out_list.extend(self.__get_list_of_dependency(struct_elem_index,out_list))
+            out_list.extend(self.__sorter(struct_elem_index,out_list))
         return out_list
 
-    def __get_list_of_dependency(self,index,out_list,lista=[]):
+    def __sorter(self,index,out_list,lista=[]):
         element = self.struct_list[index]
         element_name = element.name
         for member_elem in element.get_list():
@@ -152,7 +152,7 @@ class DataHolder(object):
                 index = self.struct_dict[member_type]
                 x = self.struct_list[index]
                 if x not in out_list:
-                    out_list.extend(self.__get_list_of_dependency(index,out_list))
+                    out_list.extend(self.__sorter(index,out_list))
             else:
                 for x in self.struct_list:
                     if member_type in x.name:
