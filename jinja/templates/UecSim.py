@@ -2,7 +2,8 @@ import protophy
 
 class UecSim_ReconfigReq(protophy.struct):
     __metaclass__ = protophy.struct_generator
-    _descriptor = [('macUserBoard',protophy.u8), 
+    _descriptor = [('state',protophy.u32),
+                   ('macUserBoard',protophy.u8), 
     			   ('macUserCpu',protophy.u8),
     			   ('macUserTask',protophy.u16),
     			   ('macSgnBoard',protophy.u8),
