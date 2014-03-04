@@ -1,7 +1,7 @@
 import sackparser.jinja.Templates.UecSim as s
 import binascii
 
-ue =  s.UecSim_ReconfigReq()
+ue =  s.UecSim_ReconfigResp()
 ue.macUserBoard = 0x12
 ue.macUserCpu = 0x33
 ue.macUserTask = 0x1110
