@@ -1,6 +1,6 @@
 import pytest
-from data_holder import DataHolder as dh
-from data_holder import ConstantHolder as ch
+from sackparser.jinja.data_holder import DataHolder as dh
+from sackparser.jinja.data_holder import ConstantHolder as ch
 import dic
 
 
