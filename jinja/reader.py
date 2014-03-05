@@ -30,8 +30,11 @@ class HReader(object):
                         self.files[f[:-2]] = os.path.join(root, f)  
 
     def open_file(self, file_path):
-        with open(file_path, "r") as f:
+        try:
+            f = open(file_path, "r")
             return f
+        except IOError:
+            print "Could not open file!"
 
     def get_structure(self):
         return self.dirs
