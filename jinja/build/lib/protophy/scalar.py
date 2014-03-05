@@ -40,7 +40,7 @@ class int_base(object):
     _DEFAULT = 0
 
 class i8(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
+    _tags = int_base._tags + ["signed_integer"]
     __metaclass__ = int_generator
     _MIN = - (1 << 7)
     _MAX = (1 << 7) - 1
@@ -48,7 +48,7 @@ class i8(int_base):
     _SIZE = 1
     
 class i16(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
+    _tags = int_base._tags + ["signed_integer"]
     __metaclass__ = int_generator
     _MIN = - (1 << 15)
     _MAX = (1 << 15) - 1
@@ -56,7 +56,7 @@ class i16(int_base):
     _SIZE = 2
     
 class i32(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
+    _tags = int_base._tags + ["signed_integer"]
     __metaclass__ = int_generator
     _MIN = - (1 << 31)
     _MAX = (1 << 31) - 1
@@ -64,7 +64,7 @@ class i32(int_base):
     _SIZE = 4
 
 class i64(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
+    _tags = int_base._tags + ["signed_integer"]
     __metaclass__ = int_generator
     _MIN = - (1 << 63)
     _MAX = (1 << 63) - 1
@@ -154,8 +154,8 @@ def enum_generator(name, bases, attrs):
         raise Exception("names overlap")
     if len(set([value for _, value in enumerators])) != len(enumerators):
         raise Exception("values overlap")
-    # for _, value in enumerators:
-    #     bases[0]._base._checker.check(value)
+    for _, value in enumerators:
+        bases[0]._base._checker.check(value)
     for name, value in enumerators:
         name_to_int[name] = value
         int_to_name[value] = name

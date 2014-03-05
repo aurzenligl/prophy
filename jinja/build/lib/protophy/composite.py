@@ -115,7 +115,7 @@ def encode_field(field_type, field_value, endianess):
     elif "string" in field_type._tags:
         out += field_value
         if field_type._LIMIT:
-            out += " 00" * (field_type._LIMIT - len(field_value))
+            out += "\x00" * (field_type._LIMIT - len(field_value))
     elif "enum" in field_type._tags:
         numeric_value = field_type._name_to_int[field_value]
         out += field_type._encoder.encode(numeric_value, endianess)
