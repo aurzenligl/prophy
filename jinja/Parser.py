@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
-
+import options
+import re
+import sys
 from collections import OrderedDict
 from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,MemberHolder,MessageHolder, DataHolder, UnionHolder
 
 
 def get_parser():
-    return Parser()
+    path = options.getOptions()[0].in_path
+    in_format = options.getOptions()[0].in_format
+    print path
+    print in_format
+    a = {"ISAR": XMLParser(), "SACK": HParser()}
+    
+    return a[in_format]
 
-class Parser(object):
+
+class XMLParser(object):
 
     tmp_dict = OrderedDict()
     typedef_dict = {}
@@ -97,7 +106,6 @@ class Parser(object):
             # should be r64 ale nie ma teraz w aprocie obsługi
             return "r64"
 
-
     def __constant_parse(self, tree_node):
         constant=ConstantHolder()
         constant_nodes = tree_node.getElementsByTagName('constant')
@@ -127,3 +135,61 @@ class Parser(object):
         data_holder.union = self.__union_parse(tree_node)
         return data_holder
 
+class HParser(object):
+
+    tmp_dict = OrderedDict()
+    typedef_dict = {}
+    enum_dict = {}
+    constant_dict = {}
+    class_aprot_string="aprot."
+
+    def __init__(self):
+        pass
+
+
+    def __remove_comments(self, text):
+        p = r'/\*[^*]*\*+([^/*][^*]*\*+)*/|("(\\.|[^"\\])*"|\'(\\.|[^\'\\])*\'|.[^/"\'\\]*)'
+        return ''.join(m.group(2) for m in re.finditer(p, text, re.M|re.S) if m.group(2))
+    
+    def __struct_parse(self, file):
+        pass
+
+    def __enum_parse(self, file):
+        pass
+
+    def __union_parse(self,file):
+        pass
+
+    def __typedef_parse(self, file):
+        pass
+
+    def __constant_parse(self, file):
+        pass
+
+    def __get_include(self, h_file):
+        include = IncludeHolder()
+        lines = h_file.read()
+        
+        lines = self.__remove_comments(lines)
+        lines = lines.split("\n")
+        for line in lines:
+            if not line.startswith("//") and not line.startswith("*") and not line.startswith("/*"):
+                if "#include" in line:
+                    if "<" in line:
+                        line = line.split("<")    
+                    elif "/" in line:
+                        line = line.split("/")
+                    else:
+                        print "to jest apostrof \""
+                        line = line.split('\"')
+                                        
+                    line = line[-1][:-3]
+                    print line
+                    include.add_to_list(line)
+        return include 
+
+    
+    def parsing_h_files(self, h_file):
+        data_holder = DataHolder()
+        data_holder.include = self.__get_include(h_file)
+        
