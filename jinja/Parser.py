@@ -146,50 +146,98 @@ class HParser(object):
     def __init__(self):
         pass
 
-
     def __remove_comments(self, text):
         p = r'/\*[^*]*\*+([^/*][^*]*\*+)*/|("(\\.|[^"\\])*"|\'(\\.|[^\'\\])*\'|.[^/"\'\\]*)'
         return ''.join(m.group(2) for m in re.finditer(p, text, re.M|re.S) if m.group(2))
-    
-    def __struct_parse(self, file):
-        pass
 
-    def __enum_parse(self, file):
-        pass
+    def __struct_parse(self, lines):
+        s_list = []
+        msg = MessageHolder()
+        msg.name = lines[0].split(" ")[2]
+
+        for line in lines[1:]:
+            if "}" in line:
+                ind = lines.index(line)
+                break
+            elif "=" in line:
+                line = line.replace("\t","")
+                line = line.replace(" ","")
+                line = line.replace(",","")
+                line = line.split("=")
+                enum_name = line[0]
+                enum_val = line[1]
+
+    def __enum_parse(self, lines):
+        dic = {}
+        enum = EnumHolder()
+        name = lines[0].split(" ")[2]
+
+        for line in lines[1:]:
+            if "}" in line:
+                ind = lines.index(line)
+                break
+            elif "=" in line:
+                line = line.replace("\t","")
+                line = line.replace(" ","")
+                line = line.replace(",","")
+                line = line.split("=")
+                enum_name = line[0]
+                enum_val = line[1]
+                enum.add_to_list(enum_name, enum_val)   
+        dic[name] = enum
+        return dic
 
     def __union_parse(self,file):
         pass
 
-    def __typedef_parse(self, file):
-        pass
+    def __typedef_parse(self, line):
+        line = line.split(" ")
+        typedef_name = line[1]
+        typedef_val = line[2][:-1]
+        return typedef_name, typedef_val
 
-    def __constant_parse(self, file):
-        pass
+    def __constant_parse(self, line):
+        line = line.split(" ")
+        const_name = line[1]
+        const_val = line[2]
+        return const_name, const_val
 
-    def __get_include(self, h_file):
-        include = IncludeHolder()
-        lines = h_file.read()
-        
-        lines = self.__remove_comments(lines)
-        lines = lines.split("\n")
-        for line in lines:
-            if not line.startswith("//") and not line.startswith("*") and not line.startswith("/*"):
-                if "#include" in line:
-                    if "<" in line:
-                        line = line.split("<")    
-                    elif "/" in line:
-                        line = line.split("/")
-                    else:
-                        print "to jest apostrof \""
-                        line = line.split('\"')
-                                        
-                    line = line[-1][:-3]
-                    print line
-                    include.add_to_list(line)
-        return include 
+    def __get_include(self, line):
+        if "<" in line:
+            line = line.split("<")
+            line = line[-1][:-3]    
+        elif "/" in line:
+            line = line.split("/")
+            line = line[-1][:-3]
+        else:
+            line = line.split("\"")
+            line = line[-2][:-2]
+        return line
 
-    
+    def __prepare_file_to_parse(self, h_file):
+        content = h_file.read()
+        content = self.__remove_comments(content)
+        #content = content.split("\n")
+        return content
+
     def parsing_h_files(self, h_file):
         data_holder = DataHolder()
-        data_holder.include = self.__get_include(h_file)
+        lines = self.__prepare_file_to_parse(h_file)
+        # for indx, line in enumerate(lines):
+        #     if line.startswith("#include"):
+        #         data_holder.include.add_to_list(self.__get_include(line))
+        #     elif line.startswith("#define") and not line.startswith("#define _"):
+        #         data_holder.constant.add_to_list(self.__constant_parse(line))
+        #     elif line.startswith("typedef enum"):
+        #         data_holder.enum_dict = self.__enum_parse(lines[indx:])
+        #     elif line.startswith("typedef struct"): 
+        #         pass
+        #     elif line.startswith("typedef union"):
+        #         pass
+        #     elif line.startswith("struct"):
+        #         pass
+        #     elif line.startswith("typedef"):
+        #         data_holder.typedef.add_to_list(self.__typedef_parse(line))
+
+
         
