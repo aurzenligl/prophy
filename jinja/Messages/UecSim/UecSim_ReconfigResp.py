@@ -1,4 +1,4 @@
-import sackparser.jinja.Templates.UecSim as s
+import sackparser.jinja.templates.UecSim as s
 import binascii
 
 ue =  s.UecSim_ReconfigResp()
