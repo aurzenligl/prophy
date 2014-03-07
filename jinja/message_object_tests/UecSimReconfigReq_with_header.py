@@ -2,6 +2,7 @@ import sackparser.jinja.Templates.header as Templates
 import sackparser.jinja.Templates.UecSim as s
 import protophy
 import binascii
+from sackparser.jinja.Out_files import *
 
 class UecSimReconfigReq(protophy.struct):
     __metaclass__ = protophy.struct_generator
@@ -19,3 +20,4 @@ print len(binascii.hexlify(ue.encode(">")))
 
 y = ue.decode(binascii.unhexlify(x),'>')
 print ue
+

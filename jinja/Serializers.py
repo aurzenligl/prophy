@@ -34,18 +34,25 @@ class PythonSerializer(object):
                     desc.append("('{0}',{1})" .format(k , v))
             return ", ".join(desc)
         out = ""
-
+        
         for key, val in enum_dic.iteritems():
             out += "class {0}({1}enum):" .format(key, self.lib_imp) + "\n"
             out += "    __metaclass__ = {0}enum_generator" .format(self.lib_imp) + "\n"
             out += "    _enumerators  = [" + serialize_enum_members(val.list) + "]\n"
 
         return out
+    
+#######################################################################
+                        
 
+#######################################################################
+    
     def _serialize_typedef(self, dataHolder):
         typedef_list = dataHolder.typedef.get_list()
         struct_list = dataHolder.struct_list
+        enum_dict = dataHolder.enum_dict
         list_used_structed = []
+        list_used_enums = []
         out = ""
         for key, val in typedef_list:
             if val.startswith('u') or val.startswith('i') or val.startswith('r'):
@@ -54,6 +61,11 @@ class PythonSerializer(object):
                 if val not in list_used_structed:
                     out += self._get_struct_for_typedef(val,struct_list) + '\n'  
                 list_used_structed.append(val)
+                out += key + " = "  + val + '\n'
+            elif val.startswith('E'):
+                if val not in list_used_enums :
+                    out += self._get_enum_for_typedef(val,enum_dict) + '\n'  
+                list_used_enums .append(val)
                 out += key + " = "  + val + '\n'
             else:
                 out += key + " = "  + val + '\n'
@@ -67,7 +79,14 @@ class PythonSerializer(object):
                 return self._serialize_msgs([x])
         print struct_list[i].name,val
         return "1"
-
+    def _get_enum_for_typedef(self,val2,enum_dict):
+        out = ""
+        for key,val in enum_dict.iteritems():
+            if key == val2:
+                enum_dict.pop(key,val)                
+                return self._serialize_enum({key:val})
+        return "1"
+        
     def _serialize_include(self, include_list):
         out = "import {0} \n" .format(self.lib_imp[:-1])
         for inc in include_list:
