@@ -1,6 +1,7 @@
 from jinja2 import Environment, FileSystemLoader, Template
 import os
 import options
+import sys
 from data_holder import DataHolder
 
 class TemplateFabric(object):
@@ -21,6 +22,10 @@ class WriterTxt(object):
     def __init__(self, directory, file_name, mode):
         if not os.path.exists(directory):
             os.makedirs(directory)
+            print directory
+        open(os.path.join(directory,'__init__.py'),'w').close()
+        sys.path.append(directory)
+            
         file_dest = os.path.join(directory, file_name)
         self.__file_h = open(file_dest, mode)
 
@@ -35,7 +40,7 @@ class MakeStructure(object):
             element = element.replace(in_path, out_path)
             if not os.path.exists(element):
                 os.makedirs(element)
-                open(x, os.path.join(os.path,'__init__.py')).close()
+
                 
 
 

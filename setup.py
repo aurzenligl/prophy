@@ -6,7 +6,7 @@ PATHS = [
          "message_object_tests",
          "protophy",
          "templates",
-         "templates\generated"]
+         ]
 
 setup(name='protophy',
       version='1.0',
