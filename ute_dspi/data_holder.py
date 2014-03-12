@@ -68,9 +68,11 @@ class UnionHolder(Holder):
 
     def __init__(self):
         self.list=[]
+        self.union=namedtuple('union','union_discriminator union_type union_name')
+        self.special={}
 
-    def add_to_list(self,element_name):
-        self.list.append(element_name)
+    def add_to_list(self, union_discriminator, union_type, union_name):
+        self.list.append(self.union(union_discriminator, union_type, union_name))
 
 class MemberHolder(Holder):
 

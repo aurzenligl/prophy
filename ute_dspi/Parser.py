@@ -65,11 +65,20 @@ class XMLParser(object):
         return dict
 
     def __union_parse(self,tree_node):
-        union_list=UnionHolder()
+        union_dict = {}
         union_nodes = tree_node.getElementsByTagName('union')
         for union_element in union_nodes:
-            union_list.add_to_list(union_element.getAttribute('name'))
-        return union_list
+            name = union_element.getAttribute('name')
+            print name
+            union = UnionHolder()
+            member = union_element.getElementsByTagName("member")
+            for member_union_element in member:
+                discriminatorValue = member_union_element.getAttribute('discriminatorValue')
+                union_type = member_union_element.getAttribute('type')
+                union_name = member_union_element.getAttribute('name')
+                union.add_to_list(discriminatorValue, union_type, union_name)
+            union_dict[name] = union
+        return union_dict
 
     def __typedef_parse(self, tree_node):
         typedef_dict = TypeDefHolder()
