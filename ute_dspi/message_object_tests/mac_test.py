@@ -1,4 +1,4 @@
-from Out_files import *
+from templates.generated.MAC import *
 
 
 # class MAC_RadioBearerSetupReq(protophy.struct):
@@ -9,7 +9,7 @@ from Out_files import *
 
 
 print "==============MSG MAC_RadioBearerSetupReq=================="
-mac = MAC.MAC_RadioBearerSetupReq()
+mac = MAC_RadioBearerSetupReq()
 print mac
 mac.lnCelId = 10
 print "==============SPhyDeployableNode=================="

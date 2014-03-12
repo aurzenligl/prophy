@@ -35,6 +35,8 @@ class MakeStructure(object):
             element = element.replace(in_path, out_path)
             if not os.path.exists(element):
                 os.makedirs(element)
+                open(x, os.path.join(os.path,'__init__.py')).close()
+                
 
 
 

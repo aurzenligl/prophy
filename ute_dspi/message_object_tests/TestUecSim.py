@@ -23,6 +23,5 @@ print repr(ue.encode(">"))
 print binascii.unhexlify(binascii.hexlify(ue.encode(">")))
 
 
-x='12331110123111041234110510110308'
-y = ue.decode(binascii.unhexlify(x),'>')
-print ue
+print binascii.hexlify(ue.encode(">"))
+print ue.encode(">")

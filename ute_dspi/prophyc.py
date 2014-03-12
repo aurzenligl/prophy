@@ -6,7 +6,6 @@ import Parser
 import sys,os
 
 if __name__ == "__main__":
-    sys.path.append(os.path.join(".","protophy"))
     options, args = options.getOptions()
     reader = reader.get_reader()
     parser = Parser.get_parser()

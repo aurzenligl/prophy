@@ -1,10 +1,10 @@
-from Out_files import *
+from sackparser.jinja.Out_files import *
 
 print "==============MSG PHY_AddressConfigReq=================="
 phy = PHY.PHY_AddressConfigReq()
 print phy
 phy.transactionId = 10
-phy.dupa1 = 20
+
 print repr(phy.encode("<"))
 print str(phy.encode("<"))
 print "==============SPhyDeployableNode=================="

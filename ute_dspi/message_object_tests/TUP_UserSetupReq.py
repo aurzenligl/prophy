@@ -1,5 +1,5 @@
-from sackparser.jinja.Out_files import *
-import sackparser.jinja.Templates.header as Templates
+from templates.generated import TUPu
+import templates.header as Templates
 import protophy
 import binascii
 
