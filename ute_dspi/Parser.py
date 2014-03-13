@@ -9,8 +9,6 @@ from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,Me
 def get_parser():
     path = options.getOptions()[0].in_path
     in_format = options.getOptions()[0].in_format
-    print path
-    print in_format
     a = {"ISAR": XMLParser(), "SACK": HParser()}
     
     return a[in_format]
@@ -69,7 +67,6 @@ class XMLParser(object):
         union_nodes = tree_node.getElementsByTagName('union')
         for union_element in union_nodes:
             name = union_element.getAttribute('name')
-            print name
             union = UnionHolder()
             member = union_element.getElementsByTagName("member")
             for member_union_element in member:

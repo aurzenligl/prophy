@@ -16,7 +16,7 @@ class PythonSerializer(object):
         out = ""
         
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
-        out += self._serialize_union(dataHolder.union.get_list()) + os.linesep
+        out += self._serialize_union(dataHolder.union) + os.linesep
         out += self._serialize_constant(dataHolder.constant) + os.linesep
         out += self._serialize_typedef(dataHolder) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
