@@ -248,5 +248,34 @@ class HParser(object):
         #     elif line.startswith("typedef"):
         #         data_holder.typedef.add_to_list(self.__typedef_parse(line))
 
+class IDParser(object):
 
+    def __init__(self, path):
+        self.ids_dict = {}
+        self.get_ids(path)
+
+    def get_ids(self, path):
+        self.parse(self.open_file(path))
+
+    def open_file(self, path):
+        try:
+            f = open(path, "r")
+            f = f.read()
+            return f
+        except IOError:
+            print "Could not open file!"
+
+    def parse(self, content):
+        p = re.compile("#define [a-zA-Z0-9_]+\s+0x[0-9A-F]{4}\s+/\* !- SIGNO\(struct [a-zA-Z0-9_]+\) -! \*/")
+        lines = p.findall(content)
+
+        to_change_1= re.compile(r'#define [a-zA-Z0-9_]+\s+')
+        to_change_2 = re.compile(r'\s+/\* !- SIGNO\(struct ')
+        to_change_3 = re.compile(r'\) -! \*/')
+        lines = [to_change_1.sub('', line) for line in lines]
+        lines = [to_change_2.sub(' ', line) for line in lines]
+        lines = [to_change_3.sub('', line) for line in lines]
+        for line in lines:
+            line = line.split(" ")
+            self.ids_dict[line[1]] = line[0]
         
