@@ -18,7 +18,7 @@ class LMGTT_UserActivateReq(protophy.struct):
     _descriptor = [('NumOfValidElements',protophy.u32),
                     ('UeId',protophy.u32),
                     ('NumOfSrbs',protophy.u32),
-                    ('Srb_SrbId',protophy.u32),
+                    ('Srb_SrbId',protophy.array(protophy.u32,bound='NumOfSrbs')),
                     ('NumOfDrbs',protophy.u32),
                     ('Drb_DrbId',protophy.u32)]
 

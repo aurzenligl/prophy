@@ -17,4 +17,3 @@ phy2.DeployableNode.extend([struct])
 struct.nodeType = 20
 phy2.DeployableNode.extend([struct])
 print phy2
-print repr(phy2.encode('<').__str__())
