@@ -10,6 +10,7 @@ class Holder(object):
         return self.list
     def get_list_len(self):
         return len(self.list)
+
 class IncludeHolder(Holder):
 
     def __init__(self):
@@ -27,7 +28,6 @@ class EnumHolder(Holder):
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.enum(element_name,element_value))
-
 
 class ConstantHolder(Holder):
 
@@ -64,15 +64,16 @@ class TypeDefHolder(Holder):
 
     def add_to_list(self,element_name,element_value = 0):
         self.list.append(self.typedef(element_name,element_value))
+
 class UnionHolder(Holder):
 
     def __init__(self):
         self.list=[]
-        self.union=namedtuple('union','union_discriminator union_type union_name')
+        self.union=namedtuple('union','union_type union_name')
         self.special={}
 
-    def add_to_list(self, union_discriminator, union_type, union_name):
-        self.list.append(self.union(union_discriminator, union_type, union_name))
+    def add_to_list(self, member_type, member_name):
+        self.list.append(self.union(member_type, member_name))
 
 class MemberHolder(Holder):
 
@@ -119,14 +120,14 @@ class MessageHolder(Holder):
 class DataHolder(object):
 
     def __init__(self, include = IncludeHolder(), typedef = TypeDefHolder(), constant = ConstantHolder(), msgs_list =
-            [],  enum_dict = {}, struct_list = [] ,union = UnionHolder()): 
+            [],  enum_dict = {}, struct_list = [] ,union_dict = {}): 
         self.msgs_list = msgs_list
         self.enum_dict = enum_dict
         self.struct_list = struct_list
         self.include = include
         self.typedef = typedef
         self.constant = constant
-        self.union = union
+        self.union_dict = union_dict
         self.struct_dict = {}
 
     def __str__(self):

@@ -64,18 +64,23 @@ class XMLParser(object):
 
     def __union_parse(self,tree_node):
         union_dict = {}
+        enum_dict = {}
+
         union_nodes = tree_node.getElementsByTagName('union')
         for union_element in union_nodes:
             name = union_element.getAttribute('name')
             union = UnionHolder()
+            enum = EnumHolder()
             member = union_element.getElementsByTagName("member")
             for member_union_element in member:
                 discriminatorValue = member_union_element.getAttribute('discriminatorValue')
-                union_type = member_union_element.getAttribute('type')
-                union_name = member_union_element.getAttribute('name')
-                union.add_to_list(discriminatorValue, union_type, union_name)
+                member_type = member_union_element.getAttribute('type')
+                member_name = member_union_element.getAttribute('name')
+                union.add_to_list(member_type, member_name)
+                enum.add_to_list("EDisc"+name+"_"+member_name+"_"+discriminatorValue, discriminatorValue)
             union_dict[name] = union
-        return union_dict
+            enum_dict["EDisc"+name] = enum
+        return union_dict, enum_dict
 
     def __typedef_parse(self, tree_node):
         typedef_dict = TypeDefHolder()
@@ -131,6 +136,7 @@ class XMLParser(object):
             return include
 
     def parsing_xml_files(self, tree_node):
+        temp_dict = {}
         data_holder = DataHolder()
         data_holder.constant = self.__constant_parse(tree_node)
         data_holder.typedef = self.__typedef_parse(tree_node)
@@ -138,7 +144,8 @@ class XMLParser(object):
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")
         data_holder.include = self.__get_include(tree_node)
-        data_holder.union = self.__union_parse(tree_node)
+        data_holder.union_dict, temp_dict  = self.__union_parse(tree_node)
+        data_holder.enum_dict = dict(data_holder.enum_dict.items() + temp_dict.items())
         return data_holder
 
 class HParser(object):

@@ -16,7 +16,7 @@ class PythonSerializer(object):
         out = ""
         
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
-        out += self._serialize_union(dataHolder.union) + os.linesep
+        out += self._serialize_union(dataHolder.union_dict) + os.linesep
         out += self._serialize_constant(dataHolder.constant) + os.linesep
         out += self._serialize_typedef(dataHolder) + os.linesep
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
@@ -79,6 +79,7 @@ class PythonSerializer(object):
                 return self._serialize_msgs([x])
         print struct_list[i].name,val
         return "1"
+
     def _get_enum_for_typedef(self,val2,enum_dict):
         out = ""
         for key,val in enum_dict.iteritems():
@@ -99,10 +100,21 @@ class PythonSerializer(object):
             out += key + " = " + val + '\n'
         return out
 
-    def _serialize_union(self, union):
+    def _serialize_union(self, union_dict):
+        def serialize_union_members(list):
+            desc = []
+            for member in list:
+                    k,v = member
+                    desc.append("('{0}',{1})" .format(k , v))
+            return ", ".join(desc)
         out = ""
-        for key in union:
-            out += key +" = " + self.lib_imp + "i32" + '\n'
+        
+        for key, val in union_dict.iteritems():
+            out += "class {0}({1}union):" .format(key, self.lib_imp) + "\n"
+            out += "    __metaclass__ = {0}union_generator" .format(self.lib_imp) + "\n"
+            out += "    _discriminator = EDisc{0}" .format(key) + "\n"
+            out += "    _descriptor  = [" + serialize_union_members(val.list) + "]\n"
+
         return out
 
     def _serialize_msgs(self,msgs_list):
