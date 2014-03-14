@@ -2,8 +2,6 @@
 from distutils.core import setup
 
 PATHS = [
-         "Messages",
-         "message_object_tests",
          "protophy",
          "templates",
          ]

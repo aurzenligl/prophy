@@ -20,7 +20,7 @@ class LMGTT_UserActivateReq(protophy.struct):
                     ('NumOfSrbs',protophy.u32),
                     ('Srb_SrbId',protophy.array(protophy.u32,bound='NumOfSrbs')),
                     ('NumOfDrbs',protophy.u32),
-                    ('Drb_DrbId',protophy.u32)]
+                    ('Drb_DrbId',protophy.array(protophy.u32,bound='NumOfDrbs'))]
 
 
 class LMGTT_UserActivateResp(protophy.struct):

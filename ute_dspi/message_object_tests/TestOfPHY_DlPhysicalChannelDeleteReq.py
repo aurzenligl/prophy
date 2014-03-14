@@ -1,5 +1,5 @@
-from templates.generated.PHY import *
-import templates.header as Templates
+from sackparser.ute_dspi.templates.generated.PHY import *
+import sackparser.ute_dspi.templates.header as Templates
 import protophy
 import binascii
 
