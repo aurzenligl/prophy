@@ -2,13 +2,12 @@
 from distutils.core import setup
 
 PATHS = [
-         "protophy",
-         "templates",
+         "prophy",
          ]
 
-setup(name='protophy',
+setup(name='prophyc',
       version='1.0',
-      description='ute_dspi library',
-      package_dir = {'': 'ute_dspi'},
+      description='prophyc library',
+      package_dir = {'': 'prophyc'},
       packages=PATHS,
      )
