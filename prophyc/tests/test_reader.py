@@ -1,4 +1,4 @@
-import reader
+from prophyc import reader
 
 import os
 import shutil

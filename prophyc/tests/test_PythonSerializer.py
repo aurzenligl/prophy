@@ -2,8 +2,8 @@
 
 import sys
 import hashlib
-import Serializers
-import data_holder
+from prophyc import Serializers
+from prophyc import data_holder
 
 
 linux_hashes = {
@@ -92,7 +92,7 @@ def test_of_error_in_SPuschReceiveReq():
 """
     from xml.dom import minidom
     xml_dom_model = minidom.parseString(xml)
-    import Parser
+    from prophyc import Parser
     dh =  Parser.Parser().parsing_xml_files(xml_dom_model)
     ps = Serializers.get_serializer()
     o = ps.serialize(dh)
@@ -119,12 +119,12 @@ def test_of_backward_compatibility_serialization():
 """
     from xml.dom import minidom
     xml_dom_model = minidom.parseString(xml)
-    import Parser
+    from prophyc import Parser
     dh =  Parser.Parser().parsing_xml_files(xml_dom_model)
     ps = Serializers.get_serializer()
     o = ps._serialize_msgs(dh.struct_list)
-    c = """class SPuschUeReceiveMeasResp(protophy.struct):
-    __metaclass__ = protophy.struct_generator
+    c = """class SPuschUeReceiveMeasResp(prophy.struct):
+    __metaclass__ = prophy.struct_generator
     _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',protophy.i16), ('ulCompUsage',protophy.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',protophy.u8), ('explicitPadding2',protophy.u16)]
 """
     assert c == o

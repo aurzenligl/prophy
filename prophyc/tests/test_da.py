@@ -1,6 +1,6 @@
 import pytest
-from sackparser.jinja.data_holder import DataHolder as dh
-from sackparser.jinja.data_holder import ConstantHolder as ch
+from prophyc.data_holder import DataHolder as dh
+from prophyc.data_holder import ConstantHolder as ch
 import dic
 
 

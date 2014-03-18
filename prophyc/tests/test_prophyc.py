@@ -2,7 +2,7 @@ import pytest
 import os
 import subprocess
 
-prophyc = os.path.join(os.path.dirname(os.path.realpath(__file__)), "prophyc.py")
+prophyc = ("D:\LIBS\lom_lib\sackparser\prophyc\prophyc.py")
 
 simple_isar = """<dom>
       <typedef name="TPoolId" type="u32"/>
@@ -42,7 +42,7 @@ simple_isar = """<dom>
 """
 
 complex_isar = """<dom>
-      <typedef name="u32" type="protophy.u32"/>
+      <typedef name="u32" type="prophy.u32"/>
       <struct name="S">
          <member name="l2NodeType" type="S1"/>
             <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
@@ -65,7 +65,7 @@ complex_isar = """<dom>
 
 
 to_sort = """<dom>
-      <typedef name="u32" type="protophy.u32"/>
+      <typedef name="u32" type="prophy.u32"/>
       <struct name="S">
          <member name="l2NodeType" type="S1"/>
             <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>

@@ -21,7 +21,6 @@ class WriterTxt(object):
     def __init__(self, directory, file_name, mode):
         if not os.path.exists(directory):
             os.makedirs(directory)
-            print directory
         open(os.path.join(directory,'__init__.py'),'w').close()
         sys.path.append(directory)
             
