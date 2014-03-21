@@ -62,8 +62,6 @@ complex_isar = """<dom>
      </dom>
 """
 
-
-
 to_sort = """<dom>
       <typedef name="u32" type="prophy.u32"/>
       <struct name="S">
@@ -90,13 +88,13 @@ def call(cmd):
 
 def test_simple_struct(tmpdir_cwd):
     open("simple.xml", "w").write(simple_isar)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
+    cmd = prophyc + " --input_path . --output_path ."
     call(cmd)
     import simple
 
 def test_simple_struct_construct(tmpdir_cwd):
     open("simple_construct.xml", "w").write(simple_isar)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
+    cmd = prophyc + " --input_path . --output_path ."
     call(cmd)
     import simple_construct
     s = simple_construct.SL2DeploymentInfo()
@@ -105,13 +103,13 @@ def test_simple_struct_construct(tmpdir_cwd):
 
 def test_complex_struct(tmpdir_cwd):
     open("complex.xml", "w").write(complex_isar)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
+    cmd = prophyc + " --input_path . --output_path ."
     call(cmd)
     import complex
 
 
 def test_struct_sort(tmpdir_cwd):
     open("sort.xml", "w").write(to_sort)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
+    cmd = prophyc + " --input_path . --output_path ."
     call(cmd)
     import sort 

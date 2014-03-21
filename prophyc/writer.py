@@ -39,7 +39,16 @@ class MakeStructure(object):
             if not os.path.exists(element):
                 os.makedirs(element)
 
-                
+class WriteID(object):
+    def __init__(self):
+        directory = options.getOptions()[0].out_path
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
+        file_dest = os.path.join(directory, 'MessageId_Lte.py')
+        self.__file_h = open(file_dest, 'w')
 
-
-
+    def write_to_file(self, ids_obj):
+        self.__file_h.write("import prophy\n\n")
+        for k,v in ids_obj.ids_dict.iteritems():
+            self.__file_h.write(k + " " + v + "\n")

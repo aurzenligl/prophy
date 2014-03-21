@@ -8,8 +8,8 @@ class MyOptionParser(OptionParser):
 
 def getOptions():
     parser = MyOptionParser()
-    parser.add_option("--in_put_path", help="input direcotry", type="string", action="store", dest="in_path")
-    parser.add_option("--out_put_path", help="output director", type="string", action="store", dest='out_path',
+    parser.add_option("--input_path", help="input direcotry", type="string", action="store", dest="in_path")
+    parser.add_option("--output_path", help="output director", type="string", action="store", dest='out_path',
             default = os.path.join('templates','generated'))
     parser.add_option("--in_format", help="input format ISAR/SACK", type="string", action="store",
             dest="in_format", default="ISAR")
