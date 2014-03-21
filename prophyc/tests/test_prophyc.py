@@ -2,7 +2,7 @@ import pytest
 import os
 import subprocess
 
-prophyc = ("D:\LIBS\lom_lib\sackparser\prophyc\prophyc.py")
+prophyc = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prophyc.py")
 
 simple_isar = """<dom>
       <typedef name="TPoolId" type="u32"/>
@@ -85,33 +85,32 @@ to_sort = """<dom>
      </dom>
 """
 
-def call(cmd):
+def compile():
+    cmd = " ".join(["python", prophyc, "--in_put_path", ".", "--out_put_path", "."])
     subprocess.check_call(cmd, shell = True)
 
+def write(filename, content):
+    open(filename, "w").write(simple_isar)
+
 def test_simple_struct(tmpdir_cwd):
-    open("simple.xml", "w").write(simple_isar)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
-    call(cmd)
+    write("simple.xml", simple_isar)
+    compile()
     import simple
 
 def test_simple_struct_construct(tmpdir_cwd):
-    open("simple_construct.xml", "w").write(simple_isar)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
-    call(cmd)
+    write("simple_construct.xml", simple_isar)
+    compile()
     import simple_construct
     s = simple_construct.SL2DeploymentInfo()
     s.l2NodeType = "EL2DeployableNode_Basic2"
     print s.l2NodeType
 
 def test_complex_struct(tmpdir_cwd):
-    open("complex.xml", "w").write(complex_isar)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
-    call(cmd)
+    write("complex.xml", complex_isar)
+    compile()
     import complex
 
-
 def test_struct_sort(tmpdir_cwd):
-    open("sort.xml", "w").write(to_sort)
-    cmd = prophyc + " --in_put_path . --out_put_path ."
-    call(cmd)
-    import sort 
+    write("sort.xml", to_sort)
+    compile()
+    import sort
