@@ -1,12 +1,10 @@
 from prophyc import Parser
-from prophyc import data_holder
+import data_holder
 from prophyc import Serializers
-from prophyc.reader import XmlReader
-
+from reader import XmlReader
 
 def test_create_of_parser():
     parser = Parser.get_parser()
-
 
 def test_of_opening_files():
     reader =XmlReader(".")
