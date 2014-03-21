@@ -4,7 +4,7 @@ import random
 import sys
 import os
 
-sys.path.append(os.path.split(os.path.dirname(os.path.realpath(__file__)))[0])
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 random.seed(1984)
 
