@@ -5,10 +5,11 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 random.seed(1984)
 
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits + string.ascii_lowercase):
+def id_generator(size = 6, chars = string.ascii_uppercase + string.digits + string.ascii_lowercase):
     return ''.join(random.choice(chars) for x in range(size))
 
 @pytest.fixture

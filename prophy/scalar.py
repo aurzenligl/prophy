@@ -42,23 +42,23 @@ class int_base(object):
 class i8(int_base):
     _tags = int_base._tags + ["unsigned_integer"]
     __metaclass__ = int_generator
-    _MIN = - (1 << 7)
+    _MIN = -(1 << 7)
     _MAX = (1 << 7) - 1
     _TYPE = "b"
     _SIZE = 1
-    
+
 class i16(int_base):
     _tags = int_base._tags + ["unsigned_integer"]
     __metaclass__ = int_generator
-    _MIN = - (1 << 15)
+    _MIN = -(1 << 15)
     _MAX = (1 << 15) - 1
     _TYPE = "h"
     _SIZE = 2
-    
+
 class i32(int_base):
     _tags = int_base._tags + ["unsigned_integer"]
     __metaclass__ = int_generator
-    _MIN = - (1 << 31)
+    _MIN = -(1 << 31)
     _MAX = (1 << 31) - 1
     _TYPE = "i"
     _SIZE = 4
@@ -66,7 +66,7 @@ class i32(int_base):
 class i64(int_base):
     _tags = int_base._tags + ["unsigned_integer"]
     __metaclass__ = int_generator
-    _MIN = - (1 << 63)
+    _MIN = -(1 << 63)
     _MAX = (1 << 63) - 1
     _TYPE = "q"
     _SIZE = 8
@@ -78,7 +78,7 @@ class u8(int_base):
     _MAX = (1 << 8) - 1
     _TYPE = "B"
     _SIZE = 1
-    
+
 class u16(int_base):
     _tags = int_base._tags + ["unsigned_integer"]
     __metaclass__ = int_generator
@@ -86,7 +86,7 @@ class u16(int_base):
     _MAX = (1 << 16) - 1
     _TYPE = "H"
     _SIZE = 2
-    
+
 class u32(int_base):
     _tags = int_base._tags + ["unsigned_integer"]
     __metaclass__ = int_generator
@@ -106,7 +106,7 @@ class u64(int_base):
 class r32(int_base):
     _tags = int_base._tags + ["signed_float"]
     __metaclass__ = int_generator
-    _MIN = - (1 << 31)
+    _MIN = -(1 << 31)
     _MAX = (1 << 31) - 1
     _TYPE = "r"
     _SIZE = 4
@@ -114,7 +114,7 @@ class r32(int_base):
 class r32(int_base):
     _tags = int_base._tags + ["signed_float"]
     __metaclass__ = int_generator
-    _MIN = - (1 << 31)
+    _MIN = -(1 << 31)
     _MAX = (1 << 31) - 1
     _TYPE = "r"
     _SIZE = 4
@@ -122,7 +122,7 @@ class r32(int_base):
 class r64(int_base):
     _tags = int_base._tags + ["signed_float"]
     __metaclass__ = int_generator
-    _MIN = - (1 << 64)
+    _MIN = -(1 << 64)
     _MAX = (1 << 64) - 1
     _TYPE = "r"
     _SIZE = 8
@@ -143,7 +143,7 @@ class enum_checker(object):
             return proposed_value
         else:
             raise Exception("neither string nor int")
-    
+
 def enum_generator(name, bases, attrs):
     enumerators = attrs["_enumerators"]
     name, value = enumerators[0]
@@ -154,8 +154,8 @@ def enum_generator(name, bases, attrs):
         raise Exception("names overlap")
     if len(set([value for _, value in enumerators])) != len(enumerators):
         raise Exception("values overlap")
-    # for _, value in enumerators:
-    #     bases[0]._base._checker.check(value)
+    for _, value in enumerators:
+        bases[0]._base._checker.check(value)
     for name, value in enumerators:
         name_to_int[name] = value
         int_to_name[value] = name
