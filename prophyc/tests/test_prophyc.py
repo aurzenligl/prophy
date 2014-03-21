@@ -62,8 +62,6 @@ complex_isar = """<dom>
      </dom>
 """
 
-
-
 to_sort = """<dom>
       <typedef name="u32" type="prophy.u32"/>
       <struct name="S">
@@ -86,7 +84,7 @@ to_sort = """<dom>
 """
 
 def compile():
-    cmd = " ".join(["python", prophyc, "--in_put_path", ".", "--out_put_path", "."])
+    cmd = " ".join(["python", prophyc, "--input_path", ".", "--output_path", "."])
     subprocess.check_call(cmd, shell = True)
 
 def write(filename, content):

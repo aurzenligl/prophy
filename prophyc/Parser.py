@@ -256,9 +256,6 @@ class IDParser(object):
 
     def __init__(self, path):
         self.ids_dict = {}
-        self.get_ids(path)
-
-    def get_ids(self, path):
         self.parse(self.open_file(path))
 
     def open_file(self, path):
@@ -280,6 +277,8 @@ class IDParser(object):
         lines = [to_change_2.sub(' ', line) for line in lines]
         lines = [to_change_3.sub('', line) for line in lines]
         for line in lines:
-            line = line.split(" ")
-            self.ids_dict[line[1]] = line[0]
-        
+            if "void" in line:
+                pass
+            else:
+                line = line.split(" ")
+                self.ids_dict[line[1]] = line[0]

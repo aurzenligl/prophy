@@ -1,4 +1,4 @@
-﻿import os
+import os
 from xml.dom import minidom
 import options
 import collections
@@ -70,3 +70,4 @@ class XmlReader(object):
         if len(self.tree_files.keys()) == 0:
             self.read_files()
         return self.tree_files
+

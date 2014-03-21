@@ -15,9 +15,9 @@ linux_hashes = {
 }
 
 windows_hashes = {
-"test_of_PythonSerializer" : "cc77c34b43cc4de102d18d7117528bc0",
-"test_of_PythonSerializer_enum" : "6f62fd4477ab100751664167b82ab9f4",
-"test_of_PythonSerializer_import" : "9ae94212935c6897ec77401d99191e90"
+"test_of_PythonSerializer" : "a9fffd7aba64ff037d3cc388f57d7055",
+"test_of_PythonSerializer_enum" : "5fb04afd8d7277825823a9ab4247fc68",
+"test_of_PythonSerializer_import" : "79981762690c9840a25cb339d87b87bd"
 }
 
 hashes = linux_hashes if sys.platform == "linux2" else windows_hashes
@@ -93,7 +93,7 @@ def test_of_error_in_SPuschReceiveReq():
 """
     xml_dom_model = minidom.parseString(xml)
     dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
-    ps = Serializers.get_serializer()
+    ps = Serializers.get_serializer() 
     o = ps.serialize(dh)
 
 def test_of_backward_compatibility_serialization():
