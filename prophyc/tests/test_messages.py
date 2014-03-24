@@ -14,35 +14,15 @@ def test_of_message_simple():
     msg_h = data_holder.MessageHolder()
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.add_to_list(data_holder.MemberHolder('messageResult', 'SMessageResult'))
+    msg_h.add_to_list(data_holder.MemberHolder('lnCelId', 'TCellId'))
+    msg_h.add_to_list(data_holder.MemberHolder('crnti', 'TCrnti'))
 
     ps = Serializers.get_serializer()
     output = ps._serialize_msgs([msg_h])
 
     assert output == ("class MAC_L2CallConfigResp(prophy.struct):\n"
                       "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('messageResult',SMessageResult)]\n")
-
-def test_of_message_complex():
-
-    msg_h = data_holder.MessageHolder()
-    msg_h.name = "MAC_L2CallConfigResp"
-    msg_h.add_to_list(data_holder.MemberHolder('messageResult', 'SMessageResult'))
-    msg_h.add_to_list(data_holder.MemberHolder('lnCelId', 'TCellId'))
-    msg_h.add_to_list(data_holder.MemberHolder('crnti', 'TCrnti'))
-    msg_h.add_to_list(data_holder.MemberHolder('ueId', 'TUeId'))
-    msg_h.add_to_list(data_holder.MemberHolder('ueGroup', 'TUeGroup'))
-    msg_h.add_to_list(data_holder.MemberHolder('transactionId', 'TTransactionID'))
-    msg_h.add_to_list(data_holder.MemberHolder('spsCrnti', 'TCrnti'))
-    msg_h.add_to_list(data_holder.MemberHolder('macUserAddress', 'TAaSysComSicad'))
-    msg_h.add_to_list(data_holder.MemberHolder('raPreambleIndex', 'TRaPreambleIndex'))
-    msg_h.add_to_list(data_holder.MemberHolder('prachMaskIndex', 'TPrachMaskIndex'))
-    msg_h.add_to_list(data_holder.MemberHolder('sRbList', 'SSRbList'))
-    msg_h.add_to_list(data_holder.MemberHolder('dRbList', 'SDRbList'))
-
-    ps = Serializers.get_serializer()
-    o = ps._serialize_msgs([msg_h])
-    out = "class MAC_L2CallConfigResp(prophy.struct):\n    __metaclass__ = prophy.struct_generator\n    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti), ('ueId',TUeId), ('ueGroup',TUeGroup), ('transactionId',TTransactionID), ('spsCrnti',TCrnti), ('macUserAddress',TAaSysComSicad), ('raPreambleIndex',TRaPreambleIndex), ('prachMaskIndex',TPrachMaskIndex), ('sRbList',SSRbList), ('dRbList',SDRbList)]\n"
-    assert out == o
+                      "    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti)]\n")
 
 def test_of_message_with_four_dim_without_field_type():
 
