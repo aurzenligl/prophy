@@ -23,8 +23,6 @@ def test_missing_output(tmpdir_cwd):
     assert out == "Missing output directives.\n"
     assert err == ""
 
-# incorrect file as input
-
 def test_no_output_directory(tmpdir_cwd):
     open("input.xml", "w").write("")
     ret, out, err = call(["python", prophyc, "--python_out", "no_dir", "input.xml"])
