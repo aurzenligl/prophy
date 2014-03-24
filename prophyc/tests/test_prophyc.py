@@ -57,6 +57,15 @@ def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
     assert "import prophy \n\n\n\n\n\n" == open("input2.py").read()
     assert "import prophy \n\n\n\n\n\n" == open("input3.py").read()
 
+def test_outputs_to_correct_directory(tmpdir_cwd):
+    open("input.xml", "w").write("<struct/>")
+    os.mkdir("output")
+    ret, out, err = call(["python", prophyc, "--isar", "--python_out", "output", "input.xml"])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert "import prophy \n\n\n\n\n\n" == open(os.path.join("output", "input.py")).read()
+
 def test_sack_not_supported(tmpdir_cwd):
     open("input.h", "w").write("")
     ret, out, err = call(["python", prophyc, "--sack", "--python_out", ".", "input.h"])
