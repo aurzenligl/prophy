@@ -101,7 +101,7 @@ def test_of_error_in_SPuschReceiveReq():
            '   <member comment="" maxRange="MAX_UINT16" minRange="0" name="delayedUe" type="TCrntiU16">\n'
            '      <dimension minSize="1" size="MAX_PUSCH_UES_PER_TTI_20MHZ"/>\n'
            '   </member>\n'
-           '   <member comment="" name="numOfSCellAddressingInfo" rangeDescription="For FSMr3: 0… MAX_NUM_SCELLS; For FSMr2: 0." type="TNumberOfItems"/>\n'
+           '   <member comment="" name="numOfSCellAddressingInfo" rangeDescription="For FSMr3: 0 MAX_NUM_SCELLS; For FSMr2: 0." type="TNumberOfItems"/>\n'
            '   <member comment="" maxRange="MAX_NUM_OF_PUSCH_RECEIVE_REQ" minRange="0" name="numOfUePuschReq" type="TNumberOfItems"/>\n'
            '   <member name="uePuschReq" type="SPuschUeReceiveReq">\n'
            '      <dimension size="THIS_IS_VARIABLE_SIZE_ARRAY"/>\n'
