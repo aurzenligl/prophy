@@ -1,41 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import sys
-import hashlib
 import Serializers
 import data_holder
 import Parser
-import pytest
 from xml.dom import minidom
 
-linux_hashes = {
-"test_of_PythonSerializer" : "5c2d6d350fdea2c825ed8e8fcd875f10",
-"test_of_PythonSerializer_enum" : "26f524cefc1243e04e18bbee34eac884",
-"test_of_PythonSerializer_import" : "da45c13ad54818957c1b932d8beb56f4"
-}
-
-windows_hashes = {
-"test_of_PythonSerializer" : "a9fffd7aba64ff037d3cc388f57d7055",
-"test_of_PythonSerializer_enum" : "5fb04afd8d7277825823a9ab4247fc68",
-"test_of_PythonSerializer_import" : "79981762690c9840a25cb339d87b87bd"
-}
-
-hashes = linux_hashes if sys.platform == "linux2" else windows_hashes
-
-@pytest.mark.skipif(True, reason = "why does this test compare hashes? What's the intent?")
+""" FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
-
     ih = data_holder.IncludeHolder()
     th = data_holder.TypeDefHolder()
-
-    for x in range(20, 400, 60):
+    for x in range(20, 200, 60):
         ih.add_to_list("test_include_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "td_elem_val_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "i_td_elem_val_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "u_td_elem_val_" + str(x))
 
     enum = data_holder.EnumHolder()
-    for x in range(1, 200, 30):
+    for x in range(1, 100, 30):
         enum.add_to_list("elem_" + str(x), "val_" + str(x))
 
     const = data_holder.ConstantHolder()
@@ -47,12 +28,39 @@ def test_of_PythonSerializer():
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.add_to_list(data_holder.MemberHolder('messageResult', 'SMessageResult'))
 
-    dh = data_holder.DataHolder(include = ih, typedef = th , constant = const, msgs_list = [msg_h])
+    dh = data_holder.DataHolder(include = ih, typedef = th, constant = const, msgs_list = [msg_h])
     dh.enum_dict["test"] = enum
 
     ps = Serializers.get_serializer()
-    o = ps.serialize(dh)
-    assert hashes["test_of_PythonSerializer"] == hashlib.md5(o).hexdigest()
+    output = ps.serialize(dh)
+
+    assert output == ("import prophy \n"
+                      "from test_include_20 import *\n"
+                      "from test_include_80 import *\n"
+                      "from test_include_140 import *\n"
+                      "\n"
+                      "\n"
+                      "C_B = 5\n"
+                      "C_A = 5\n"
+                      "C_C = C_B + C_A\n"
+                      "\n"
+                      "td_elem_name_20 = td_elem_val_20\n"
+                      "td_elem_name_20 = prophy.i_td_elem_val_20\n"
+                      "td_elem_name_20 = prophy.u_td_elem_val_20\n"
+                      "td_elem_name_80 = td_elem_val_80\n"
+                      "td_elem_name_80 = prophy.i_td_elem_val_80\n"
+                      "td_elem_name_80 = prophy.u_td_elem_val_80\n"
+                      "td_elem_name_140 = td_elem_val_140\n"
+                      "td_elem_name_140 = prophy.i_td_elem_val_140\n"
+                      "td_elem_name_140 = prophy.u_td_elem_val_140\n"
+                      "\n"
+                      "class test(prophy.enum):\n"
+                      "    __metaclass__ = prophy.enum_generator\n"
+                      "    _enumerators  = [('elem_1',val_1), ('elem_31',val_31), ('elem_61',val_61), ('elem_91',val_91)]\n"
+                      "\n"
+                      "class MAC_L2CallConfigResp(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('messageResult',SMessageResult)]\n")
 
 def test_of_PythonSerializer_enum():
     enum = data_holder.EnumHolder()
@@ -62,6 +70,7 @@ def test_of_PythonSerializer_enum():
     ps = Serializers.get_serializer()
     output = ps._serialize_enum({ "test" : enum })
 
+    """ FIXME kl. it's better to list enumerators and fields from newlines, to make output human-readable """
     assert output == ("class test(prophy.enum):\n"
                       "    __metaclass__ = prophy.enum_generator\n"
                       "    _enumerators  = [('elem_1',val_1), ('elem_2',val_2), ('elem_3',val_3), ('elem_4',val_4)]\n")
