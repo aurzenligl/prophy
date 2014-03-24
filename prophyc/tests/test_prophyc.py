@@ -13,22 +13,15 @@ def call(args):
 def test_missing_input():
     ret, out, err = call(["python", prophyc])
     assert ret == 1
-    assert out == "Missing input file.\n"
-    assert err == ""
-
-def test_missing_output(tmpdir_cwd):
-    open("input.xml", "w").write("")
-    ret, out, err = call(["python", prophyc, "input.xml"])
-    assert ret == 1
-    assert out == "Missing output directives.\n"
-    assert err == ""
+    assert out == ""
+    assert err == "prophyc.py: error: too few arguments\n"
 
 def test_no_output_directory(tmpdir_cwd):
     open("input.xml", "w").write("")
     ret, out, err = call(["python", prophyc, "--python_out", "no_dir", "input.xml"])
     assert ret == 1
-    assert out == "no_dir: No such directory.\n"
-    assert err == ""
+    assert out == ""
+    assert err == "prophyc.py: error: argument --python_out: no_dir directory not found\n"
 
 # default mode not supported yet, only isar or sack
 
