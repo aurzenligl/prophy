@@ -43,22 +43,23 @@ def test_of_message_with_four_dim_without_field_type():
                       "    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',prophy.array(SSRbList,bound='numSRbs'))]\n")
 
 def test_of_message_with_five_dim():
-
-    msg_h = data_holder.MessageHolder()
-    msg_h.name = "MAC_CcchDataReceiveInd"
     member_h = data_holder.MemberHolder('msg3Info', 'SMsg3Info')
     member_h.add_to_list("isVariableSize", "true")
     member_h.add_to_list("minSize", "1")
     member_h.add_to_list("size", "MAX_MSG3_PER_TTI")
     member_h.add_to_list("variableSizeFieldName", "maxNumOfUes")
     member_h.add_to_list("variableSizeFieldType", "u32")
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_CcchDataReceiveInd"
     msg_h.add_to_list(member_h)
 
     ps = Serializers.get_serializer()
-    o = ps._serialize_msgs([msg_h])
-    print o
-    out = "class MAC_CcchDataReceiveInd(prophy.struct):\n    __metaclass__ = prophy.struct_generator\n    _descriptor = [('maxNumOfUes',u32), ('msg3Info',prophy.array(SMsg3Info,bound='maxNumOfUes'))]\n"
-    assert out == o
+    output = ps._serialize_msgs([msg_h])
+
+    assert output == ("class MAC_CcchDataReceiveInd(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('maxNumOfUes',u32), ('msg3Info',prophy.array(SMsg3Info,bound='maxNumOfUes'))]\n")
 
 def test_of_message_with_four_dim_without_min_size():
 
