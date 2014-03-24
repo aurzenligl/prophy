@@ -2,12 +2,6 @@ import os
 import options
 from writer import TemplateFabric
 
-def get_serializer():
-    form = options.getOptions()[0].out_format
-    a = {"python" : PythonSerializer()}
-    return a[form]
-
-
 class PythonSerializer(object):
     def __init__(self):
         self.lib_imp = "prophy."
@@ -22,7 +16,6 @@ class PythonSerializer(object):
         out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
         out += self._serialize_msgs(dataHolder.sort_struct())
         out += self._serialize_msgs(dataHolder.msgs_list)
-
 
         return out
 
@@ -41,11 +34,6 @@ class PythonSerializer(object):
             out += "    _enumerators  = [" + serialize_enum_members(val.list) + "]\n"
 
         return out
-
-#######################################################################
-
-
-#######################################################################
 
     def _serialize_typedef(self, dataHolder):
         typedef_list = dataHolder.typedef.get_list()
@@ -171,4 +159,3 @@ class PythonSerializer(object):
             str += format_array(member.name, self.lib_imp, member.type, variable_name)
 
         return str
-
