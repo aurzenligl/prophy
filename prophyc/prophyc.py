@@ -1,4 +1,6 @@
-﻿import writer
+#! /usr/bin/env python
+
+import writer
 import Serializers
 import options
 import reader
