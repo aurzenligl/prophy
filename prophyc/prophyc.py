@@ -8,6 +8,9 @@ import os
 
 if __name__ == "__main__":
     opts = options.parse_options()
+    if opts.sack:
+        sys.exit("Sack header parsing mode not yet implemented")
+
     if opts.python_out:
         for input_file in opts.input_files:
             data_holder = Parser.XMLParser().parse_xml_file(input_file)

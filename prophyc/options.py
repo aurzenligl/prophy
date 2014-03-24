@@ -16,7 +16,13 @@ def parse_options():
     class ArgumentParser(argparse.ArgumentParser):
         def error(self, message):
             self.exit(1, '%s: error: %s\n' % (self.prog, message))
+
     parser = ArgumentParser(description = 'Isar/sack compiler.')
+
+    group = parser.add_mutually_exclusive_group(required = True)
+    group.add_argument('--isar', action = 'store_true')
+    group.add_argument('--sack', action = 'store_true')
+
     parser.add_argument('input_files',
                         type = readable_file,
                         nargs = '+',
@@ -24,4 +30,5 @@ def parse_options():
     parser.add_argument('--python_out',
                         type = readable_dir,
                         help = 'python output directory')
+
     return parser.parse_args()
