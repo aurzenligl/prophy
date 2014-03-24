@@ -1,6 +1,5 @@
 import os
 import options
-from writer import TemplateFabric
 
 class PythonSerializer(object):
     def __init__(self):
