@@ -31,7 +31,7 @@ def test_of_PythonSerializer():
     dh = data_holder.DataHolder(include = ih, typedef = th, constant = const, msgs_list = [msg_h])
     dh.enum_dict["test"] = enum
 
-    ps = Serializers.get_serializer()
+    ps = Serializers.PythonSerializer()
     output = ps.serialize(dh)
 
     assert output == ("import prophy \n"
@@ -67,7 +67,7 @@ def test_of_PythonSerializer_enum():
     for x in range(1, 5):
         enum.add_to_list("elem_" + str(x), "val_" + str(x))
 
-    ps = Serializers.get_serializer()
+    ps = Serializers.PythonSerializer()
     output = ps._serialize_enum({ "test" : enum })
 
     """ FIXME kl. it's better to list enumerators and fields from newlines, to make output human-readable """
@@ -78,7 +78,7 @@ def test_of_PythonSerializer_enum():
 def test_of_PythonSerializer_import():
     includes = ["test_include_" + str(x) for x in xrange(0, 15, 3)]
 
-    ps = Serializers.get_serializer()
+    ps = Serializers.PythonSerializer()
     output = ps._serialize_include(includes)
 
     """ FIXME kl. there seems to be a surplus space character at the end of "import prophy" line"""
@@ -110,7 +110,7 @@ def test_of_error_in_SPuschReceiveReq():
 
     xml_dom_model = minidom.parseString(xml)
     dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
-    ps = Serializers.get_serializer()
+    ps = Serializers.PythonSerializer()
     """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
     first one generates really weird formatting with abundance of newlines"""
     o = ps.serialize(dh)
@@ -136,7 +136,7 @@ def test_of_backward_compatibility_serialization():
 
     xml_dom_model = minidom.parseString(xml)
     dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
-    ps = Serializers.get_serializer()
+    ps = Serializers.PythonSerializer()
     output = ps._serialize_msgs(dh.struct_list)
 
     assert output == ("class SPuschUeReceiveMeasResp(prophy.struct):\n"
