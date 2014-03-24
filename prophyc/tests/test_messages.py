@@ -35,9 +35,6 @@ def test_of_message_with_four_dim_without_field_type():
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.add_to_list(member_h)
 
-    ps = Serializers.get_serializer()
-    output = ps._serialize_msgs([msg_h])
-
     assert ("class MAC_L2CallConfigResp(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
             "    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',prophy.array(SSRbList,bound='numSRbs'))]\n") == generate_python_msg(msg_h)
@@ -54,9 +51,6 @@ def test_of_message_with_five_dim():
     msg_h.name = "MAC_CcchDataReceiveInd"
     msg_h.add_to_list(member_h)
 
-    ps = Serializers.get_serializer()
-    output = ps._serialize_msgs([msg_h])
-
     assert ("class MAC_CcchDataReceiveInd(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
             "    _descriptor = [('maxNumOfUes',u32), ('msg3Info',prophy.array(SMsg3Info,bound='maxNumOfUes'))]\n") == generate_python_msg(msg_h)
@@ -72,9 +66,6 @@ def test_of_message_with_four_dim_without_min_size():
     msg_h.name = "SSiList"
     msg_h.add_to_list(member_h)
 
-    ps = Serializers.get_serializer()
-    output = ps._serialize_msgs([msg_h])
-
     assert ("class SSiList(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
             "    _descriptor = [('size',TL3MsgSize), ('data',prophy.array(u8,bound='size'))]\n") == generate_python_msg(msg_h)
@@ -89,9 +80,6 @@ def test_of_message_with_three_fields_without_variable_name_and_variable_type():
     msg_h.name = "MAC_CellSetupReq"
     msg_h.add_to_list(member_h)
 
-    ps = Serializers.get_serializer()
-    output = ps._serialize_msgs([msg_h])
-
     assert ("class MAC_CellSetupReq(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
             "    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',prophy.array(SRlcLcpInfo,bound='tmpName'))]\n") == generate_python_msg(msg_h)
@@ -105,9 +93,6 @@ def test_of_message_with_two_fields_size_and_isVariable():
     msg_h.name = "MAC_MeasurementReportInd"
     msg_h.add_to_list(member_h)
 
-    ps = Serializers.get_serializer()
-    output = ps._serialize_msgs([msg_h])
-
     assert ("class MAC_MeasurementReportInd(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
             "    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',prophy.array(EMeasurementGroupType,bound='tmpName'))]\n") == generate_python_msg(msg_h)
@@ -119,9 +104,6 @@ def test_of_message_with_one_dim_size():
     msg_h = data_holder.MessageHolder()
     msg_h.name = "SCqiParams"
     msg_h.add_to_list(member_h)
-
-    ps = Serializers.get_serializer()
-    output = ps._serialize_msgs([msg_h])
 
     assert ("class SCqiParams(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
