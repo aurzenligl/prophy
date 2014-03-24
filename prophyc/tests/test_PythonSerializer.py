@@ -63,14 +63,19 @@ def test_of_PythonSerializer_enum():
     o = ps._serialize_enum({ "test" : enum })
     assert hashes["test_of_PythonSerializer_enum"] == hashlib.md5(o).hexdigest()
 
-@pytest.mark.skipif(True, reason = "why does this test compare hashes? What's the intent?")
 def test_of_PythonSerializer_import():
-    l = []
-    for x in range(20, 400, 3):
-        l.append("test_include_" + str(x))
+    includes = ["test_include_" + str(x) for x in xrange(0, 15, 3)]
+
     ps = Serializers.get_serializer()
-    o = ps._serialize_include(l)
-    assert hashes["test_of_PythonSerializer_import"] == hashlib.md5(o).hexdigest()
+    output = ps._serialize_include(includes)
+
+    """ FIXME kl. there seems to be a surplus space character at the end of "import prophy" line"""
+    assert output == ('import prophy \n'
+                      'from test_include_0 import *\n'
+                      'from test_include_3 import *\n'
+                      'from test_include_6 import *\n'
+                      'from test_include_9 import *\n'
+                      'from test_include_12 import *\n')
 
 """ FIXME kl. which error? this test doesn't assert anything, what are its expectations? """
 def test_of_error_in_SPuschReceiveReq():
