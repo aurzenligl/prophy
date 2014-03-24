@@ -1,5 +1,4 @@
 import os
-import options
 
 class PythonSerializer(object):
     def __init__(self):
