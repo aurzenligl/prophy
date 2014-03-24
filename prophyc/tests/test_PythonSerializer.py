@@ -54,14 +54,17 @@ def test_of_PythonSerializer():
     o = ps.serialize(dh)
     assert hashes["test_of_PythonSerializer"] == hashlib.md5(o).hexdigest()
 
-@pytest.mark.skipif(True, reason = "why does this test compare hashes? What's the intent?")
 def test_of_PythonSerializer_enum():
-    ps = Serializers.get_serializer()
     enum = data_holder.EnumHolder()
-    for x in range(1, 200):
+    for x in range(1, 5):
         enum.add_to_list("elem_" + str(x), "val_" + str(x))
-    o = ps._serialize_enum({ "test" : enum })
-    assert hashes["test_of_PythonSerializer_enum"] == hashlib.md5(o).hexdigest()
+
+    ps = Serializers.get_serializer()
+    output = ps._serialize_enum({ "test" : enum })
+
+    assert output == ("class test(prophy.enum):\n"
+                      "    __metaclass__ = prophy.enum_generator\n"
+                      "    _enumerators  = [('elem_1',val_1), ('elem_2',val_2), ('elem_3',val_3), ('elem_4',val_4)]\n")
 
 def test_of_PythonSerializer_import():
     includes = ["test_include_" + str(x) for x in xrange(0, 15, 3)]
