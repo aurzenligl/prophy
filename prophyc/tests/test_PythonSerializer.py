@@ -33,7 +33,7 @@ def test_of_PythonSerializer():
     dh.enum_dict["test"] = enum
 
     ps = Serializers.PythonSerializer()
-    output = ps.serialize(dh)
+    output = ps.serialize_to_string(dh)
 
     assert output == ("import prophy \n"
                       "from test_include_20 import *\n"
@@ -113,7 +113,7 @@ def test_of_error_in_SPuschReceiveReq():
     ps = Serializers.PythonSerializer()
     """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
     first one generates really weird formatting with abundance of newlines"""
-    o = ps.serialize(dh)
+    o = ps.serialize_to_string(dh)
 
 def test_of_backward_compatibility_serialization():
     xml = ('<struct comment="cmt0" name="SPuschUeReceiveMeasResp">\n'

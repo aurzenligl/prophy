@@ -1,10 +1,11 @@
 import os
 
 class PythonSerializer(object):
-    def __init__(self):
+    def __init__(self, output_dir = "."):
         self.lib_imp = "prophy."
+        self.output_dir = output_dir
 
-    def serialize(self, dataHolder):
+    def serialize_to_string(self, dataHolder):
         out = ""
 
         out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
@@ -16,6 +17,11 @@ class PythonSerializer(object):
         out += self._serialize_msgs(dataHolder.msgs_list)
 
         return out
+
+    def serialize(self, dataHolder, basename):
+        path = os.path.join(self.output_dir, basename + ".py")
+        out = self.serialize_to_string(dataHolder)
+        open(path, "w").write(out)
 
     def _serialize_enum(self, enum_dic):
         def serialize_enum_members(list):
