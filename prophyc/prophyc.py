@@ -23,7 +23,7 @@ if __name__ == "__main__":
             ps = Serializers.PythonSerializer()
             o = ps.serialize(data_holder)
 
-            out_filename = os.path.join(opts.python_out, os.path.splitext(input_file.name)[0] + ".py")
+            out_filename = os.path.join(opts.python_out, os.path.splitext(os.path.split(input_file.name)[1])[0] + ".py")
             open(out_filename, "w").write(o)
         sys.exit(0)
     else:
