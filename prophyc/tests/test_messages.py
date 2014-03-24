@@ -97,29 +97,32 @@ def test_of_message_with_three_fields_without_variable_name_and_variable_type():
                       "    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',prophy.array(SRlcLcpInfo,bound='tmpName'))]\n")
 
 def test_of_message_with_two_fields_size_and_isVariable():
-
-    msg_h = data_holder.MessageHolder()
-    msg_h.name = "MAC_MeasurementReportInd"
     member_h = data_holder.MemberHolder('measurementGroupTypeList', 'EMeasurementGroupType')
     member_h.add_to_list("isVariableSize", "true")
     member_h.add_to_list("size", "MAX_MEAS_GROUP_TYPE_ID_MAC")
 
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_MeasurementReportInd"
     msg_h.add_to_list(member_h)
 
     ps = Serializers.get_serializer()
-    o = ps._serialize_msgs([msg_h])
-    print o
-    out = "class MAC_CellSetupReq(prophy.struct):\n    __metaclass__ = prophy.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',prophy.array(EMeasurementGroupType,bound='tmpName'))]\n"
+    output = ps._serialize_msgs([msg_h])
+
+    assert output == ("class MAC_MeasurementReportInd(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',prophy.array(EMeasurementGroupType,bound='tmpName'))]\n")
 
 def test_of_message_with_one_dim_size():
+    member_h = data_holder.MemberHolder('iRi', 'TIRi')
+    member_h.add_to_list("size", "MAX_NUM_OF_RI_PMI_INFORMATION")
 
     msg_h = data_holder.MessageHolder()
     msg_h.name = "SCqiParams"
-    member_h = data_holder.MemberHolder('iRi', 'TIRi')
-    member_h.add_to_list("size", "MAX_NUM_OF_RI_PMI_INFORMATION")
     msg_h.add_to_list(member_h)
 
     ps = Serializers.get_serializer()
-    o = ps._serialize_msgs([msg_h])
-    print o
-    out = "class SCqiParams(prophy.struct):\n    __metaclass__ = prophy.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('iRi',prophy.array(TIRi,bound='tmpName'))]\n"
+    output = ps._serialize_msgs([msg_h])
+
+    assert output == ("class SCqiParams(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('iRi',prophy.bytes(size=MAX_NUM_OF_RI_PMI_INFORMATION))]\n")
