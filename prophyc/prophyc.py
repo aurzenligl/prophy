@@ -21,5 +21,6 @@ if __name__ == "__main__":
         serializer = Serializers.PythonSerializer(opts.python_out)
 
     for input_file in opts.input_files:
+        basename = get_basename(input_file)
         data_holder = parser.parse(input_file)
-        output = serializer.serialize(data_holder, get_basename(input_file))
+        serializer.serialize(data_holder, basename)
