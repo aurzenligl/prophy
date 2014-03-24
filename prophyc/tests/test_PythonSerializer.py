@@ -93,35 +93,33 @@ def test_of_error_in_SPuschReceiveReq():
 """
     xml_dom_model = minidom.parseString(xml)
     dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
-    ps = Serializers.get_serializer() 
+    ps = Serializers.get_serializer()
     o = ps.serialize(dh)
 
 def test_of_backward_compatibility_serialization():
-    xml = """
-         <struct comment="Structure contains PUSCH related measurements of one UE." name="SPuschUeReceiveMeasResp">
-            <member comment="Since a CRNTI can appear only once per subframe, it can be used as a transaction id. Value is copied from PUCCH request." maxRange="MAX_UINT16" minRange="0" name="crnti" type="TCrntiU16"/>
-            <member comment="UE Index." name="ueIndex" type="TUeIndex"/>
-            <member comment="The status of response which can be Ok or NotOk. If status is NotOk results are not valid." maxRange="EStatusLte_NotOk" minRange="EStatusLte_Ok" name="status" type="EStatusLte"/>
-            <member comment="If status is EStatusLte_NotOk, the cause field tell more detailed explanation about the error.&#13;&#10;The following cause fields are used.&#13;&#10;- ESpecificCauseLte_PHY_InvalidParam&#13;&#10;  Some parameter is erronous or not in the valid range.&#13;&#10;- ESpecificCauseLte_PHY_NotEnoughResources&#13;&#10;  There was not enough resources for UE processing&#13;&#10;- ESpecificCauseLte_PHY_DeadlineMissed&#13;&#10;  There was not enough time to process the UE" name="specificCause" type="ESpecificCauseLte"/>
-            <member comment="RSSI measurement result as mW.&#13;&#10;RSSI is Ue's signal power normalized to one PRB  without interference and noise. This is the M1 measurement in the SFS.&#13;&#10;RSSI is sum over all diversity antennas.&#13;&#10;The number format is IEEE-754 32-bit Single Precision floating point." name="rssi" type="TRssi"/>
-            <member comment="This is the K1  interference power measurement defined in the SFS.&#13;&#10;Interfence power is average over all diversity antennas.&#13;&#10;The number format is IEEE-754 32-bit Single Precision floating point." name="interferencePower" type="TInterferencePower"/>
-            <member comment="PUSCH frequency offset information packed by PHY for storage in MAC.&#13;&#10;If frequencyOffsetPusch=FREQUENCY_OFFSET_NOT_VALID this value is invalid and shall not be stored by MAC. " name="frequencyOffsetPusch" type="TFrequencyOffset"/>
-            <member comment="The real part of Phi estimate for Timing Advance (TA) measurements.&#13;&#10;PHY sets both phiImag and phiReal to 0 if the TA measurements are not reliable.&#13;&#10;" name="phiReal" type="TTimeEstPhi"/>
-            <member comment="The imaginary part of Phi estimate for Timing Advance (TA) measurements.&#13;&#10;PHY sets both phiImag and phiReal to 0 if the TA measurements are not reliable." name="phiImag" type="TTimeEstPhi"/>
-            <member comment="Ue's SINR in dB calculated after combining for UL PC purpose.&#13;&#10;In the defined range one integer digit corresponds to 0.1 dB. For example, if postCombSinr = 100, Ue’s SINR is 100*0.1 dB = 10 dB.&#13;&#10;&#13;&#10;The parameter is not used in TDD and DCM.&#13;&#10;" maxRange="400" minRange="-200" name="postCombSinr" type="i16"/>
-            <member comment="0 – Only serving cell antennas are used for PUSCH reception in this TTI&#13;&#10;1 – Also neighbor cell antennas are used for PUSCH reception in this TTI" name="ulCompUsage" rangeDescription="0...1" type="u8"/>
-            <member comment="This flag is used to indicate to the recipient if the UL PHY considered UL transmission as unreliable (GLO_FALSE) or reliable (GLO_TRUE)." name="ulReliabilty" type="TBooleanU8"/>
-            <member comment="TDD specific parameter. Indicate the sub cell which the measurement is implemented." defaultValue="0" name="subCellId" type="TSubCellIdU8"/>
-            <member name="explicitPadding1" type="u8"/>
-            <member name="explicitPadding2" type="u16"/>
-         </struct>
-"""
+    xml = ('<struct comment="cmt0" name="SPuschUeReceiveMeasResp">\n'
+           '    <member comment="cmt1" maxRange="MAX_UINT16" minRange="0" name="crnti" type="TCrntiU16"/>\n'
+           '    <member comment="cmt2" name="ueIndex" type="TUeIndex"/>\n'
+           '    <member comment="cmt3" maxRange="EStatusLte_NotOk" minRange="EStatusLte_Ok" name="status" type="EStatusLte"/>\n'
+           '    <member comment="cmt4" name="specificCause" type="ESpecificCauseLte"/>\n'
+           '    <member comment="cmt5" name="rssi" type="TRssi"/>\n'
+           '    <member comment="cmt6" name="interferencePower" type="TInterferencePower"/>\n'
+           '    <member comment="cmt7" name="frequencyOffsetPusch" type="TFrequencyOffset"/>\n'
+           '    <member comment="cmt8" name="phiReal" type="TTimeEstPhi"/>\n'
+           '    <member comment="cmt9" name="phiImag" type="TTimeEstPhi"/>\n'
+           '    <member comment="cmt10" maxRange="400" minRange="-200" name="postCombSinr" type="i16"/>\n'
+           '    <member comment="cmt11" name="ulCompUsage" rangeDescription="0...1" type="u8"/>\n'
+           '    <member comment="cmt12" name="ulReliabilty" type="TBooleanU8"/>\n'
+           '    <member comment="cmt13" defaultValue="0" name="subCellId" type="TSubCellIdU8"/>\n'
+           '    <member name="explicitPadding1" type="u8"/>\n'
+           '    <member name="explicitPadding2" type="u16"/>\n'
+           '</struct>')
+
     xml_dom_model = minidom.parseString(xml)
     dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
     ps = Serializers.get_serializer()
-    o = ps._serialize_msgs(dh.struct_list)
-    c = """class SPuschUeReceiveMeasResp(prophy.struct):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',prophy.i16), ('ulCompUsage',prophy.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',prophy.u8), ('explicitPadding2',prophy.u16)]
-"""
-    assert c == o
+    output = ps._serialize_msgs(dh.struct_list)
+
+    assert output == ("class SPuschUeReceiveMeasResp(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',prophy.i16), ('ulCompUsage',prophy.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',prophy.u8), ('explicitPadding2',prophy.u16)]\n")
