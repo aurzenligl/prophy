@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     if opts.python_out:
         if not os.path.exists(opts.python_out):
-            print "%s: No such file or directory" % opts.python_out
+            print "%s: No such directory." % opts.python_out
             sys.exit(1)
 
         for input_file in opts.input_files:
