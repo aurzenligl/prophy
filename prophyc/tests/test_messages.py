@@ -1,5 +1,5 @@
-from prophyc import Parser
 import data_holder
+from prophyc import Parser
 from prophyc import Serializers
 from reader import XmlReader
 
