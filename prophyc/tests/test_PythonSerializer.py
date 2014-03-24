@@ -72,28 +72,30 @@ def test_of_PythonSerializer_import():
     o = ps._serialize_include(l)
     assert hashes["test_of_PythonSerializer_import"] == hashlib.md5(o).hexdigest()
 
+""" FIXME kl. which error? this test doesn't assert anything, what are its expectations? """
 def test_of_error_in_SPuschReceiveReq():
-    xml = """
-         <struct comment="" name="SPuschReceiveReq">
-            <member comment="" name="cqiRespDBuffer" type="SPhyDataBuffer"/>
-            <member comment="" name="measRespBuffer" type="SPhyDataBuffer"/>
-            <member comment="" name="measRespBuffer2" type="SPhyDataBuffer"/>
-            <member comment="" name="cellMeasRespBuffer" type="SPhyDataBuffer"/>
-            <member comment="" name="rfLoopFlag" type="TBoolean"/>
-            <member comment="" name="numOfDelayedUe" rangeDescription="0..MAX_PUSCH_UES_PER_TTI_5MHZ, 0..MAX_PUSCH_UES_PER_TTI_10MHZ, 0..MAX_PUSCH_UES_PER_TTI_15MHZ, 0..MAX_PUSCH_UES_PER_TTI_20MHZ" type="TNumberOfItems"/>
-            <member comment="" maxRange="MAX_UINT16" minRange="0" name="delayedUe" type="TCrntiU16">
-               <dimension minSize="1" size="MAX_PUSCH_UES_PER_TTI_20MHZ"/>
-            </member>
-            <member comment="" name="numOfSCellAddressingInfo" rangeDescription="For FSMr3: 0… MAX_NUM_SCELLS; For FSMr2: 0." type="TNumberOfItems"/>
-            <member comment="" maxRange="MAX_NUM_OF_PUSCH_RECEIVE_REQ" minRange="0" name="numOfUePuschReq" type="TNumberOfItems"/>
-            <member name="uePuschReq" type="SPuschUeReceiveReq">
-               <dimension size="THIS_IS_VARIABLE_SIZE_ARRAY"/>
-            </member>
-         </struct>
-"""
+    xml = ('<struct comment="" name="SPuschReceiveReq">\n'
+           '   <member comment="" name="cqiRespDBuffer" type="SPhyDataBuffer"/>\n'
+           '   <member comment="" name="measRespBuffer" type="SPhyDataBuffer"/>\n'
+           '   <member comment="" name="measRespBuffer2" type="SPhyDataBuffer"/>\n'
+           '   <member comment="" name="cellMeasRespBuffer" type="SPhyDataBuffer"/>\n'
+           '   <member comment="" name="rfLoopFlag" type="TBoolean"/>\n'
+           '   <member comment="" name="numOfDelayedUe" rangeDescription="0..MAX_PUSCH_UES_PER_TTI_5MHZ, 0..MAX_PUSCH_UES_PER_TTI_10MHZ, 0..MAX_PUSCH_UES_PER_TTI_15MHZ, 0..MAX_PUSCH_UES_PER_TTI_20MHZ" type="TNumberOfItems"/>\n'
+           '   <member comment="" maxRange="MAX_UINT16" minRange="0" name="delayedUe" type="TCrntiU16">\n'
+           '      <dimension minSize="1" size="MAX_PUSCH_UES_PER_TTI_20MHZ"/>\n'
+           '   </member>\n'
+           '   <member comment="" name="numOfSCellAddressingInfo" rangeDescription="For FSMr3: 0… MAX_NUM_SCELLS; For FSMr2: 0." type="TNumberOfItems"/>\n'
+           '   <member comment="" maxRange="MAX_NUM_OF_PUSCH_RECEIVE_REQ" minRange="0" name="numOfUePuschReq" type="TNumberOfItems"/>\n'
+           '   <member name="uePuschReq" type="SPuschUeReceiveReq">\n'
+           '      <dimension size="THIS_IS_VARIABLE_SIZE_ARRAY"/>\n'
+           '   </member>\n'
+           '</struct>\n')
+
     xml_dom_model = minidom.parseString(xml)
     dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
     ps = Serializers.get_serializer()
+    """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
+    first one generates really weird formatting with abundance of newlines"""
     o = ps.serialize(dh)
 
 def test_of_backward_compatibility_serialization():
