@@ -1,14 +1,17 @@
 import data_holder
-from prophyc import Parser
-from prophyc import Serializers
-from reader import XmlReader
+import Parser
+import Serializers
+import reader
 
 def test_create_of_parser():
     Parser.get_parser()
 
 def test_of_opening_files():
-    reader = XmlReader(".")
-    reader.read_files()
+    rdr = reader.XmlReader(".")
+    rdr.read_files()
+
+def generate_python_msg(msg_holder):
+    return Serializers.PythonSerializer()._serialize_msgs([msg_holder])
 
 def test_of_message_simple():
     msg_h = data_holder.MessageHolder()
@@ -17,12 +20,9 @@ def test_of_message_simple():
     msg_h.add_to_list(data_holder.MemberHolder('lnCelId', 'TCellId'))
     msg_h.add_to_list(data_holder.MemberHolder('crnti', 'TCrnti'))
 
-    ps = Serializers.get_serializer()
-    output = ps._serialize_msgs([msg_h])
-
-    assert output == ("class MAC_L2CallConfigResp(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti)]\n")
+    assert ("class MAC_L2CallConfigResp(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti)]\n") == generate_python_msg(msg_h)
 
 def test_of_message_with_four_dim_without_field_type():
     member_h = data_holder.MemberHolder('sRbList', 'SSRbList')
@@ -38,9 +38,9 @@ def test_of_message_with_four_dim_without_field_type():
     ps = Serializers.get_serializer()
     output = ps._serialize_msgs([msg_h])
 
-    assert output == ("class MAC_L2CallConfigResp(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',prophy.array(SSRbList,bound='numSRbs'))]\n")
+    assert ("class MAC_L2CallConfigResp(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',prophy.array(SSRbList,bound='numSRbs'))]\n") == generate_python_msg(msg_h)
 
 def test_of_message_with_five_dim():
     member_h = data_holder.MemberHolder('msg3Info', 'SMsg3Info')
@@ -57,9 +57,9 @@ def test_of_message_with_five_dim():
     ps = Serializers.get_serializer()
     output = ps._serialize_msgs([msg_h])
 
-    assert output == ("class MAC_CcchDataReceiveInd(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('maxNumOfUes',u32), ('msg3Info',prophy.array(SMsg3Info,bound='maxNumOfUes'))]\n")
+    assert ("class MAC_CcchDataReceiveInd(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('maxNumOfUes',u32), ('msg3Info',prophy.array(SMsg3Info,bound='maxNumOfUes'))]\n") == generate_python_msg(msg_h)
 
 def test_of_message_with_four_dim_without_min_size():
     member_h = data_holder.MemberHolder('data', 'u8')
@@ -75,9 +75,9 @@ def test_of_message_with_four_dim_without_min_size():
     ps = Serializers.get_serializer()
     output = ps._serialize_msgs([msg_h])
 
-    assert output == ("class SSiList(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('size',TL3MsgSize), ('data',prophy.array(u8,bound='size'))]\n")
+    assert ("class SSiList(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('size',TL3MsgSize), ('data',prophy.array(u8,bound='size'))]\n") == generate_python_msg(msg_h)
 
 def test_of_message_with_three_fields_without_variable_name_and_variable_type():
     member_h = data_holder.MemberHolder('rlcDlLcpInfo', 'SRlcLcpInfo')
@@ -92,9 +92,9 @@ def test_of_message_with_three_fields_without_variable_name_and_variable_type():
     ps = Serializers.get_serializer()
     output = ps._serialize_msgs([msg_h])
 
-    assert output == ("class MAC_CellSetupReq(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',prophy.array(SRlcLcpInfo,bound='tmpName'))]\n")
+    assert ("class MAC_CellSetupReq(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',prophy.array(SRlcLcpInfo,bound='tmpName'))]\n") == generate_python_msg(msg_h)
 
 def test_of_message_with_two_fields_size_and_isVariable():
     member_h = data_holder.MemberHolder('measurementGroupTypeList', 'EMeasurementGroupType')
@@ -108,9 +108,9 @@ def test_of_message_with_two_fields_size_and_isVariable():
     ps = Serializers.get_serializer()
     output = ps._serialize_msgs([msg_h])
 
-    assert output == ("class MAC_MeasurementReportInd(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',prophy.array(EMeasurementGroupType,bound='tmpName'))]\n")
+    assert ("class MAC_MeasurementReportInd(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',prophy.array(EMeasurementGroupType,bound='tmpName'))]\n") == generate_python_msg(msg_h)
 
 def test_of_message_with_one_dim_size():
     member_h = data_holder.MemberHolder('iRi', 'TIRi')
@@ -123,6 +123,6 @@ def test_of_message_with_one_dim_size():
     ps = Serializers.get_serializer()
     output = ps._serialize_msgs([msg_h])
 
-    assert output == ("class SCqiParams(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('iRi',prophy.bytes(size=MAX_NUM_OF_RI_PMI_INFORMATION))]\n")
+    assert ("class SCqiParams(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('iRi',prophy.bytes(size=MAX_NUM_OF_RI_PMI_INFORMATION))]\n") == generate_python_msg(msg_h)
