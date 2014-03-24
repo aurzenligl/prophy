@@ -86,7 +86,7 @@ to_sort = """<dom>
 """
 
 def compile(filename):
-    cmd = " ".join(["python", prophyc, "--python_out", ".", filename])
+    cmd = " ".join(["python", prophyc, "--isar", "--python_out", ".", filename])
     subprocess.check_call(cmd, shell = True)
 
 def write(filename, content):
