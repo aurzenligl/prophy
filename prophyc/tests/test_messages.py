@@ -3,13 +3,6 @@ import Parser
 import Serializers
 import reader
 
-def test_create_of_parser():
-    Parser.get_parser()
-
-def test_of_opening_files():
-    rdr = reader.XmlReader(".")
-    rdr.read_files()
-
 def generate_python_msg(msg_holder):
     return Serializers.PythonSerializer()._serialize_msgs([msg_holder])
 

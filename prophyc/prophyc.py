@@ -13,11 +13,8 @@ if __name__ == "__main__":
     reader = reader.get_reader()
     parser = Parser.get_parser()
 
-    reader.read_files()
-    tree_files = reader.return_tree_files()
-    for file_name, tree_node in tree_files.iteritems():
-          data_holder = parser.parsing_xml_files(tree_node)
-          w = writer.get_writer(file_name + ".py")
-          ps = Serializers.PythonSerializer()
-          o = ps.serialize(data_holder)
-          w.write_to_file(o)
+    data_holder = parser.parsing_xml_files(reader.xml_tree)
+    w = writer.get_writer(reader.basename + ".py")
+    ps = Serializers.PythonSerializer()
+    o = ps.serialize(data_holder)
+    w.write_to_file(o)

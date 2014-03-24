@@ -83,8 +83,8 @@ to_sort = """<dom>
      </dom>
 """
 
-def compile():
-    cmd = " ".join(["python", prophyc, "--input_path", ".", "--output_path", "."])
+def compile(filename):
+    cmd = " ".join(["python", prophyc, "--input_path", filename, "--output_path", "."])
     subprocess.check_call(cmd, shell = True)
 
 def write(filename, content):
@@ -92,12 +92,12 @@ def write(filename, content):
 
 def test_simple_struct(tmpdir_cwd):
     write("simple.xml", simple_isar)
-    compile()
+    compile("simple.xml")
     import simple
 
 def test_simple_struct_construct(tmpdir_cwd):
     write("simple_construct.xml", simple_isar)
-    compile()
+    compile("simple_construct.xml")
     import simple_construct
     s = simple_construct.SL2DeploymentInfo()
     s.l2NodeType = "EL2DeployableNode_Basic2"
@@ -105,10 +105,10 @@ def test_simple_struct_construct(tmpdir_cwd):
 
 def test_complex_struct(tmpdir_cwd):
     write("complex.xml", complex_isar)
-    compile()
+    compile("complex.xml")
     import complex
 
 def test_struct_sort(tmpdir_cwd):
     write("sort.xml", to_sort)
-    compile()
+    compile("sort.xml")
     import sort
