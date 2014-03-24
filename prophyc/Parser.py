@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
+
 import options
 import re
 import sys
+import xml
+import xml.dom.minidom
 from collections import OrderedDict
-from data_holder import IncludeHolder,TypeDefHolder,ConstantHolder,EnumHolder,MemberHolder,MessageHolder, DataHolder, UnionHolder
-
+from data_holder import IncludeHolder, TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
 
 def get_parser():
     path = options.getOptions()[0].in_path
     in_format = options.getOptions()[0].in_format
     a = {"ISAR": XMLParser(), "SACK": HParser()}
-    
-    return a[in_format]
 
+    return a[in_format]
 
 class XMLParser(object):
 
@@ -20,7 +21,7 @@ class XMLParser(object):
     typedef_dict = {}
     enum_dict = {}
     constant_dict = {}
-    class_aprot_string="aprot."
+    class_aprot_string = "aprot."
 
     def __struct_parse(self, tree_node, element_name):
         list = []
@@ -36,12 +37,12 @@ class XMLParser(object):
         return list
 
     def __checkin_member_fields(self, k):
-        member = MemberHolder(k.attributes["name"].value,k.attributes["type"].value)
+        member = MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
-            for item ,dim_val in dimension[0].attributes.items():
+            for item , dim_val in dimension[0].attributes.items():
                 if 'Comment' not in item:
-                    member.add_to_list(item,dim_val)
+                    member.add_to_list(item, dim_val)
         return member
 
     def __enum_parse(self, tree_node):
@@ -57,12 +58,12 @@ class XMLParser(object):
                     if "bitMaskOr" in value:
                         value = 2
                     elif "EAaMemPoolCid_ApplicationCidStart" in value:
-                        value = value.replace("EAaMemPoolCid_ApplicationCidStart",'2')
-                    enum.add_to_list(member_enum_element.attributes["name"].value,value)
+                        value = value.replace("EAaMemPoolCid_ApplicationCidStart", '2')
+                    enum.add_to_list(member_enum_element.attributes["name"].value, value)
                 dict[name] = enum
         return dict
 
-    def __union_parse(self,tree_node):
+    def __union_parse(self, tree_node):
         union_dict = {}
         enum_dict = {}
 
@@ -77,9 +78,9 @@ class XMLParser(object):
                 member_type = member_union_element.getAttribute('type')
                 member_name = member_union_element.getAttribute('name')
                 union.add_to_list(member_type, member_name)
-                enum.add_to_list("EDisc"+name+"_"+member_name+"_"+discriminatorValue, discriminatorValue)
+                enum.add_to_list("EDisc" + name + "_" + member_name + "_" + discriminatorValue, discriminatorValue)
             union_dict[name] = union
-            enum_dict["EDisc"+name] = enum
+            enum_dict["EDisc" + name] = enum
         return union_dict, enum_dict
 
     def __typedef_parse(self, tree_node):
@@ -87,13 +88,13 @@ class XMLParser(object):
         typedef_nodes = tree_node.getElementsByTagName('typedef')
         for typedef_element in typedef_nodes:
             if typedef_element.hasAttribute("type"):
-                typedef_dict.add_to_list(typedef_element.attributes["name"].value,typedef_element.attributes["type"].value)
+                typedef_dict.add_to_list(typedef_element.attributes["name"].value, typedef_element.attributes["type"].value)
             elif typedef_element.hasAttribute("primitiveType"):
                 type = self.__get_type_of_typedef(typedef_element.attributes["primitiveType"].value)
-                typedef_dict.add_to_list(typedef_element.attributes["name"].value,type)
+                typedef_dict.add_to_list(typedef_element.attributes["name"].value, type)
         return typedef_dict
 
-    def __get_type_of_typedef(self,value):
+    def __get_type_of_typedef(self, value):
         if "8 bit integer unsigned" in value:
             return "u8"
         elif "16 bit integer unsigned" in value:
@@ -118,11 +119,11 @@ class XMLParser(object):
             return "r64"
 
     def __constant_parse(self, tree_node):
-        constant=ConstantHolder()
+        constant = ConstantHolder()
         constant_nodes = tree_node.getElementsByTagName('constant')
         for constant_element in constant_nodes:
             if constant_element.hasAttribute("value"):
-                constant.add_to_list(constant_element.attributes["name"].value,constant_element.attributes["value"].value)
+                constant.add_to_list(constant_element.attributes["name"].value, constant_element.attributes["value"].value)
         return constant
 
     def __get_include(self, tree_node):
@@ -135,7 +136,7 @@ class XMLParser(object):
                     include.add_to_list(x)
             return include
 
-    def parsing_xml_files(self, tree_node):
+    def parse_xml(self, tree_node):
         temp_dict = {}
         data_holder = DataHolder()
         data_holder.constant = self.__constant_parse(tree_node)
@@ -144,9 +145,12 @@ class XMLParser(object):
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")
         data_holder.include = self.__get_include(tree_node)
-        data_holder.union_dict, temp_dict  = self.__union_parse(tree_node)
+        data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
         data_holder.enum_dict = dict(data_holder.enum_dict.items() + temp_dict.items())
         return data_holder
+
+    def parse_xml_file(self, file_object):
+        return self.parse_xml(xml.dom.minidom.parse(file_object))
 
 class HParser(object):
 
@@ -154,14 +158,14 @@ class HParser(object):
     typedef_dict = {}
     enum_dict = {}
     constant_dict = {}
-    class_aprot_string="aprot."
+    class_aprot_string = "aprot."
 
     def __init__(self):
         pass
 
     def __remove_comments(self, text):
         p = r'/\*[^*]*\*+([^/*][^*]*\*+)*/|("(\\.|[^"\\])*"|\'(\\.|[^\'\\])*\'|.[^/"\'\\]*)'
-        return ''.join(m.group(2) for m in re.finditer(p, text, re.M|re.S) if m.group(2))
+        return ''.join(m.group(2) for m in re.finditer(p, text, re.M | re.S) if m.group(2))
 
     def __struct_parse(self, lines):
         s_list = []
@@ -173,9 +177,9 @@ class HParser(object):
                 ind = lines.index(line)
                 break
             elif "=" in line:
-                line = line.replace("\t","")
-                line = line.replace(" ","")
-                line = line.replace(",","")
+                line = line.replace("\t", "")
+                line = line.replace(" ", "")
+                line = line.replace(",", "")
                 line = line.split("=")
                 enum_name = line[0]
                 enum_val = line[1]
@@ -190,17 +194,17 @@ class HParser(object):
                 ind = lines.index(line)
                 break
             elif "=" in line:
-                line = line.replace("\t","")
-                line = line.replace(" ","")
-                line = line.replace(",","")
+                line = line.replace("\t", "")
+                line = line.replace(" ", "")
+                line = line.replace(",", "")
                 line = line.split("=")
                 enum_name = line[0]
                 enum_val = line[1]
-                enum.add_to_list(enum_name, enum_val)   
+                enum.add_to_list(enum_name, enum_val)
         dic[name] = enum
         return dic
 
-    def __union_parse(self,file):
+    def __union_parse(self, file):
         pass
 
     def __typedef_parse(self, line):
@@ -218,7 +222,7 @@ class HParser(object):
     def __get_include(self, line):
         if "<" in line:
             line = line.split("<")
-            line = line[-1][:-3]    
+            line = line[-1][:-3]
         elif "/" in line:
             line = line.split("/")
             line = line[-1][:-3]
@@ -230,7 +234,7 @@ class HParser(object):
     def __prepare_file_to_parse(self, h_file):
         content = h_file.read()
         content = self.__remove_comments(content)
-        #content = content.split("\n")
+        # content = content.split("\n")
         return content
 
     def parsing_h_files(self, h_file):
@@ -243,7 +247,7 @@ class HParser(object):
         #         data_holder.constant.add_to_list(self.__constant_parse(line))
         #     elif line.startswith("typedef enum"):
         #         data_holder.enum_dict = self.__enum_parse(lines[indx:])
-        #     elif line.startswith("typedef struct"): 
+        #     elif line.startswith("typedef struct"):
         #         pass
         #     elif line.startswith("typedef union"):
         #         pass
@@ -270,7 +274,7 @@ class IDParser(object):
         p = re.compile("#define [a-zA-Z0-9_]+\s+0x[0-9A-F]{4}\s+/\* !- SIGNO\(struct [a-zA-Z0-9_]+\) -! \*/")
         lines = p.findall(content)
 
-        to_change_1= re.compile(r'#define [a-zA-Z0-9_]+\s+')
+        to_change_1 = re.compile(r'#define [a-zA-Z0-9_]+\s+')
         to_change_2 = re.compile(r'\s+/\* !- SIGNO\(struct ')
         to_change_3 = re.compile(r'\) -! \*/')
         lines = [to_change_1.sub('', line) for line in lines]

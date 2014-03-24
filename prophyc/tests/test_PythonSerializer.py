@@ -109,7 +109,7 @@ def test_of_error_in_SPuschReceiveReq():
            '</struct>\n')
 
     xml_dom_model = minidom.parseString(xml)
-    dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
+    dh = Parser.XMLParser().parse_xml(xml_dom_model)
     ps = Serializers.PythonSerializer()
     """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
     first one generates really weird formatting with abundance of newlines"""
@@ -135,7 +135,7 @@ def test_of_backward_compatibility_serialization():
            '</struct>')
 
     xml_dom_model = minidom.parseString(xml)
-    dh = Parser.XMLParser().parsing_xml_files(xml_dom_model)
+    dh = Parser.XMLParser().parse_xml(xml_dom_model)
     ps = Serializers.PythonSerializer()
     output = ps._serialize_msgs(dh.struct_list)
 
