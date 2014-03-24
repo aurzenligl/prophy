@@ -136,7 +136,7 @@ class XMLParser(object):
                     include.add_to_list(x)
             return include
 
-    def parse_xml(self, tree_node):
+    def __parse_tree_node(self, tree_node):
         temp_dict = {}
         data_holder = DataHolder()
         data_holder.constant = self.__constant_parse(tree_node)
@@ -149,8 +149,11 @@ class XMLParser(object):
         data_holder.enum_dict = dict(data_holder.enum_dict.items() + temp_dict.items())
         return data_holder
 
-    def parse_xml_file(self, file_object):
-        return self.parse_xml(xml.dom.minidom.parse(file_object))
+    def parse_string(self, string):
+        return self.__parse_tree_node(xml.dom.minidom.parseString(string))
+
+    def parse(self, file):
+        return self.__parse_tree_node(xml.dom.minidom.parse(file))
 
 class HParser(object):
 

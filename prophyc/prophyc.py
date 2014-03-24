@@ -11,7 +11,6 @@ if __name__ == "__main__":
 
     if opts.isar:
         parser = Parser.XMLParser()
-
     elif opts.sack:
         sys.exit("Sack header parsing mode not yet implemented")
 
@@ -19,7 +18,7 @@ if __name__ == "__main__":
         serializer = Serializers.PythonSerializer()
 
     for input_file in opts.input_files:
-        data_holder = parser.parse_xml_file(input_file)
+        data_holder = parser.parse(input_file)
         output = serializer.serialize(data_holder)
 
         out_filename = os.path.join(opts.python_out, os.path.splitext(os.path.split(input_file)[1])[0] + ".py")

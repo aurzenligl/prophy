@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import Serializers
 import data_holder
 import Parser
-from xml.dom import minidom
+import Serializers
+
+""" FIXME kl. split Serializer and Parser tests"""
 
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
@@ -108,8 +109,7 @@ def test_of_error_in_SPuschReceiveReq():
            '   </member>\n'
            '</struct>\n')
 
-    xml_dom_model = minidom.parseString(xml)
-    dh = Parser.XMLParser().parse_xml(xml_dom_model)
+    dh = Parser.XMLParser().parse_string(xml)
     ps = Serializers.PythonSerializer()
     """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
     first one generates really weird formatting with abundance of newlines"""
@@ -134,8 +134,7 @@ def test_of_backward_compatibility_serialization():
            '    <member name="explicitPadding2" type="u16"/>\n'
            '</struct>')
 
-    xml_dom_model = minidom.parseString(xml)
-    dh = Parser.XMLParser().parse_xml(xml_dom_model)
+    dh = Parser.XMLParser().parse_string(xml)
     ps = Serializers.PythonSerializer()
     output = ps._serialize_msgs(dh.struct_list)
 
