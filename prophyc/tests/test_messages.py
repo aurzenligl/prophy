@@ -62,36 +62,39 @@ def test_of_message_with_five_dim():
                       "    _descriptor = [('maxNumOfUes',u32), ('msg3Info',prophy.array(SMsg3Info,bound='maxNumOfUes'))]\n")
 
 def test_of_message_with_four_dim_without_min_size():
-
-    msg_h = data_holder.MessageHolder()
-    msg_h.name = "SSiList"
     member_h = data_holder.MemberHolder('data', 'u8')
     member_h.add_to_list("isVariableSize", "true")
     member_h.add_to_list("size", "MAX_SI_DATA")
     member_h.add_to_list("variableSizeFieldName", "size")
     member_h.add_to_list("variableSizeFieldType", "TL3MsgSize")
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "SSiList"
     msg_h.add_to_list(member_h)
 
     ps = Serializers.get_serializer()
-    o = ps._serialize_msgs([msg_h])
-    print o
-    out = "class SSiList(prophy.struct):\n    __metaclass__ = prophy.struct_generator\n    _descriptor = [('size',TL3MsgSize), ('data',prophy.array(u8,bound='size'))]\n"
+    output = ps._serialize_msgs([msg_h])
 
+    assert output == ("class SSiList(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('size',TL3MsgSize), ('data',prophy.array(u8,bound='size'))]\n")
 
 def test_of_message_with_three_fields_without_variable_name_and_variable_type():
-
-    msg_h = data_holder.MessageHolder()
-    msg_h.name = "MAC_CellSetupReq"
     member_h = data_holder.MemberHolder('rlcDlLcpInfo', 'SRlcLcpInfo')
     member_h.add_to_list("isVariableSize", "true")
     member_h.add_to_list("size", "MAX_SI_DATA")
     member_h.add_to_list("minSize", "1")
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_CellSetupReq"
     msg_h.add_to_list(member_h)
 
     ps = Serializers.get_serializer()
-    o = ps._serialize_msgs([msg_h])
-    print o
-    out = "class MAC_CellSetupReq(prophy.struct):\n    __metaclass__ = prophy.struct_generator\n    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',prophy.array(SRlcLcpInfo,bound='tmpName'))]\n"
+    output = ps._serialize_msgs([msg_h])
+
+    assert output == ("class MAC_CellSetupReq(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('tmpName',TNumberOfItems), ('rlcDlLcpInfo',prophy.array(SRlcLcpInfo,bound='tmpName'))]\n")
 
 def test_of_message_with_two_fields_size_and_isVariable():
 
