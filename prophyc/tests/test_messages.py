@@ -25,21 +25,22 @@ def test_of_message_simple():
                       "    _descriptor = [('messageResult',SMessageResult), ('lnCelId',TCellId), ('crnti',TCrnti)]\n")
 
 def test_of_message_with_four_dim_without_field_type():
-
-    msg_h = data_holder.MessageHolder()
-    msg_h.name = "MAC_L2CallConfigResp"
     member_h = data_holder.MemberHolder('sRbList', 'SSRbList')
     member_h.add_to_list("isVariableSize", "true")
     member_h.add_to_list("minSize", "1")
     member_h.add_to_list("size", "MAX_NUM_SRB_PER_USER")
     member_h.add_to_list("variableSizeFieldName", "numSRbs")
+
+    msg_h = data_holder.MessageHolder()
+    msg_h.name = "MAC_L2CallConfigResp"
     msg_h.add_to_list(member_h)
 
     ps = Serializers.get_serializer()
-    o = ps._serialize_msgs([msg_h])
-    print o
-    out = "class MAC_L2CallConfigResp(prophy.struct):\n    __metaclass__ = prophy.struct_generator\n    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',prophy.array(SSRbList,bound='numSRbs'))]\n"
-    assert out == o
+    output = ps._serialize_msgs([msg_h])
+
+    assert output == ("class MAC_L2CallConfigResp(prophy.struct):\n"
+                      "    __metaclass__ = prophy.struct_generator\n"
+                      "    _descriptor = [('numSRbs',TNumberOfItems), ('sRbList',prophy.array(SSRbList,bound='numSRbs'))]\n")
 
 def test_of_message_with_five_dim():
 
