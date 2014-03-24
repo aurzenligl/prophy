@@ -2,7 +2,9 @@ import pytest
 import os
 import subprocess
 
-prophyc = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prophyc.py")
+main_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+prophyc_dir = os.path.join(main_dir, "prophyc")
+prophyc = os.path.join(prophyc_dir, "prophyc.py")
 
 simple_isar = """<dom>
       <typedef name="TPoolId" type="u32"/>
