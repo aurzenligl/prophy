@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import data_holder
+import DataHolder
 import IsarParser
 import PythonSerializer
 
@@ -8,28 +8,28 @@ import PythonSerializer
 
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
-    ih = data_holder.IncludeHolder()
-    th = data_holder.TypeDefHolder()
+    ih = DataHolder.IncludeHolder()
+    th = DataHolder.TypeDefHolder()
     for x in range(20, 200, 60):
         ih.add_to_list("test_include_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "td_elem_val_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "i_td_elem_val_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "u_td_elem_val_" + str(x))
 
-    enum = data_holder.EnumHolder()
+    enum = DataHolder.EnumHolder()
     for x in range(1, 100, 30):
         enum.add_to_list("elem_" + str(x), "val_" + str(x))
 
-    const = data_holder.ConstantHolder()
+    const = DataHolder.ConstantHolder()
     const.add_to_list("C_A", "5")
     const.add_to_list("C_B", "5")
     const.add_to_list("C_C", "C_B + C_A")
 
-    msg_h = data_holder.MessageHolder()
+    msg_h = DataHolder.MessageHolder()
     msg_h.name = "MAC_L2CallConfigResp"
-    msg_h.add_to_list(data_holder.MemberHolder('messageResult', 'SMessageResult'))
+    msg_h.add_to_list(DataHolder.MemberHolder('messageResult', 'SMessageResult'))
 
-    dh = data_holder.DataHolder(include = ih, typedef = th, constant = const, msgs_list = [msg_h])
+    dh = DataHolder.DataHolder(include = ih, typedef = th, constant = const, msgs_list = [msg_h])
     dh.enum_dict["test"] = enum
 
     ps = PythonSerializer.PythonSerializer()
@@ -64,7 +64,7 @@ def test_of_PythonSerializer():
                       "    _descriptor = [('messageResult',SMessageResult)]\n")
 
 def test_of_PythonSerializer_enum():
-    enum = data_holder.EnumHolder()
+    enum = DataHolder.EnumHolder()
     for x in range(1, 5):
         enum.add_to_list("elem_" + str(x), "val_" + str(x))
 

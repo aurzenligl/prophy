@@ -1,4 +1,4 @@
-from data_holder import ConstantHolder as ch
+from DataHolder import ConstantHolder as ch
 
 def test_of_sorting_of_constant():
     cho = ch()

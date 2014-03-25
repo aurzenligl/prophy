@@ -2,7 +2,7 @@
 
 import xml.dom.minidom
 from collections import OrderedDict
-from data_holder import IncludeHolder, TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
+from DataHolder import IncludeHolder, TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
 
 class IsarParser(object):
 
