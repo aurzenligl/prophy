@@ -1,9 +1,9 @@
 import data_holder
-import Serializers
+import PythonSerializer
 import reader
 
 def generate_python_msg(msg_holder):
-    return Serializers.PythonSerializer()._serialize_msgs([msg_holder])
+    return PythonSerializer.PythonSerializer()._serialize_msgs([msg_holder])
 
 def test_of_message_simple():
     msg_h = data_holder.MessageHolder()

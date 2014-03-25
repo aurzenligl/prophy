@@ -2,7 +2,7 @@
 
 import options
 import IsarParser
-import Serializers
+import PythonSerializer
 import sys
 import os
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         sys.exit("Sack header parsing mode not yet implemented")
 
     if opts.python_out:
-        serializer = Serializers.PythonSerializer(opts.python_out)
+        serializer = PythonSerializer.PythonSerializer(opts.python_out)
 
     for input_file in opts.input_files:
         basename = get_basename(input_file)
