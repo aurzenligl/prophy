@@ -1,5 +1,4 @@
 import data_holder
-import Parser
 import Serializers
 import reader
 

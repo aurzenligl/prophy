@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 import options
-import Parser
+import IsarParser
 import Serializers
 import sys
 import os
@@ -13,7 +13,7 @@ if __name__ == "__main__":
     opts = options.parse_options()
 
     if opts.isar:
-        parser = Parser.XMLParser()
+        parser = IsarParser.IsarParser()
     elif opts.sack:
         sys.exit("Sack header parsing mode not yet implemented")
 

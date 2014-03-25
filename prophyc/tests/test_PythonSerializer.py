@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import data_holder
-import Parser
+import IsarParser
 import Serializers
 
 """ FIXME kl. split Serializer and Parser tests"""
@@ -109,7 +109,7 @@ def test_of_error_in_SPuschReceiveReq():
            '   </member>\n'
            '</struct>\n')
 
-    dh = Parser.XMLParser().parse_string(xml)
+    dh = IsarParser.IsarParser().parse_string(xml)
     ps = Serializers.PythonSerializer()
     """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
     first one generates really weird formatting with abundance of newlines"""
@@ -134,7 +134,7 @@ def test_of_backward_compatibility_serialization():
            '    <member name="explicitPadding2" type="u16"/>\n'
            '</struct>')
 
-    dh = Parser.XMLParser().parse_string(xml)
+    dh = IsarParser.IsarParser().parse_string(xml)
     ps = Serializers.PythonSerializer()
     output = ps._serialize_msgs(dh.struct_list)
 

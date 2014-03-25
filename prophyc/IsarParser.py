@@ -4,7 +4,7 @@ import xml.dom.minidom
 from collections import OrderedDict
 from data_holder import IncludeHolder, TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
 
-class XMLParser(object):
+class IsarParser(object):
 
     tmp_dict = OrderedDict()
     typedef_dict = {}
