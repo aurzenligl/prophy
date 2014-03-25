@@ -1,21 +1,34 @@
-from optparse import OptionParser
 import os
+import sys
+import argparse
 
+def readable_dir(string):
+    if not os.path.isdir(string):
+        raise argparse.ArgumentTypeError("%s directory not found" % string)
+    return string
 
-class MyOptionParser(OptionParser):
-    def error(self, msg):
-        pass
+def readable_file(string):
+    if not os.path.isfile(string):
+        raise argparse.ArgumentTypeError("%s file not found" % string)
+    return string
 
-def getOptions():
-    parser = MyOptionParser()
-    parser.add_option("--input_path", help="input direcotry", type="string", action="store", dest="in_path")
-    parser.add_option("--output_path", help="output director", type="string", action="store", dest='out_path',
-            default = os.path.join('templates','generated'))
-    parser.add_option("--in_format", help="input format ISAR/SACK", type="string", action="store",
-            dest="in_format", default="ISAR")
-    parser.add_option("--out_format", help="output format: python", type="string", action="store", dest="out_format",
-            default="python")
+def parse_options():
+    class ArgumentParser(argparse.ArgumentParser):
+        def error(self, message):
+            self.exit(1, '%s: error: %s\n' % (self.prog, message))
+
+    parser = ArgumentParser(description = 'Isar/sack compiler.')
+
+    group = parser.add_mutually_exclusive_group(required = True)
+    group.add_argument('--isar', action = 'store_true')
+    group.add_argument('--sack', action = 'store_true')
+
+    parser.add_argument('input_files',
+                        type = readable_file,
+                        nargs = '+',
+                        help = 'input file')
+    parser.add_argument('--python_out',
+                        type = readable_dir,
+                        help = 'python output directory')
+
     return parser.parse_args()
-
-if __name__ == "__main__":
-    pass

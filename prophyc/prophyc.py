@@ -1,21 +1,28 @@
-﻿import writer
-import Serializers
+#! /usr/bin/env python
+
 import options
-import reader
-import Parser
-import sys,os
+import IsarParser
+import PythonSerializer
+import sys
+import os
+
+def get_basename(filename):
+    return os.path.splitext(os.path.basename(filename))[0]
 
 if __name__ == "__main__":
-    options, args = options.getOptions()
-    reader = reader.get_reader()
-    parser = Parser.get_parser()
+    opts = options.parse_options()
 
-    reader.read_files()
-    tree_files = reader.return_tree_files()
-    for file_name,tree_node in tree_files.iteritems():
-          data_holder = parser.parsing_xml_files(tree_node)
-          w = writer.get_writer(file_name+".py")
-          ps = Serializers.get_serializer()
-          o = ps.serialize(data_holder)
-          w.write_to_file(o)
+    if opts.isar:
+        parser = IsarParser.IsarParser()
+    elif opts.sack:
+        sys.exit("Sack header parsing mode not yet implemented")
 
+    if opts.python_out:
+        serializer = PythonSerializer.PythonSerializer(opts.python_out)
+    else:
+        sys.exit("Missing output directives")
+
+    for input_file in opts.input_files:
+        basename = get_basename(input_file)
+        data_holder = parser.parse(input_file)
+        serializer.serialize(data_holder, basename)

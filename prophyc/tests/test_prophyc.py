@@ -1,114 +1,81 @@
-import pytest
 import os
+import sys
 import subprocess
 
-prophyc = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prophyc.py")
+prophyc_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+prophyc = os.path.join(prophyc_dir, "prophyc.py")
 
-simple_isar = """<dom>
-      <typedef name="TPoolId" type="u32"/>
-          <include name="TNumberOfItems.h">
-      <typedef name="TNumberOfItems" primitiveType="32 bit integer unsigned"/>
-      </include>
-      <enum name="EL2DeployableNode">
-         <enum-member name="EL2DeployableNode_Basic1" value="0"/>
-         <enum-member name="EL2DeployableNode_Basic2" value="1"/>
-         <enum-member name="EL2DeployableNode_Basic3" value="2"/>
-         <enum-member name="EL2DeployableNode_Basic4" value="3"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended1" value="10"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended2" value="11"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended3" value="12"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended4" value="13"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended5" value="14"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended6" value="15"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended7" value="16"/>
-         <enum-member comment="(FDD only)" name="EL2DeployableNode_Extended8" value="17"/>
-         <enum-member name="EL2DeployableNode_ArmL2Master" value="20"/>
-         <enum-member name="EL2DeployableNode_ArmL2Slave" value="21"/>
-         <enum-member name="EL2DeployableNode_DcmLrcPsMaster" value="22"/>
-         <enum-member name="EL2DeployableNode_DcmLrcPsSlave" value="23"/>
-      </enum>
-      <typedef name="TAaSysComNid" primitiveType="16 bit integer unsigned"/>
-      <struct name="SL2PoolInfo">
-         <member comment="Pool ID&#13;&#10;In a non Super Pool configuration can be set to 0." name="poolId" type="TPoolId"/>
-         <member comment="NID for each deployable node type." name="deploymentInfo" type="SL2DeploymentInfo">
-            <dimension isVariableSize="true" minSize="1" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldComment="Currently either 4 or 8" variableSizeFieldName="numOfDeploymentInfo"/>
-         </member>
-      </struct>
-      <struct name="SL2DeploymentInfo">
-         <member comment="Deployable node type" name="l2NodeType" type="EL2DeployableNode"/>
-         <member comment="NID" name="nodeAddr" type="TAaSysComNid"/>
-      </struct>
-     </dom>
-"""
+def call(args):
+    popen = subprocess.Popen(args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    out, err = popen.communicate()
+    return popen.returncode, out, err
 
-complex_isar = """<dom>
-      <typedef name="u32" type="prophy.u32"/>
-      <struct name="S">
-         <member name="l2NodeType" type="S1"/>
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-      <struct name="x">
-         <member name="poolId" type="u32"/>
-         <member name="deploymentInfo" type="S">
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         </member>
-      </struct>
-      
-      <struct name="S1">
-         <member name="l2NodeType" type="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-     </dom>
-"""
+def test_missing_input():
+    ret, out, err = call(["python", prophyc])
+    assert ret == 1
+    assert out == ""
+    assert err == "prophyc.py: error: too few arguments\n"
 
-to_sort = """<dom>
-      <typedef name="u32" type="prophy.u32"/>
-      <struct name="S">
-         <member name="l2NodeType" type="S1"/>
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-      <struct name="x">
-         <member name="poolId" type="u32"/>
-         <member name="deploymentInfo" type="S">
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         </member>
-      </struct>
-      
-      <struct name="S1">
-         <member name="l2NodeType" type="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-     </dom>
-"""
+def test_no_output_directory(tmpdir_cwd):
+    open("input.xml", "w").write("")
+    ret, out, err = call(["python", prophyc, "--python_out", "no_dir", "input.xml"])
+    assert ret == 1
+    assert out == ""
+    assert err == "prophyc.py: error: argument --python_out: no_dir directory not found\n"
 
-def compile():
-    cmd = " ".join(["python", prophyc, "--input_path", ".", "--output_path", "."])
-    subprocess.check_call(cmd, shell = True)
+def test_missing_output(tmpdir_cwd):
+    open("input.xml", "w").write("")
+    ret, out, err = call(["python", prophyc, "--isar", "input.xml"])
+    assert ret == 1
+    assert out == ""
+    assert err == "Missing output directives\n"
 
-def write(filename, content):
-    open(filename, "w").write(simple_isar)
+def test_passing_neither_isar_nor_sack(tmpdir_cwd):
+    open("input", "w").write("")
+    ret, out, err = call(["python", prophyc, "--python_out", ".", "input"])
+    assert ret == 1
+    assert out == ""
+    assert err == "prophyc.py: error: one of the arguments --isar --sack is required\n"
 
-def test_simple_struct(tmpdir_cwd):
-    write("simple.xml", simple_isar)
-    compile()
-    import simple
+def test_passing_isar_and_sack(tmpdir_cwd):
+    open("input", "w").write("")
+    ret, out, err = call(["python", prophyc, "--isar", "--sack", "--python_out", ".", "input"])
+    assert ret == 1
+    assert out == ""
+    assert err == "prophyc.py: error: argument --sack: not allowed with argument --isar\n"
 
-def test_simple_struct_construct(tmpdir_cwd):
-    write("simple_construct.xml", simple_isar)
-    compile()
-    import simple_construct
-    s = simple_construct.SL2DeploymentInfo()
-    s.l2NodeType = "EL2DeployableNode_Basic2"
-    print s.l2NodeType
+def test_isar_compiles_single_empty_xml(tmpdir_cwd):
+    open("input.xml", "w").write("<struct/>")
+    ret, out, err = call(["python", prophyc, "--isar", "--python_out", ".", "input.xml"])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert "import prophy \n\n\n\n\n\n" == open("input.py").read()
 
-def test_complex_struct(tmpdir_cwd):
-    write("complex.xml", complex_isar)
-    compile()
-    import complex
+def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
+    open("input1.xml", "w").write("<struct/>")
+    open("input2.xml", "w").write("<struct/>")
+    open("input3.xml", "w").write("<struct/>")
+    ret, out, err = call(["python", prophyc, "--isar", "--python_out", ".", "input1.xml", "input2.xml", "input3.xml"])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert "import prophy \n\n\n\n\n\n" == open("input1.py").read()
+    assert "import prophy \n\n\n\n\n\n" == open("input2.py").read()
+    assert "import prophy \n\n\n\n\n\n" == open("input3.py").read()
 
-def test_struct_sort(tmpdir_cwd):
-    write("sort.xml", to_sort)
-    compile()
-    import sort
+def test_outputs_to_correct_directory(tmpdir_cwd):
+    open("input.xml", "w").write("<struct/>")
+    os.mkdir("output")
+    ret, out, err = call(["python", prophyc, "--isar", "--python_out", "output", "input.xml"])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert "import prophy \n\n\n\n\n\n" == open(os.path.join("output", "input.py")).read()
+
+def test_sack_not_supported(tmpdir_cwd):
+    open("input.h", "w").write("")
+    ret, out, err = call(["python", prophyc, "--sack", "--python_out", ".", "input.h"])
+    assert ret == 1
+    assert out == ""
+    assert err == "Sack header parsing mode not yet implemented\n"
