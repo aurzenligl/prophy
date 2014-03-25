@@ -23,6 +23,13 @@ def test_no_output_directory(tmpdir_cwd):
     assert out == ""
     assert err == "prophyc.py: error: argument --python_out: no_dir directory not found\n"
 
+def test_missing_output(tmpdir_cwd):
+    open("input.xml", "w").write("")
+    ret, out, err = call(["python", prophyc, "--isar", "input.xml"])
+    assert ret == 1
+    assert out == ""
+    assert err == "Missing output directives\n"
+
 def test_passing_neither_isar_nor_sack(tmpdir_cwd):
     open("input", "w").write("")
     ret, out, err = call(["python", prophyc, "--python_out", ".", "input"])
