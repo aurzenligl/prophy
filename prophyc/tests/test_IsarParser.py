@@ -20,7 +20,7 @@ def test_includes_parsing():
 
     assert ["mydlo", "szydlo", "powidlo"] == holder.includes
 
-def test_typedef_primitive_type_parsing():
+def test_typedefs_primitive_type_parsing():
     xml = """\
 <x>
     <typedef name="a" primitiveType="8 bit integer unsigned"/>
@@ -48,7 +48,7 @@ def test_typedef_primitive_type_parsing():
             ("i", "r32"),
             ("j", "r64")] == holder.typedef.list
 
-def test_typedef_parsing():
+def test_typedefs_parsing():
     xml = """<typedef name="TILoveTypedefs_ALot" type="MyType"/>"""
     holder = parse(xml)
 

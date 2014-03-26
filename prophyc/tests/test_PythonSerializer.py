@@ -16,6 +16,15 @@ def test_includes_rendering():
             "from mydlo import *\n"
             "from powidlo import *\n") == serialize(holder)
 
+def test_typedefs_rendering():
+    holder = DataHolder.DataHolder()
+    holder.typedef = DataHolder.TypeDefHolder()
+    holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("a", "b")]]
+
+    assert ("import prophy\n"
+            "\n"
+            "a = b\n") == serialize(holder)
+
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
     ih = []
