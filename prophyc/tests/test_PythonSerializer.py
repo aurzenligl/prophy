@@ -113,7 +113,17 @@ def test_of_error_in_SPuschReceiveReq():
     ps = PythonSerializer.PythonSerializer()
     """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
     first one generates really weird formatting with abundance of newlines"""
-    o = ps.serialize_to_string(dh)
+    output = ps.serialize_to_string(dh)
+
+    assert ("import prophy \n"
+            "\n"
+            "\n"
+            "\n"
+            "\n"
+            "\n"
+            "class SPuschReceiveReq(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('cqiRespDBuffer',SPhyDataBuffer), ('measRespBuffer',SPhyDataBuffer), ('measRespBuffer2',SPhyDataBuffer), ('cellMeasRespBuffer',SPhyDataBuffer), ('rfLoopFlag',TBoolean), ('numOfDelayedUe',TNumberOfItems), ('tmpName',TNumberOfItems), ('delayedUe',prophy.array(TCrntiU16,bound='tmpName')), ('numOfSCellAddressingInfo',TNumberOfItems), ('numOfUePuschReq',TNumberOfItems), ('uePuschReq',prophy.bytes(size=THIS_IS_VARIABLE_SIZE_ARRAY))]\n") == output
 
 def test_of_backward_compatibility_serialization():
     xml = ('<struct comment="cmt0" name="SPuschUeReceiveMeasResp">\n'
@@ -138,6 +148,6 @@ def test_of_backward_compatibility_serialization():
     ps = PythonSerializer.PythonSerializer()
     output = ps._serialize_msgs(dh.struct_list)
 
-    assert output == ("class SPuschUeReceiveMeasResp(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',prophy.i16), ('ulCompUsage',prophy.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',prophy.u8), ('explicitPadding2',prophy.u16)]\n")
+    assert ("class SPuschUeReceiveMeasResp(prophy.struct):\n"
+            "    __metaclass__ = prophy.struct_generator\n"
+            "    _descriptor = [('crnti',TCrntiU16), ('ueIndex',TUeIndex), ('status',EStatusLte), ('specificCause',ESpecificCauseLte), ('rssi',TRssi), ('interferencePower',TInterferencePower), ('frequencyOffsetPusch',TFrequencyOffset), ('phiReal',TTimeEstPhi), ('phiImag',TTimeEstPhi), ('postCombSinr',prophy.i16), ('ulCompUsage',prophy.u8), ('ulReliabilty',TBooleanU8), ('subCellId',TSubCellIdU8), ('explicitPadding1',prophy.u8), ('explicitPadding2',prophy.u16)]\n") == output
