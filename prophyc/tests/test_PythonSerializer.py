@@ -37,7 +37,6 @@ def test_of_PythonSerializer():
                       "from test_include_80 import *\n"
                       "from test_include_140 import *\n"
                       "\n"
-                      "\n"
                       "C_B = 5\n"
                       "C_A = 5\n"
                       "C_C = C_B + C_A\n"

@@ -6,17 +6,13 @@ class PythonSerializer(object):
         self.output_dir = output_dir
 
     def serialize_to_string(self, dataHolder):
-        out = ""
-
-        out += self._serialize_include(dataHolder.include.get_list()) + os.linesep
-        out += self._serialize_union(dataHolder.union_dict) + os.linesep
-        out += self._serialize_constant(dataHolder.constant) + os.linesep
-        out += self._serialize_typedef(dataHolder) + os.linesep
-        out += self._serialize_enum(dataHolder.enum_dict) + os.linesep
-        out += self._serialize_msgs(dataHolder.sort_struct())
-        out += self._serialize_msgs(dataHolder.msgs_list)
-
-        return out
+        return os.linesep.join(filter(None, (self._serialize_include(dataHolder.include.get_list()),
+                                             self._serialize_union(dataHolder.union_dict),
+                                             self._serialize_constant(dataHolder.constant),
+                                             self._serialize_typedef(dataHolder),
+                                             self._serialize_enum(dataHolder.enum_dict),
+                                             self._serialize_msgs(dataHolder.sort_struct()),
+                                             self._serialize_msgs(dataHolder.msgs_list))))
 
     def serialize(self, dataHolder, basename):
         path = os.path.join(self.output_dir, basename + ".py")

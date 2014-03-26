@@ -32,10 +32,6 @@ def test_of_error_in_SPuschReceiveReq():
 
     assert ("import prophy \n"
             "\n"
-            "\n"
-            "\n"
-            "\n"
-            "\n"
             "class SPuschReceiveReq(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
             "    _descriptor = [('cqiRespDBuffer',SPhyDataBuffer), ('measRespBuffer',SPhyDataBuffer), ('measRespBuffer2',SPhyDataBuffer), ('cellMeasRespBuffer',SPhyDataBuffer), ('rfLoopFlag',TBoolean), ('numOfDelayedUe',TNumberOfItems), ('tmpName',TNumberOfItems), ('delayedUe',prophy.array(TCrntiU16,bound='tmpName')), ('numOfSCellAddressingInfo',TNumberOfItems), ('numOfUePuschReq',TNumberOfItems), ('uePuschReq',prophy.bytes(size=THIS_IS_VARIABLE_SIZE_ARRAY))]\n") == output

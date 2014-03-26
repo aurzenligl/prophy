@@ -50,7 +50,7 @@ def test_isar_compiles_single_empty_xml(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert "import prophy \n\n\n\n\n\n" == open("input.py").read()
+    assert "import prophy \n" == open("input.py").read()
 
 def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
     open("input1.xml", "w").write("<struct/>")
@@ -60,9 +60,9 @@ def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert "import prophy \n\n\n\n\n\n" == open("input1.py").read()
-    assert "import prophy \n\n\n\n\n\n" == open("input2.py").read()
-    assert "import prophy \n\n\n\n\n\n" == open("input3.py").read()
+    assert "import prophy \n" == open("input1.py").read()
+    assert "import prophy \n" == open("input2.py").read()
+    assert "import prophy \n" == open("input3.py").read()
 
 def test_outputs_to_correct_directory(tmpdir_cwd):
     open("input.xml", "w").write("<struct/>")
@@ -71,7 +71,7 @@ def test_outputs_to_correct_directory(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert "import prophy \n\n\n\n\n\n" == open(os.path.join("output", "input.py")).read()
+    assert "import prophy \n" == open(os.path.join("output", "input.py")).read()
 
 def test_sack_not_supported(tmpdir_cwd):
     open("input.h", "w").write("")
