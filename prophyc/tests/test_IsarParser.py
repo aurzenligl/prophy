@@ -4,6 +4,22 @@ import DataHolder
 import IsarParser
 import PythonSerializer
 
+def parse(xml_string):
+    return IsarParser.IsarParser().parse_string(xml_string)
+
+def test_includes_parsing():
+    xml = """\
+<system xmlns:xi="http://www.nsn.com/2008/XInclude">
+    <xi:include href="mydlo.xml"/>
+    <xi:include href="szydlo.xml"/>
+    <xi:include href="powidlo.xml"/>
+</system>
+"""
+
+    holder = parse(xml)
+
+    assert ["mydlo", "szydlo", "powidlo"] == holder.include.list
+
 """ FIXME kl. don't test PythonSerializer together with IsarParser """
 
 def test_of_error_in_SPuschReceiveReq():

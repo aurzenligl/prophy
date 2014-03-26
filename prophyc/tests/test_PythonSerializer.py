@@ -6,8 +6,7 @@ import PythonSerializer
 def serialize(holder):
     return PythonSerializer.PythonSerializer().serialize_string(holder)
 
-
-def test_import_rendering():
+def test_includes_rendering():
     holder = DataHolder.DataHolder()
     holder.include.list = ["szydlo", "mydlo", "powidlo"]
 
