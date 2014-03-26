@@ -3,6 +3,19 @@
 import DataHolder
 import PythonSerializer
 
+def serialize(holder):
+    return PythonSerializer.PythonSerializer().serialize_string(holder)
+
+
+def test_import_rendering():
+    holder = DataHolder.DataHolder()
+    holder.include.list = ["szydlo", "mydlo", "powidlo"]
+
+    assert ("import prophy\n"
+            "from szydlo import *\n"
+            "from mydlo import *\n"
+            "from powidlo import *\n") == serialize(holder)
+
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
     ih = DataHolder.IncludeHolder()
@@ -30,7 +43,7 @@ def test_of_PythonSerializer():
     dh.enum_dict["test"] = enum
 
     ps = PythonSerializer.PythonSerializer()
-    output = ps.serialize_to_string(dh)
+    output = ps.serialize_string(dh)
 
     assert output == ("import prophy\n"
                       "from test_include_20 import *\n"

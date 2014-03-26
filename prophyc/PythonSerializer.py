@@ -5,7 +5,7 @@ class PythonSerializer(object):
         self.lib_imp = "prophy."
         self.output_dir = output_dir
 
-    def serialize_to_string(self, dataHolder):
+    def serialize_string(self, dataHolder):
         return os.linesep.join(filter(None, (self._serialize_include(dataHolder.include.get_list()),
                                              self._serialize_union(dataHolder.union_dict),
                                              self._serialize_constant(dataHolder.constant),
@@ -16,7 +16,7 @@ class PythonSerializer(object):
 
     def serialize(self, dataHolder, basename):
         path = os.path.join(self.output_dir, basename + ".py")
-        out = self.serialize_to_string(dataHolder)
+        out = self.serialize_string(dataHolder)
         open(path, "w").write(out)
 
     def _serialize_enum(self, enum_dic):
@@ -77,7 +77,7 @@ class PythonSerializer(object):
         return "1"
 
     def _serialize_include(self, include_list):
-        out = "import {0}\n" .format(self.lib_imp[:-1])
+        out = "import {0}\n".format(self.lib_imp[:-1])
         for inc in include_list:
             out += "from " + inc + " import *" + '\n'
         return out

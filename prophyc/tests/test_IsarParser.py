@@ -28,7 +28,7 @@ def test_of_error_in_SPuschReceiveReq():
     ps = PythonSerializer.PythonSerializer()
     """ FIXME kl. how does serialize relate to _serialize_msgs? These methods seem to do the same, but
     first one generates really weird formatting with abundance of newlines"""
-    output = ps.serialize_to_string(dh)
+    output = ps.serialize_string(dh)
 
     assert ("import prophy\n"
             "\n"
