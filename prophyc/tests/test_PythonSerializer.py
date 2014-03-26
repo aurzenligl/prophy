@@ -12,7 +12,7 @@ def test_import_rendering():
     holder.include.list = ["szydlo", "mydlo", "powidlo"]
 
     assert ("import prophy\n"
-#             "\n"
+            "\n"
             "from szydlo import *\n"
             "from mydlo import *\n"
             "from powidlo import *\n") == serialize(holder)
@@ -47,6 +47,7 @@ def test_of_PythonSerializer():
     output = ps.serialize_string(dh)
 
     assert output == ("import prophy\n"
+                      "\n"
                       "from test_include_20 import *\n"
                       "from test_include_80 import *\n"
                       "from test_include_140 import *\n"
@@ -94,6 +95,7 @@ def test_of_PythonSerializer_import():
 
     """ FIXME kl. there seems to be a surplus space character at the end of "import prophy" line"""
     assert output == ('import prophy\n'
+                      '\n'
                       'from test_include_0 import *\n'
                       'from test_include_3 import *\n'
                       'from test_include_6 import *\n'
