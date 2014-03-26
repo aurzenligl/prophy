@@ -66,8 +66,7 @@ class PythonSerializer(object):
             if struct_list[i].name == val:
                 x = struct_list.pop(i)
                 return self._serialize_msgs([x])
-        print struct_list[i].name, val
-        return "1"
+        raise Exception("[hack] struct not found!")
 
     def _get_enum_for_typedef(self, val2, enum_dict):
         out = ""
@@ -75,7 +74,7 @@ class PythonSerializer(object):
             if key == val2:
                 enum_dict.pop(key, val)
                 return self._serialize_enum({key:val})
-        return "1"
+        raise Exception("[hack] enum not found!")
 
     def __render_includes(self, includes):
         return "".join(("from %s import *\n" % include for include in includes))
