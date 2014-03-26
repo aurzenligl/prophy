@@ -1,6 +1,5 @@
 import DataHolder
 import PythonSerializer
-import reader
 
 def generate_python_msg(msg_holder):
     return PythonSerializer.PythonSerializer()._serialize_msgs([msg_holder])
