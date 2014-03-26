@@ -25,7 +25,7 @@ class Testr32():
         x = self.X()
 
         x.value = 8
-        assert str(x) == "value: 8.0\n"
+        assert str(x) == "value: 8\n"
 
 
         x.decode("\x3f\x80\x00\x00", ">")
@@ -70,7 +70,7 @@ class Testr64():
         x = self.X()
 
         x.value = 8
-        assert str(x) == "value: 8.0\n"
+        assert str(x) == "value: 8\n"
 
         x.decode("\xbf\xf0\x00\x00\x00\x00\x00\x00", ">")
         assert x.value == -1.0
