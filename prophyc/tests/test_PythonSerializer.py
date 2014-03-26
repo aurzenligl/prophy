@@ -10,20 +10,57 @@ def test_includes_rendering():
     holder = DataHolder.DataHolder()
     holder.includes = ["szydlo", "mydlo", "powidlo"]
 
-    assert ("import prophy\n"
-            "\n"
-            "from szydlo import *\n"
-            "from mydlo import *\n"
-            "from powidlo import *\n") == serialize(holder)
+    reference = """\
+import prophy
+
+from szydlo import *
+from mydlo import *
+from powidlo import *
+"""
+
+    assert reference == serialize(holder)
 
 def test_typedefs_rendering():
     holder = DataHolder.DataHolder()
     holder.typedef = DataHolder.TypeDefHolder()
     holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("a", "b")]]
 
-    assert ("import prophy\n"
-            "\n"
-            "a = b\n") == serialize(holder)
+    reference = """\
+import prophy
+
+a = b
+"""
+
+    assert reference == serialize(holder)
+
+def test_typedefs_rendering_with_changed_enum_order():
+    holder = DataHolder.DataHolder()
+    holder.typedef = DataHolder.TypeDefHolder()
+    holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("TEnum2", "EEnum2")]]
+
+    enum1 = DataHolder.EnumHolder()
+    enum1.add_to_list("EEnum1", "EEnum1_Val")
+    holder.enum_dict["EEnum1"] = enum1
+
+    enum2 = DataHolder.EnumHolder()
+    enum2.add_to_list("EEnum2", "EEnum2_Val")
+    holder.enum_dict["EEnum2"] = enum2
+
+    reference = """\
+import prophy
+
+class EEnum2(prophy.enum):
+    __metaclass__ = prophy.enum_generator
+    _enumerators  = [('EEnum2',EEnum2_Val)]
+
+TEnum2 = EEnum2
+
+class EEnum1(prophy.enum):
+    __metaclass__ = prophy.enum_generator
+    _enumerators  = [('EEnum1',EEnum1_Val)]
+"""
+
+    assert reference == serialize(holder)
 
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
