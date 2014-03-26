@@ -116,12 +116,7 @@ class IsarParser(object):
         return constant
 
     def __get_includes(self, dom):
-        out = []
-        for include_elem in dom.getElementsByTagName("xi:include"):
-            x = include_elem.attributes["href"].value
-            x = x.split('.')[0]
-            out.append(x)
-        return out
+        return [elem.attributes["href"].value.split('.')[0] for elem in dom.getElementsByTagName("xi:include")]
 
     def __parse_tree_node(self, tree_node):
         temp_dict = {}
