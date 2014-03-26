@@ -30,7 +30,7 @@ def test_of_error_in_SPuschReceiveReq():
     first one generates really weird formatting with abundance of newlines"""
     output = ps.serialize_to_string(dh)
 
-    assert ("import prophy \n"
+    assert ("import prophy\n"
             "\n"
             "class SPuschReceiveReq(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"

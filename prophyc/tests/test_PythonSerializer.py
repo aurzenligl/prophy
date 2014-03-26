@@ -32,7 +32,7 @@ def test_of_PythonSerializer():
     ps = PythonSerializer.PythonSerializer()
     output = ps.serialize_to_string(dh)
 
-    assert output == ("import prophy \n"
+    assert output == ("import prophy\n"
                       "from test_include_20 import *\n"
                       "from test_include_80 import *\n"
                       "from test_include_140 import *\n"
@@ -79,7 +79,7 @@ def test_of_PythonSerializer_import():
     output = ps._serialize_include(includes)
 
     """ FIXME kl. there seems to be a surplus space character at the end of "import prophy" line"""
-    assert output == ('import prophy \n'
+    assert output == ('import prophy\n'
                       'from test_include_0 import *\n'
                       'from test_include_3 import *\n'
                       'from test_include_6 import *\n'
