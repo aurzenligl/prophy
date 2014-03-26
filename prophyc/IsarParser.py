@@ -6,6 +6,17 @@ from DataHolder import TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, 
 
 class IsarParser(object):
 
+    primitive_types = {"8 bit integer unsigned": "u8",
+                       "16 bit integer unsigned": "u16",
+                       "32 bit integer unsigned": "u32",
+                       "64 bit integer unsigned": "u64",
+                       "8 bit integer signed": "i8",
+                       "16 bit integer signed": "i16",
+                       "32 bit integer signed": "i32",
+                       "64 bit integer signed": "i64",
+                       "32 bit float": "r32",
+                       "64 bit float": "r64"}
+
     tmp_dict = OrderedDict()
     typedef_dict = {}
     enum_dict = {}
@@ -79,33 +90,9 @@ class IsarParser(object):
             if typedef_element.hasAttribute("type"):
                 typedef_dict.add_to_list(typedef_element.attributes["name"].value, typedef_element.attributes["type"].value)
             elif typedef_element.hasAttribute("primitiveType"):
-                type = self.__get_type_of_typedef(typedef_element.attributes["primitiveType"].value)
+                type = self.primitive_types[typedef_element.attributes["primitiveType"].value]
                 typedef_dict.add_to_list(typedef_element.attributes["name"].value, type)
         return typedef_dict
-
-    def __get_type_of_typedef(self, value):
-        if "8 bit integer unsigned" in value:
-            return "u8"
-        elif "16 bit integer unsigned" in value:
-            return "u16"
-        elif "32 bit integer unsigned" in value:
-            return "u32"
-        elif "64 bit integer unsigned" in value:
-            return "u64"
-        elif "8 bit integer signed" in value:
-            return "i8"
-        elif "16 bit integer signed" in value:
-            return "i16"
-        elif "32 bit integer signed" in value:
-            return "i32"
-        elif "64 bit integer signed" in value:
-            return "i64"
-        elif "32 bit float" in value:
-            # should be r32 ale nie ma teraz w aprocie obsługi
-            return "r32"
-        elif "64 bit float" in value:
-            # should be r64 ale nie ma teraz w aprocie obsługi
-            return "r64"
 
     def __constant_parse(self, tree_node):
         constant = ConstantHolder()
