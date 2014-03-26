@@ -12,6 +12,7 @@ def test_import_rendering():
     holder.include.list = ["szydlo", "mydlo", "powidlo"]
 
     assert ("import prophy\n"
+#             "\n"
             "from szydlo import *\n"
             "from mydlo import *\n"
             "from powidlo import *\n") == serialize(holder)

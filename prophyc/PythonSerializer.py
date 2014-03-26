@@ -77,10 +77,9 @@ class PythonSerializer(object):
         return "1"
 
     def _serialize_include(self, include_list):
-        out = "import {0}\n".format(self.lib_imp[:-1])
-        for inc in include_list:
-            out += "from " + inc + " import *" + '\n'
-        return out
+        include_prophy = "import %s\n" % self.lib_imp[:-1]
+        includes = "".join(("from %s import *\n" % include for include in include_list))
+        return "".join((include_prophy, includes))
 
     def _serialize_constant(self, constant):
         out = ""
