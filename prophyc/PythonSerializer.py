@@ -6,7 +6,7 @@ class PythonSerializer(object):
         self.output_dir = output_dir
 
     def serialize_string(self, dataHolder):
-        return os.linesep.join(filter(None, (self._serialize_include(dataHolder.include.get_list()),
+        return os.linesep.join(filter(None, (self.__render_includes(dataHolder.include.get_list()),
                                              self._serialize_union(dataHolder.union_dict),
                                              self._serialize_constant(dataHolder.constant),
                                              self._serialize_typedef(dataHolder),
@@ -76,7 +76,7 @@ class PythonSerializer(object):
                 return self._serialize_enum({key:val})
         return "1"
 
-    def _serialize_include(self, include_list):
+    def __render_includes(self, include_list):
         include_prophy = "import %s\n" % self.lib_imp[:-1]
         includes = "".join(("from %s import *\n" % include for include in include_list))
         return "\n".join(filter(None, (include_prophy, includes)))

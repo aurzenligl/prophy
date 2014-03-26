@@ -86,18 +86,3 @@ def test_of_PythonSerializer_enum():
     assert output == ("class test(prophy.enum):\n"
                       "    __metaclass__ = prophy.enum_generator\n"
                       "    _enumerators  = [('elem_1',val_1), ('elem_2',val_2), ('elem_3',val_3), ('elem_4',val_4)]\n")
-
-def test_of_PythonSerializer_import():
-    includes = ["test_include_" + str(x) for x in xrange(0, 15, 3)]
-
-    ps = PythonSerializer.PythonSerializer()
-    output = ps._serialize_include(includes)
-
-    """ FIXME kl. there seems to be a surplus space character at the end of "import prophy" line"""
-    assert output == ('import prophy\n'
-                      '\n'
-                      'from test_include_0 import *\n'
-                      'from test_include_3 import *\n'
-                      'from test_include_6 import *\n'
-                      'from test_include_9 import *\n'
-                      'from test_include_12 import *\n')
