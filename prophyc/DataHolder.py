@@ -111,15 +111,14 @@ class MessageHolder(Holder):
 
 class DataHolder(object):
 
-    def __init__(self, includes = [], typedef = TypeDefHolder(), constant = ConstantHolder(), msgs_list =
-            [], enum_dict = {}, struct_list = [] , union_dict = {}):
-        self.msgs_list = msgs_list
-        self.enum_dict = enum_dict
-        self.struct_list = struct_list
-        self.includes = includes
-        self.typedef = typedef
-        self.constant = constant
-        self.union_dict = union_dict
+    def __init__(self):
+        self.msgs_list = []
+        self.enum_dict = {}
+        self.struct_list = []
+        self.includes = []
+        self.typedef = TypeDefHolder()
+        self.constant = ConstantHolder()
+        self.union_dict = {}
         self.struct_dict = {}
 
     def __str__(self):

@@ -48,7 +48,11 @@ def test_of_PythonSerializer():
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.add_to_list(DataHolder.MemberHolder('messageResult', 'SMessageResult'))
 
-    dh = DataHolder.DataHolder(includes = ih, typedef = th, constant = const, msgs_list = [msg_h])
+    dh = DataHolder.DataHolder()
+    dh.includes = ih
+    dh.typedef = th
+    dh.constant = const
+    dh.msgs_list = [msg_h]
     dh.enum_dict["test"] = enum
 
     ps = PythonSerializer.PythonSerializer()
