@@ -18,7 +18,7 @@ def test_includes_parsing():
 
     holder = parse(xml)
 
-    assert ["mydlo", "szydlo", "powidlo"] == holder.include.list
+    assert ["mydlo", "szydlo", "powidlo"] == holder.include
 
 """ FIXME kl. don't test PythonSerializer together with IsarParser """
 

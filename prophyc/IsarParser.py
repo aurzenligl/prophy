@@ -2,7 +2,7 @@
 
 import xml.dom.minidom
 from collections import OrderedDict
-from DataHolder import IncludeHolder, TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
+from DataHolder import TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
 
 class IsarParser(object):
 
@@ -115,15 +115,13 @@ class IsarParser(object):
                 constant.add_to_list(constant_element.attributes["name"].value, constant_element.attributes["value"].value)
         return constant
 
-    def __get_include(self, tree_node):
-            include = IncludeHolder()
-            include_nodes = tree_node.getElementsByTagName("xi:include")
-            for include_element in include_nodes:
-                if include_element.hasAttribute("href"):
-                    x = include_element.attributes["href"].value
-                    x = x.partition('.')[0]
-                    include.add_to_list(x)
-            return include
+    def __get_includes(self, dom):
+        out = []
+        for include_elem in dom.getElementsByTagName("xi:include"):
+            x = include_elem.attributes["href"].value
+            x = x.split('.')[0]
+            out.append(x)
+        return out
 
     def __parse_tree_node(self, tree_node):
         temp_dict = {}
@@ -133,7 +131,7 @@ class IsarParser(object):
         data_holder.enum_dict = self.__enum_parse(tree_node)
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")
-        data_holder.include = self.__get_include(tree_node)
+        data_holder.include = self.__get_includes(tree_node)
         data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
         data_holder.enum_dict = dict(data_holder.enum_dict.items() + temp_dict.items())
         return data_holder

@@ -7,7 +7,7 @@ class PythonSerializer(object):
 
     def serialize_string(self, dataHolder):
         return os.linesep.join(filter(None, ("import %s\n" % self.lib_imp[:-1],
-                                             self.__render_includes(dataHolder.include.get_list()),
+                                             self.__render_includes(dataHolder.includes),
                                              self._serialize_union(dataHolder.union_dict),
                                              self._serialize_constant(dataHolder.constant),
                                              self._serialize_typedef(dataHolder),
@@ -77,8 +77,8 @@ class PythonSerializer(object):
                 return self._serialize_enum({key:val})
         return "1"
 
-    def __render_includes(self, include_list):
-        return "".join(("from %s import *\n" % include for include in include_list))
+    def __render_includes(self, includes):
+        return "".join(("from %s import *\n" % include for include in includes))
 
     def _serialize_constant(self, constant):
         out = ""

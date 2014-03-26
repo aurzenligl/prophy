@@ -8,7 +8,7 @@ def serialize(holder):
 
 def test_includes_rendering():
     holder = DataHolder.DataHolder()
-    holder.include.list = ["szydlo", "mydlo", "powidlo"]
+    holder.includes = ["szydlo", "mydlo", "powidlo"]
 
     assert ("import prophy\n"
             "\n"
@@ -18,10 +18,10 @@ def test_includes_rendering():
 
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
-    ih = DataHolder.IncludeHolder()
+    ih = []
     th = DataHolder.TypeDefHolder()
     for x in range(20, 200, 60):
-        ih.add_to_list("test_include_" + str(x))
+        ih.append("test_include_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "td_elem_val_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "i_td_elem_val_" + str(x))
         th.add_to_list("td_elem_name_" + str(x), "u_td_elem_val_" + str(x))
@@ -39,7 +39,7 @@ def test_of_PythonSerializer():
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.add_to_list(DataHolder.MemberHolder('messageResult', 'SMessageResult'))
 
-    dh = DataHolder.DataHolder(include = ih, typedef = th, constant = const, msgs_list = [msg_h])
+    dh = DataHolder.DataHolder(includes = ih, typedef = th, constant = const, msgs_list = [msg_h])
     dh.enum_dict["test"] = enum
 
     ps = PythonSerializer.PythonSerializer()
