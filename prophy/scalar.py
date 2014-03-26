@@ -11,13 +11,19 @@ class int_checker(object):
             raise Exception("out of bounds")
         return proposed_value
 
-class int_encoder(object):
+class float_checker(object):
+    def check(self, proposed_value):
+        if not isinstance(proposed_value, (float, int, long )):
+            raise Exception("not a float")
+        return proposed_value
+
+class encoder(object):
     def __init__(self, struct_type):
         self.type = struct_type
     def encode(self, value, endianess):
         return pack(endianess + self.type, value)
 
-class int_decoder(object):
+class decoder(object):
     def __init__(self, struct_type, size):
         self.type = struct_type
         self.size = size
@@ -31,13 +37,23 @@ class int_decoder(object):
 
 def int_generator(name, bases, attrs):
     attrs["_checker"] = int_checker(attrs["_MIN"], attrs["_MAX"])
-    attrs["_encoder"] = int_encoder(attrs["_TYPE"])
-    attrs["_decoder"] = int_decoder(attrs["_TYPE"], attrs["_SIZE"])
+    attrs["_encoder"] = encoder(attrs["_TYPE"])
+    attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
+    return type(name, bases, attrs)
+
+def float_generator(name, bases, attrs):
+    attrs["_checker"] = float_checker()
+    attrs["_encoder"] = encoder(attrs["_TYPE"])
+    attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
     return type(name, bases, attrs)
 
 class int_base(object):
     _tags = ["scalar"]
     _DEFAULT = 0
+
+class float_base(object):
+    _tags = ["scalar"]
+    _DEFAULT = 0.0
 
 class i8(int_base):
     _tags = int_base._tags + ["unsigned_integer"]
@@ -103,28 +119,16 @@ class u64(int_base):
     _TYPE = "Q"
     _SIZE = 8
 
-class r32(int_base):
+class r32(float_base):
     _tags = int_base._tags + ["signed_float"]
-    __metaclass__ = int_generator
-    _MIN = -(1 << 31)
-    _MAX = (1 << 31) - 1
-    _TYPE = "r"
+    __metaclass__ = float_generator
+    _TYPE = "f"
     _SIZE = 4
 
-class r32(int_base):
+class r64(float_base):
     _tags = int_base._tags + ["signed_float"]
-    __metaclass__ = int_generator
-    _MIN = -(1 << 31)
-    _MAX = (1 << 31) - 1
-    _TYPE = "r"
-    _SIZE = 4
-
-class r64(int_base):
-    _tags = int_base._tags + ["signed_float"]
-    __metaclass__ = int_generator
-    _MIN = -(1 << 64)
-    _MAX = (1 << 64) - 1
-    _TYPE = "r"
+    __metaclass__ = float_generator
+    _TYPE = "d"
     _SIZE = 8
 
 class enum_checker(object):
