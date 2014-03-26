@@ -131,7 +131,7 @@ class IsarParser(object):
         data_holder.enum_dict = self.__enum_parse(tree_node)
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")
-        data_holder.include = self.__get_includes(tree_node)
+        data_holder.includes = self.__get_includes(tree_node)
         data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
         data_holder.enum_dict = dict(data_holder.enum_dict.items() + temp_dict.items())
         return data_holder
