@@ -3,6 +3,7 @@
 import DataHolder
 import IsarParser
 import PythonSerializer
+from collections import namedtuple
 
 def parse(xml_string):
     return IsarParser.IsarParser().parse_string(xml_string)
@@ -15,10 +16,43 @@ def test_includes_parsing():
     <xi:include href="powidlo.xml"/>
 </system>
 """
-
     holder = parse(xml)
 
     assert ["mydlo", "szydlo", "powidlo"] == holder.includes
+
+def test_typedef_primitive_type_parsing():
+    xml = """\
+<x>
+    <typedef name="a" primitiveType="8 bit integer unsigned"/>
+    <typedef name="b" primitiveType="16 bit integer unsigned"/>
+    <typedef name="c" primitiveType="32 bit integer unsigned"/>
+    <typedef name="d" primitiveType="64 bit integer unsigned"/>
+    <typedef name="e" primitiveType="8 bit integer signed"/>
+    <typedef name="f" primitiveType="16 bit integer signed"/>
+    <typedef name="g" primitiveType="32 bit integer signed"/>
+    <typedef name="h" primitiveType="64 bit integer signed"/>
+    <typedef name="i" primitiveType="32 bit float"/>
+    <typedef name="j" primitiveType="64 bit float"/>
+</x>
+"""
+    holder = parse(xml)
+
+    assert [("a", "u8"),
+            ("b", "u16"),
+            ("c", "u32"),
+            ("d", "u64"),
+            ("e", "i8"),
+            ("f", "i16"),
+            ("g", "i32"),
+            ("h", "i64"),
+            ("i", "r32"),
+            ("j", "r64")] == holder.typedef.list
+
+def test_typedef_parsing():
+    xml = """<typedef name="TILoveTypedefs_ALot" type="MyType"/>"""
+    holder = parse(xml)
+
+    assert [("TILoveTypedefs_ALot", "MyType")] == holder.typedef.list
 
 """ FIXME kl. don't test PythonSerializer together with IsarParser """
 
