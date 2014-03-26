@@ -10,28 +10,26 @@ def test_includes_rendering():
     holder = DataHolder.DataHolder()
     holder.includes = ["szydlo", "mydlo", "powidlo"]
 
-    reference = """\
+    ref = """\
 import prophy
 
 from szydlo import *
 from mydlo import *
 from powidlo import *
 """
-
-    assert reference == serialize(holder)
+    assert ref == serialize(holder)
 
 def test_typedefs_rendering():
     holder = DataHolder.DataHolder()
     holder.typedef = DataHolder.TypeDefHolder()
     holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("a", "b")]]
 
-    reference = """\
+    ref = """\
 import prophy
 
 a = b
 """
-
-    assert reference == serialize(holder)
+    assert ref == serialize(holder)
 
 def test_typedefs_rendering_with_changed_enum_order():
     holder = DataHolder.DataHolder()
@@ -46,7 +44,7 @@ def test_typedefs_rendering_with_changed_enum_order():
     enum2.add_to_list("EEnum2", "EEnum2_Val")
     holder.enum_dict["EEnum2"] = enum2
 
-    reference = """\
+    ref = """\
 import prophy
 
 class EEnum2(prophy.enum):
@@ -59,8 +57,37 @@ class EEnum1(prophy.enum):
     __metaclass__ = prophy.enum_generator
     _enumerators  = [('EEnum1',EEnum1_Val)]
 """
+    assert ref == serialize(holder)
 
-    assert reference == serialize(holder)
+def test_typedefs_rendering_with_changed_struct_order():
+    holder = DataHolder.DataHolder()
+    holder.typedef = DataHolder.TypeDefHolder()
+    holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("TStruct2", "SStruct2")]]
+
+    msg1 = DataHolder.MessageHolder()
+    msg1.name = "SStruct1"
+    msg1.add_to_list(DataHolder.MemberHolder('x', 'u32'))
+
+    msg2 = DataHolder.MessageHolder()
+    msg2.name = "SStruct2"
+    msg2.add_to_list(DataHolder.MemberHolder('y', 'i32'))
+
+    holder.struct_list = [msg1, msg2]
+
+    ref = """\
+import prophy
+
+class SStruct2(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('y',prophy.i32)]
+
+TStruct2 = SStruct2
+
+class SStruct1(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('x',prophy.u32)]
+"""
+    assert ref == serialize(holder)
 
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
