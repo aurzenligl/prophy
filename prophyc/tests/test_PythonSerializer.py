@@ -86,6 +86,21 @@ class SStruct1(prophy.struct):
 """
     assert ref == serialize(holder)
 
+def test_enums_rendering():
+    holder = DataHolder.DataHolder()
+    enum = DataHolder.EnumHolder()
+    enum.list = [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")]
+    holder.enum_dict = {"EEnum": enum}
+
+    ref = """\
+import prophy
+
+class EEnum(prophy.enum):
+    __metaclass__ = prophy.enum_generator
+    _enumerators  = [('EEnum_A',0), ('EEnum_B',1), ('EEnum_C',2)]
+"""
+    assert ref == serialize(holder)
+
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
     ih = []
