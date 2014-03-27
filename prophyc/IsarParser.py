@@ -89,11 +89,9 @@ class IsarParser(object):
         elif elem.hasAttribute("primitiveType"):
             type = self.primitive_types[elem.attributes["primitiveType"].value]
             return ((elem.attributes["name"].value, type))
-        else:
-            raise Exception("Typedef has no type nor primitiveType attribute")
 
     def __get_typedefs(self, dom):
-        return [self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')]
+        return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
 
     def __constant_parse(self, tree_node):
         constant = ConstantHolder()
