@@ -5,8 +5,19 @@ class PythonSerializer(object):
         self.lib_imp = "prophy."
         self.output_dir = output_dir
 
-    def serialize_string(self, dataHolder):
-        return os.linesep.join(filter(None, ("import %s\n" % self.lib_imp[:-1],
+    def __render_prolog(self):
+        return """\
+import %s
+
+def bitMaskOr(x, y):
+    return x | y
+
+def shiftLeft(x, y):
+    return x << y
+""" % self.lib_imp[:-1]
+
+    def serialize_string(self, dataHolder, no_prolog = False):
+        return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
                                              self.__render_includes(dataHolder.includes),
                                              self._serialize_constant(dataHolder.constant),
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enum_dict),

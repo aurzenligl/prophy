@@ -4,15 +4,13 @@ import DataHolder
 import PythonSerializer
 
 def serialize(holder):
-    return PythonSerializer.PythonSerializer().serialize_string(holder)
+    return PythonSerializer.PythonSerializer().serialize_string(holder, no_prolog = True)
 
 def test_includes_rendering():
     holder = DataHolder.DataHolder()
     holder.includes = ["szydlo", "mydlo", "powidlo"]
 
     ref = """\
-import prophy
-
 from szydlo import *
 from mydlo import *
 from powidlo import *
@@ -24,8 +22,6 @@ def test_typedefs_rendering():
     holder.typedefs = [("a", "b")]
 
     ref = """\
-import prophy
-
 a = b
 """
     assert ref == serialize(holder)
@@ -37,8 +33,6 @@ def test_typedefs_rendering_with_changed_enum_order():
     holder.enum_dict["EEnum2"] = [("EEnum2_2", "EEnum2_Val")]
 
     ref = """\
-import prophy
-
 class EEnum2(prophy.enum):
     __metaclass__ = prophy.enum_generator
     _enumerators  = [('EEnum2_2', EEnum2_Val)]
@@ -70,8 +64,6 @@ def test_typedefs_rendering_with_changed_struct_order():
     holder.struct_list = [msg1, msg2]
 
     ref = """\
-import prophy
-
 class SStruct2(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('y',prophy.i32)]
@@ -89,8 +81,6 @@ def test_enums_rendering():
     holder.enum_dict = {"EEnum": [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")]}
 
     ref = """\
-import prophy
-
 class EEnum(prophy.enum):
     __metaclass__ = prophy.enum_generator
     _enumerators  = [('EEnum_A', 0),
@@ -138,6 +128,12 @@ def test_of_PythonSerializer():
 
     ref = """\
 import prophy
+
+def bitMaskOr(x, y):
+    return x | y
+
+def shiftLeft(x, y):
+    return x << y
 
 from test_include_20 import *
 from test_include_80 import *

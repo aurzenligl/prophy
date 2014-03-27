@@ -5,6 +5,16 @@ import subprocess
 prophyc_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 prophyc = os.path.join(prophyc_dir, "prophyc.py")
 
+empty_python_output = """\
+import prophy
+
+def bitMaskOr(x, y):
+    return x | y
+
+def shiftLeft(x, y):
+    return x << y
+"""
+
 def call(args):
     popen = subprocess.Popen(args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     out, err = popen.communicate()
@@ -50,7 +60,7 @@ def test_isar_compiles_single_empty_xml(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert "import prophy\n" == open("input.py").read()
+    assert empty_python_output == open("input.py").read()
 
 def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
     open("input1.xml", "w").write("<struct/>")
@@ -60,9 +70,9 @@ def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert "import prophy\n" == open("input1.py").read()
-    assert "import prophy\n" == open("input2.py").read()
-    assert "import prophy\n" == open("input3.py").read()
+    assert empty_python_output == open("input1.py").read()
+    assert empty_python_output == open("input2.py").read()
+    assert empty_python_output == open("input3.py").read()
 
 def test_outputs_to_correct_directory(tmpdir_cwd):
     open("input.xml", "w").write("<struct/>")
@@ -71,7 +81,7 @@ def test_outputs_to_correct_directory(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert "import prophy\n" == open(os.path.join("output", "input.py")).read()
+    assert empty_python_output == open(os.path.join("output", "input.py")).read()
 
 def test_sack_not_supported(tmpdir_cwd):
     open("input.h", "w").write("")
