@@ -106,8 +106,13 @@ class DataHolder(object):
         self.msgs_list = []
         self.enum_dict = {}
         self.struct_list = []
+
+        """ list of strings, e.g. "externals" """
         self.includes = []
+
+        """ list of tuples of strings, e.g. ("TMyTypedef", "u32") """
         self.typedefs = []
+
         self.constant = ConstantHolder()
         self.union_dict = {}
         self.struct_dict = {}
