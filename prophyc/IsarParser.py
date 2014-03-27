@@ -90,12 +90,11 @@ class IsarParser(object):
     def __get_typedefs(self, dom):
         return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
 
-    def __constant_parse(self, tree_node):
+    def __get_constants(self, dom):
         constant = ConstantHolder()
-        constant_nodes = tree_node.getElementsByTagName('constant')
+        constant_nodes = dom.getElementsByTagName('constant')
         for constant_element in constant_nodes:
-            if constant_element.hasAttribute("value"):
-                constant.add_to_list(constant_element.attributes["name"].value, constant_element.attributes["value"].value)
+            constant.add_to_list(constant_element.attributes["name"].value, constant_element.attributes["value"].value)
         return constant
 
     def __get_includes(self, dom):
@@ -103,7 +102,7 @@ class IsarParser(object):
 
     def __parse_tree_node(self, tree_node):
         data_holder = DataHolder()
-        data_holder.constants = self.__constant_parse(tree_node)
+        data_holder.constants = self.__get_constants(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
         data_holder.enums = self.__get_enums(tree_node).items()
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
