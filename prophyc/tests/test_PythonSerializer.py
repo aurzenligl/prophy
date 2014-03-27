@@ -93,6 +93,16 @@ EEnum_C = 2
 """
     assert ref == serialize(holder)
 
+def test_constants_rendering():
+    holder = DataHolder.DataHolder()
+    holder.constant.list = [("CONST_A", "0"), ("CONST_B", "31")]
+
+    ref = """\
+CONST_B = 31
+CONST_A = 0
+"""
+    assert ref == serialize(holder)
+
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
     ih = []
