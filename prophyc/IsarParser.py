@@ -57,8 +57,6 @@ class IsarParser(object):
                     value = member_enum_element.getAttribute('value')
                     if value == "-1":
                         value = "0xFFFFFFFF"
-                    elif "EAaMemPoolCid_ApplicationCidStart" in value:
-                        value = value.replace("EAaMemPoolCid_ApplicationCidStart", '2')
                     enumerators.append((member_enum_element.attributes["name"].value, value))
                 dict[name] = enumerators
         return dict
