@@ -23,11 +23,16 @@ class PythonSerializer(object):
     def __render_enum_members(self, members):
         return (",\n" + " " * 21).join(("('%s',%s)" % (name, value) for name, value in members))
 
+    def __render_enum_constants(self, members):
+        return "\n".join(("%s = %s" % (name, value) for name, value in members))
+
     def __render_enums(self, enums):
-        return "".join((("class {1}({0}enum):\n"
-                         "    __metaclass__ = {0}enum_generator\n"
-                         "    _enumerators  = [{2}]\n").format(self.lib_imp, name, self.__render_enum_members(members))
-                         for name, members in enums.iteritems()))
+        return "\n".join((("class {1}({0}enum):\n"
+                           "    __metaclass__ = {0}enum_generator\n"
+                           "    _enumerators  = [{2}]\n"
+                           "\n"
+                           "{3}\n").format(self.lib_imp, name, self.__render_enum_members(members), self.__render_enum_constants(members))
+                           for name, members in enums.iteritems()))
 
     def __render_typedef(self, typedef, structs, enums, used_structs, used_enums):
         prefix = ""

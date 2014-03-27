@@ -33,21 +33,25 @@ a = b
 def test_typedefs_rendering_with_changed_enum_order():
     holder = DataHolder.DataHolder()
     holder.typedefs = [("TEnum2", "EEnum2")]
-    holder.enum_dict["EEnum1"] = [("EEnum1", "EEnum1_Val")]
-    holder.enum_dict["EEnum2"] = [("EEnum2", "EEnum2_Val")]
+    holder.enum_dict["EEnum1"] = [("EEnum1_1", "EEnum1_Val")]
+    holder.enum_dict["EEnum2"] = [("EEnum2_2", "EEnum2_Val")]
 
     ref = """\
 import prophy
 
 class EEnum2(prophy.enum):
     __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum2',EEnum2_Val)]
+    _enumerators  = [('EEnum2_2',EEnum2_Val)]
+
+EEnum2_2 = EEnum2_Val
 
 TEnum2 = EEnum2
 
 class EEnum1(prophy.enum):
     __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum1',EEnum1_Val)]
+    _enumerators  = [('EEnum1_1',EEnum1_Val)]
+
+EEnum1_1 = EEnum1_Val
 """
     assert ref == serialize(holder)
 
@@ -92,6 +96,10 @@ class EEnum(prophy.enum):
     _enumerators  = [('EEnum_A',0),
                      ('EEnum_B',1),
                      ('EEnum_C',2)]
+
+EEnum_A = 0
+EEnum_B = 1
+EEnum_C = 2
 """
     assert ref == serialize(holder)
 
@@ -155,6 +163,11 @@ class test(prophy.enum):
                      ('elem_31',val_31),
                      ('elem_61',val_61),
                      ('elem_91',val_91)]
+
+elem_1 = val_1
+elem_31 = val_31
+elem_61 = val_61
+elem_91 = val_91
 
 class MAC_L2CallConfigResp(prophy.struct):
     __metaclass__ = prophy.struct_generator
