@@ -84,9 +84,9 @@ def shiftLeft(x, y):
     def __render_includes(self, includes):
         return "".join(("from %s import *\n" % include for include in includes))
 
-    def _serialize_constant(self, constant):
+    def _serialize_constant(self, constants):
         out = ""
-        for key, val in constant.get_sorted_list():
+        for key, val in constants:
             out += key + " = " + val + '\n'
         return out
 

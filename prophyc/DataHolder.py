@@ -103,10 +103,12 @@ class DataHolder(object):
             e.g. ("EEnum", [(EEnum_Value1, 1), (EEnum_Value2, 2)]) """
         self.enums = []
 
-        """ list of tuples of strings, e.g. ("TMyTypedef", "u32") """
+        """ list of name-type pairs, e.g. ("TMyTypedef", "u32") """
         self.typedefs = []
 
-        self.constants = ConstantHolder()
+        """ list of name-value pairs, e.g. ("CONST", 10) """
+        self.constants = []
+
         self.union_dict = {}
         self.struct_dict = {}
 

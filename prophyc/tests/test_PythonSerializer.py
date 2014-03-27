@@ -95,11 +95,11 @@ EEnum_C = 2
 
 def test_constants_rendering():
     holder = DataHolder.DataHolder()
-    holder.constants.list = [("CONST_A", "0"), ("CONST_B", "31")]
+    holder.constants = [("CONST_A", "0"), ("CONST_B", "31")]
 
     ref = """\
-CONST_B = 31
 CONST_A = 0
+CONST_B = 31
 """
     assert ref == serialize(holder)
 
@@ -117,11 +117,6 @@ def test_of_PythonSerializer():
     for x in range(1, 100, 30):
         enum.append(("elem_" + str(x), "val_" + str(x)))
 
-    const = DataHolder.ConstantHolder()
-    const.add_to_list("C_A", "5")
-    const.add_to_list("C_B", "5")
-    const.add_to_list("C_C", "C_B + C_A")
-
     msg_h = DataHolder.MessageHolder()
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.add_to_list(DataHolder.MemberHolder('messageResult', 'SMessageResult'))
@@ -129,7 +124,7 @@ def test_of_PythonSerializer():
     dh = DataHolder.DataHolder()
     dh.includes = ih
     dh.typedefs = th
-    dh.constants = const
+    dh.constants = [("C_A", "5"), ("C_B", "5"), ("C_C", "C_B + C_A")]
     dh.msgs_list = [msg_h]
     dh.enums = [("test", enum)]
 
@@ -149,8 +144,8 @@ from test_include_20 import *
 from test_include_80 import *
 from test_include_140 import *
 
-C_B = 5
 C_A = 5
+C_B = 5
 C_C = C_B + C_A
 
 td_elem_name_20 = td_elem_val_20

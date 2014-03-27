@@ -90,13 +90,26 @@ class IsarParser(object):
     def __get_typedefs(self, dom):
         return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
 
+    def __sort_constants(self, list):
+        out_list = []
+
+        for t in list:
+            key, val = t
+            if "_" not in val:
+                out_list.insert(0, (key, val))
+            else:
+                if (key, val) in out_list:
+                    index = out_list.index((key, val))
+                    out_list.insert(index + 1, (key, val))
+                else:
+                    out_list.append((key, val))
+        return out_list
+
     def __get_constant(self, elem):
         return (elem.attributes["name"].value, elem.attributes["value"].value)
 
     def __get_constants(self, dom):
-        constant = ConstantHolder()
-        constant.list = [self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')]
-        return constant
+        return self.__sort_constants([self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')])
 
     def __get_includes(self, dom):
         return [elem.attributes["href"].value.split('.')[0] for elem in dom.getElementsByTagName("xi:include")]
