@@ -114,7 +114,7 @@ def shiftLeft(x, y):
                     lib_imp = self.lib_imp
                 else :
                     lib_imp = ""
-                if len(member.list) > 0:
+                if member.array:
                     desc.append(self._serialize_msg_member(member))
                 else:
                     desc.append("('{0}',{1}{2})" .format(member.name , lib_imp, member.type))
@@ -130,6 +130,8 @@ def shiftLeft(x, y):
             return  "('{0}',{1}), " .format(a, b)
         def format_array(a, b, c, d):
             return "('{0}',{1}array({2},bound='{3}'))" .format(a, b, c, d)
+        def format_array_static(a, b, c, d):
+            return "('{0}',{1}array({2},size='{3}'))" .format(a, b, c, d)
 
         str = ""
         variable_name_index = member.get_dimension_field_index('variableSizeFieldName')
@@ -147,7 +149,10 @@ def shiftLeft(x, y):
         else:
             variable_type = member.list[variable_type_index].dimension_field_value
 
-        str += format_simple_list(variable_name, variable_type)
-        str += format_array(member.name, self.lib_imp, member.type, variable_name)
+        if member.array == -1:
+            str += format_simple_list(variable_name, variable_type)
+            str += format_array(member.name, self.lib_imp, member.type, variable_name)
+        else:
+            str += format_array_static(member.name, self.lib_imp, member.type, member.array)
 
         return str
