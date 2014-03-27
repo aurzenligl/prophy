@@ -107,7 +107,6 @@ class DataHolder(object):
         self.constants = []
 
         self.union_dict = {}
-        # self.struct_dict = {}
 
     def __str__(self):
         return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))
