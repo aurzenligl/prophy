@@ -131,7 +131,7 @@ def shiftLeft(x, y):
         def format_array(a, b, c, d):
             return "('{0}',{1}array({2},bound='{3}'))" .format(a, b, c, d)
         def format_array_static(a, b, c, d):
-            return "('{0}',{1}array({2},size='{3}'))" .format(a, b, c, d)
+            return "('{0}',{1}array({2},size={3}))" .format(a, b, c, d)
 
         str = ""
         variable_name_index = member.get_dimension_field_index('variableSizeFieldName')

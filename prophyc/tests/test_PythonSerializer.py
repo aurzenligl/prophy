@@ -146,7 +146,7 @@ def test_struct_rendering_with_static_array():
     ref = """\
 class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
-    _descriptor = [('a',prophy.array(u8,size='NUM_OF_ARRAY_ELEMS'))]
+    _descriptor = [('a',prophy.array(u8,size=NUM_OF_ARRAY_ELEMS))]
 """
     assert ref == serialize(holder)
 
