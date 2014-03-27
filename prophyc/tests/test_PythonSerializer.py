@@ -95,7 +95,7 @@ EEnum_C = 2
 
 def test_constants_rendering():
     holder = DataHolder.DataHolder()
-    holder.constant.list = [("CONST_A", "0"), ("CONST_B", "31")]
+    holder.constants.list = [("CONST_A", "0"), ("CONST_B", "31")]
 
     ref = """\
 CONST_B = 31
@@ -129,7 +129,7 @@ def test_of_PythonSerializer():
     dh = DataHolder.DataHolder()
     dh.includes = ih
     dh.typedefs = th
-    dh.constant = const
+    dh.constants = const
     dh.msgs_list = [msg_h]
     dh.enums = [("test", enum)]
 

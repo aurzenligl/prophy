@@ -103,7 +103,7 @@ class IsarParser(object):
 
     def __parse_tree_node(self, tree_node):
         data_holder = DataHolder()
-        data_holder.constant = self.__constant_parse(tree_node)
+        data_holder.constants = self.__constant_parse(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
         data_holder.enums = self.__get_enums(tree_node).items()
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")

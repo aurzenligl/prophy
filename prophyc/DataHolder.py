@@ -106,7 +106,7 @@ class DataHolder(object):
         """ list of tuples of strings, e.g. ("TMyTypedef", "u32") """
         self.typedefs = []
 
-        self.constant = ConstantHolder()
+        self.constants = ConstantHolder()
         self.union_dict = {}
         self.struct_dict = {}
 

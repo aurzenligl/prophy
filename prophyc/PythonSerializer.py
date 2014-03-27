@@ -19,7 +19,7 @@ def shiftLeft(x, y):
     def serialize_string(self, dataHolder, no_prolog = False):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
                                              self.__render_includes(dataHolder.includes),
-                                             self._serialize_constant(dataHolder.constant),
+                                             self._serialize_constant(dataHolder.constants),
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enums),
                                              self.__render_enums(dataHolder.enums),
                                              self._serialize_union(dataHolder.union_dict),
