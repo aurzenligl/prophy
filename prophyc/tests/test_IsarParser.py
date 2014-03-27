@@ -54,6 +54,20 @@ def test_typedefs_parsing():
 
     assert [("TILoveTypedefs_ALot", "MyType")] == holder.typedefs
 
+def test_enums_parsing():
+    xml = """\
+<enum name="EEnum">
+    <enum-member name="EEnum_A" value="0"/>
+    <enum-member name="EEnum_B" value="1"/>
+    <enum-member name="EEnum_C" value="2"/>
+</enum>
+"""
+    holder = parse(xml)
+
+    assert 1 == len(holder.enum_dict)
+    assert "EEnum" == holder.enum_dict.items()[0][0]
+    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "2")] == [(key, val) for key, val in holder.enum_dict.items()[0][1].list]
+
 """ FIXME kl. don't test PythonSerializer together with IsarParser """
 
 def test_of_error_in_SPuschReceiveReq():
