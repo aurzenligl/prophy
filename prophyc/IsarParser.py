@@ -90,11 +90,12 @@ class IsarParser(object):
     def __get_typedefs(self, dom):
         return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
 
+    def __get_constant(self, elem):
+        return (elem.attributes["name"].value, elem.attributes["value"].value)
+
     def __get_constants(self, dom):
         constant = ConstantHolder()
-        constant_nodes = dom.getElementsByTagName('constant')
-        for constant_element in constant_nodes:
-            constant.add_to_list(constant_element.attributes["name"].value, constant_element.attributes["value"].value)
+        constant.list = [self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')]
         return constant
 
     def __get_includes(self, dom):
