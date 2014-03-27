@@ -40,19 +40,16 @@ class PythonSerializer(object):
         prefix = ""
         key, val = typedef
         if val.startswith('u') or val.startswith('i') or val.startswith('r'):
-            return "%s = %s%s" % (key, self.lib_imp, val)
+            val = self.lib_imp + val
         elif val.startswith('S'):
             if val not in used_structs:
                 prefix = self._get_struct_for_typedef(val, structs) + '\n'
             used_structs.append(val)
-            return "%s%s = %s" % (prefix, key, val)
         elif val.startswith('E'):
             if val not in used_enums:
                 prefix = self._get_enum_for_typedef(val, enums) + '\n'
             used_enums.append(val)
-            return "%s%s = %s" % (prefix, key, val)
-        else:
-            return "%s = %s" % (key, val)
+        return "%s%s = %s" % (prefix, key, val)
 
     def __render_typedefs(self, typedefs, structs, enums):
         used_structs = []
