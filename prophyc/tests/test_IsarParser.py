@@ -59,14 +59,14 @@ def test_enums_parsing():
 <enum name="EEnum">
     <enum-member name="EEnum_A" value="0"/>
     <enum-member name="EEnum_B" value="1"/>
-    <enum-member name="EEnum_C" value="2"/>
+    <enum-member name="EEnum_C" value="-1"/>
 </enum>
 """
     holder = parse(xml)
 
     assert 1 == len(holder.enum_dict)
     assert "EEnum" == holder.enum_dict.items()[0][0]
-    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "2")] == holder.enum_dict.items()[0][1]
+    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.enum_dict.items()[0][1]
 
 # """ FIXME kl. don't test PythonSerializer together with IsarParser """
 #
