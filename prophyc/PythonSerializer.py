@@ -8,7 +8,7 @@ class PythonSerializer(object):
     def serialize_string(self, dataHolder, no_prolog = False):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
                                              self.__render_includes(dataHolder.includes),
-                                             self._serialize_constant(dataHolder.constants),
+                                             self.__render_constants(dataHolder.constants),
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enums),
                                              self.__render_enums(dataHolder.enums),
                                              self._serialize_union(dataHolder.union_dict),
@@ -84,11 +84,8 @@ def shiftLeft(x, y):
     def __render_includes(self, includes):
         return "".join(("from %s import *\n" % include for include in includes))
 
-    def _serialize_constant(self, constants):
-        out = ""
-        for key, val in constants:
-            out += key + " = " + val + '\n'
-        return out
+    def __render_constants(self, constants):
+        return "".join(("%s = %s\n" % constant for constant in constants))
 
     def _serialize_union(self, union_dict):
         def serialize_union_members(list):
