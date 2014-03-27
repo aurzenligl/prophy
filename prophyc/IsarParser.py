@@ -83,15 +83,17 @@ class IsarParser(object):
             enum_dict["EDisc" + name] = enum
         return union_dict, enum_dict
 
+    def __get_typedef(self, elem):
+        if elem.hasAttribute("type"):
+            return (elem.attributes["name"].value, elem.attributes["type"].value)
+        elif elem.hasAttribute("primitiveType"):
+            type = self.primitive_types[elem.attributes["primitiveType"].value]
+            return ((elem.attributes["name"].value, type))
+        else:
+            raise Exception("Typedef has no type nor primitiveType attribute")
+
     def __get_typedefs(self, dom):
-        typedefs = []
-        for elem in dom.getElementsByTagName('typedef'):
-            if elem.hasAttribute("type"):
-                typedefs.append((elem.attributes["name"].value, elem.attributes["type"].value))
-            elif elem.hasAttribute("primitiveType"):
-                type = self.primitive_types[elem.attributes["primitiveType"].value]
-                typedefs.append((elem.attributes["name"].value, type))
-        return typedefs
+        return [self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')]
 
     def __constant_parse(self, tree_node):
         constant = ConstantHolder()
