@@ -212,3 +212,13 @@ class TestEnumBoundArray():
         x.decode("\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02", ">")
         assert x.value[0] == "Enumeration_Two"
         assert x.value[1] == "Enumeration_Two"
+
+def test_enum_with_0xFFFFFFFF_value():
+    class Enum(prophy.enum):
+        __metaclass__ = prophy.enum_generator
+        _enumerators = [('Enum_Infinity', 0xFFFFFFFF)]
+    class Enclosing(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("value", Enum)]
+
+    assert Enclosing().value == 'Enum_Infinity'

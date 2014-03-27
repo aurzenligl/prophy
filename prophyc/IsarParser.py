@@ -55,7 +55,9 @@ class IsarParser(object):
                 member = enum_element.getElementsByTagName('enum-member')
                 for member_enum_element in member:
                     value = member_enum_element.getAttribute('value')
-                    if "bitMaskOr" in value:
+                    if value == "-1":
+                        value = 0xFFFFFFFF
+                    elif "bitMaskOr" in value:
                         value = 2
                     elif "EAaMemPoolCid_ApplicationCidStart" in value:
                         value = value.replace("EAaMemPoolCid_ApplicationCidStart", '2')
