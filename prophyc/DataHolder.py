@@ -11,33 +11,6 @@ class Holder(object):
     def get_list_len(self):
         return len(self.list)
 
-class ConstantHolder(Holder):
-
-    def __init__(self):
-        self.list = []
-        self.constant = namedtuple('constant', 'constant_name constant_value')
-
-    def add_to_list(self, element_name, element_value = 0):
-        self.list.append(self.constant(element_name, element_value))
-
-    def __sort_list(self, list):
-        out_list = []
-
-        for t in list:
-            key, val = t
-            if "_" not in val:
-                out_list.insert(0, (key, val))
-            else:
-                if (key, val) in out_list:
-                    index = out_list.index((key, val))
-                    out_list.insert(index + 1, (key, val))
-                else:
-                    out_list.append((key, val))
-        return out_list
-
-    def get_sorted_list(self):
-        return self.__sort_list(self.list)
-
 class UnionHolder(Holder):
 
     def __init__(self):
