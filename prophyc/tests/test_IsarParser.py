@@ -77,7 +77,19 @@ def test_constants_parsing():
 """
     holder = parse(xml)
 
-    assert [("CONST_B", "31"), ("CONST_A", "0")] == holder.constants
+    assert [("CONST_A", "0"), ("CONST_B", "31")] == holder.constants
+
+def test_constants_parsing_and_sorting():
+    xml = """\
+<x>
+    <constant name="C_A" value="C_B + C_C"/>
+    <constant name="C_B" value="1"/>
+    <constant name="C_C" value="2"/>
+</x>
+"""
+    holder = parse(xml)
+
+    assert [("C_B", "1"), ("C_C", "2"), ("C_A", "C_B + C_C")] == holder.constants
 
 # """ FIXME kl. don't test PythonSerializer together with IsarParser """
 #

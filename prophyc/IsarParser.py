@@ -91,19 +91,9 @@ class IsarParser(object):
         return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
 
     def __sort_constants(self, list):
-        out_list = []
-
-        for t in list:
-            key, val = t
-            if "_" not in val:
-                out_list.insert(0, (key, val))
-            else:
-                if (key, val) in out_list:
-                    index = out_list.index((key, val))
-                    out_list.insert(index + 1, (key, val))
-                else:
-                    out_list.append((key, val))
-        return out_list
+        primitive = filter(lambda constant: constant[1].isdigit(), list)
+        complex = filter(lambda constant: not constant[1].isdigit(), list)
+        return primitive + complex
 
     def __get_constant(self, elem):
         return (elem.attributes["name"].value, elem.attributes["value"].value)
