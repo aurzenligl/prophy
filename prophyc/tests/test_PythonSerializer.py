@@ -120,6 +120,21 @@ class Struct(prophy.struct):
 """
     assert ref == serialize(holder)
 
+# def test_struct_rendering_with_dynamic_array():
+#     holder = DataHolder.DataHolder()
+#     struct = DataHolder.MessageHolder()
+#     struct.name = "Struct"
+#     struct.list.append(DataHolder.MemberHolder("a", "u8"))
+#     struct.list[0].array = -1
+#     holder.struct_list = [struct]
+#
+#     ref = """\
+# class Struct(prophy.struct):
+#     __metaclass__ = prophy.struct_generator
+#     _descriptor = [('a_len',prophy.u32), ('a',prophy.array(prophy.u8, bound="a_len")]
+# """
+#     assert ref == serialize(holder)
+
 def test_of_PythonSerializer():
     ih = []
     th = []

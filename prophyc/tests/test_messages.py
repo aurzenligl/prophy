@@ -87,15 +87,3 @@ def test_of_message_with_two_fields_size_and_isVariable():
     assert ("class MAC_MeasurementReportInd(prophy.struct):\n"
             "    __metaclass__ = prophy.struct_generator\n"
             "    _descriptor = [('tmpName',TNumberOfItems), ('measurementGroupTypeList',prophy.array(EMeasurementGroupType,bound='tmpName'))]\n") == generate_python_msg(msg_h)
-
-def test_of_message_with_one_dim_size():
-    member_h = DataHolder.MemberHolder('iRi', 'TIRi')
-    member_h.add_to_list("size", "MAX_NUM_OF_RI_PMI_INFORMATION")
-
-    msg_h = DataHolder.MessageHolder()
-    msg_h.name = "SCqiParams"
-    msg_h.add_to_list(member_h)
-
-    assert ("class SCqiParams(prophy.struct):\n"
-            "    __metaclass__ = prophy.struct_generator\n"
-            "    _descriptor = [('iRi',prophy.bytes(size=MAX_NUM_OF_RI_PMI_INFORMATION))]\n") == generate_python_msg(msg_h)

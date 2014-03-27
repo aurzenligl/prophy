@@ -130,10 +130,6 @@ def shiftLeft(x, y):
             return  "('{0}',{1}), " .format(a, b)
         def format_array(a, b, c, d):
             return "('{0}',{1}array({2},bound='{3}'))" .format(a, b, c, d)
-        def format_bytes_list(a, b, c):
-            return  "('{0}',{1}bytes(size={2}))" .format(a, b, c)
-        def format_variable_bytes_list(a, b, c, d):
-            return  "('{0}',{1}bytes(size={2},bound='{3}'))" .format(a, b, c, d)
 
         str = ""
         variable_name_index = member.get_dimension_field_index('variableSizeFieldName')
@@ -151,10 +147,7 @@ def shiftLeft(x, y):
         else:
             variable_type = member.list[variable_type_index].dimension_field_value
 
-        if len(member.list) == 1 and size_index != -1:
-            str += format_bytes_list(member.name, self.lib_imp, member.list[size_index].dimension_field_value)
-        else:
-            str += format_simple_list(variable_name, variable_type)
-            str += format_array(member.name, self.lib_imp, member.type, variable_name)
+        str += format_simple_list(variable_name, variable_type)
+        str += format_array(member.name, self.lib_imp, member.type, variable_name)
 
         return str
