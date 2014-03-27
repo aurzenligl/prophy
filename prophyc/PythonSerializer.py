@@ -22,18 +22,13 @@ class PythonSerializer(object):
 
     def _serialize_enum(self, enum_dic):
         def serialize_enum_members(list):
-            desc = []
-            for member in list:
-                k, v = member
-                desc.append("('{0}',{1})" .format(k , v))
-            return ", ".join(desc)
-        out = ""
+            return ", ".join(("('%s',%s)" % (name, value) for name, value in list))
 
+        out = ""
         for key, members in enum_dic.iteritems():
             out += "class {0}({1}enum):".format(key, self.lib_imp) + "\n"
             out += "    __metaclass__ = {0}enum_generator".format(self.lib_imp) + "\n"
             out += "    _enumerators  = [" + serialize_enum_members(members) + "]\n"
-
         return out
 
     def __render_typedef(self, typedef, structs, enums, used_structs, used_enums):
