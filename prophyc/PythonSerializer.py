@@ -36,26 +36,28 @@ class PythonSerializer(object):
 
         return out
 
-    def __render_typedefs(self, typedefs, struct_list, enum_dict):
-        list_used_structed = []
-        list_used_enums = []
-        out = ""
-        for key, val in typedefs:
-            if val.startswith('u') or val.startswith('i') or val.startswith('r'):
-                out += key + " = " + self.lib_imp + val + '\n'
-            elif val.startswith('S'):
-                if val not in list_used_structed:
-                    out += self._get_struct_for_typedef(val, struct_list) + '\n'
-                list_used_structed.append(val)
-                out += key + " = " + val + '\n'
-            elif val.startswith('E'):
-                if val not in list_used_enums :
-                    out += self._get_enum_for_typedef(val, enum_dict) + '\n'
-                list_used_enums .append(val)
-                out += key + " = " + val + '\n'
-            else:
-                out += key + " = " + val + '\n'
-        return out
+    def __render_typedef(self, typedef, structs, enums, used_structs, used_enums):
+        prefix = ""
+        key, val = typedef
+        if val.startswith('u') or val.startswith('i') or val.startswith('r'):
+            return "%s = %s%s" % (key, self.lib_imp, val)
+        elif val.startswith('S'):
+            if val not in used_structs:
+                prefix = self._get_struct_for_typedef(val, structs) + '\n'
+            used_structs.append(val)
+            return "%s%s = %s" % (prefix, key, val)
+        elif val.startswith('E'):
+            if val not in used_enums:
+                prefix = self._get_enum_for_typedef(val, enums) + '\n'
+            used_enums.append(val)
+            return "%s%s = %s" % (prefix, key, val)
+        else:
+            return "%s = %s" % (key, val)
+
+    def __render_typedefs(self, typedefs, structs, enums):
+        used_structs = []
+        used_enums = []
+        return "".join((self.__render_typedef(typedef, structs, enums, used_structs, used_enums) + "\n" for typedef in typedefs))
 
     def _get_struct_for_typedef(self, val, struct_list):
         out = ""
