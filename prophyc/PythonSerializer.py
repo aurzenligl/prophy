@@ -10,7 +10,7 @@ class PythonSerializer(object):
                                              self.__render_includes(dataHolder.includes),
                                              self._serialize_constant(dataHolder.constant),
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enum_dict),
-                                             self._serialize_enum(dataHolder.enum_dict),
+                                             self.__render_enums(dataHolder.enum_dict),
                                              self._serialize_union(dataHolder.union_dict),
                                              self._serialize_msgs(dataHolder.sort_struct()),
                                              self._serialize_msgs(dataHolder.msgs_list))))
@@ -20,16 +20,14 @@ class PythonSerializer(object):
         out = self.serialize_string(dataHolder)
         open(path, "w").write(out)
 
-    def _serialize_enum(self, enum_dic):
-        def serialize_enum_members(list):
-            return ", ".join(("('%s',%s)" % (name, value) for name, value in list))
+    def __render_enum_members(self, members):
+        return ", ".join(("('%s',%s)" % (name, value) for name, value in members))
 
-        out = ""
-        for key, members in enum_dic.iteritems():
-            out += "class {0}({1}enum):".format(key, self.lib_imp) + "\n"
-            out += "    __metaclass__ = {0}enum_generator".format(self.lib_imp) + "\n"
-            out += "    _enumerators  = [" + serialize_enum_members(members) + "]\n"
-        return out
+    def __render_enums(self, enums):
+        return "".join((("class {1}({0}enum):\n"
+                         "    __metaclass__ = {0}enum_generator\n"
+                         "    _enumerators  = [{2}]\n").format(self.lib_imp, name, self.__render_enum_members(members))
+                         for name, members in enums.iteritems()))
 
     def __render_typedef(self, typedef, structs, enums, used_structs, used_enums):
         prefix = ""
@@ -64,7 +62,7 @@ class PythonSerializer(object):
         for key, val in enum_dict.iteritems():
             if key == val2:
                 enum_dict.pop(key, val)
-                return self._serialize_enum({key:val})
+                return self.__render_enums({key:val})
         return ""
 
     def __render_includes(self, includes):

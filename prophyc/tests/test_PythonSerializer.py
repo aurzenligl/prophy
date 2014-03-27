@@ -153,16 +153,3 @@ def test_of_PythonSerializer():
                       "class MAC_L2CallConfigResp(prophy.struct):\n"
                       "    __metaclass__ = prophy.struct_generator\n"
                       "    _descriptor = [('messageResult',SMessageResult)]\n")
-
-def test_of_PythonSerializer_enum():
-    enum = []
-    for x in range(1, 5):
-        enum.append(("elem_" + str(x), "val_" + str(x)))
-
-    ps = PythonSerializer.PythonSerializer()
-    output = ps._serialize_enum({ "test" : enum })
-
-    """ FIXME kl. it's better to list enumerators and fields from newlines, to make output human-readable """
-    assert output == ("class test(prophy.enum):\n"
-                      "    __metaclass__ = prophy.enum_generator\n"
-                      "    _enumerators  = [('elem_1',val_1), ('elem_2',val_2), ('elem_3',val_3), ('elem_4',val_4)]\n")
