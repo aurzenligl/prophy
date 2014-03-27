@@ -103,7 +103,23 @@ CONST_B = 31
 """
     assert ref == serialize(holder)
 
-""" FIXME kl. this test is way too large. It needs to be split to multiple tests """
+def test_struct_rendering():
+    holder = DataHolder.DataHolder()
+    struct = DataHolder.MessageHolder()
+    struct.name = "Struct"
+    struct.list.append(DataHolder.MemberHolder("a", "u8"))
+    struct.list.append(DataHolder.MemberHolder("b", "i64"))
+    struct.list.append(DataHolder.MemberHolder("c", "r32"))
+    struct.list.append(DataHolder.MemberHolder("d", "TTypeX"))
+    holder.struct_list = [struct]
+
+    ref = """\
+class Struct(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a',prophy.u8), ('b',prophy.i64), ('c',prophy.r32), ('d',TTypeX)]
+"""
+    assert ref == serialize(holder)
+
 def test_of_PythonSerializer():
     ih = []
     th = []

@@ -91,6 +91,29 @@ def test_constants_parsing_and_sorting():
 
     assert [("C_B", "1"), ("C_C", "2"), ("C_A", "C_B + C_C")] == holder.constants
 
+def test_struct_parsing():
+    xml = """\
+<struct name="Struct">
+    <member name="a" type="u8"/>
+    <member name="b" type="i64"/>
+    <member name="c" type="r32"/>
+    <member name="d" type="TTypeX"/>
+</struct>
+"""
+    holder = parse(xml)
+
+    assert 1 == len(holder.struct_list)
+    assert 4 == len(holder.struct_list[0].list)
+    assert "Struct" == holder.struct_list[0].name
+    assert "a" == holder.struct_list[0].list[0].name
+    assert "u8" == holder.struct_list[0].list[0].type
+    assert "b" == holder.struct_list[0].list[1].name
+    assert "i64" == holder.struct_list[0].list[1].type
+    assert "c" == holder.struct_list[0].list[2].name
+    assert "r32" == holder.struct_list[0].list[2].type
+    assert "d" == holder.struct_list[0].list[3].name
+    assert "TTypeX" == holder.struct_list[0].list[3].type
+
 # """ FIXME kl. don't test PythonSerializer together with IsarParser """
 #
 # def test_of_error_in_SPuschReceiveReq():
