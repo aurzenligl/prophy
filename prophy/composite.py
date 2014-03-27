@@ -42,7 +42,7 @@ def add_repeated(cls, field_name, field_type):
             _LENGTH_SHIFT = field_type._LENGTH_SHIFT
         cls._descriptor[index] = (bound_name, bound_int)
         delattr(cls, bound_name)
-    
+
 def add_scalar(cls, field_name, field_type):
     def getter(self):
         value = self._fields.get(field_name, field_type._DEFAULT)
@@ -63,7 +63,7 @@ def add_scalar(cls, field_name, field_type):
             _LENGTH_SHIFT = field_type._LENGTH_SHIFT
         cls._descriptor[index] = (bound_name, bound_int)
         delattr(cls, bound_name)
-    
+
 def add_composite(cls, field_name, field_type):
     def getter(self):
         field_value = self._fields.get(field_name)
@@ -74,7 +74,7 @@ def add_composite(cls, field_name, field_type):
     def setter(self, new_value):
         raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
-    
+
 class struct_generator(type):
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = ["_fields"]
@@ -122,7 +122,7 @@ def encode_field(field_type, field_value, endianess):
     else:
         out += field_type._encoder.encode(field_value, endianess)
     return out
-    
+
 def decode_field(field_parent, field_name, field_type, data, endianess):
     if "repeated" in field_type._tags:
         if "composite" in field_type._TYPE._tags:
@@ -198,11 +198,11 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
         else:
             setattr(field_parent, field_name, value)
     return size
-    
+
 class struct(object):
     __slots__ = []
     _tags = ["composite"]
-    
+
     def __init__(self):
         self._fields = {}
 
@@ -225,7 +225,7 @@ class struct(object):
                 field_value = getattr(self, field_name)
                 out += encode_field(field_type, field_value, endianess)
         return out
-    
+
     def decode(self, data, endianess, terminal = True):
         bytes_read = 0
         for field_name, field_type in self._descriptor:
@@ -241,7 +241,7 @@ class struct(object):
             raise TypeError("Parameter to copy_from must be instance of same class.")
         if other is self:
             return
-        
+
         fields = self._fields
 
         for name, value in other._fields.iteritems():
@@ -262,4 +262,6 @@ class struct(object):
                 field_value.copy_from(value)
             else:
                 fields[name] = value
-        
+
+union_generator = struct_generator
+union = struct

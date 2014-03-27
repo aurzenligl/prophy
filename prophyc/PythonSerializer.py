@@ -8,10 +8,10 @@ class PythonSerializer(object):
     def serialize_string(self, dataHolder):
         return os.linesep.join(filter(None, ("import %s\n" % self.lib_imp[:-1],
                                              self.__render_includes(dataHolder.includes),
-                                             self._serialize_union(dataHolder.union_dict),
                                              self._serialize_constant(dataHolder.constant),
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enum_dict),
                                              self._serialize_enum(dataHolder.enum_dict),
+                                             self._serialize_union(dataHolder.union_dict),
                                              self._serialize_msgs(dataHolder.sort_struct()),
                                              self._serialize_msgs(dataHolder.msgs_list))))
 
@@ -89,7 +89,7 @@ class PythonSerializer(object):
             desc = []
             for member in list:
                     k, v = member
-                    desc.append("('{0}',{1})" .format(k , v))
+                    desc.append("('{0}',{1})" .format(v, k))
             return ", ".join(desc)
         out = ""
 
