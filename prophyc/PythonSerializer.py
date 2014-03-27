@@ -10,7 +10,7 @@ class PythonSerializer(object):
                                              self.__render_includes(dataHolder.includes),
                                              self._serialize_union(dataHolder.union_dict),
                                              self._serialize_constant(dataHolder.constant),
-                                             self._serialize_typedef(dataHolder),
+                                             self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enum_dict),
                                              self._serialize_enum(dataHolder.enum_dict),
                                              self._serialize_msgs(dataHolder.sort_struct()),
                                              self._serialize_msgs(dataHolder.msgs_list))))
@@ -36,14 +36,11 @@ class PythonSerializer(object):
 
         return out
 
-    def _serialize_typedef(self, dataHolder):
-        typedef_list = dataHolder.typedefs
-        struct_list = dataHolder.struct_list
-        enum_dict = dataHolder.enum_dict
+    def __render_typedefs(self, typedefs, struct_list, enum_dict):
         list_used_structed = []
         list_used_enums = []
         out = ""
-        for key, val in typedef_list:
+        for key, val in typedefs:
             if val.startswith('u') or val.startswith('i') or val.startswith('r'):
                 out += key + " = " + self.lib_imp + val + '\n'
             elif val.startswith('S'):
