@@ -41,7 +41,7 @@ import prophy
 
 class EEnum2(prophy.enum):
     __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum2_2',EEnum2_Val)]
+    _enumerators  = [('EEnum2_2', EEnum2_Val)]
 
 EEnum2_2 = EEnum2_Val
 
@@ -49,7 +49,7 @@ TEnum2 = EEnum2
 
 class EEnum1(prophy.enum):
     __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum1_1',EEnum1_Val)]
+    _enumerators  = [('EEnum1_1', EEnum1_Val)]
 
 EEnum1_1 = EEnum1_Val
 """
@@ -93,9 +93,9 @@ import prophy
 
 class EEnum(prophy.enum):
     __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum_A',0),
-                     ('EEnum_B',1),
-                     ('EEnum_C',2)]
+    _enumerators  = [('EEnum_A', 0),
+                     ('EEnum_B', 1),
+                     ('EEnum_C', 2)]
 
 EEnum_A = 0
 EEnum_B = 1
@@ -159,10 +159,10 @@ td_elem_name_140 = prophy.u_td_elem_val_140
 
 class test(prophy.enum):
     __metaclass__ = prophy.enum_generator
-    _enumerators  = [('elem_1',val_1),
-                     ('elem_31',val_31),
-                     ('elem_61',val_61),
-                     ('elem_91',val_91)]
+    _enumerators  = [('elem_1', val_1),
+                     ('elem_31', val_31),
+                     ('elem_61', val_61),
+                     ('elem_91', val_91)]
 
 elem_1 = val_1
 elem_31 = val_31
