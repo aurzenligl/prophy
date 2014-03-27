@@ -68,6 +68,17 @@ def test_enums_parsing():
     assert "EEnum" == holder.enums[0][0]
     assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.enums[0][1]
 
+def test_constants_parsing():
+    xml = """\
+<x>
+    <constant name="CONST_A" value="0"/>
+    <constant name="CONST_B" value="31"/>
+</x>
+"""
+    holder = parse(xml)
+
+    assert [("CONST_A", "0"), ("CONST_B", "31")] == holder.constant.list
+
 # """ FIXME kl. don't test PythonSerializer together with IsarParser """
 #
 # def test_of_error_in_SPuschReceiveReq():
