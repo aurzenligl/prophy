@@ -21,7 +21,7 @@ class PythonSerializer(object):
         open(path, "w").write(out)
 
     def __render_enum_members(self, members):
-        return ", ".join(("('%s',%s)" % (name, value) for name, value in members))
+        return (",\n" + " " * 21).join(("('%s',%s)" % (name, value) for name, value in members))
 
     def __render_enums(self, enums):
         return "".join((("class {1}({0}enum):\n"

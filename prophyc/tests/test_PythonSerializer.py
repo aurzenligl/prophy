@@ -89,7 +89,9 @@ import prophy
 
 class EEnum(prophy.enum):
     __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum_A',0), ('EEnum_B',1), ('EEnum_C',2)]
+    _enumerators  = [('EEnum_A',0),
+                     ('EEnum_B',1),
+                     ('EEnum_C',2)]
 """
     assert ref == serialize(holder)
 
@@ -126,30 +128,36 @@ def test_of_PythonSerializer():
     ps = PythonSerializer.PythonSerializer()
     output = ps.serialize_string(dh)
 
-    assert output == ("import prophy\n"
-                      "\n"
-                      "from test_include_20 import *\n"
-                      "from test_include_80 import *\n"
-                      "from test_include_140 import *\n"
-                      "\n"
-                      "C_B = 5\n"
-                      "C_A = 5\n"
-                      "C_C = C_B + C_A\n"
-                      "\n"
-                      "td_elem_name_20 = td_elem_val_20\n"
-                      "td_elem_name_20 = prophy.i_td_elem_val_20\n"
-                      "td_elem_name_20 = prophy.u_td_elem_val_20\n"
-                      "td_elem_name_80 = td_elem_val_80\n"
-                      "td_elem_name_80 = prophy.i_td_elem_val_80\n"
-                      "td_elem_name_80 = prophy.u_td_elem_val_80\n"
-                      "td_elem_name_140 = td_elem_val_140\n"
-                      "td_elem_name_140 = prophy.i_td_elem_val_140\n"
-                      "td_elem_name_140 = prophy.u_td_elem_val_140\n"
-                      "\n"
-                      "class test(prophy.enum):\n"
-                      "    __metaclass__ = prophy.enum_generator\n"
-                      "    _enumerators  = [('elem_1',val_1), ('elem_31',val_31), ('elem_61',val_61), ('elem_91',val_91)]\n"
-                      "\n"
-                      "class MAC_L2CallConfigResp(prophy.struct):\n"
-                      "    __metaclass__ = prophy.struct_generator\n"
-                      "    _descriptor = [('messageResult',SMessageResult)]\n")
+    ref = """\
+import prophy
+
+from test_include_20 import *
+from test_include_80 import *
+from test_include_140 import *
+
+C_B = 5
+C_A = 5
+C_C = C_B + C_A
+
+td_elem_name_20 = td_elem_val_20
+td_elem_name_20 = prophy.i_td_elem_val_20
+td_elem_name_20 = prophy.u_td_elem_val_20
+td_elem_name_80 = td_elem_val_80
+td_elem_name_80 = prophy.i_td_elem_val_80
+td_elem_name_80 = prophy.u_td_elem_val_80
+td_elem_name_140 = td_elem_val_140
+td_elem_name_140 = prophy.i_td_elem_val_140
+td_elem_name_140 = prophy.u_td_elem_val_140
+
+class test(prophy.enum):
+    __metaclass__ = prophy.enum_generator
+    _enumerators  = [('elem_1',val_1),
+                     ('elem_31',val_31),
+                     ('elem_61',val_61),
+                     ('elem_91',val_91)]
+
+class MAC_L2CallConfigResp(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('messageResult',SMessageResult)]
+"""
+    assert ref == output
