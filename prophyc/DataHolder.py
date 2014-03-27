@@ -94,11 +94,14 @@ class DataHolder(object):
 
     def __init__(self):
         self.msgs_list = []
-        self.enum_dict = {}
         self.struct_list = []
 
         """ list of strings, e.g. "externals" """
         self.includes = []
+
+        """ list of name-members pairs, where member is list of name-value pairs
+            e.g. ("EEnum", [(EEnum_Value1, 1), (EEnum_Value2, 2)]) """
+        self.enums = []
 
         """ list of tuples of strings, e.g. ("TMyTypedef", "u32") """
         self.typedefs = []

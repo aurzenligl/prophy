@@ -20,8 +20,8 @@ def shiftLeft(x, y):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
                                              self.__render_includes(dataHolder.includes),
                                              self._serialize_constant(dataHolder.constant),
-                                             self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enum_dict),
-                                             self.__render_enums(dataHolder.enum_dict),
+                                             self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enums),
+                                             self.__render_enums(dataHolder.enums),
                                              self._serialize_union(dataHolder.union_dict),
                                              self._serialize_msgs(dataHolder.sort_struct()),
                                              self._serialize_msgs(dataHolder.msgs_list))))
@@ -43,7 +43,7 @@ def shiftLeft(x, y):
                            "    _enumerators  = [{2}]\n"
                            "\n"
                            "{3}\n").format(self.lib_imp, name, self.__render_enum_members(members), self.__render_enum_constants(members))
-                           for name, members in enums.iteritems()))
+                           for name, members in enums))
 
     def __render_typedef(self, typedef, structs, enums, used_structs, used_enums):
         prefix = ""
@@ -73,12 +73,12 @@ def shiftLeft(x, y):
                 return self._serialize_msgs([x])
         return ""
 
-    def _get_enum_for_typedef(self, val2, enum_dict):
+    def _get_enum_for_typedef(self, val2, enums):
         out = ""
-        for key, val in enum_dict.iteritems():
+        for key, val in enums:
             if key == val2:
-                enum_dict.pop(key, val)
-                return self.__render_enums({key:val})
+                enums.remove((key, val))
+                return self.__render_enums([(key, val)])
         return ""
 
     def __render_includes(self, includes):

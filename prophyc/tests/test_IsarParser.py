@@ -64,9 +64,9 @@ def test_enums_parsing():
 """
     holder = parse(xml)
 
-    assert 1 == len(holder.enum_dict)
-    assert "EEnum" == holder.enum_dict.items()[0][0]
-    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.enum_dict.items()[0][1]
+    assert 1 == len(holder.enums)
+    assert "EEnum" == holder.enums[0][0]
+    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.enums[0][1]
 
 # """ FIXME kl. don't test PythonSerializer together with IsarParser """
 #

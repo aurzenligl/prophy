@@ -29,8 +29,8 @@ a = b
 def test_typedefs_rendering_with_changed_enum_order():
     holder = DataHolder.DataHolder()
     holder.typedefs = [("TEnum2", "EEnum2")]
-    holder.enum_dict["EEnum1"] = [("EEnum1_1", "EEnum1_Val")]
-    holder.enum_dict["EEnum2"] = [("EEnum2_2", "EEnum2_Val")]
+    holder.enums = [("EEnum1", [("EEnum1_1", "EEnum1_Val")]),
+                    ("EEnum2", [("EEnum2_2", "EEnum2_Val")])]
 
     ref = """\
 class EEnum2(prophy.enum):
@@ -78,7 +78,7 @@ class SStruct1(prophy.struct):
 
 def test_enums_rendering():
     holder = DataHolder.DataHolder()
-    holder.enum_dict = {"EEnum": [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")]}
+    holder.enums = [("EEnum", [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")])]
 
     ref = """\
 class EEnum(prophy.enum):
@@ -121,7 +121,7 @@ def test_of_PythonSerializer():
     dh.typedefs = th
     dh.constant = const
     dh.msgs_list = [msg_h]
-    dh.enum_dict["test"] = enum
+    dh.enums = [("test", enum)]
 
     ps = PythonSerializer.PythonSerializer()
     output = ps.serialize_string(dh)

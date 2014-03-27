@@ -102,16 +102,15 @@ class IsarParser(object):
         return [elem.attributes["href"].value.split('.')[0] for elem in dom.getElementsByTagName("xi:include")]
 
     def __parse_tree_node(self, tree_node):
-        temp_dict = {}
         data_holder = DataHolder()
         data_holder.constant = self.__constant_parse(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
-        data_holder.enum_dict = self.__get_enums(tree_node)
+        data_holder.enums = self.__get_enums(tree_node).items()
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")
         data_holder.includes = self.__get_includes(tree_node)
         data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
-        data_holder.enum_dict = dict(data_holder.enum_dict.items() + temp_dict.items())
+        data_holder.enums += temp_dict.items()
         return data_holder
 
     def parse_string(self, string):
