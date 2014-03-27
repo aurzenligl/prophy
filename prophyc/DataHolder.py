@@ -63,6 +63,30 @@ class MessageHolder(Holder):
     def __str__(self):
         return "name=" + self.name + "list=" + str(self.list)
 
+def _get_struct_name_and_index(struct_list, struct_dict):
+    for x in struct_list:
+        index = struct_list.index(x)
+        struct_dict[x.name] = index
+
+def _sorter(struct_list, index, out_list, struct_dict, lista):
+    element = struct_list[index]
+    element_name = element.name
+    for member_elem in element.get_list():
+        member_type = member_elem.type
+        if member_type.startswith('S') and member_type in struct_dict:
+            index = struct_dict[member_type]
+            x = struct_list[index]
+            if x not in out_list:
+                out_list.extend(_sorter(struct_list, index, out_list, struct_dict, lista))
+        else:
+            for x in struct_list:
+                if member_type in x.name:
+                    if x not in out_list:
+                        out_list.append(x)
+    if element not in out_list:
+        out_list.append(element)
+    return lista
+
 class DataHolder(object):
 
     def __init__(self):
@@ -83,39 +107,18 @@ class DataHolder(object):
         self.constants = []
 
         self.union_dict = {}
-        self.struct_dict = {}
+        # self.struct_dict = {}
 
     def __str__(self):
         return "msgs_list=" + str(len(self.msgs_list)) + " enum_dict=" + str(len(self.enum_dict)) + " struct_list=" + str(len(self.struct_list))
 
-    def get_struct_name_and_index(self):
-        for x in self.struct_list:
-            index = self.struct_list.index(x)
-            self.struct_dict[x.name] = index
-
     def sort_struct(self):
+        struct_list = self.struct_list
         index = 0
         out_list = []
-        self.get_struct_name_and_index()
-        for struct_elem_index in xrange(len(self.struct_list)):
-            out_list.extend(self.__sorter(struct_elem_index, out_list))
+        struct_dict = {}
+        lista = []
+        _get_struct_name_and_index(struct_list, struct_dict)
+        for struct_elem_index in xrange(len(struct_list)):
+            out_list.extend(_sorter(struct_list, struct_elem_index, out_list, struct_dict, lista))
         return out_list
-
-    def __sorter(self, index, out_list, lista = []):
-        element = self.struct_list[index]
-        element_name = element.name
-        for member_elem in element.get_list():
-            member_type = member_elem.type
-            if member_type.startswith('S') and member_type in self.struct_dict:
-                index = self.struct_dict[member_type]
-                x = self.struct_list[index]
-                if x not in out_list:
-                    out_list.extend(self.__sorter(index, out_list))
-            else:
-                for x in self.struct_list:
-                    if member_type in x.name:
-                        if x not in out_list:
-                            out_list.append(x)
-        if element not in out_list:
-            out_list.append(element)
-        return lista
