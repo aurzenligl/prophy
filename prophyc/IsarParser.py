@@ -45,21 +45,20 @@ class IsarParser(object):
                     member.add_to_list(item, dim_val)
         return member
 
-    def __enum_parse(self, tree_node):
-        dict = {}
-        enum_nodes = tree_node.getElementsByTagName('enum')
-        for enum_element in enum_nodes:
-            if enum_element.hasChildNodes():
-                name = enum_element.attributes["name"].value
-                enumerators = []
-                member = enum_element.getElementsByTagName('enum-member')
-                for member_enum_element in member:
-                    value = member_enum_element.getAttribute('value')
-                    if value == "-1":
-                        value = "0xFFFFFFFF"
-                    enumerators.append((member_enum_element.attributes["name"].value, value))
-                dict[name] = enumerators
-        return dict
+    def __get_enum_member(self, elem):
+        value = elem.getAttribute('value')
+        value = value if value != "-1" else "0xFFFFFFFF"
+        return (elem.attributes["name"].value, value)
+
+    def __get_enum(self, elem):
+        if not elem.hasChildNodes():
+            return None
+        name = elem.attributes["name"].value
+        enumerators = [self.__get_enum_member(member) for member in elem.getElementsByTagName('enum-member')]
+        return (name, enumerators)
+
+    def __get_enums(self, dom):
+        return dict(filter(None, (self.__get_enum(elem) for elem in dom.getElementsByTagName('enum'))))
 
     def __union_parse(self, tree_node):
         union_dict = {}
@@ -107,7 +106,7 @@ class IsarParser(object):
         data_holder = DataHolder()
         data_holder.constant = self.__constant_parse(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
-        data_holder.enum_dict = self.__enum_parse(tree_node)
+        data_holder.enum_dict = self.__get_enums(tree_node)
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")
         data_holder.includes = self.__get_includes(tree_node)
