@@ -83,16 +83,15 @@ class IsarParser(object):
             enum_dict["EDisc" + name] = enum
         return union_dict, enum_dict
 
-    def __typedef_parse(self, tree_node):
-        typedef_dict = TypeDefHolder()
-        typedef_nodes = tree_node.getElementsByTagName('typedef')
-        for typedef_element in typedef_nodes:
-            if typedef_element.hasAttribute("type"):
-                typedef_dict.add_to_list(typedef_element.attributes["name"].value, typedef_element.attributes["type"].value)
-            elif typedef_element.hasAttribute("primitiveType"):
-                type = self.primitive_types[typedef_element.attributes["primitiveType"].value]
-                typedef_dict.add_to_list(typedef_element.attributes["name"].value, type)
-        return typedef_dict
+    def __get_typedefs(self, dom):
+        typedefs = []
+        for elem in dom.getElementsByTagName('typedef'):
+            if elem.hasAttribute("type"):
+                typedefs.append((elem.attributes["name"].value, elem.attributes["type"].value))
+            elif elem.hasAttribute("primitiveType"):
+                type = self.primitive_types[elem.attributes["primitiveType"].value]
+                typedefs.append((elem.attributes["name"].value, type))
+        return typedefs
 
     def __constant_parse(self, tree_node):
         constant = ConstantHolder()
@@ -109,7 +108,7 @@ class IsarParser(object):
         temp_dict = {}
         data_holder = DataHolder()
         data_holder.constant = self.__constant_parse(tree_node)
-        data_holder.typedef = self.__typedef_parse(tree_node)
+        data_holder.typedefs = self.__get_typedefs(tree_node)
         data_holder.enum_dict = self.__enum_parse(tree_node)
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
         data_holder.struct_list = self.__struct_parse(tree_node, "struct")

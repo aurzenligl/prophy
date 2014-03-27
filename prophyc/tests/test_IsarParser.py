@@ -46,13 +46,13 @@ def test_typedefs_primitive_type_parsing():
             ("g", "i32"),
             ("h", "i64"),
             ("i", "r32"),
-            ("j", "r64")] == holder.typedef.list
+            ("j", "r64")] == holder.typedefs
 
 def test_typedefs_parsing():
     xml = """<typedef name="TILoveTypedefs_ALot" type="MyType"/>"""
     holder = parse(xml)
 
-    assert [("TILoveTypedefs_ALot", "MyType")] == holder.typedef.list
+    assert [("TILoveTypedefs_ALot", "MyType")] == holder.typedefs
 
 """ FIXME kl. don't test PythonSerializer together with IsarParser """
 

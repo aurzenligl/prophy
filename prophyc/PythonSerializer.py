@@ -37,7 +37,7 @@ class PythonSerializer(object):
         return out
 
     def _serialize_typedef(self, dataHolder):
-        typedef_list = dataHolder.typedef.get_list()
+        typedef_list = dataHolder.typedefs
         struct_list = dataHolder.struct_list
         enum_dict = dataHolder.enum_dict
         list_used_structed = []

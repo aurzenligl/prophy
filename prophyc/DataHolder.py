@@ -48,15 +48,6 @@ class ConstantHolder(Holder):
     def get_sorted_list(self):
         return self.__sort_list(self.list)
 
-class TypeDefHolder(Holder):
-
-    def __init__(self):
-        self.list = []
-        self.typedef = namedtuple('typedef', 'typedef_name typedef_value')
-
-    def add_to_list(self, element_name, element_value = 0):
-        self.list.append(self.typedef(element_name, element_value))
-
 class UnionHolder(Holder):
 
     def __init__(self):
@@ -116,7 +107,7 @@ class DataHolder(object):
         self.enum_dict = {}
         self.struct_list = []
         self.includes = []
-        self.typedef = TypeDefHolder()
+        self.typedefs = []
         self.constant = ConstantHolder()
         self.union_dict = {}
         self.struct_dict = {}

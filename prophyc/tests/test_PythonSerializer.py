@@ -21,8 +21,7 @@ from powidlo import *
 
 def test_typedefs_rendering():
     holder = DataHolder.DataHolder()
-    holder.typedef = DataHolder.TypeDefHolder()
-    holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("a", "b")]]
+    holder.typedefs = [("a", "b")]
 
     ref = """\
 import prophy
@@ -33,8 +32,7 @@ a = b
 
 def test_typedefs_rendering_with_changed_enum_order():
     holder = DataHolder.DataHolder()
-    holder.typedef = DataHolder.TypeDefHolder()
-    holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("TEnum2", "EEnum2")]]
+    holder.typedefs = [("TEnum2", "EEnum2")]
 
     enum1 = DataHolder.EnumHolder()
     enum1.add_to_list("EEnum1", "EEnum1_Val")
@@ -61,8 +59,7 @@ class EEnum1(prophy.enum):
 
 def test_typedefs_rendering_with_changed_struct_order():
     holder = DataHolder.DataHolder()
-    holder.typedef = DataHolder.TypeDefHolder()
-    holder.typedef.list = [holder.typedef.typedef(x, y) for x, y in [("TStruct2", "SStruct2")]]
+    holder.typedefs = [("TStruct2", "SStruct2")]
 
     msg1 = DataHolder.MessageHolder()
     msg1.name = "SStruct1"
@@ -92,12 +89,12 @@ class SStruct1(prophy.struct):
 """ FIXME kl. this test is way too large. It needs to be split to multiple tests """
 def test_of_PythonSerializer():
     ih = []
-    th = DataHolder.TypeDefHolder()
+    th = []
     for x in range(20, 200, 60):
         ih.append("test_include_" + str(x))
-        th.add_to_list("td_elem_name_" + str(x), "td_elem_val_" + str(x))
-        th.add_to_list("td_elem_name_" + str(x), "i_td_elem_val_" + str(x))
-        th.add_to_list("td_elem_name_" + str(x), "u_td_elem_val_" + str(x))
+        th.append(("td_elem_name_" + str(x), "td_elem_val_" + str(x)))
+        th.append(("td_elem_name_" + str(x), "i_td_elem_val_" + str(x)))
+        th.append(("td_elem_name_" + str(x), "u_td_elem_val_" + str(x)))
 
     enum = DataHolder.EnumHolder()
     for x in range(1, 100, 30):
@@ -114,7 +111,7 @@ def test_of_PythonSerializer():
 
     dh = DataHolder.DataHolder()
     dh.includes = ih
-    dh.typedef = th
+    dh.typedefs = th
     dh.constant = const
     dh.msgs_list = [msg_h]
     dh.enum_dict["test"] = enum
