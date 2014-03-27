@@ -30,6 +30,11 @@ class MemberHolder(Holder):
         self.dimension = namedtuple('dimension', 'dimension_field_name dimension_field_value')
         self.dimension_field_name_list = []
 
+        """ 0 - not an array
+            "N" - static array with given size
+            -1 - dynamic array """
+        self.array = 0
+
     def add_to_list(self, element_name, element_value = 0):
         self.list.append(self.dimension(element_name, element_value))
         self.dimension_field_name_list.append(element_name)

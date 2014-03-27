@@ -43,6 +43,13 @@ class IsarParser(object):
             for item , dim_val in dimension[0].attributes.items():
                 if 'Comment' not in item:
                     member.add_to_list(item, dim_val)
+            dimension_tags = dict(dimension[0].attributes.items())
+
+            if "isVariableSize" in dimension_tags:
+                member.array = -1
+            elif "size" in dimension_tags:
+                member.array = dimension_tags["size"]
+
         return member
 
     def __get_enum_member(self, elem):
