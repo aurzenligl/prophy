@@ -24,15 +24,15 @@ class PythonSerializer(object):
         def serialize_enum_members(list):
             desc = []
             for member in list:
-                    k, v = member
-                    desc.append("('{0}',{1})" .format(k , v))
+                k, v = member
+                desc.append("('{0}',{1})" .format(k , v))
             return ", ".join(desc)
         out = ""
 
-        for key, val in enum_dic.iteritems():
-            out += "class {0}({1}enum):" .format(key, self.lib_imp) + "\n"
-            out += "    __metaclass__ = {0}enum_generator" .format(self.lib_imp) + "\n"
-            out += "    _enumerators  = [" + serialize_enum_members(val.list) + "]\n"
+        for key, members in enum_dic.iteritems():
+            out += "class {0}({1}enum):".format(key, self.lib_imp) + "\n"
+            out += "    __metaclass__ = {0}enum_generator".format(self.lib_imp) + "\n"
+            out += "    _enumerators  = [" + serialize_enum_members(members) + "]\n"
 
         return out
 

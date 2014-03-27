@@ -11,16 +11,6 @@ class Holder(object):
     def get_list_len(self):
         return len(self.list)
 
-class EnumHolder(Holder):
-
-    def __init__(self):
-        self.list = []
-        self.enum = namedtuple('enum', 'enum_name enum_value')
-        self.special = {}
-
-    def add_to_list(self, element_name, element_value = 0):
-        self.list.append(self.enum(element_name, element_value))
-
 class ConstantHolder(Holder):
 
     def __init__(self):

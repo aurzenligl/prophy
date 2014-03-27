@@ -66,7 +66,7 @@ def test_enums_parsing():
 
     assert 1 == len(holder.enum_dict)
     assert "EEnum" == holder.enum_dict.items()[0][0]
-    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "2")] == [(key, val) for key, val in holder.enum_dict.items()[0][1].list]
+    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "2")] == holder.enum_dict.items()[0][1]
 
 """ FIXME kl. don't test PythonSerializer together with IsarParser """
 

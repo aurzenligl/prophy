@@ -33,14 +33,8 @@ a = b
 def test_typedefs_rendering_with_changed_enum_order():
     holder = DataHolder.DataHolder()
     holder.typedefs = [("TEnum2", "EEnum2")]
-
-    enum1 = DataHolder.EnumHolder()
-    enum1.add_to_list("EEnum1", "EEnum1_Val")
-    holder.enum_dict["EEnum1"] = enum1
-
-    enum2 = DataHolder.EnumHolder()
-    enum2.add_to_list("EEnum2", "EEnum2_Val")
-    holder.enum_dict["EEnum2"] = enum2
+    holder.enum_dict["EEnum1"] = [("EEnum1", "EEnum1_Val")]
+    holder.enum_dict["EEnum2"] = [("EEnum2", "EEnum2_Val")]
 
     ref = """\
 import prophy
@@ -88,9 +82,7 @@ class SStruct1(prophy.struct):
 
 def test_enums_rendering():
     holder = DataHolder.DataHolder()
-    enum = DataHolder.EnumHolder()
-    enum.list = [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")]
-    holder.enum_dict = {"EEnum": enum}
+    holder.enum_dict = {"EEnum": [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")]}
 
     ref = """\
 import prophy
@@ -111,9 +103,9 @@ def test_of_PythonSerializer():
         th.append(("td_elem_name_" + str(x), "i_td_elem_val_" + str(x)))
         th.append(("td_elem_name_" + str(x), "u_td_elem_val_" + str(x)))
 
-    enum = DataHolder.EnumHolder()
+    enum = []
     for x in range(1, 100, 30):
-        enum.add_to_list("elem_" + str(x), "val_" + str(x))
+        enum.append(("elem_" + str(x), "val_" + str(x)))
 
     const = DataHolder.ConstantHolder()
     const.add_to_list("C_A", "5")
@@ -163,9 +155,9 @@ def test_of_PythonSerializer():
                       "    _descriptor = [('messageResult',SMessageResult)]\n")
 
 def test_of_PythonSerializer_enum():
-    enum = DataHolder.EnumHolder()
+    enum = []
     for x in range(1, 5):
-        enum.add_to_list("elem_" + str(x), "val_" + str(x))
+        enum.append(("elem_" + str(x), "val_" + str(x)))
 
     ps = PythonSerializer.PythonSerializer()
     output = ps._serialize_enum({ "test" : enum })

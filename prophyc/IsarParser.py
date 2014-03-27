@@ -2,7 +2,7 @@
 
 import xml.dom.minidom
 from collections import OrderedDict
-from DataHolder import ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
+from DataHolder import ConstantHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
 
 class IsarParser(object):
 
@@ -51,7 +51,7 @@ class IsarParser(object):
         for enum_element in enum_nodes:
             if enum_element.hasChildNodes():
                 name = enum_element.attributes["name"].value
-                enum = EnumHolder()
+                enumerators = []
                 member = enum_element.getElementsByTagName('enum-member')
                 for member_enum_element in member:
                     value = member_enum_element.getAttribute('value')
@@ -61,8 +61,8 @@ class IsarParser(object):
                         value = 2
                     elif "EAaMemPoolCid_ApplicationCidStart" in value:
                         value = value.replace("EAaMemPoolCid_ApplicationCidStart", '2')
-                    enum.add_to_list(member_enum_element.attributes["name"].value, value)
-                dict[name] = enum
+                    enumerators.append((member_enum_element.attributes["name"].value, value))
+                dict[name] = enumerators
         return dict
 
     def __union_parse(self, tree_node):
@@ -73,14 +73,14 @@ class IsarParser(object):
         for union_element in union_nodes:
             name = union_element.getAttribute('name')
             union = UnionHolder()
-            enum = EnumHolder()
+            enum = []
             member = union_element.getElementsByTagName("member")
             for member_union_element in member:
                 discriminatorValue = member_union_element.getAttribute('discriminatorValue')
                 member_type = member_union_element.getAttribute('type')
                 member_name = member_union_element.getAttribute('name')
                 union.add_to_list(member_type, member_name)
-                enum.add_to_list("EDisc" + name + "_" + member_name + "_" + discriminatorValue, discriminatorValue)
+                enum.append(("EDisc" + name + "_" + member_name + "_" + discriminatorValue, discriminatorValue))
             union_dict[name] = union
             enum_dict["EDisc" + name] = enum
         return union_dict, enum_dict
