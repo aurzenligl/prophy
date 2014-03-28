@@ -24,26 +24,11 @@ class UnionHolder(Holder):
 class MemberHolder(Holder):
 
     def __init__(self, name, type):
-        self.list = []
         self.name = name
         self.type = type
-        self.dimension = namedtuple('dimension', 'dimension_field_name dimension_field_value')
-        self.dimension_field_name_list = []
-
-        """ 0 - not an array
-            "N" - static array with given size
-            -1 - dynamic array """
-        self.array = 0
-
-    def add_to_list(self, element_name, element_value = 0):
-        self.list.append(self.dimension(element_name, element_value))
-        self.dimension_field_name_list.append(element_name)
-
-    def get_dimension_field_index(self, element_name):
-        if element_name in self.dimension_field_name_list:
-            return self.dimension_field_name_list.index(element_name)
-        else:
-            return -1
+        self.array = None
+        self.array_bound = None
+        self.array_size = None
 
     def __str__(self):
         return "name=" + str(self.name) + " type=" + str(self.type) + " list=" + str(len(self.list))

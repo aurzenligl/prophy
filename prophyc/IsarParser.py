@@ -32,11 +32,12 @@ class IsarParser(object):
                 msg.name = p.attributes["name"].value
                 member = p.getElementsByTagName('member')
                 for k in member:
-                    msg.add_to_list(self.__checkin_member_fields(k))
+                    msg.list.extend(self.__checkin_member_fields(k))
                 list.append(msg)
         return list
 
     def __checkin_member_fields(self, k):
+        members = []
         member = MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
@@ -46,11 +47,25 @@ class IsarParser(object):
             dimension_tags = dict(dimension[0].attributes.items())
 
             if "isVariableSize" in dimension_tags:
-                member.array = -1
+                if "variableSizeFieldType" in dimension_tags:
+                    type = dimension_tags["variableSizeFieldType"]
+                else:
+                    type = "u32"
+                if "variableSizeFieldName" in dimension_tags:
+                    name = dimension_tags["variableSizeFieldName"]
+                else:
+                    name = member.name + "_len"
+                members.append(MemberHolder(name, type))
+                member.array = True
+                member.array_bound = name
+                member.array_size = None
             elif "size" in dimension_tags:
-                member.array = dimension_tags["size"]
+                member.array = True
+                member.array_bound = None
+                member.array_size = dimension_tags["size"]
 
-        return member
+        members.append(member)
+        return members
 
     def __get_enum_member(self, elem):
         value = elem.getAttribute('value')

@@ -124,8 +124,10 @@ def test_struct_rendering_with_dynamic_array():
     holder = DataHolder.DataHolder()
     struct = DataHolder.MessageHolder()
     struct.name = "Struct"
+    struct.list.append(DataHolder.MemberHolder("tmpName", "TNumberOfItems"))
     struct.list.append(DataHolder.MemberHolder("a", "u8"))
-    struct.list[0].array = -1
+    struct.list[1].array = True
+    struct.list[1].array_bound = "tmpName"
     holder.struct_list = [struct]
 
     ref = """\
@@ -140,7 +142,8 @@ def test_struct_rendering_with_static_array():
     struct = DataHolder.MessageHolder()
     struct.name = "Struct"
     struct.list.append(DataHolder.MemberHolder("a", "u8"))
-    struct.list[0].array = "NUM_OF_ARRAY_ELEMS"
+    struct.list[0].array = True
+    struct.list[0].array_size = "NUM_OF_ARRAY_ELEMS"
     holder.struct_list = [struct]
 
     ref = """\

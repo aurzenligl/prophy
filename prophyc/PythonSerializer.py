@@ -119,40 +119,24 @@ def shiftLeft(x, y):
                 else:
                     desc.append("('{0}',{1}{2})" .format(member.name , lib_imp, member.type))
             return ", ".join(desc)
+
         for key in msgs_list:
             out += "class {0}({1}struct):" .format(key.name, self.lib_imp) + "\n"
             out += "    __metaclass__ = {0}struct_generator" .format(self.lib_imp) + "\n"
             out += "    _descriptor = [" + serialize_members(key.get_list()) + "]\n"
+
         return out
 
     def _serialize_msg_member(self, member):
-        def format_simple_list(a, b):
-            return  "('{0}',{1}), " .format(a, b)
         def format_array(a, b, c, d):
             return "('{0}',{1}array({2},bound='{3}'))" .format(a, b, c, d)
         def format_array_static(a, b, c, d):
             return "('{0}',{1}array({2},size={3}))" .format(a, b, c, d)
 
         str = ""
-        variable_name_index = member.get_dimension_field_index('variableSizeFieldName')
-        variable_type_index = member.get_dimension_field_index('variableSizeFieldType')
-        size_index = member.get_dimension_field_index('size')
-        is_variable_index = member.get_dimension_field_index('isVariableSize')
-
-        if variable_name_index == -1:
-            variable_name = "tmpName"
+        if member.array_bound:
+            str += format_array(member.name, self.lib_imp, member.type, member.array_bound)
         else:
-            variable_name = member.list[variable_name_index].dimension_field_value
-
-        if variable_type_index == -1:
-            variable_type = "TNumberOfItems"
-        else:
-            variable_type = member.list[variable_type_index].dimension_field_value
-
-        if member.array == -1:
-            str += format_simple_list(variable_name, variable_type)
-            str += format_array(member.name, self.lib_imp, member.type, variable_name)
-        else:
-            str += format_array_static(member.name, self.lib_imp, member.type, member.array)
+            str += format_array_static(member.name, self.lib_imp, member.type, member.array_size)
 
         return str
