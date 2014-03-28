@@ -69,20 +69,14 @@ class IsarParser(object):
         ktype = k.attributes["type"].value
         if k.getElementsByTagName('dimension'):
             dimension = dict(k.getElementsByTagName('dimension')[0].attributes.items())
-
             if "isVariableSize" in dimension:
-                if "variableSizeFieldType" in dimension:
-                    type = dimension["variableSizeFieldType"]
-                else:
-                    type = "u32"
-                if "variableSizeFieldName" in dimension:
-                    name = dimension["variableSizeFieldName"]
-                else:
-                    name = kname + "_len"
+                type = dimension.get("variableSizeFieldType", "u32")
+                name = dimension.get("variableSizeFieldName", kname + "_len")
                 members.append(model.Struct.Member(name, type, None, None, None))
                 members.append(model.Struct.Member(kname, ktype, True, name, None))
             elif "size" in dimension:
-                members.append(model.Struct.Member(kname, ktype, True, None, dimension["size"]))
+                size = dimension["size"]
+                members.append(model.Struct.Member(kname, ktype, True, None, size))
         else:
             members.append(model.Struct.Member(kname, ktype, None, None, None))
         return members
@@ -109,7 +103,7 @@ class IsarParser(object):
         union_nodes = tree_node.getElementsByTagName('union')
         for union_element in union_nodes:
             name = union_element.getAttribute('name')
-            union = DataHolder.UnionHolder()
+            union = model.UnionHolder()
             enum = []
             member = union_element.getElementsByTagName("member")
             for member_union_element in member:
