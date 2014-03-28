@@ -158,8 +158,6 @@ def test_struct_parsing_static_array():
     assert None == holder.structs[0].members[0].array_bound
     assert "NUM_OF_Y" == holder.structs[0].members[0].array_size
 
-# <dimension isVariableSize="true" size="MAX_NUM_DRB_PER_USER" variableSizeFieldName="numDrbs" variableSizeFieldType="TNumberOfItems"/>
-
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
 <struct name="StructX">
