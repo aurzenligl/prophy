@@ -7,7 +7,7 @@ def serialize(holder):
     return PythonSerializer.PythonSerializer().serialize_string(holder, no_prolog = True)
 
 def test_includes_rendering():
-    holder = model.DataHolder()
+    holder = model.Model()
     holder.includes = ["szydlo", "mydlo", "powidlo"]
 
     ref = """\
@@ -18,7 +18,7 @@ from powidlo import *
     assert ref == serialize(holder)
 
 def test_typedefs_rendering():
-    holder = model.DataHolder()
+    holder = model.Model()
     holder.typedefs = [("a", "b")]
 
     ref = """\
@@ -27,7 +27,7 @@ a = b
     assert ref == serialize(holder)
 
 def test_typedefs_rendering_with_changed_enum_order():
-    holder = model.DataHolder()
+    holder = model.Model()
     holder.typedefs = [("TEnum2", "EEnum2")]
     holder.enums = [("EEnum1", [("EEnum1_1", "EEnum1_Val")]),
                     ("EEnum2", [("EEnum2_2", "EEnum2_Val")])]
@@ -50,7 +50,7 @@ EEnum1_1 = EEnum1_Val
     assert ref == serialize(holder)
 
 def test_typedefs_rendering_with_changed_struct_order():
-    holder = model.DataHolder()
+    holder = model.Model()
     holder.typedefs = [("TStruct2", "SStruct2")]
 
     msg1 = model.Struct()
@@ -77,7 +77,7 @@ class SStruct1(prophy.struct):
     assert ref == serialize(holder)
 
 def test_enums_rendering():
-    holder = model.DataHolder()
+    holder = model.Model()
     holder.enums = [("EEnum", [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")])]
 
     ref = """\
@@ -94,7 +94,7 @@ EEnum_C = 2
     assert ref == serialize(holder)
 
 def test_constants_rendering():
-    holder = model.DataHolder()
+    holder = model.Model()
     holder.constants = [("CONST_A", "0"), ("CONST_B", "31")]
 
     ref = """\
@@ -104,7 +104,7 @@ CONST_B = 31
     assert ref == serialize(holder)
 
 def test_struct_rendering():
-    holder = model.DataHolder()
+    holder = model.Model()
     struct = model.Struct()
     struct.name = "Struct"
     struct.members.append(model.Struct.Member("a", "u8", None, None, None))
@@ -124,7 +124,7 @@ class Struct(prophy.struct):
     assert ref == serialize(holder)
 
 def test_struct_rendering_with_dynamic_array():
-    holder = model.DataHolder()
+    holder = model.Model()
     struct = model.Struct()
     struct.name = "Struct"
     struct.members.append(model.Struct.Member("tmpName", "TNumberOfItems", None, None, None))
@@ -140,7 +140,7 @@ class Struct(prophy.struct):
     assert ref == serialize(holder)
 
 def test_struct_rendering_with_static_array():
-    holder = model.DataHolder()
+    holder = model.Model()
     struct = model.Struct()
     struct.name = "Struct"
     struct.members.append(model.Struct.Member("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS"))
@@ -170,7 +170,7 @@ def test_of_PythonSerializer():
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.members.append(model.Struct.Member('messageResult', 'SMessageResult', None, None, None))
 
-    dh = model.DataHolder()
+    dh = model.Model()
     dh.includes = ih
     dh.typedefs = th
     dh.constants = [("C_A", "5"), ("C_B", "5"), ("C_C", "C_B + C_A")]

@@ -50,21 +50,7 @@ class IsarParser(object):
                        "32 bit float": "r32",
                        "64 bit float": "r64"}
 
-    def __get_struct(self, elem):
-        msg = model.Struct()
-        msg.name = elem.attributes["name"].value
-        msg.members = reduce(lambda x, y: x + y, (self.__get_members(member)
-                                                  for member
-                                                  in elem.getElementsByTagName('member')), [])
-        return msg
-
-    def __get_structs(self, dom):
-        return [self.__get_struct(elem)
-                for elem
-                in dom.getElementsByTagName("struct") + dom.getElementsByTagName("message")
-                if elem.hasChildNodes()]
-
-    def __get_members(self, elem):
+    def __get_struct_members(self, elem):
         members = []
         kname = elem.attributes["name"].value
         ktype = elem.attributes["type"].value
@@ -81,6 +67,20 @@ class IsarParser(object):
         else:
             members.append(model.Struct.Member(kname, ktype, None, None, None))
         return members
+
+    def __get_struct(self, elem):
+        msg = model.Struct()
+        msg.name = elem.attributes["name"].value
+        msg.members = reduce(lambda x, y: x + y, (self.__get_struct_members(member)
+                                                  for member
+                                                  in elem.getElementsByTagName('member')), [])
+        return msg
+
+    def __get_structs(self, dom):
+        return [self.__get_struct(elem)
+                for elem
+                in dom.getElementsByTagName("struct") + dom.getElementsByTagName("message")
+                if elem.hasChildNodes()]
 
     def __get_enum_member(self, elem):
         value = elem.getAttribute('value')
@@ -141,19 +141,19 @@ class IsarParser(object):
     def __get_includes(self, dom):
         return [elem.attributes["href"].value.split('.')[0] for elem in dom.getElementsByTagName("xi:include")]
 
-    def __parse_tree_node(self, tree_node):
-        data_holder = model.DataHolder()
-        data_holder.constants = self.__get_constants(tree_node)
-        data_holder.typedefs = self.__get_typedefs(tree_node)
-        data_holder.enums = self.__get_enums(tree_node)
-        data_holder.structs = sort_struct(self.__get_structs(tree_node))
-        data_holder.includes = self.__get_includes(tree_node)
-        data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
-        data_holder.enums += temp_dict.items()
-        return data_holder
+    def __get_model(self, dom):
+        mdl = model.Model()
+        mdl.constants = self.__get_constants(dom)
+        mdl.typedefs = self.__get_typedefs(dom)
+        mdl.enums = self.__get_enums(dom)
+        mdl.structs = sort_struct(self.__get_structs(dom))
+        mdl.includes = self.__get_includes(dom)
+        mdl.union_dict, enums = self.__union_parse(dom)
+        mdl.enums += enums.items()
+        return mdl
 
     def parse_string(self, string):
-        return self.__parse_tree_node(xml.dom.minidom.parseString(string))
+        return self.__get_model(xml.dom.minidom.parseString(string))
 
     def parse(self, file):
-        return self.__parse_tree_node(xml.dom.minidom.parse(file))
+        return self.__get_model(xml.dom.minidom.parse(file))

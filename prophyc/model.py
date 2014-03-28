@@ -31,7 +31,7 @@ class Struct(object):
     def __str__(self):
         return "name=" + self.name + "members=" + str(self.members)
 
-class DataHolder(object):
+class Model(object):
 
     def __init__(self):
         self.structs = []
