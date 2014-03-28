@@ -117,21 +117,21 @@ def shiftLeft(x, y):
                 if member.array:
                     desc.append(self._serialize_msg_member(member))
                 else:
-                    desc.append("('{0}',{1}{2})" .format(member.name , lib_imp, member.type))
+                    desc.append("('{0}', {1}{2})" .format(member.name , lib_imp, member.type))
             return (",\n" + " " * 19).join(desc)
 
         for key in msgs_list:
-            out += "class {0}({1}struct):" .format(key.name, self.lib_imp) + "\n"
-            out += "    __metaclass__ = {0}struct_generator" .format(self.lib_imp) + "\n"
-            out += "    _descriptor = [" + serialize_members(key.get_list()) + "]\n"
+            out += ("class {1}({0}struct):\n"
+                    "    __metaclass__ = {0}struct_generator\n"
+                    "    _descriptor = [{2}]\n").format(self.lib_imp, key.name, serialize_members(key.get_list()))
 
         return out
 
     def _serialize_msg_member(self, member):
         def format_array(a, b, c, d):
-            return "('{0}',{1}array({2},bound='{3}'))" .format(a, b, c, d)
+            return "('{0}', {1}array({2}, bound = '{3}'))" .format(a, b, c, d)
         def format_array_static(a, b, c, d):
-            return "('{0}',{1}array({2},size={3}))" .format(a, b, c, d)
+            return "('{0}', {1}array({2}, size = {3}))" .format(a, b, c, d)
 
         str = ""
         if member.array_bound:
