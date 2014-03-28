@@ -94,7 +94,7 @@ class IsarParser(object):
         return (name, enumerators)
 
     def __get_enums(self, dom):
-        return dict(filter(None, (self.__get_enum(elem) for elem in dom.getElementsByTagName('enum'))))
+        return filter(None, (self.__get_enum(elem) for elem in dom.getElementsByTagName('enum')))
 
     def __union_parse(self, tree_node):
         union_dict = {}
@@ -144,7 +144,7 @@ class IsarParser(object):
         data_holder = model.DataHolder()
         data_holder.constants = self.__get_constants(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
-        data_holder.enums = self.__get_enums(tree_node).items()
+        data_holder.enums = self.__get_enums(tree_node)
         data_holder.structs = sort_struct(self.__get_structs(tree_node))
         data_holder.includes = self.__get_includes(tree_node)
         data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
