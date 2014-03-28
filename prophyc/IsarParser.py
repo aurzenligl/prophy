@@ -55,7 +55,7 @@ class IsarParser(object):
         struct_nodes = tree_node.getElementsByTagName(element_name)
         for p in struct_nodes:
             if p.hasChildNodes():
-                msg = model.MessageHolder()
+                msg = model.Struct()
                 msg.name = p.attributes["name"].value
                 member = p.getElementsByTagName('member')
                 for k in member:

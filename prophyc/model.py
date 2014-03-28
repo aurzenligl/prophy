@@ -33,10 +33,12 @@ class MemberHolder(Holder):
     def __str__(self):
         return "name=" + str(self.name) + " type=" + str(self.type) + " list=" + str(len(self.list))
 
-class MessageHolder(Holder):
+class Struct(object):
 
     def __init__(self):
         self.name = ""
+
+        """ (name, type, array, array_bound, array_size) """
         self.members = []
 
     def __str__(self):

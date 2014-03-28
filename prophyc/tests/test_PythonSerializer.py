@@ -53,11 +53,11 @@ def test_typedefs_rendering_with_changed_struct_order():
     holder = model.DataHolder()
     holder.typedefs = [("TStruct2", "SStruct2")]
 
-    msg1 = model.MessageHolder()
+    msg1 = model.Struct()
     msg1.name = "SStruct1"
     msg1.members.append(model.MemberHolder('x', 'u32'))
 
-    msg2 = model.MessageHolder()
+    msg2 = model.Struct()
     msg2.name = "SStruct2"
     msg2.members.append(model.MemberHolder('y', 'i32'))
 
@@ -105,7 +105,7 @@ CONST_B = 31
 
 def test_struct_rendering():
     holder = model.DataHolder()
-    struct = model.MessageHolder()
+    struct = model.Struct()
     struct.name = "Struct"
     struct.members.append(model.MemberHolder("a", "u8"))
     struct.members.append(model.MemberHolder("b", "i64"))
@@ -125,7 +125,7 @@ class Struct(prophy.struct):
 
 def test_struct_rendering_with_dynamic_array():
     holder = model.DataHolder()
-    struct = model.MessageHolder()
+    struct = model.Struct()
     struct.name = "Struct"
     struct.members.append(model.MemberHolder("tmpName", "TNumberOfItems"))
     struct.members.append(model.MemberHolder("a", "u8"))
@@ -143,7 +143,7 @@ class Struct(prophy.struct):
 
 def test_struct_rendering_with_static_array():
     holder = model.DataHolder()
-    struct = model.MessageHolder()
+    struct = model.Struct()
     struct.name = "Struct"
     struct.members.append(model.MemberHolder("a", "u8"))
     struct.members[0].array = True
@@ -170,7 +170,7 @@ def test_of_PythonSerializer():
     for x in range(1, 100, 30):
         enum.append(("elem_" + str(x), "val_" + str(x)))
 
-    msg_h = model.MessageHolder()
+    msg_h = model.Struct()
     msg_h.name = "MAC_L2CallConfigResp"
     msg_h.members.append(model.MemberHolder('messageResult', 'SMessageResult'))
 
