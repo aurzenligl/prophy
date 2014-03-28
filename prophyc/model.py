@@ -32,20 +32,16 @@ Struct = namedtuple("Struct", ["name", "members"])
 class Model(object):
 
     def __init__(self):
-        self.structs = []
 
         """ list of strings, e.g. "externals" """
         self.includes = []
 
-        """ list of name-members pairs, where member is list of name-value pairs
-            e.g. ("EEnum", [(EEnum_Value1, 1), (EEnum_Value2, 2)]) """
-        self.enums = []
-
-        """ list of name-type pairs, e.g. ("TMyTypedef", "u32") """
-        self.typedefs = []
-
         """ list of name-value pairs, e.g. ("CONST", 10) """
         self.constants = []
+
+        self.typedefs = []
+        self.enums = []
+        self.structs = []
 
         self.union_dict = {}
 
