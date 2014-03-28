@@ -55,11 +55,11 @@ def test_typedefs_rendering_with_changed_struct_order():
 
     msg1 = DataHolder.MessageHolder()
     msg1.name = "SStruct1"
-    msg1.add_to_list(DataHolder.MemberHolder('x', 'u32'))
+    msg1.members.append(DataHolder.MemberHolder('x', 'u32'))
 
     msg2 = DataHolder.MessageHolder()
     msg2.name = "SStruct2"
-    msg2.add_to_list(DataHolder.MemberHolder('y', 'i32'))
+    msg2.members.append(DataHolder.MemberHolder('y', 'i32'))
 
     holder.struct_list = [msg1, msg2]
 
@@ -107,10 +107,10 @@ def test_struct_rendering():
     holder = DataHolder.DataHolder()
     struct = DataHolder.MessageHolder()
     struct.name = "Struct"
-    struct.list.append(DataHolder.MemberHolder("a", "u8"))
-    struct.list.append(DataHolder.MemberHolder("b", "i64"))
-    struct.list.append(DataHolder.MemberHolder("c", "r32"))
-    struct.list.append(DataHolder.MemberHolder("d", "TTypeX"))
+    struct.members.append(DataHolder.MemberHolder("a", "u8"))
+    struct.members.append(DataHolder.MemberHolder("b", "i64"))
+    struct.members.append(DataHolder.MemberHolder("c", "r32"))
+    struct.members.append(DataHolder.MemberHolder("d", "TTypeX"))
     holder.struct_list = [struct]
 
     ref = """\
@@ -127,10 +127,10 @@ def test_struct_rendering_with_dynamic_array():
     holder = DataHolder.DataHolder()
     struct = DataHolder.MessageHolder()
     struct.name = "Struct"
-    struct.list.append(DataHolder.MemberHolder("tmpName", "TNumberOfItems"))
-    struct.list.append(DataHolder.MemberHolder("a", "u8"))
-    struct.list[1].array = True
-    struct.list[1].array_bound = "tmpName"
+    struct.members.append(DataHolder.MemberHolder("tmpName", "TNumberOfItems"))
+    struct.members.append(DataHolder.MemberHolder("a", "u8"))
+    struct.members[1].array = True
+    struct.members[1].array_bound = "tmpName"
     holder.struct_list = [struct]
 
     ref = """\
@@ -145,9 +145,9 @@ def test_struct_rendering_with_static_array():
     holder = DataHolder.DataHolder()
     struct = DataHolder.MessageHolder()
     struct.name = "Struct"
-    struct.list.append(DataHolder.MemberHolder("a", "u8"))
-    struct.list[0].array = True
-    struct.list[0].array_size = "NUM_OF_ARRAY_ELEMS"
+    struct.members.append(DataHolder.MemberHolder("a", "u8"))
+    struct.members[0].array = True
+    struct.members[0].array_size = "NUM_OF_ARRAY_ELEMS"
     holder.struct_list = [struct]
 
     ref = """\
@@ -172,7 +172,7 @@ def test_of_PythonSerializer():
 
     msg_h = DataHolder.MessageHolder()
     msg_h.name = "MAC_L2CallConfigResp"
-    msg_h.add_to_list(DataHolder.MemberHolder('messageResult', 'SMessageResult'))
+    msg_h.members.append(DataHolder.MemberHolder('messageResult', 'SMessageResult'))
 
     dh = DataHolder.DataHolder()
     dh.includes = ih

@@ -2,7 +2,7 @@
 
 import xml.dom.minidom
 from collections import OrderedDict
-from DataHolder import MemberHolder, MessageHolder, DataHolder, UnionHolder
+from DataHolder import MemberHolder, MessageHolder, DataHolder, UnionHolder, sort_struct
 
 class IsarParser(object):
 
@@ -32,7 +32,7 @@ class IsarParser(object):
                 msg.name = p.attributes["name"].value
                 member = p.getElementsByTagName('member')
                 for k in member:
-                    msg.list.extend(self.__checkin_member_fields(k))
+                    msg.members.extend(self.__checkin_member_fields(k))
                 list.append(msg)
         return list
 
@@ -132,7 +132,7 @@ class IsarParser(object):
         data_holder.typedefs = self.__get_typedefs(tree_node)
         data_holder.enums = self.__get_enums(tree_node).items()
         data_holder.msgs_list = self.__struct_parse(tree_node, "message")
-        data_holder.struct_list = self.__struct_parse(tree_node, "struct")
+        data_holder.struct_list = sort_struct(self.__struct_parse(tree_node, "struct"))
         data_holder.includes = self.__get_includes(tree_node)
         data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
         data_holder.enums += temp_dict.items()

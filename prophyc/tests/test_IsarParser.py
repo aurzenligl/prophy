@@ -103,20 +103,20 @@ def test_struct_parsing():
     holder = parse(xml)
 
     assert 1 == len(holder.struct_list)
-    assert 4 == len(holder.struct_list[0].list)
+    assert 4 == len(holder.struct_list[0].members)
     assert "Struct" == holder.struct_list[0].name
-    assert "a" == holder.struct_list[0].list[0].name
-    assert "u8" == holder.struct_list[0].list[0].type
-    assert None == holder.struct_list[0].list[0].array
-    assert "b" == holder.struct_list[0].list[1].name
-    assert "i64" == holder.struct_list[0].list[1].type
-    assert None == holder.struct_list[0].list[1].array
-    assert "c" == holder.struct_list[0].list[2].name
-    assert "r32" == holder.struct_list[0].list[2].type
-    assert None == holder.struct_list[0].list[2].array
-    assert "d" == holder.struct_list[0].list[3].name
-    assert "TTypeX" == holder.struct_list[0].list[3].type
-    assert None == holder.struct_list[0].list[3].array
+    assert "a" == holder.struct_list[0].members[0].name
+    assert "u8" == holder.struct_list[0].members[0].type
+    assert None == holder.struct_list[0].members[0].array
+    assert "b" == holder.struct_list[0].members[1].name
+    assert "i64" == holder.struct_list[0].members[1].type
+    assert None == holder.struct_list[0].members[1].array
+    assert "c" == holder.struct_list[0].members[2].name
+    assert "r32" == holder.struct_list[0].members[2].type
+    assert None == holder.struct_list[0].members[2].array
+    assert "d" == holder.struct_list[0].members[3].name
+    assert "TTypeX" == holder.struct_list[0].members[3].type
+    assert None == holder.struct_list[0].members[3].array
 
 def test_struct_parsing_dynamic_array():
     xml = """\
@@ -129,15 +129,15 @@ def test_struct_parsing_dynamic_array():
     holder = parse(xml)
 
     assert 1 == len(holder.struct_list)
-    assert 2 == len(holder.struct_list[0].list)
+    assert 2 == len(holder.struct_list[0].members)
     assert "StructWithDynamic" == holder.struct_list[0].name
-    assert "x_len" == holder.struct_list[0].list[0].name
-    assert "u32" == holder.struct_list[0].list[0].type
-    assert "x" == holder.struct_list[0].list[1].name
-    assert "TTypeX" == holder.struct_list[0].list[1].type
-    assert True == holder.struct_list[0].list[1].array
-    assert "x_len" == holder.struct_list[0].list[1].array_bound
-    assert None == holder.struct_list[0].list[1].array_size
+    assert "x_len" == holder.struct_list[0].members[0].name
+    assert "u32" == holder.struct_list[0].members[0].type
+    assert "x" == holder.struct_list[0].members[1].name
+    assert "TTypeX" == holder.struct_list[0].members[1].type
+    assert True == holder.struct_list[0].members[1].array
+    assert "x_len" == holder.struct_list[0].members[1].array_bound
+    assert None == holder.struct_list[0].members[1].array_size
 
 def test_struct_parsing_static_array():
     xml = """\
@@ -150,13 +150,13 @@ def test_struct_parsing_static_array():
     holder = parse(xml)
 
     assert 1 == len(holder.struct_list)
-    assert 1 == len(holder.struct_list[0].list)
+    assert 1 == len(holder.struct_list[0].members)
     assert "StructWithStatic" == holder.struct_list[0].name
-    assert "y" == holder.struct_list[0].list[0].name
-    assert "TTypeY" == holder.struct_list[0].list[0].type
-    assert True == holder.struct_list[0].list[0].array
-    assert None == holder.struct_list[0].list[0].array_bound
-    assert "NUM_OF_Y" == holder.struct_list[0].list[0].array_size
+    assert "y" == holder.struct_list[0].members[0].name
+    assert "TTypeY" == holder.struct_list[0].members[0].type
+    assert True == holder.struct_list[0].members[0].array
+    assert None == holder.struct_list[0].members[0].array_bound
+    assert "NUM_OF_Y" == holder.struct_list[0].members[0].array_size
 
 # <dimension isVariableSize="true" size="MAX_NUM_DRB_PER_USER" variableSizeFieldName="numDrbs" variableSizeFieldType="TNumberOfItems"/>
 
@@ -171,16 +171,16 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
     holder = parse(xml)
 
     assert 1 == len(holder.struct_list)
-    assert 2 == len(holder.struct_list[0].list)
+    assert 2 == len(holder.struct_list[0].members)
     assert "StructX" == holder.struct_list[0].name
-    assert "x_len" == holder.struct_list[0].list[0].name
-    assert "TNumberOfItems" == holder.struct_list[0].list[0].type
-    assert None == holder.struct_list[0].list[0].array
-    assert "x" == holder.struct_list[0].list[1].name
-    assert "TTypeX" == holder.struct_list[0].list[1].type
-    assert True == holder.struct_list[0].list[1].array
-    assert "x_len" == holder.struct_list[0].list[1].array_bound
-    assert None == holder.struct_list[0].list[1].array_size
+    assert "x_len" == holder.struct_list[0].members[0].name
+    assert "TNumberOfItems" == holder.struct_list[0].members[0].type
+    assert None == holder.struct_list[0].members[0].array
+    assert "x" == holder.struct_list[0].members[1].name
+    assert "TTypeX" == holder.struct_list[0].members[1].type
+    assert True == holder.struct_list[0].members[1].array
+    assert "x_len" == holder.struct_list[0].members[1].array_bound
+    assert None == holder.struct_list[0].members[1].array_size
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
@@ -192,14 +192,14 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
 """
     holder = parse(xml)
 
-    assert 2 == len(holder.struct_list[0].list)
-    assert "numOfX" == holder.struct_list[0].list[0].name
-    assert "u32" == holder.struct_list[0].list[0].type
-    assert "x" == holder.struct_list[0].list[1].name
-    assert "TTypeX" == holder.struct_list[0].list[1].type
-    assert True == holder.struct_list[0].list[1].array
-    assert "numOfX" == holder.struct_list[0].list[1].array_bound
-    assert None == holder.struct_list[0].list[1].array_size
+    assert 2 == len(holder.struct_list[0].members)
+    assert "numOfX" == holder.struct_list[0].members[0].name
+    assert "u32" == holder.struct_list[0].members[0].type
+    assert "x" == holder.struct_list[0].members[1].name
+    assert "TTypeX" == holder.struct_list[0].members[1].type
+    assert True == holder.struct_list[0].members[1].array
+    assert "numOfX" == holder.struct_list[0].members[1].array_bound
+    assert None == holder.struct_list[0].members[1].array_size
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
@@ -211,11 +211,11 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
 """
     holder = parse(xml)
 
-    assert 2 == len(holder.struct_list[0].list)
-    assert "numOfX" == holder.struct_list[0].list[0].name
-    assert "TSize" == holder.struct_list[0].list[0].type
-    assert "x" == holder.struct_list[0].list[1].name
-    assert "TTypeX" == holder.struct_list[0].list[1].type
-    assert True == holder.struct_list[0].list[1].array
-    assert "numOfX" == holder.struct_list[0].list[1].array_bound
-    assert None == holder.struct_list[0].list[1].array_size
+    assert 2 == len(holder.struct_list[0].members)
+    assert "numOfX" == holder.struct_list[0].members[0].name
+    assert "TSize" == holder.struct_list[0].members[0].type
+    assert "x" == holder.struct_list[0].members[1].name
+    assert "TTypeX" == holder.struct_list[0].members[1].type
+    assert True == holder.struct_list[0].members[1].array
+    assert "numOfX" == holder.struct_list[0].members[1].array_bound
+    assert None == holder.struct_list[0].members[1].array_size

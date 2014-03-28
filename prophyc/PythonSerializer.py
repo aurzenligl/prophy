@@ -12,7 +12,7 @@ class PythonSerializer(object):
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enums),
                                              self.__render_enums(dataHolder.enums),
                                              self._serialize_union(dataHolder.union_dict),
-                                             self._serialize_msgs(dataHolder.sort_struct()),
+                                             self._serialize_msgs(dataHolder.struct_list),
                                              self._serialize_msgs(dataHolder.msgs_list))))
 
     def serialize(self, dataHolder, basename):
@@ -122,7 +122,7 @@ def shiftLeft(x, y):
         def serialize_message(msg):
             return ("class {1}({0}struct):\n"
                     "    __metaclass__ = {0}struct_generator\n"
-                    "    _descriptor = [{2}]\n").format(self.lib_imp, msg.name, serialize_members(msg.get_list()))
+                    "    _descriptor = [{2}]\n").format(self.lib_imp, msg.name, serialize_members(msg.members))
 
         return "\n".join(serialize_message(msg) for msg in msgs_list)
 
