@@ -9,11 +9,10 @@ class PythonSerializer(object):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
                                              self.__render_includes(dataHolder.includes),
                                              self.__render_constants(dataHolder.constants),
-                                             self.__render_typedefs(dataHolder.typedefs, dataHolder.struct_list, dataHolder.enums),
+                                             self.__render_typedefs(dataHolder.typedefs, dataHolder.structs, dataHolder.enums),
                                              self.__render_enums(dataHolder.enums),
                                              self._serialize_union(dataHolder.union_dict),
-                                             self._serialize_msgs(dataHolder.struct_list),
-                                             self._serialize_msgs(dataHolder.msgs_list))))
+                                             self._serialize_msgs(dataHolder.structs))))
 
     def serialize(self, dataHolder, basename):
         path = os.path.join(self.output_dir, basename + ".py")

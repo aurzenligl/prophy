@@ -45,8 +45,7 @@ class MessageHolder(Holder):
 class DataHolder(object):
 
     def __init__(self):
-        self.msgs_list = []
-        self.struct_list = []
+        self.structs = []
 
         """ list of strings, e.g. "externals" """
         self.includes = []

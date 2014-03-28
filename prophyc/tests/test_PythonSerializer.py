@@ -61,7 +61,7 @@ def test_typedefs_rendering_with_changed_struct_order():
     msg2.name = "SStruct2"
     msg2.members.append(DataHolder.MemberHolder('y', 'i32'))
 
-    holder.struct_list = [msg1, msg2]
+    holder.structs = [msg1, msg2]
 
     ref = """\
 class SStruct2(prophy.struct):
@@ -111,7 +111,7 @@ def test_struct_rendering():
     struct.members.append(DataHolder.MemberHolder("b", "i64"))
     struct.members.append(DataHolder.MemberHolder("c", "r32"))
     struct.members.append(DataHolder.MemberHolder("d", "TTypeX"))
-    holder.struct_list = [struct]
+    holder.structs = [struct]
 
     ref = """\
 class Struct(prophy.struct):
@@ -131,7 +131,7 @@ def test_struct_rendering_with_dynamic_array():
     struct.members.append(DataHolder.MemberHolder("a", "u8"))
     struct.members[1].array = True
     struct.members[1].array_bound = "tmpName"
-    holder.struct_list = [struct]
+    holder.structs = [struct]
 
     ref = """\
 class Struct(prophy.struct):
@@ -148,7 +148,7 @@ def test_struct_rendering_with_static_array():
     struct.members.append(DataHolder.MemberHolder("a", "u8"))
     struct.members[0].array = True
     struct.members[0].array_size = "NUM_OF_ARRAY_ELEMS"
-    holder.struct_list = [struct]
+    holder.structs = [struct]
 
     ref = """\
 class Struct(prophy.struct):
@@ -178,7 +178,7 @@ def test_of_PythonSerializer():
     dh.includes = ih
     dh.typedefs = th
     dh.constants = [("C_A", "5"), ("C_B", "5"), ("C_C", "C_B + C_A")]
-    dh.msgs_list = [msg_h]
+    dh.structs = [msg_h]
     dh.enums = [("test", enum)]
 
     ps = PythonSerializer.PythonSerializer()
