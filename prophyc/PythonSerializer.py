@@ -12,7 +12,7 @@ class PythonSerializer(object):
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.structs, dataHolder.enums),
                                              self.__render_enums(dataHolder.enums),
                                              self._serialize_union(dataHolder.union_dict),
-                                             self._serialize_msgs(dataHolder.structs))))
+                                             self.__render_structs(dataHolder.structs))))
 
     def serialize(self, dataHolder, basename):
         path = os.path.join(self.output_dir, basename + ".py")
@@ -69,7 +69,7 @@ def shiftLeft(x, y):
         for i in xrange(len(struct_list)):
             if struct_list[i].name == val:
                 x = struct_list.pop(i)
-                return self._serialize_msgs([x])
+                return self.__render_structs([x])
         return ""
 
     def _get_enum_for_typedef(self, val2, enums):
@@ -103,27 +103,26 @@ def shiftLeft(x, y):
 
         return out
 
-    def _serialize_msgs(self, msgs_list):
+    def __render_struct_members(self, keys):
+        desc = []
+        for member in keys:
+            if member.type.startswith('u') or member.type.startswith('i') or member.type.startswith('r')  :
+                lib_imp = self.lib_imp
+            else :
+                lib_imp = ""
+            if member.array:
+                desc.append(self._serialize_msg_member(member))
+            else:
+                desc.append("('{0}', {1}{2})" .format(member.name , lib_imp, member.type))
+        return (",\n" + " " * 19).join(desc)
 
-        def serialize_members(keys):
-            desc = []
-            for member in keys:
-                if member.type.startswith('u') or member.type.startswith('i') or member.type.startswith('r')  :
-                    lib_imp = self.lib_imp
-                else :
-                    lib_imp = ""
-                if member.array:
-                    desc.append(self._serialize_msg_member(member))
-                else:
-                    desc.append("('{0}', {1}{2})" .format(member.name , lib_imp, member.type))
-            return (",\n" + " " * 19).join(desc)
+    def __render_struct(self, struct):
+        return ("class {1}({0}struct):\n"
+                "    __metaclass__ = {0}struct_generator\n"
+                "    _descriptor = [{2}]\n").format(self.lib_imp, struct.name, self.__render_struct_members(struct.members))
 
-        def serialize_message(msg):
-            return ("class {1}({0}struct):\n"
-                    "    __metaclass__ = {0}struct_generator\n"
-                    "    _descriptor = [{2}]\n").format(self.lib_imp, msg.name, serialize_members(msg.members))
-
-        return "\n".join(serialize_message(msg) for msg in msgs_list)
+    def __render_structs(self, structs):
+        return "\n".join(self.__render_struct(struct) for struct in structs)
 
     def _serialize_msg_member(self, member):
         def format_array(a, b, c, d):
