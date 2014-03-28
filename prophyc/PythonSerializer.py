@@ -11,7 +11,6 @@ class PythonSerializer(object):
                                              self.__render_constants(dataHolder.constants),
                                              self.__render_typedefs(dataHolder.typedefs, dataHolder.structs, dataHolder.enums),
                                              self.__render_enums(dataHolder.enums),
-                                             self._serialize_union(dataHolder.union_dict),
                                              self.__render_structs(dataHolder.structs))))
 
     def serialize(self, dataHolder, basename):
