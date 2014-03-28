@@ -118,7 +118,7 @@ def shiftLeft(x, y):
                     desc.append(self._serialize_msg_member(member))
                 else:
                     desc.append("('{0}',{1}{2})" .format(member.name , lib_imp, member.type))
-            return ", ".join(desc)
+            return (",\n" + " " * 19).join(desc)
 
         for key in msgs_list:
             out += "class {0}({1}struct):" .format(key.name, self.lib_imp) + "\n"

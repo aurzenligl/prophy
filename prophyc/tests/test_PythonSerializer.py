@@ -116,7 +116,10 @@ def test_struct_rendering():
     ref = """\
 class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
-    _descriptor = [('a',prophy.u8), ('b',prophy.i64), ('c',prophy.r32), ('d',TTypeX)]
+    _descriptor = [('a',prophy.u8),
+                   ('b',prophy.i64),
+                   ('c',prophy.r32),
+                   ('d',TTypeX)]
 """
     assert ref == serialize(holder)
 
@@ -133,7 +136,8 @@ def test_struct_rendering_with_dynamic_array():
     ref = """\
 class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
-    _descriptor = [('tmpName',TNumberOfItems), ('a',prophy.array(u8,bound='tmpName'))]
+    _descriptor = [('tmpName',TNumberOfItems),
+                   ('a',prophy.array(u8,bound='tmpName'))]
 """
     assert ref == serialize(holder)
 
