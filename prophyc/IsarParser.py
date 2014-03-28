@@ -50,25 +50,26 @@ class IsarParser(object):
                        "32 bit float": "r32",
                        "64 bit float": "r64"}
 
-    def __get_structs(self, dom):
-        list = []
-        elems = dom.getElementsByTagName("struct") + dom.getElementsByTagName("message")
-        for p in elems:
-            if p.hasChildNodes():
-                msg = model.Struct()
-                msg.name = p.attributes["name"].value
-                member = p.getElementsByTagName('member')
-                for k in member:
-                    msg.members.extend(self.__checkin_member_fields(k))
-                list.append(msg)
-        return list
+    def __get_struct(self, elem):
+        msg = model.Struct()
+        msg.name = elem.attributes["name"].value
+        msg.members = reduce(lambda x, y: x + y, (self.__get_members(member)
+                                                  for member
+                                                  in elem.getElementsByTagName('member')), [])
+        return msg
 
-    def __checkin_member_fields(self, k):
+    def __get_structs(self, dom):
+        return [self.__get_struct(elem)
+                for elem
+                in dom.getElementsByTagName("struct") + dom.getElementsByTagName("message")
+                if elem.hasChildNodes()]
+
+    def __get_members(self, elem):
         members = []
-        kname = k.attributes["name"].value
-        ktype = k.attributes["type"].value
-        if k.getElementsByTagName('dimension'):
-            dimension = dict(k.getElementsByTagName('dimension')[0].attributes.items())
+        kname = elem.attributes["name"].value
+        ktype = elem.attributes["type"].value
+        if elem.getElementsByTagName('dimension'):
+            dimension = dict(elem.getElementsByTagName('dimension')[0].attributes.items())
             if "isVariableSize" in dimension:
                 type = dimension.get("variableSizeFieldType", "u32")
                 name = dimension.get("variableSizeFieldName", kname + "_len")
