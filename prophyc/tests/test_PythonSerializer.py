@@ -198,14 +198,14 @@ C_B = 5
 C_C = C_B + C_A
 
 td_elem_name_20 = td_elem_val_20
-td_elem_name_20 = prophy.i_td_elem_val_20
-td_elem_name_20 = prophy.u_td_elem_val_20
+td_elem_name_20 = i_td_elem_val_20
+td_elem_name_20 = u_td_elem_val_20
 td_elem_name_80 = td_elem_val_80
-td_elem_name_80 = prophy.i_td_elem_val_80
-td_elem_name_80 = prophy.u_td_elem_val_80
+td_elem_name_80 = i_td_elem_val_80
+td_elem_name_80 = u_td_elem_val_80
 td_elem_name_140 = td_elem_val_140
-td_elem_name_140 = prophy.i_td_elem_val_140
-td_elem_name_140 = prophy.u_td_elem_val_140
+td_elem_name_140 = i_td_elem_val_140
+td_elem_name_140 = u_td_elem_val_140
 
 class test(prophy.enum):
     __metaclass__ = prophy.enum_generator

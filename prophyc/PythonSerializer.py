@@ -51,7 +51,7 @@ def shiftLeft(x, y):
     def __render_typedef(self, typedef, structs, enums, used_structs, used_enums):
         prefix = ""
         key, val = typedef
-        if val.startswith('u') or val.startswith('i') or val.startswith('r'):
+        if val in self.primitive_types:
             val = self.libname + "." + val
         elif val.startswith('S'):
             if val not in used_structs:
