@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import xml.dom.minidom
-from collections import OrderedDict
-from DataHolder import MemberHolder, MessageHolder, DataHolder, UnionHolder
+import DataHolder
 
 def _get_struct_name_and_index(struct_list, struct_dict):
     for x in struct_list:
@@ -51,7 +50,6 @@ class IsarParser(object):
                        "32 bit float": "r32",
                        "64 bit float": "r64"}
 
-    tmp_dict = OrderedDict()
     typedef_dict = {}
     enum_dict = {}
     constant_dict = {}
@@ -62,7 +60,7 @@ class IsarParser(object):
         struct_nodes = tree_node.getElementsByTagName(element_name)
         for p in struct_nodes:
             if p.hasChildNodes():
-                msg = MessageHolder()
+                msg = DataHolder.MessageHolder()
                 msg.name = p.attributes["name"].value
                 member = p.getElementsByTagName('member')
                 for k in member:
@@ -72,7 +70,7 @@ class IsarParser(object):
 
     def __checkin_member_fields(self, k):
         members = []
-        member = MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
+        member = DataHolder.MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
             for item , dim_val in dimension[0].attributes.items():
@@ -89,7 +87,7 @@ class IsarParser(object):
                     name = dimension_tags["variableSizeFieldName"]
                 else:
                     name = member.name + "_len"
-                members.append(MemberHolder(name, type))
+                members.append(DataHolder.MemberHolder(name, type))
                 member.array = True
                 member.array_bound = name
                 member.array_size = None
@@ -123,7 +121,7 @@ class IsarParser(object):
         union_nodes = tree_node.getElementsByTagName('union')
         for union_element in union_nodes:
             name = union_element.getAttribute('name')
-            union = UnionHolder()
+            union = DataHolder.UnionHolder()
             enum = []
             member = union_element.getElementsByTagName("member")
             for member_union_element in member:
@@ -161,7 +159,7 @@ class IsarParser(object):
         return [elem.attributes["href"].value.split('.')[0] for elem in dom.getElementsByTagName("xi:include")]
 
     def __parse_tree_node(self, tree_node):
-        data_holder = DataHolder()
+        data_holder = DataHolder.DataHolder()
         data_holder.constants = self.__get_constants(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
         data_holder.enums = self.__get_enums(tree_node).items()
