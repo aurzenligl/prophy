@@ -67,23 +67,22 @@ class IsarParser(object):
         members = []
         kname = k.attributes["name"].value
         ktype = k.attributes["type"].value
-        if k.hasChildNodes() and k.getElementsByTagName('dimension'):
-            dimension = k.getElementsByTagName('dimension')
-            dimension_tags = dict(dimension[0].attributes.items())
+        if k.getElementsByTagName('dimension'):
+            dimension = dict(k.getElementsByTagName('dimension')[0].attributes.items())
 
-            if "isVariableSize" in dimension_tags:
-                if "variableSizeFieldType" in dimension_tags:
-                    type = dimension_tags["variableSizeFieldType"]
+            if "isVariableSize" in dimension:
+                if "variableSizeFieldType" in dimension:
+                    type = dimension["variableSizeFieldType"]
                 else:
                     type = "u32"
-                if "variableSizeFieldName" in dimension_tags:
-                    name = dimension_tags["variableSizeFieldName"]
+                if "variableSizeFieldName" in dimension:
+                    name = dimension["variableSizeFieldName"]
                 else:
                     name = kname + "_len"
                 members.append(model.Struct.Member(name, type, None, None, None))
                 members.append(model.Struct.Member(kname, ktype, True, name, None))
-            elif "size" in dimension_tags:
-                members.append(model.Struct.Member(kname, ktype, True, None, dimension_tags["size"]))
+            elif "size" in dimension:
+                members.append(model.Struct.Member(kname, ktype, True, None, dimension["size"]))
         else:
             members.append(model.Struct.Member(kname, ktype, None, None, None))
         return members
