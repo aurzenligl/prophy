@@ -88,14 +88,12 @@ class IsarParser(object):
         return (elem.attributes["name"].value, value)
 
     def __get_enum(self, elem):
-        if not elem.hasChildNodes():
-            return None
         name = elem.attributes["name"].value
         enumerators = [self.__get_enum_member(member) for member in elem.getElementsByTagName('enum-member')]
         return (name, enumerators)
 
     def __get_enums(self, dom):
-        return filter(None, (self.__get_enum(elem) for elem in dom.getElementsByTagName('enum')))
+        return [self.__get_enum(elem) for elem in dom.getElementsByTagName('enum') if elem.hasChildNodes()]
 
     def __union_parse(self, tree_node):
         union_dict = {}
