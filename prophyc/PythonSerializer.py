@@ -108,18 +108,11 @@ def shiftLeft(x, y):
         return out
 
     def __render_member_array(self, member):
-        def format_array(a, b, c, d):
-            return "('{0}', {1}array({2}, bound = '{3}'))" .format(a, b, c, d)
-        def format_array_static(a, b, c, d):
-            return "('{0}', {1}array({2}, size = {3}))" .format(a, b, c, d)
-
-        str = ""
+        prefix = self.lib_imp if member.type in self.primitive_types else ""
         if member.array_bound:
-            str += format_array(member.name, self.lib_imp, member.type, member.array_bound)
+            return "('%s', %sarray(%s, bound = '%s'))" % (member.name, self.lib_imp, prefix + member.type, member.array_bound)
         else:
-            str += format_array_static(member.name, self.lib_imp, member.type, member.array_size)
-
-        return str
+            return "('%s', %sarray(%s, size = %s))" % (member.name, self.lib_imp, prefix + member.type, member.array_size)
 
     def __render_struct_member(self, member):
         prefix = self.lib_imp if member.type in self.primitive_types else ""
