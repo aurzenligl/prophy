@@ -2,12 +2,12 @@ import os
 
 class PythonSerializer(object):
 
+    libname = "prophy"
     primitive_types = {"u8", "u16", "u32", "u64",
                        "i8", "i16", "i32", "i64",
                        "r32", "r64"}
 
     def __init__(self, output_dir = "."):
-        self.lib_imp = "prophy."
         self.output_dir = output_dir
 
     def serialize_string(self, dataHolder, no_prolog = False):
@@ -32,7 +32,7 @@ def bitMaskOr(x, y):
 
 def shiftLeft(x, y):
     return x << y
-""" % self.lib_imp[:-1]
+""" % self.libname
 
     def __render_enum_members(self, members):
         return (",\n" + " " * 21).join(("('%s', %s)" % (name, value) for name, value in members))
@@ -41,18 +41,18 @@ def shiftLeft(x, y):
         return "\n".join(("%s = %s" % (name, value) for name, value in members))
 
     def __render_enums(self, enums):
-        return "\n".join((("class {1}({0}enum):\n"
-                           "    __metaclass__ = {0}enum_generator\n"
+        return "\n".join((("class {1}({0}.enum):\n"
+                           "    __metaclass__ = {0}.enum_generator\n"
                            "    _enumerators  = [{2}]\n"
                            "\n"
-                           "{3}\n").format(self.lib_imp, name, self.__render_enum_members(members), self.__render_enum_constants(members))
+                           "{3}\n").format(self.libname, name, self.__render_enum_members(members), self.__render_enum_constants(members))
                            for name, members in enums))
 
     def __render_typedef(self, typedef, structs, enums, used_structs, used_enums):
         prefix = ""
         key, val = typedef
         if val.startswith('u') or val.startswith('i') or val.startswith('r'):
-            val = self.lib_imp + val
+            val = self.libname + "." + val
         elif val.startswith('S'):
             if val not in used_structs:
                 prefix = self._get_struct_for_typedef(val, structs) + '\n'
@@ -100,20 +100,20 @@ def shiftLeft(x, y):
         out = ""
 
         for key, val in union_dict.iteritems():
-            out += "class {0}({1}union):" .format(key, self.lib_imp) + "\n"
-            out += "    __metaclass__ = {0}union_generator" .format(self.lib_imp) + "\n"
+            out += "class {0}({1}.union):" .format(key, self.libname) + "\n"
+            out += "    __metaclass__ = {0}.union_generator" .format(self.libname) + "\n"
             out += "    _discriminator = EDisc{0}" .format(key) + "\n"
             out += "    _descriptor  = [" + serialize_union_members(val.list) + "]\n"
 
         return out
 
     def __render_struct_member(self, member):
-        prefixed_type = self.lib_imp + member.type if member.type in self.primitive_types else member.type
+        prefixed_type = self.libname + "." + member.type if member.type in self.primitive_types else member.type
         if member.array:
             if member.array_bound:
-                return "('%s', %sarray(%s, bound = '%s'))" % (member.name, self.lib_imp, prefixed_type, member.array_bound)
+                return "('%s', %s.array(%s, bound = '%s'))" % (member.name, self.libname, prefixed_type, member.array_bound)
             else:
-                return "('%s', %sarray(%s, size = %s))" % (member.name, self.lib_imp, prefixed_type, member.array_size)
+                return "('%s', %s.array(%s, size = %s))" % (member.name, self.libname, prefixed_type, member.array_size)
         else:
             return "('%s', %s)" % (member.name, prefixed_type)
 
@@ -121,9 +121,9 @@ def shiftLeft(x, y):
         return (",\n" + " " * 19).join((self.__render_struct_member(member) for member in keys))
 
     def __render_struct(self, struct):
-        return ("class {1}({0}struct):\n"
-                "    __metaclass__ = {0}struct_generator\n"
-                "    _descriptor = [{2}]\n").format(self.lib_imp, struct.name, self.__render_struct_members(struct.members))
+        return ("class {1}({0}.struct):\n"
+                "    __metaclass__ = {0}.struct_generator\n"
+                "    _descriptor = [{2}]\n").format(self.libname, struct.name, self.__render_struct_members(struct.members))
 
     def __render_structs(self, structs):
         return "\n".join(self.__render_struct(struct) for struct in structs)
