@@ -105,7 +105,6 @@ def shiftLeft(x, y):
         return out
 
     def _serialize_msgs(self, msgs_list):
-        out = ""
 
         def serialize_members(keys):
             desc = []
@@ -120,12 +119,12 @@ def shiftLeft(x, y):
                     desc.append("('{0}', {1}{2})" .format(member.name , lib_imp, member.type))
             return (",\n" + " " * 19).join(desc)
 
-        for key in msgs_list:
-            out += ("class {1}({0}struct):\n"
+        def serialize_message(msg):
+            return ("class {1}({0}struct):\n"
                     "    __metaclass__ = {0}struct_generator\n"
-                    "    _descriptor = [{2}]\n").format(self.lib_imp, key.name, serialize_members(key.get_list()))
+                    "    _descriptor = [{2}]\n").format(self.lib_imp, msg.name, serialize_members(msg.get_list()))
 
-        return out
+        return "\n".join(serialize_message(msg) for msg in msgs_list)
 
     def _serialize_msg_member(self, member):
         def format_array(a, b, c, d):
