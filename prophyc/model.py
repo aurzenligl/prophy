@@ -21,24 +21,11 @@ class UnionHolder(Holder):
     def add_to_list(self, member_type, member_name):
         self.list.append(self.union(member_type, member_name))
 
-class MemberHolder(Holder):
-
-    def __init__(self, name, type):
-        self.name = name
-        self.type = type
-        self.array = None
-        self.array_bound = None
-        self.array_size = None
-
-    def __str__(self):
-        return "name=" + str(self.name) + " type=" + str(self.type) + " list=" + str(len(self.list))
-
 class Struct(object):
+    Member = namedtuple("Member", ["name", "type", "array", "array_bound", "array_size"])
 
     def __init__(self):
         self.name = ""
-
-        """ (name, type, array, array_bound, array_size) """
         self.members = []
 
     def __str__(self):

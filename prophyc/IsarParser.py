@@ -65,12 +65,10 @@ class IsarParser(object):
 
     def __checkin_member_fields(self, k):
         members = []
-        member = model.MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
+        kname = k.attributes["name"].value
+        ktype = k.attributes["type"].value
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
-            for item , dim_val in dimension[0].attributes.items():
-                if 'Comment' not in item:
-                    member.add_to_list(item, dim_val)
             dimension_tags = dict(dimension[0].attributes.items())
 
             if "isVariableSize" in dimension_tags:
@@ -81,17 +79,13 @@ class IsarParser(object):
                 if "variableSizeFieldName" in dimension_tags:
                     name = dimension_tags["variableSizeFieldName"]
                 else:
-                    name = member.name + "_len"
-                members.append(model.MemberHolder(name, type))
-                member.array = True
-                member.array_bound = name
-                member.array_size = None
+                    name = kname + "_len"
+                members.append(model.Struct.Member(name, type, None, None, None))
+                members.append(model.Struct.Member(kname, ktype, True, name, None))
             elif "size" in dimension_tags:
-                member.array = True
-                member.array_bound = None
-                member.array_size = dimension_tags["size"]
-
-        members.append(member)
+                members.append(model.Struct.Member(kname, ktype, True, None, dimension_tags["size"]))
+        else:
+            members.append(model.Struct.Member(kname, ktype, None, None, None))
         return members
 
     def __get_enum_member(self, elem):
