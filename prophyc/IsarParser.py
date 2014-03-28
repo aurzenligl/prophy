@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import xml.dom.minidom
-import DataHolder
+import model
 
 def _get_struct_name_and_index(struct_list, struct_dict):
     for x in struct_list:
@@ -55,7 +55,7 @@ class IsarParser(object):
         struct_nodes = tree_node.getElementsByTagName(element_name)
         for p in struct_nodes:
             if p.hasChildNodes():
-                msg = DataHolder.MessageHolder()
+                msg = model.MessageHolder()
                 msg.name = p.attributes["name"].value
                 member = p.getElementsByTagName('member')
                 for k in member:
@@ -65,7 +65,7 @@ class IsarParser(object):
 
     def __checkin_member_fields(self, k):
         members = []
-        member = DataHolder.MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
+        member = model.MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
         if k.hasChildNodes() and k.getElementsByTagName('dimension'):
             dimension = k.getElementsByTagName('dimension')
             for item , dim_val in dimension[0].attributes.items():
@@ -82,7 +82,7 @@ class IsarParser(object):
                     name = dimension_tags["variableSizeFieldName"]
                 else:
                     name = member.name + "_len"
-                members.append(DataHolder.MemberHolder(name, type))
+                members.append(model.MemberHolder(name, type))
                 member.array = True
                 member.array_bound = name
                 member.array_size = None
@@ -154,7 +154,7 @@ class IsarParser(object):
         return [elem.attributes["href"].value.split('.')[0] for elem in dom.getElementsByTagName("xi:include")]
 
     def __parse_tree_node(self, tree_node):
-        data_holder = DataHolder.DataHolder()
+        data_holder = model.DataHolder()
         data_holder.constants = self.__get_constants(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
         data_holder.enums = self.__get_enums(tree_node).items()

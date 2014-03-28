@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import DataHolder
+import model
 import IsarParser
 import PythonSerializer
 from collections import namedtuple
