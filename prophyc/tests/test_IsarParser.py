@@ -217,3 +217,14 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     assert True == holder.structs[0].members[1].array
     assert "numOfX" == holder.structs[0].members[1].array_bound
     assert None == holder.structs[0].members[1].array_size
+
+def test_message_parsing():
+    xml = """\
+<message name="MsgX">
+    <member name="x" type="TTypeX"/>
+</message>
+"""
+    holder = parse(xml)
+
+    assert 1 == len(holder.structs)
+    assert [("x", "TTypeX", None, None, None)] == holder.structs[0].members
