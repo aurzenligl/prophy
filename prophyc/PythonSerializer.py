@@ -107,19 +107,15 @@ def shiftLeft(x, y):
 
         return out
 
-    def __render_member_array(self, member):
-        prefix = self.lib_imp if member.type in self.primitive_types else ""
-        if member.array_bound:
-            return "('%s', %sarray(%s, bound = '%s'))" % (member.name, self.lib_imp, prefix + member.type, member.array_bound)
-        else:
-            return "('%s', %sarray(%s, size = %s))" % (member.name, self.lib_imp, prefix + member.type, member.array_size)
-
     def __render_struct_member(self, member):
         prefix = self.lib_imp if member.type in self.primitive_types else ""
         if member.array:
-            return self.__render_member_array(member)
+            if member.array_bound:
+                return "('%s', %sarray(%s, bound = '%s'))" % (member.name, self.lib_imp, prefix + member.type, member.array_bound)
+            else:
+                return "('%s', %sarray(%s, size = %s))" % (member.name, self.lib_imp, prefix + member.type, member.array_size)
         else:
-            return "('%s', %s%s)" % (member.name, prefix, member.type)
+            return "('%s', %s)" % (member.name, prefix + member.type)
 
     def __render_struct_members(self, keys):
         return (",\n" + " " * 19).join((self.__render_struct_member(member) for member in keys))
