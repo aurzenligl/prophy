@@ -42,40 +42,6 @@ class MessageHolder(Holder):
     def __str__(self):
         return "name=" + self.name + "members=" + str(self.members)
 
-def _get_struct_name_and_index(struct_list, struct_dict):
-    for x in struct_list:
-        index = struct_list.index(x)
-        struct_dict[x.name] = index
-
-def _sorter(struct_list, index, out_list, struct_dict, lista):
-    element = struct_list[index]
-    element_name = element.name
-    for member_elem in element.members:
-        member_type = member_elem.type
-        if member_type.startswith('S') and member_type in struct_dict:
-            index = struct_dict[member_type]
-            x = struct_list[index]
-            if x not in out_list:
-                out_list.extend(_sorter(struct_list, index, out_list, struct_dict, lista))
-        else:
-            for x in struct_list:
-                if member_type in x.name:
-                    if x not in out_list:
-                        out_list.append(x)
-    if element not in out_list:
-        out_list.append(element)
-    return lista
-
-def sort_struct(struct_list):
-    index = 0
-    out_list = []
-    struct_dict = {}
-    lista = []
-    _get_struct_name_and_index(struct_list, struct_dict)
-    for struct_elem_index in xrange(len(struct_list)):
-        out_list.extend(_sorter(struct_list, struct_elem_index, out_list, struct_dict, lista))
-    return out_list
-
 class DataHolder(object):
 
     def __init__(self):
