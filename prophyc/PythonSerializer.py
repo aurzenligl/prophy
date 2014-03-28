@@ -1,6 +1,11 @@
 import os
 
 class PythonSerializer(object):
+
+    primitive_types = {"u8", "u16", "u32", "u64",
+                       "i8", "i16", "i32", "i64",
+                       "r32", "r64"}
+
     def __init__(self, output_dir = "."):
         self.lib_imp = "prophy."
         self.output_dir = output_dir
@@ -102,28 +107,7 @@ def shiftLeft(x, y):
 
         return out
 
-    def __render_struct_members(self, keys):
-        desc = []
-        for member in keys:
-            if member.type.startswith('u') or member.type.startswith('i') or member.type.startswith('r')  :
-                lib_imp = self.lib_imp
-            else :
-                lib_imp = ""
-            if member.array:
-                desc.append(self._serialize_msg_member(member))
-            else:
-                desc.append("('{0}', {1}{2})" .format(member.name , lib_imp, member.type))
-        return (",\n" + " " * 19).join(desc)
-
-    def __render_struct(self, struct):
-        return ("class {1}({0}struct):\n"
-                "    __metaclass__ = {0}struct_generator\n"
-                "    _descriptor = [{2}]\n").format(self.lib_imp, struct.name, self.__render_struct_members(struct.members))
-
-    def __render_structs(self, structs):
-        return "\n".join(self.__render_struct(struct) for struct in structs)
-
-    def _serialize_msg_member(self, member):
+    def __render_member_array(self, member):
         def format_array(a, b, c, d):
             return "('{0}', {1}array({2}, bound = '{3}'))" .format(a, b, c, d)
         def format_array_static(a, b, c, d):
@@ -136,3 +120,22 @@ def shiftLeft(x, y):
             str += format_array_static(member.name, self.lib_imp, member.type, member.array_size)
 
         return str
+
+    def __render_struct_member(self, member):
+        prefix = self.lib_imp if member.type in self.primitive_types else ""
+        if member.array:
+            return self.__render_member_array(member)
+        else:
+            return "('%s', %s%s)" % (member.name, prefix, member.type)
+
+    def __render_struct_members(self, keys):
+        return (",\n" + " " * 19).join((self.__render_struct_member(member) for member in keys))
+
+    def __render_struct(self, struct):
+        return ("class {1}({0}struct):\n"
+                "    __metaclass__ = {0}struct_generator\n"
+                "    _descriptor = [{2}]\n").format(self.lib_imp, struct.name, self.__render_struct_members(struct.members))
+
+    def __render_structs(self, structs):
+        return "\n".join(self.__render_struct(struct) for struct in structs)
+
