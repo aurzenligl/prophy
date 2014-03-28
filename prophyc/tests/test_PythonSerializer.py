@@ -52,16 +52,9 @@ EEnum1_1 = EEnum1_Val
 def test_typedefs_rendering_with_changed_struct_order():
     holder = model.Model()
     holder.typedefs = [("TStruct2", "SStruct2")]
-
-    msg1 = model.Struct()
-    msg1.name = "SStruct1"
-    msg1.members.append(model.Struct.Member('x', 'u32', None, None, None))
-
-    msg2 = model.Struct()
-    msg2.name = "SStruct2"
-    msg2.members.append(model.Struct.Member('y', 'i32', None, None, None))
-
-    holder.structs = [msg1, msg2]
+    members1 = [model.StructMember('x', 'u32', None, None, None)]
+    members2 = [model.StructMember('y', 'i32', None, None, None)]
+    holder.structs = [model.Struct("SStruct1", members1), model.Struct("SStruct2", members2)]
 
     ref = """\
 class SStruct2(prophy.struct):
@@ -104,14 +97,12 @@ CONST_B = 31
     assert ref == serialize(holder)
 
 def test_struct_rendering():
+    members = [(model.StructMember("a", "u8", None, None, None)),
+               (model.StructMember("b", "i64", None, None, None)),
+               (model.StructMember("c", "r32", None, None, None)),
+               (model.StructMember("d", "TTypeX", None, None, None))]
     holder = model.Model()
-    struct = model.Struct()
-    struct.name = "Struct"
-    struct.members.append(model.Struct.Member("a", "u8", None, None, None))
-    struct.members.append(model.Struct.Member("b", "i64", None, None, None))
-    struct.members.append(model.Struct.Member("c", "r32", None, None, None))
-    struct.members.append(model.Struct.Member("d", "TTypeX", None, None, None))
-    holder.structs = [struct]
+    holder.structs = [model.Struct("Struct", members)]
 
     ref = """\
 class Struct(prophy.struct):
@@ -124,12 +115,10 @@ class Struct(prophy.struct):
     assert ref == serialize(holder)
 
 def test_struct_rendering_with_dynamic_array():
+    members = [model.StructMember("tmpName", "TNumberOfItems", None, None, None),
+               model.StructMember("a", "u8", True, "tmpName", None)]
     holder = model.Model()
-    struct = model.Struct()
-    struct.name = "Struct"
-    struct.members.append(model.Struct.Member("tmpName", "TNumberOfItems", None, None, None))
-    struct.members.append(model.Struct.Member("a", "u8", True, "tmpName", None))
-    holder.structs = [struct]
+    holder.structs = [model.Struct("Struct", members)]
 
     ref = """\
 class Struct(prophy.struct):
@@ -140,11 +129,9 @@ class Struct(prophy.struct):
     assert ref == serialize(holder)
 
 def test_struct_rendering_with_static_array():
+    members = [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS")]
     holder = model.Model()
-    struct = model.Struct()
-    struct.name = "Struct"
-    struct.members.append(model.Struct.Member("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS"))
-    holder.structs = [struct]
+    holder.structs = [model.Struct("Struct", members)]
 
     ref = """\
 class Struct(prophy.struct):
@@ -166,9 +153,9 @@ def test_of_PythonSerializer():
     for x in range(1, 100, 30):
         enum.append(("elem_" + str(x), "val_" + str(x)))
 
-    msg_h = model.Struct()
-    msg_h.name = "MAC_L2CallConfigResp"
-    msg_h.members.append(model.Struct.Member('messageResult', 'SMessageResult', None, None, None))
+    name = "MAC_L2CallConfigResp"
+    members = [model.StructMember('messageResult', 'SMessageResult', None, None, None)]
+    msg_h = model.Struct(name, members)
 
     dh = model.Model()
     dh.includes = ih

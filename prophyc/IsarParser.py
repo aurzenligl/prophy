@@ -59,22 +59,21 @@ class IsarParser(object):
             if "isVariableSize" in dimension:
                 type = dimension.get("variableSizeFieldType", "u32")
                 name = dimension.get("variableSizeFieldName", kname + "_len")
-                members.append(model.Struct.Member(name, type, None, None, None))
-                members.append(model.Struct.Member(kname, ktype, True, name, None))
+                members.append(model.StructMember(name, type, None, None, None))
+                members.append(model.StructMember(kname, ktype, True, name, None))
             elif "size" in dimension:
                 size = dimension["size"]
-                members.append(model.Struct.Member(kname, ktype, True, None, size))
+                members.append(model.StructMember(kname, ktype, True, None, size))
         else:
-            members.append(model.Struct.Member(kname, ktype, None, None, None))
+            members.append(model.StructMember(kname, ktype, None, None, None))
         return members
 
     def __get_struct(self, elem):
-        msg = model.Struct()
-        msg.name = elem.attributes["name"].value
-        msg.members = reduce(lambda x, y: x + y, (self.__get_struct_members(member)
-                                                  for member
-                                                  in elem.getElementsByTagName('member')), [])
-        return msg
+        name = elem.attributes["name"].value
+        members = reduce(lambda x, y: x + y, (self.__get_struct_members(member)
+                                              for member
+                                              in elem.getElementsByTagName('member')), [])
+        return model.Struct(name, members)
 
     def __get_structs(self, dom):
         return [self.__get_struct(elem)
@@ -85,12 +84,12 @@ class IsarParser(object):
     def __get_enum_member(self, elem):
         value = elem.getAttribute('value')
         value = value if value != "-1" else "0xFFFFFFFF"
-        return (elem.attributes["name"].value, value)
+        return model.EnumMember(elem.attributes["name"].value, value)
 
     def __get_enum(self, elem):
         name = elem.attributes["name"].value
-        enumerators = [self.__get_enum_member(member) for member in elem.getElementsByTagName('enum-member')]
-        return (name, enumerators)
+        members = [self.__get_enum_member(member) for member in elem.getElementsByTagName('enum-member')]
+        return model.Enum(name, members)
 
     def __get_enums(self, dom):
         return [self.__get_enum(elem) for elem in dom.getElementsByTagName('enum') if elem.hasChildNodes()]
@@ -117,10 +116,10 @@ class IsarParser(object):
 
     def __get_typedef(self, elem):
         if elem.hasAttribute("type"):
-            return (elem.attributes["name"].value, elem.attributes["type"].value)
+            return model.Typedef(elem.attributes["name"].value, elem.attributes["type"].value)
         elif elem.hasAttribute("primitiveType"):
             type = self.primitive_types[elem.attributes["primitiveType"].value]
-            return ((elem.attributes["name"].value, type))
+            return model.Typedef(elem.attributes["name"].value, type)
 
     def __get_typedefs(self, dom):
         return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
