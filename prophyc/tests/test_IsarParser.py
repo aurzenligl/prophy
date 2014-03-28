@@ -20,6 +20,29 @@ def test_includes_parsing():
 
     assert ["mydlo", "szydlo", "powidlo"] == holder.includes
 
+def test_constants_parsing():
+    xml = """\
+<x>
+    <constant name="CONST_A" value="0"/>
+    <constant name="CONST_B" value="31"/>
+</x>
+"""
+    holder = parse(xml)
+
+    assert [("CONST_A", "0"), ("CONST_B", "31")] == holder.constants
+
+def test_constants_parsing_and_sorting():
+    xml = """\
+<x>
+    <constant name="C_A" value="C_B + C_C"/>
+    <constant name="C_B" value="1"/>
+    <constant name="C_C" value="2"/>
+</x>
+"""
+    holder = parse(xml)
+
+    assert [("C_B", "1"), ("C_C", "2"), ("C_A", "C_B + C_C")] == holder.constants
+
 def test_typedefs_primitive_type_parsing():
     xml = """\
 <x>
@@ -68,29 +91,6 @@ def test_enums_parsing():
     assert "EEnum" == holder.enums[0][0]
     assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.enums[0][1]
 
-def test_constants_parsing():
-    xml = """\
-<x>
-    <constant name="CONST_A" value="0"/>
-    <constant name="CONST_B" value="31"/>
-</x>
-"""
-    holder = parse(xml)
-
-    assert [("CONST_A", "0"), ("CONST_B", "31")] == holder.constants
-
-def test_constants_parsing_and_sorting():
-    xml = """\
-<x>
-    <constant name="C_A" value="C_B + C_C"/>
-    <constant name="C_B" value="1"/>
-    <constant name="C_C" value="2"/>
-</x>
-"""
-    holder = parse(xml)
-
-    assert [("C_B", "1"), ("C_C", "2"), ("C_A", "C_B + C_C")] == holder.constants
-
 def test_struct_parsing():
     xml = """\
 <struct name="Struct">
@@ -103,20 +103,11 @@ def test_struct_parsing():
     holder = parse(xml)
 
     assert 1 == len(holder.structs)
-    assert 4 == len(holder.structs[0].members)
     assert "Struct" == holder.structs[0].name
-    assert "a" == holder.structs[0].members[0].name
-    assert "u8" == holder.structs[0].members[0].type
-    assert None == holder.structs[0].members[0].array
-    assert "b" == holder.structs[0].members[1].name
-    assert "i64" == holder.structs[0].members[1].type
-    assert None == holder.structs[0].members[1].array
-    assert "c" == holder.structs[0].members[2].name
-    assert "r32" == holder.structs[0].members[2].type
-    assert None == holder.structs[0].members[2].array
-    assert "d" == holder.structs[0].members[3].name
-    assert "TTypeX" == holder.structs[0].members[3].type
-    assert None == holder.structs[0].members[3].array
+    assert [("a", "u8", None, None, None),
+            ("b", "i64", None, None, None),
+            ("c", "r32", None, None, None),
+            ("d", "TTypeX", None, None, None)] == holder.structs[0].members
 
 def test_struct_parsing_dynamic_array():
     xml = """\
@@ -128,16 +119,8 @@ def test_struct_parsing_dynamic_array():
 """
     holder = parse(xml)
 
-    assert 1 == len(holder.structs)
-    assert 2 == len(holder.structs[0].members)
-    assert "StructWithDynamic" == holder.structs[0].name
-    assert "x_len" == holder.structs[0].members[0].name
-    assert "u32" == holder.structs[0].members[0].type
-    assert "x" == holder.structs[0].members[1].name
-    assert "TTypeX" == holder.structs[0].members[1].type
-    assert True == holder.structs[0].members[1].array
-    assert "x_len" == holder.structs[0].members[1].array_bound
-    assert None == holder.structs[0].members[1].array_size
+    assert [("x_len", "u32", None, None, None),
+            ("x", "TTypeX", True, "x_len", None)] == holder.structs[0].members
 
 def test_struct_parsing_static_array():
     xml = """\
@@ -149,14 +132,7 @@ def test_struct_parsing_static_array():
 """
     holder = parse(xml)
 
-    assert 1 == len(holder.structs)
-    assert 1 == len(holder.structs[0].members)
-    assert "StructWithStatic" == holder.structs[0].name
-    assert "y" == holder.structs[0].members[0].name
-    assert "TTypeY" == holder.structs[0].members[0].type
-    assert True == holder.structs[0].members[0].array
-    assert None == holder.structs[0].members[0].array_bound
-    assert "NUM_OF_Y" == holder.structs[0].members[0].array_size
+    assert [("y", "TTypeY", True, None, "NUM_OF_Y")] == holder.structs[0].members
 
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
@@ -168,17 +144,8 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
 """
     holder = parse(xml)
 
-    assert 1 == len(holder.structs)
-    assert 2 == len(holder.structs[0].members)
-    assert "StructX" == holder.structs[0].name
-    assert "x_len" == holder.structs[0].members[0].name
-    assert "TNumberOfItems" == holder.structs[0].members[0].type
-    assert None == holder.structs[0].members[0].array
-    assert "x" == holder.structs[0].members[1].name
-    assert "TTypeX" == holder.structs[0].members[1].type
-    assert True == holder.structs[0].members[1].array
-    assert "x_len" == holder.structs[0].members[1].array_bound
-    assert None == holder.structs[0].members[1].array_size
+    assert [("x_len", "TNumberOfItems", None, None, None),
+            ("x", "TTypeX", True, "x_len", None)] == holder.structs[0].members
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
@@ -190,14 +157,8 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
 """
     holder = parse(xml)
 
-    assert 2 == len(holder.structs[0].members)
-    assert "numOfX" == holder.structs[0].members[0].name
-    assert "u32" == holder.structs[0].members[0].type
-    assert "x" == holder.structs[0].members[1].name
-    assert "TTypeX" == holder.structs[0].members[1].type
-    assert True == holder.structs[0].members[1].array
-    assert "numOfX" == holder.structs[0].members[1].array_bound
-    assert None == holder.structs[0].members[1].array_size
+    assert [("numOfX", "u32", None, None, None),
+            ("x", "TTypeX", True, "numOfX", None)] == holder.structs[0].members
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
@@ -209,14 +170,8 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
 """
     holder = parse(xml)
 
-    assert 2 == len(holder.structs[0].members)
-    assert "numOfX" == holder.structs[0].members[0].name
-    assert "TSize" == holder.structs[0].members[0].type
-    assert "x" == holder.structs[0].members[1].name
-    assert "TTypeX" == holder.structs[0].members[1].type
-    assert True == holder.structs[0].members[1].array
-    assert "numOfX" == holder.structs[0].members[1].array_bound
-    assert None == holder.structs[0].members[1].array_size
+    assert [("numOfX", "TSize", None, None, None),
+            ("x", "TTypeX", True, "numOfX", None)] == holder.structs[0].members
 
 def test_message_parsing():
     xml = """\
@@ -226,5 +181,4 @@ def test_message_parsing():
 """
     holder = parse(xml)
 
-    assert 1 == len(holder.structs)
     assert [("x", "TTypeX", None, None, None)] == holder.structs[0].members
