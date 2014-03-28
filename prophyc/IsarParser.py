@@ -50,10 +50,10 @@ class IsarParser(object):
                        "32 bit float": "r32",
                        "64 bit float": "r64"}
 
-    def __struct_parse(self, tree_node, element_name):
+    def __get_structs(self, dom):
         list = []
-        struct_nodes = tree_node.getElementsByTagName(element_name)
-        for p in struct_nodes:
+        elems = dom.getElementsByTagName("struct") + dom.getElementsByTagName("message")
+        for p in elems:
             if p.hasChildNodes():
                 msg = model.Struct()
                 msg.name = p.attributes["name"].value
@@ -145,8 +145,7 @@ class IsarParser(object):
         data_holder.constants = self.__get_constants(tree_node)
         data_holder.typedefs = self.__get_typedefs(tree_node)
         data_holder.enums = self.__get_enums(tree_node).items()
-        data_holder.structs = sort_struct(self.__struct_parse(tree_node, "struct"))
-        data_holder.structs += self.__struct_parse(tree_node, "message")
+        data_holder.structs = sort_struct(self.__get_structs(tree_node))
         data_holder.includes = self.__get_includes(tree_node)
         data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
         data_holder.enums += temp_dict.items()
