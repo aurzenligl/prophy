@@ -34,14 +34,14 @@ def test_constants_parsing():
 def test_constants_parsing_and_sorting():
     xml = """\
 <x>
-    <constant name="C_A" value="C_B + C_C"/>
-    <constant name="C_B" value="1"/>
-    <constant name="C_C" value="2"/>
+    <constant name="C_C" value="C_A + C_B"/>
+    <constant name="C_A" value="1"/>
+    <constant name="C_B" value="2"/>
 </x>
 """
     holder = parse(xml)
 
-    assert [("C_B", "1"), ("C_C", "2"), ("C_A", "C_B + C_C")] == holder.nodes
+    assert [("C_A", "1"), ("C_B", "2"), ("C_C", "C_A + C_B")] == holder.nodes
 
 def test_typedefs_primitive_type_parsing():
     xml = """\
@@ -226,3 +226,16 @@ def test_dependency_sort_struct_with_two_deps():
     IsarParser.dependency_sort(nodes)
 
     assert ["A", "B", "C"] == [node.name for node in nodes]
+
+def test_dependency_sort_struct_with_multiple_dependencies():
+    nodes = [model.Struct("D", [model.StructMember("a", "A", None, None, None),
+                                model.StructMember("b", "B", None, None, None),
+                                model.StructMember("c", "C", None, None, None)]),
+             model.Struct("C", [model.StructMember("a", "A", None, None, None),
+                                model.StructMember("b", "B", None, None, None)]),
+             model.Struct("B", [model.StructMember("a", "A", None, None, None)]),
+             model.Typedef("A", "TTypeX")]
+
+    IsarParser.dependency_sort(nodes)
+
+    assert ["A", "B", "C", "D"] == [node.name for node in nodes]

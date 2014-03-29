@@ -8,7 +8,7 @@ def get_include_deps(include):
     return []
 
 def get_constant_deps(constant):
-    return []
+    return reduce(lambda x, y: x.replace(y, " "), "()+", constant.value).split()
 
 def get_typedef_deps(typedef):
     return [typedef.type]
@@ -28,24 +28,25 @@ deps_visitor = {model.Include: get_include_deps,
 def get_deps(node):
     return deps_visitor[type(node)](node)
 
+def dependency_sort_rotate(nodes, known, index):
+    node = nodes[index]
+    for dep in get_deps(node):
+        if dep not in known:
+            found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)), None)
+            if found:
+                found_index = nodes.index(found)
+                nodes.insert(index, nodes.pop(found_index))
+                return True
+    known.add(node.name)
+    return False
+
 def dependency_sort(nodes):
     known = set()
     index = 0
     max_index = len(nodes)
 
     while index < max_index:
-        node = nodes[index]
-        deps_ok = True
-        for dep in get_deps(node):
-            if dep not in known:
-                found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)), None)
-                if found:
-                    found_index = nodes.index(found)
-                    nodes.insert(index, nodes.pop(found_index))
-                    deps_ok = False
-                    continue
-        if deps_ok:
-            known.add(node.name)
+        if not dependency_sort_rotate(nodes, known, index):
             index = index + 1
 
 class IsarParser(object):
@@ -135,16 +136,11 @@ class IsarParser(object):
     def __get_typedefs(self, dom):
         return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
 
-    def __sort_constants(self, list):
-        primitive = filter(lambda constant: constant[1].isdigit(), list)
-        complex = filter(lambda constant: not constant[1].isdigit(), list)
-        return primitive + complex
-
     def __get_constant(self, elem):
         return model.Constant(elem.attributes["name"].value, elem.attributes["value"].value)
 
     def __get_constants(self, dom):
-        return self.__sort_constants([self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')])
+        return [self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')]
 
     def __get_includes(self, dom):
         return [model.Include(elem.attributes["href"].value.split('.')[0]) for elem in dom.getElementsByTagName("xi:include")]
