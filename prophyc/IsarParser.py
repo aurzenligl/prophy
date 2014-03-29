@@ -8,7 +8,7 @@ def get_include_deps(include):
     return []
 
 def get_constant_deps(constant):
-    return reduce(lambda x, y: x.replace(y, " "), "()+", constant.value).split()
+    return [x for x in reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split() if not x.isdigit()]
 
 def get_typedef_deps(typedef):
     return [typedef.type]
@@ -37,11 +37,13 @@ def dependency_sort_rotate(nodes, known, index):
                 found_index = nodes.index(found)
                 nodes.insert(index, nodes.pop(found_index))
                 return True
+            """ if dep is not found, it means it's in another xml file """
     known.add(node.name)
     return False
 
 def dependency_sort(nodes):
-    known = set()
+    known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
+    known.add("TBoolean")
     index = 0
     max_index = len(nodes)
 
