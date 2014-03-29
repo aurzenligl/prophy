@@ -4,6 +4,12 @@ import xml.dom.minidom
 import model
 from itertools import ifilter, islice
 
+def get_include_deps(include):
+    return []
+
+def get_constant_deps(constant):
+    return []
+
 def get_typedef_deps(typedef):
     return [typedef.type]
 
@@ -13,7 +19,9 @@ def get_enum_deps(enum):
 def get_struct_deps(struct):
     return [member.type for member in struct.members]
 
-deps_visitor = {model.Typedef: get_typedef_deps,
+deps_visitor = {model.Include: get_include_deps,
+                model.Constant: get_constant_deps,
+                model.Typedef: get_typedef_deps,
                 model.Enum: get_enum_deps,
                 model.Struct: get_struct_deps}
 
@@ -133,18 +141,18 @@ class IsarParser(object):
         return primitive + complex
 
     def __get_constant(self, elem):
-        return (elem.attributes["name"].value, elem.attributes["value"].value)
+        return model.Constant(elem.attributes["name"].value, elem.attributes["value"].value)
 
     def __get_constants(self, dom):
         return self.__sort_constants([self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')])
 
     def __get_includes(self, dom):
-        return [elem.attributes["href"].value.split('.')[0] for elem in dom.getElementsByTagName("xi:include")]
+        return [model.Include(elem.attributes["href"].value.split('.')[0]) for elem in dom.getElementsByTagName("xi:include")]
 
     def __get_model(self, dom):
         mdl = model.Model()
-        mdl.constants = self.__get_constants(dom)
-        mdl.includes = self.__get_includes(dom)
+        mdl.nodes += self.__get_includes(dom)
+        mdl.nodes += self.__get_constants(dom)
         mdl.union_dict, enums = self.__union_parse(dom)
         mdl.nodes += self.__get_typedefs(dom)
         mdl.nodes += self.__get_enums(dom)

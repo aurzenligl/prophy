@@ -13,14 +13,18 @@ class PythonSerializer(object):
 
     def serialize_string(self, dataHolder, no_prolog = False):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
-                                             self.__render_includes(dataHolder.includes),
-                                             self.__render_constants(dataHolder.constants),
                                              self.__render_nodes(dataHolder.nodes))))
 
     def serialize(self, dataHolder, basename):
         path = os.path.join(self.output_dir, basename + ".py")
         out = self.serialize_string(dataHolder)
         open(path, "w").write(out)
+
+    def __render_include(self, include):
+        return "from %s import *\n" % include
+
+    def __render_constant(self, constant):
+        return "%s = %s\n" % constant
 
     def __render_typedef(self, typedef):
         key, val = typedef
@@ -64,7 +68,9 @@ class PythonSerializer(object):
                                                     struct.name,
                                                     self.__render_struct_members(struct.members))
 
-    render_visitor = {model.Typedef: __render_typedef,
+    render_visitor = {model.Include: __render_include,
+                      model.Constant: __render_constant,
+                      model.Typedef: __render_typedef,
                       model.Enum: __render_enum,
                       model.Struct: __render_struct}
 
@@ -84,12 +90,6 @@ def bitMaskOr(x, y):
 def shiftLeft(x, y):
     return x << y
 """ % self.libname
-
-    def __render_includes(self, includes):
-        return "".join(("from %s import *\n" % include for include in includes))
-
-    def __render_constants(self, constants):
-        return "".join(("%s = %s\n" % constant for constant in constants))
 
     def _serialize_union(self, union_dict):
         def serialize_union_members(list):

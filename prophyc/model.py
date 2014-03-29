@@ -21,24 +21,21 @@ class UnionHolder(Holder):
     def add_to_list(self, member_type, member_name):
         self.list.append(self.union(member_type, member_name))
 
+Include = namedtuple("Include", ["name"])
+
+Constant = namedtuple("Constant", ["name", "value"])
+
 Typedef = namedtuple("Typedef", ["name", "type"])
 
-EnumMember = namedtuple("EnumMember", ["name", "value"])
 Enum = namedtuple("Enum", ["name", "members"])
+EnumMember = namedtuple("EnumMember", ["name", "value"])
 
-StructMember = namedtuple("StructMember", ["name", "type", "array", "array_bound", "array_size"])
 Struct = namedtuple("Struct", ["name", "members"])
+StructMember = namedtuple("StructMember", ["name", "type", "array", "array_bound", "array_size"])
 
 class Model(object):
 
     def __init__(self):
-
-        """ list of strings, e.g. "externals" """
-        self.includes = []
-
-        """ list of name-value pairs, e.g. ("CONST", 10) """
-        self.constants = []
-
         self.nodes = []
 
         self.union_dict = {}

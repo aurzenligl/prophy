@@ -8,11 +8,13 @@ def serialize(holder):
 
 def test_includes_rendering():
     holder = model.Model()
-    holder.includes = ["szydlo", "mydlo", "powidlo"]
+    holder.nodes = [model.Include("szydlo"), model.Include("mydlo"), model.Include("powidlo")]
 
     ref = """\
 from szydlo import *
+
 from mydlo import *
+
 from powidlo import *
 """
     assert ref == serialize(holder)
@@ -45,10 +47,11 @@ EEnum_C = 2
 
 def test_constants_rendering():
     holder = model.Model()
-    holder.constants = [("CONST_A", "0"), ("CONST_B", "31")]
+    holder.nodes = [model.Constant("CONST_A", "0"), model.Constant("CONST_B", "31")]
 
     ref = """\
 CONST_A = 0
+
 CONST_B = 31
 """
     assert ref == serialize(holder)
@@ -101,7 +104,7 @@ def test_of_PythonSerializer():
     ih = []
     th = []
     for x in range(20, 200, 60):
-        ih.append("test_include_" + str(x))
+        ih.append(model.Include("test_include_" + str(x)))
         th.append(model.Typedef("td_elem_name_" + str(x), "td_elem_val_" + str(x)))
         th.append(model.Typedef("td_elem_name_" + str(x), "i_td_elem_val_" + str(x)))
         th.append(model.Typedef("td_elem_name_" + str(x), "u_td_elem_val_" + str(x)))
@@ -115,9 +118,9 @@ def test_of_PythonSerializer():
     msg_h = model.Struct(name, members)
 
     dh = model.Model()
-    dh.includes = ih
+    dh.nodes += ih
+    dh.nodes += [model.Constant("C_A", "5"), model.Constant("C_B", "5"), model.Constant("C_C", "C_B + C_A")]
     dh.nodes += th
-    dh.constants = [("C_A", "5"), ("C_B", "5"), ("C_C", "C_B + C_A")]
     dh.nodes += [model.Enum("test", enum)]
     dh.nodes += [msg_h]
 
@@ -134,11 +137,15 @@ def shiftLeft(x, y):
     return x << y
 
 from test_include_20 import *
+
 from test_include_80 import *
+
 from test_include_140 import *
 
 C_A = 5
+
 C_B = 5
+
 C_C = C_B + C_A
 
 td_elem_name_20 = td_elem_val_20

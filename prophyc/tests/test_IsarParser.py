@@ -18,7 +18,7 @@ def test_includes_parsing():
 """
     holder = parse(xml)
 
-    assert ["mydlo", "szydlo", "powidlo"] == holder.includes
+    assert [("mydlo",), ("szydlo",), ("powidlo",)] == holder.nodes
 
 def test_constants_parsing():
     xml = """\
@@ -29,7 +29,7 @@ def test_constants_parsing():
 """
     holder = parse(xml)
 
-    assert [("CONST_A", "0"), ("CONST_B", "31")] == holder.constants
+    assert [("CONST_A", "0"), ("CONST_B", "31")] == holder.nodes
 
 def test_constants_parsing_and_sorting():
     xml = """\
@@ -41,7 +41,7 @@ def test_constants_parsing_and_sorting():
 """
     holder = parse(xml)
 
-    assert [("C_B", "1"), ("C_C", "2"), ("C_A", "C_B + C_C")] == holder.constants
+    assert [("C_B", "1"), ("C_C", "2"), ("C_A", "C_B + C_C")] == holder.nodes
 
 def test_typedefs_primitive_type_parsing():
     xml = """\
