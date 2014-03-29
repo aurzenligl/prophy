@@ -4,9 +4,7 @@ import model
 class PythonSerializer(object):
 
     libname = "prophy"
-    primitive_types = {"u8", "u16", "u32", "u64",
-                       "i8", "i16", "i32", "i64",
-                       "r32", "r64"}
+    primitive_types = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
 
     def __init__(self, output_dir = "."):
         self.output_dir = output_dir
