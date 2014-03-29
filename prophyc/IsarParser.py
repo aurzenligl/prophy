@@ -27,48 +27,18 @@ def dependency_sort(nodes):
 
     while index < max_index:
         node = nodes[index]
+        deps_ok = True
         for dep in get_deps(node):
             if dep not in known:
-                found = next(ifilter(lambda x: x.name == dep, islice(nodes, index, None)), None)
+                found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)), None)
                 if found:
                     found_index = nodes.index(found)
                     nodes.insert(index, nodes.pop(found_index))
-        known.add(node.name)
-        index = index + 1
-
-def _get_struct_name_and_index(struct_list, struct_dict):
-    for x in struct_list:
-        index = struct_list.index(x)
-        struct_dict[x.name] = index
-
-def _sorter(struct_list, index, out_list, struct_dict, lista):
-    element = struct_list[index]
-    element_name = element.name
-    for member_elem in element.members:
-        member_type = member_elem.type
-        if member_type.startswith('S') and member_type in struct_dict:
-            index = struct_dict[member_type]
-            x = struct_list[index]
-            if x not in out_list:
-                out_list.extend(_sorter(struct_list, index, out_list, struct_dict, lista))
-        else:
-            for x in struct_list:
-                if member_type in x.name:
-                    if x not in out_list:
-                        out_list.append(x)
-    if element not in out_list:
-        out_list.append(element)
-    return lista
-
-def sort_struct(struct_list):
-    index = 0
-    out_list = []
-    struct_dict = {}
-    lista = []
-    _get_struct_name_and_index(struct_list, struct_dict)
-    for struct_elem_index in xrange(len(struct_list)):
-        out_list.extend(_sorter(struct_list, struct_elem_index, out_list, struct_dict, lista))
-    return out_list
+                    deps_ok = False
+                    continue
+        if deps_ok:
+            known.add(node.name)
+            index = index + 1
 
 class IsarParser(object):
 
@@ -174,12 +144,13 @@ class IsarParser(object):
     def __get_model(self, dom):
         mdl = model.Model()
         mdl.constants = self.__get_constants(dom)
-        mdl.typedefs = self.__get_typedefs(dom)
-        mdl.enums = self.__get_enums(dom)
-        mdl.structs = sort_struct(self.__get_structs(dom))
         mdl.includes = self.__get_includes(dom)
         mdl.union_dict, enums = self.__union_parse(dom)
-        mdl.enums += enums.items()
+        mdl.nodes += self.__get_typedefs(dom)
+        mdl.nodes += self.__get_enums(dom)
+        mdl.nodes += self.__get_structs(dom)
+        mdl.nodes += [model.Enum(x, y) for x, y in enums.items()]
+        dependency_sort(mdl.nodes)
         return mdl
 
     def parse_string(self, string):

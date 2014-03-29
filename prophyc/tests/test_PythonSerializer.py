@@ -19,59 +19,16 @@ from powidlo import *
 
 def test_typedefs_rendering():
     holder = model.Model()
-    holder.typedefs = [("a", "b")]
+    holder.nodes = [model.Typedef("a", "b")]
 
     ref = """\
 a = b
 """
     assert ref == serialize(holder)
 
-def test_typedefs_rendering_with_changed_enum_order():
-    holder = model.Model()
-    holder.typedefs = [("TEnum2", "EEnum2")]
-    holder.enums = [("EEnum1", [("EEnum1_1", "EEnum1_Val")]),
-                    ("EEnum2", [("EEnum2_2", "EEnum2_Val")])]
-
-    ref = """\
-class EEnum2(prophy.enum):
-    __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum2_2', EEnum2_Val)]
-
-EEnum2_2 = EEnum2_Val
-
-TEnum2 = EEnum2
-
-class EEnum1(prophy.enum):
-    __metaclass__ = prophy.enum_generator
-    _enumerators  = [('EEnum1_1', EEnum1_Val)]
-
-EEnum1_1 = EEnum1_Val
-"""
-    assert ref == serialize(holder)
-
-def test_typedefs_rendering_with_changed_struct_order():
-    holder = model.Model()
-    holder.typedefs = [("TStruct2", "SStruct2")]
-    members1 = [model.StructMember('x', 'u32', None, None, None)]
-    members2 = [model.StructMember('y', 'i32', None, None, None)]
-    holder.structs = [model.Struct("SStruct1", members1), model.Struct("SStruct2", members2)]
-
-    ref = """\
-class SStruct2(prophy.struct):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [('y', prophy.i32)]
-
-TStruct2 = SStruct2
-
-class SStruct1(prophy.struct):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [('x', prophy.u32)]
-"""
-    assert ref == serialize(holder)
-
 def test_enums_rendering():
     holder = model.Model()
-    holder.enums = [("EEnum", [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")])]
+    holder.nodes = [model.Enum("EEnum", [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")])]
 
     ref = """\
 class EEnum(prophy.enum):
@@ -102,7 +59,7 @@ def test_struct_rendering():
                (model.StructMember("c", "r32", None, None, None)),
                (model.StructMember("d", "TTypeX", None, None, None))]
     holder = model.Model()
-    holder.structs = [model.Struct("Struct", members)]
+    holder.nodes = [model.Struct("Struct", members)]
 
     ref = """\
 class Struct(prophy.struct):
@@ -118,7 +75,7 @@ def test_struct_rendering_with_dynamic_array():
     members = [model.StructMember("tmpName", "TNumberOfItems", None, None, None),
                model.StructMember("a", "u8", True, "tmpName", None)]
     holder = model.Model()
-    holder.structs = [model.Struct("Struct", members)]
+    holder.nodes = [model.Struct("Struct", members)]
 
     ref = """\
 class Struct(prophy.struct):
@@ -131,7 +88,7 @@ class Struct(prophy.struct):
 def test_struct_rendering_with_static_array():
     members = [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS")]
     holder = model.Model()
-    holder.structs = [model.Struct("Struct", members)]
+    holder.nodes = [model.Struct("Struct", members)]
 
     ref = """\
 class Struct(prophy.struct):
@@ -145,9 +102,9 @@ def test_of_PythonSerializer():
     th = []
     for x in range(20, 200, 60):
         ih.append("test_include_" + str(x))
-        th.append(("td_elem_name_" + str(x), "td_elem_val_" + str(x)))
-        th.append(("td_elem_name_" + str(x), "i_td_elem_val_" + str(x)))
-        th.append(("td_elem_name_" + str(x), "u_td_elem_val_" + str(x)))
+        th.append(model.Typedef("td_elem_name_" + str(x), "td_elem_val_" + str(x)))
+        th.append(model.Typedef("td_elem_name_" + str(x), "i_td_elem_val_" + str(x)))
+        th.append(model.Typedef("td_elem_name_" + str(x), "u_td_elem_val_" + str(x)))
 
     enum = []
     for x in range(1, 100, 30):
@@ -159,10 +116,10 @@ def test_of_PythonSerializer():
 
     dh = model.Model()
     dh.includes = ih
-    dh.typedefs = th
+    dh.nodes += th
     dh.constants = [("C_A", "5"), ("C_B", "5"), ("C_C", "C_B + C_A")]
-    dh.structs = [msg_h]
-    dh.enums = [("test", enum)]
+    dh.nodes += [model.Enum("test", enum)]
+    dh.nodes += [msg_h]
 
     ps = PythonSerializer.PythonSerializer()
     output = ps.serialize_string(dh)
@@ -185,13 +142,21 @@ C_B = 5
 C_C = C_B + C_A
 
 td_elem_name_20 = td_elem_val_20
+
 td_elem_name_20 = i_td_elem_val_20
+
 td_elem_name_20 = u_td_elem_val_20
+
 td_elem_name_80 = td_elem_val_80
+
 td_elem_name_80 = i_td_elem_val_80
+
 td_elem_name_80 = u_td_elem_val_80
+
 td_elem_name_140 = td_elem_val_140
+
 td_elem_name_140 = i_td_elem_val_140
+
 td_elem_name_140 = u_td_elem_val_140
 
 class test(prophy.enum):

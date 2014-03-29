@@ -69,13 +69,13 @@ def test_typedefs_primitive_type_parsing():
             ("g", "i32"),
             ("h", "i64"),
             ("i", "r32"),
-            ("j", "r64")] == holder.typedefs
+            ("j", "r64")] == holder.nodes
 
 def test_typedefs_parsing():
     xml = """<typedef name="TILoveTypedefs_ALot" type="MyType"/>"""
     holder = parse(xml)
 
-    assert [("TILoveTypedefs_ALot", "MyType")] == holder.typedefs
+    assert [("TILoveTypedefs_ALot", "MyType")] == holder.nodes
 
 def test_enums_parsing():
     xml = """\
@@ -87,9 +87,9 @@ def test_enums_parsing():
 """
     holder = parse(xml)
 
-    assert 1 == len(holder.enums)
-    assert "EEnum" == holder.enums[0][0]
-    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.enums[0][1]
+    assert 1 == len(holder.nodes)
+    assert "EEnum" == holder.nodes[0][0]
+    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.nodes[0][1]
 
 def test_struct_parsing():
     xml = """\
@@ -102,12 +102,12 @@ def test_struct_parsing():
 """
     holder = parse(xml)
 
-    assert 1 == len(holder.structs)
-    assert "Struct" == holder.structs[0].name
+    assert 1 == len(holder.nodes)
+    assert "Struct" == holder.nodes[0].name
     assert [("a", "u8", None, None, None),
             ("b", "i64", None, None, None),
             ("c", "r32", None, None, None),
-            ("d", "TTypeX", None, None, None)] == holder.structs[0].members
+            ("d", "TTypeX", None, None, None)] == holder.nodes[0].members
 
 def test_struct_parsing_dynamic_array():
     xml = """\
@@ -120,7 +120,7 @@ def test_struct_parsing_dynamic_array():
     holder = parse(xml)
 
     assert [("x_len", "u32", None, None, None),
-            ("x", "TTypeX", True, "x_len", None)] == holder.structs[0].members
+            ("x", "TTypeX", True, "x_len", None)] == holder.nodes[0].members
 
 def test_struct_parsing_static_array():
     xml = """\
@@ -132,7 +132,7 @@ def test_struct_parsing_static_array():
 """
     holder = parse(xml)
 
-    assert [("y", "TTypeY", True, None, "NUM_OF_Y")] == holder.structs[0].members
+    assert [("y", "TTypeY", True, None, "NUM_OF_Y")] == holder.nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
@@ -145,7 +145,7 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
     holder = parse(xml)
 
     assert [("x_len", "TNumberOfItems", None, None, None),
-            ("x", "TTypeX", True, "x_len", None)] == holder.structs[0].members
+            ("x", "TTypeX", True, "x_len", None)] == holder.nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
@@ -158,7 +158,7 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
     holder = parse(xml)
 
     assert [("numOfX", "u32", None, None, None),
-            ("x", "TTypeX", True, "numOfX", None)] == holder.structs[0].members
+            ("x", "TTypeX", True, "numOfX", None)] == holder.nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
@@ -171,7 +171,7 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     holder = parse(xml)
 
     assert [("numOfX", "TSize", None, None, None),
-            ("x", "TTypeX", True, "numOfX", None)] == holder.structs[0].members
+            ("x", "TTypeX", True, "numOfX", None)] == holder.nodes[0].members
 
 def test_message_parsing():
     xml = """\
@@ -181,7 +181,7 @@ def test_message_parsing():
 """
     holder = parse(xml)
 
-    assert [("x", "TTypeX", None, None, None)] == holder.structs[0].members
+    assert [("x", "TTypeX", None, None, None)] == holder.nodes[0].members
 
 def test_dependency_sort_enums():
     nodes = [model.Typedef("B", "A"),
@@ -213,6 +213,15 @@ def test_dependency_sort_structs():
              model.Struct("A", [model.StructMember("a", "X", None, None, None),
                                 model.StructMember("b", "Y", None, None, None),
                                 model.StructMember("c", "Z", None, None, None)])]
+
+    IsarParser.dependency_sort(nodes)
+
+    assert ["A", "B", "C"] == [node.name for node in nodes]
+
+def test_dependency_sort_struct_with_two_deps():
+    nodes = [model.Struct("C", [model.StructMember("a", "B", None, None, None)]),
+             model.Struct("B", [model.StructMember("a", "A", None, None, None)]),
+             model.Struct("A", [model.StructMember("a", "X", None, None, None)])]
 
     IsarParser.dependency_sort(nodes)
 

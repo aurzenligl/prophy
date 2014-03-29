@@ -39,9 +39,7 @@ class Model(object):
         """ list of name-value pairs, e.g. ("CONST", 10) """
         self.constants = []
 
-        self.typedefs = []
-        self.enums = []
-        self.structs = []
+        self.nodes = []
 
         self.union_dict = {}
 
