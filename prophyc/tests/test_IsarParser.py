@@ -182,3 +182,38 @@ def test_message_parsing():
     holder = parse(xml)
 
     assert [("x", "TTypeX", None, None, None)] == holder.structs[0].members
+
+def test_dependency_sort_enums():
+    nodes = [model.Typedef("B", "A"),
+             model.Typedef("C", "A"),
+             model.Enum("A", [])]
+
+    IsarParser.dependency_sort(nodes)
+
+    assert ["A", "B", "C"] == [node.name for node in nodes]
+
+def test_dependency_sort_typedefs():
+    nodes = [model.Typedef("A", "X"),
+             model.Typedef("C", "B"),
+             model.Typedef("B", "A"),
+             model.Typedef("E", "D"),
+             model.Typedef("D", "C")]
+
+    IsarParser.dependency_sort(nodes)
+
+    assert ["A", "B", "C", "D", "E"] == [node.name for node in nodes]
+
+def test_dependency_sort_structs():
+    nodes = [model.Struct("C", [model.StructMember("a", "B", None, None, None),
+                                model.StructMember("b", "A", None, None, None),
+                                model.StructMember("c", "D", None, None, None)]),
+             model.Struct("B", [model.StructMember("a", "X", None, None, None),
+                                model.StructMember("b", "A", None, None, None),
+                                model.StructMember("c", "Y", None, None, None)]),
+             model.Struct("A", [model.StructMember("a", "X", None, None, None),
+                                model.StructMember("b", "Y", None, None, None),
+                                model.StructMember("c", "Z", None, None, None)])]
+
+    IsarParser.dependency_sort(nodes)
+
+    assert ["A", "B", "C"] == [node.name for node in nodes]

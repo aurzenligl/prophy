@@ -2,6 +2,39 @@
 
 import xml.dom.minidom
 import model
+from itertools import ifilter, islice
+
+def get_typedef_deps(typedef):
+    return [typedef.type]
+
+def get_enum_deps(enum):
+    return []
+
+def get_struct_deps(struct):
+    return [member.type for member in struct.members]
+
+deps_visitor = {model.Typedef: get_typedef_deps,
+                model.Enum: get_enum_deps,
+                model.Struct: get_struct_deps}
+
+def get_deps(node):
+    return deps_visitor[type(node)](node)
+
+def dependency_sort(nodes):
+    known = set()
+    index = 0
+    max_index = len(nodes)
+
+    while index < max_index:
+        node = nodes[index]
+        for dep in get_deps(node):
+            if dep not in known:
+                found = next(ifilter(lambda x: x.name == dep, islice(nodes, index, None)), None)
+                if found:
+                    found_index = nodes.index(found)
+                    nodes.insert(index, nodes.pop(found_index))
+        known.add(node.name)
+        index = index + 1
 
 def _get_struct_name_and_index(struct_list, struct_dict):
     for x in struct_list:
