@@ -6,9 +6,6 @@ from itertools import ifilter, islice
 
 """
 TODO:
-- nodes should be read in order that they really appear in xml file,
-  not all includes, then all typedefs, then all enums, etc.
-  lxml library allows to do just that (+ it's faster than dom)
 - arrays of u8 type should be string or bytes fields
 """
 
