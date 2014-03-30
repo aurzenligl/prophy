@@ -70,9 +70,38 @@ def make_include(elem):
 def make_constant(elem):
     return model.Constant(elem.get("name"), elem.get("value"))
 
+primitive_types = {"8 bit integer unsigned": "u8",
+                   "16 bit integer unsigned": "u16",
+                   "32 bit integer unsigned": "u32",
+                   "64 bit integer unsigned": "u64",
+                   "8 bit integer signed": "i8",
+                   "16 bit integer signed": "i16",
+                   "32 bit integer signed": "i32",
+                   "64 bit integer signed": "i64",
+                   "32 bit float": "r32",
+                   "64 bit float": "r64"}
+
+def make_typedef(elem):
+    if "type" in elem.attrib:
+        return model.Typedef(elem.get("name"), elem.get("type"))
+    elif "primitiveType" in elem.attrib:
+        return model.Typedef(elem.get("name"), primitive_types[elem.get("primitiveType")])
+
+def make_enum_member(elem):
+    value = elem.get('value')
+    value = value if value != "-1" else "0xFFFFFFFF"
+    return model.EnumMember(elem.get("name"), value)
+
+def make_enum(elem):
+    if len(elem):
+        return model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
+
 node_makers = {"{http://www.nsn.com/2008/XInclude}include": make_include,
                "{http://www.w3.org/2001/XInclude}include": make_include,
-               "constant": make_constant}
+               "constant": make_constant,
+               "typedef": make_typedef,
+               "enum": make_enum}
+
 # #         "typedef",
 # #         "enum",
 # #         "struct",
@@ -83,17 +112,6 @@ def make_node(elem):
     return node_makers[elem.tag](elem)
 
 class IsarParser(object):
-
-    primitive_types = {"8 bit integer unsigned": "u8",
-                       "16 bit integer unsigned": "u16",
-                       "32 bit integer unsigned": "u32",
-                       "64 bit integer unsigned": "u64",
-                       "8 bit integer signed": "i8",
-                       "16 bit integer signed": "i16",
-                       "32 bit integer signed": "i32",
-                       "64 bit integer signed": "i64",
-                       "32 bit float": "r32",
-                       "64 bit float": "r64"}
 
     def __get_struct_members(self, elem):
         members = []
@@ -126,19 +144,6 @@ class IsarParser(object):
                 in dom.getElementsByTagName("struct") + dom.getElementsByTagName("message")
                 if elem.hasChildNodes()]
 
-    def __get_enum_member(self, elem):
-        value = elem.getAttribute('value')
-        value = value if value != "-1" else "0xFFFFFFFF"
-        return model.EnumMember(elem.attributes["name"].value, value)
-
-    def __get_enum(self, elem):
-        name = elem.attributes["name"].value
-        members = [self.__get_enum_member(member) for member in elem.getElementsByTagName('enum-member')]
-        return model.Enum(name, members)
-
-    def __get_enums(self, dom):
-        return [self.__get_enum(elem) for elem in dom.getElementsByTagName('enum') if elem.hasChildNodes()]
-
     def __get_union_member(self, elem):
         return model.UnionMember(elem.getAttribute("name"), elem.getAttribute("type"))
 
@@ -150,24 +155,12 @@ class IsarParser(object):
     def __get_unions(self, dom):
         return [self.__get_union(elem) for elem in dom.getElementsByTagName('union')]
 
-    def __get_typedef(self, elem):
-        if elem.hasAttribute("type"):
-            return model.Typedef(elem.attributes["name"].value, elem.attributes["type"].value)
-        elif elem.hasAttribute("primitiveType"):
-            type = self.primitive_types[elem.attributes["primitiveType"].value]
-            return model.Typedef(elem.attributes["name"].value, type)
-
-    def __get_typedefs(self, dom):
-        return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
-
     def __get_model(self, dom, root):
         nodes = []
 
         known = set(node_makers.keys())
-        nodes += [make_node(elem) for elem in filter(lambda elem: elem.tag in known, root.findall('.//'))]
+        nodes += filter(None, [make_node(elem) for elem in filter(lambda elem: elem.tag in known, root.findall('.//'))])
 
-        nodes += self.__get_typedefs(dom)
-        nodes += self.__get_enums(dom)
         nodes += self.__get_structs(dom)
         nodes += self.__get_unions(dom)
         dependency_sort(nodes)

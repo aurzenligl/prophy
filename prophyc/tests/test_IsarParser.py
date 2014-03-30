@@ -72,18 +72,24 @@ def test_typedefs_primitive_type_parsing():
             ("j", "r64")] == nodes
 
 def test_typedefs_parsing():
-    xml = """<typedef name="TILoveTypedefs_ALot" type="MyType"/>"""
+    xml = """\
+<x>
+    <typedef name="TILoveTypedefs_ALot" type="MyType"/>
+</x>
+"""
     nodes = parse(xml)
 
     assert [("TILoveTypedefs_ALot", "MyType")] == nodes
 
 def test_enums_parsing():
     xml = """\
-<enum name="EEnum">
-    <enum-member name="EEnum_A" value="0"/>
-    <enum-member name="EEnum_B" value="1"/>
-    <enum-member name="EEnum_C" value="-1"/>
-</enum>
+<x>
+    <enum name="EEnum">
+        <enum-member name="EEnum_A" value="0"/>
+        <enum-member name="EEnum_B" value="1"/>
+        <enum-member name="EEnum_C" value="-1"/>
+    </enum>
+</x>
 """
     nodes = parse(xml)
 
