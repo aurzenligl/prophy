@@ -16,6 +16,9 @@ def get_typedef_deps(typedef):
 def get_enum_deps(enum):
     return []
 
+def get_union_deps(union):
+    return [member.type for member in union.members]
+
 def get_struct_deps(struct):
     return [member.type for member in struct.members]
 
@@ -23,6 +26,7 @@ deps_visitor = {model.Include: get_include_deps,
                 model.Constant: get_constant_deps,
                 model.Typedef: get_typedef_deps,
                 model.Enum: get_enum_deps,
+                model.Union: get_union_deps,
                 model.Struct: get_struct_deps}
 
 def get_deps(node):
@@ -108,25 +112,16 @@ class IsarParser(object):
     def __get_enums(self, dom):
         return [self.__get_enum(elem) for elem in dom.getElementsByTagName('enum') if elem.hasChildNodes()]
 
-    def __union_parse(self, tree_node):
-        union_dict = {}
-        enum_dict = {}
+    def __get_union_member(self, elem):
+        return model.UnionMember(elem.getAttribute("name"), elem.getAttribute("type"))
 
-        union_nodes = tree_node.getElementsByTagName('union')
-        for union_element in union_nodes:
-            name = union_element.getAttribute('name')
-            union = model.UnionHolder()
-            enum = []
-            member = union_element.getElementsByTagName("member")
-            for member_union_element in member:
-                discriminatorValue = member_union_element.getAttribute('discriminatorValue')
-                member_type = member_union_element.getAttribute('type')
-                member_name = member_union_element.getAttribute('name')
-                union.add_to_list(member_type, member_name)
-                enum.append(("EDisc" + name + "_" + member_name + "_" + discriminatorValue, discriminatorValue))
-            union_dict[name] = union
-            enum_dict["EDisc" + name] = enum
-        return union_dict, enum_dict
+    def __get_union(self, elem):
+        name = elem.getAttribute('name')
+        members = [self.__get_union_member(member) for member in elem.getElementsByTagName("member")]
+        return model.Union(name, members)
+
+    def __get_unions(self, dom):
+        return [self.__get_union(elem) for elem in dom.getElementsByTagName('union')]
 
     def __get_typedef(self, elem):
         if elem.hasAttribute("type"):
@@ -151,11 +146,10 @@ class IsarParser(object):
         mdl = model.Model()
         mdl.nodes += self.__get_includes(dom)
         mdl.nodes += self.__get_constants(dom)
-        mdl.union_dict, enums = self.__union_parse(dom)
         mdl.nodes += self.__get_typedefs(dom)
         mdl.nodes += self.__get_enums(dom)
+        mdl.nodes += self.__get_unions(dom)
         mdl.nodes += self.__get_structs(dom)
-        mdl.nodes += [model.Enum(x, y) for x, y in enums.items()]
         dependency_sort(mdl.nodes)
         return mdl
 

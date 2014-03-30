@@ -183,6 +183,19 @@ def test_message_parsing():
 
     assert [("x", "TTypeX", None, None, None)] == holder.nodes[0].members
 
+def test_union_parsing():
+    xml = """\
+<union name="Union">
+    <member type="A" name="a"/>
+    <member type="B" name="b"/>
+    <member type="C" name="c"/>
+</union>
+"""
+    holder = parse(xml)
+
+    assert ["Union"] == [node.name for node in holder.nodes]
+    assert [("a", "A"), ("b", "B"), ("c", "C")] == holder.nodes[0].members
+
 def test_dependency_sort_enums():
     nodes = [model.Typedef("B", "A"),
              model.Typedef("C", "A"),

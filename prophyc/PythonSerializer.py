@@ -11,6 +11,7 @@ class PythonSerializer(object):
 
     def serialize_string(self, dataHolder, no_prolog = False):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
+                                             self._serialize_union(dataHolder.union_dict),
                                              self.__render_nodes(dataHolder.nodes))))
 
     def serialize(self, dataHolder, basename):
@@ -46,6 +47,9 @@ class PythonSerializer(object):
                                 self.__render_enum_members(enum.members),
                                 self.__render_enum_constants(enum.members))
 
+    def __render_union(self, union):
+        return ""
+
     def __render_struct_member(self, member):
         prefixed_type = self.libname + "." + member.type if member.type in self.primitive_types else member.type
         if member.array:
@@ -70,6 +74,7 @@ class PythonSerializer(object):
                       model.Constant: __render_constant,
                       model.Typedef: __render_typedef,
                       model.Enum: __render_enum,
+                      model.Union: __render_union,
                       model.Struct: __render_struct}
 
     def __render(self, node):
