@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import xml.dom.minidom
+import xml.etree.ElementTree as ElementTree
 import model
 from itertools import ifilter, islice
 
@@ -36,7 +37,7 @@ deps_visitor = {model.Include: get_include_deps,
                 model.Typedef: get_typedef_deps,
                 model.Enum: get_enum_deps,
                 model.Struct: get_struct_deps,
-                model.Union: get_union_deps, }
+                model.Union: get_union_deps}
 
 def get_deps(node):
     return deps_visitor[type(node)](node)
@@ -62,6 +63,24 @@ def dependency_sort(nodes):
     while index < max_index:
         if not dependency_sort_rotate(nodes, known, available, index):
             index = index + 1
+
+def make_include(elem):
+    return model.Include(elem.get("href").split('.')[0])
+
+def make_constant(elem):
+    return model.Constant(elem.get("name"), elem.get("value"))
+
+node_makers = {"{http://www.nsn.com/2008/XInclude}include": make_include,
+               "{http://www.w3.org/2001/XInclude}include": make_include,
+               "constant": make_constant}
+# #         "typedef",
+# #         "enum",
+# #         "struct",
+# #         "message",
+# #         "union"}
+
+def make_node(elem):
+    return node_makers[elem.tag](elem)
 
 class IsarParser(object):
 
@@ -141,21 +160,12 @@ class IsarParser(object):
     def __get_typedefs(self, dom):
         return filter(None, (self.__get_typedef(elem) for elem in dom.getElementsByTagName('typedef')))
 
-    def __get_constant(self, elem):
-        return model.Constant(elem.attributes["name"].value, elem.attributes["value"].value)
-
-    def __get_constants(self, dom):
-        return [self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')]
-
-    def __get_includes(self, dom):
-        return [model.Include(elem.attributes["href"].value.split('.')[0])
-                for elem
-                in dom.getElementsByTagName("xi:include")]
-
-    def __get_model(self, dom):
+    def __get_model(self, dom, root):
         nodes = []
-        nodes += self.__get_includes(dom)
-        nodes += self.__get_constants(dom)
+
+        known = set(node_makers.keys())
+        nodes += [make_node(elem) for elem in filter(lambda elem: elem.tag in known, root.findall('.//'))]
+
         nodes += self.__get_typedefs(dom)
         nodes += self.__get_enums(dom)
         nodes += self.__get_structs(dom)
@@ -164,7 +174,7 @@ class IsarParser(object):
         return nodes
 
     def parse_string(self, string):
-        return self.__get_model(xml.dom.minidom.parseString(string))
+        return self.__get_model(xml.dom.minidom.parseString(string), ElementTree.fromstring(string))
 
     def parse(self, file):
-        return self.__get_model(xml.dom.minidom.parse(file))
+        return self.__get_model(xml.dom.minidom.parse(file), ElementTree.parse(file))
