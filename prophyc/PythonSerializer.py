@@ -9,13 +9,13 @@ class PythonSerializer(object):
     def __init__(self, output_dir = "."):
         self.output_dir = output_dir
 
-    def serialize_string(self, dataHolder, no_prolog = False):
+    def serialize_string(self, nodes, no_prolog = False):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
-                                             self.__render_nodes(dataHolder.nodes))))
+                                             self.__render_nodes(nodes))))
 
-    def serialize(self, dataHolder, basename):
+    def serialize(self, nodes, basename):
         path = os.path.join(self.output_dir, basename + ".py")
-        out = self.serialize_string(dataHolder)
+        out = self.serialize_string(nodes)
         open(path, "w").write(out)
 
     def __render_include(self, include):

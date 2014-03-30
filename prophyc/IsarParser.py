@@ -151,15 +151,15 @@ class IsarParser(object):
         return [model.Include(elem.attributes["href"].value.split('.')[0]) for elem in dom.getElementsByTagName("xi:include")]
 
     def __get_model(self, dom):
-        mdl = model.Model()
-        mdl.nodes += self.__get_includes(dom)
-        mdl.nodes += self.__get_constants(dom)
-        mdl.nodes += self.__get_typedefs(dom)
-        mdl.nodes += self.__get_enums(dom)
-        mdl.nodes += self.__get_unions(dom)
-        mdl.nodes += self.__get_structs(dom)
-        dependency_sort(mdl.nodes)
-        return mdl
+        nodes = []
+        nodes += self.__get_includes(dom)
+        nodes += self.__get_constants(dom)
+        nodes += self.__get_typedefs(dom)
+        nodes += self.__get_enums(dom)
+        nodes += self.__get_unions(dom)
+        nodes += self.__get_structs(dom)
+        dependency_sort(nodes)
+        return nodes
 
     def parse_string(self, string):
         return self.__get_model(xml.dom.minidom.parseString(string))

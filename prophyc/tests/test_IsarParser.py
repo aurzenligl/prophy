@@ -16,9 +16,9 @@ def test_includes_parsing():
     <xi:include href="powidlo.xml"/>
 </system>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert [("mydlo",), ("szydlo",), ("powidlo",)] == holder.nodes
+    assert [("mydlo",), ("szydlo",), ("powidlo",)] == nodes
 
 def test_constants_parsing():
     xml = """\
@@ -27,9 +27,9 @@ def test_constants_parsing():
     <constant name="CONST_B" value="31"/>
 </x>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert [("CONST_A", "0"), ("CONST_B", "31")] == holder.nodes
+    assert [("CONST_A", "0"), ("CONST_B", "31")] == nodes
 
 def test_constants_parsing_and_sorting():
     xml = """\
@@ -39,9 +39,9 @@ def test_constants_parsing_and_sorting():
     <constant name="C_B" value="2"/>
 </x>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert [("C_A", "1"), ("C_B", "2"), ("C_C", "C_A + C_B")] == holder.nodes
+    assert [("C_A", "1"), ("C_B", "2"), ("C_C", "C_A + C_B")] == nodes
 
 def test_typedefs_primitive_type_parsing():
     xml = """\
@@ -58,7 +58,7 @@ def test_typedefs_primitive_type_parsing():
     <typedef name="j" primitiveType="64 bit float"/>
 </x>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
     assert [("a", "u8"),
             ("b", "u16"),
@@ -69,13 +69,13 @@ def test_typedefs_primitive_type_parsing():
             ("g", "i32"),
             ("h", "i64"),
             ("i", "r32"),
-            ("j", "r64")] == holder.nodes
+            ("j", "r64")] == nodes
 
 def test_typedefs_parsing():
     xml = """<typedef name="TILoveTypedefs_ALot" type="MyType"/>"""
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert [("TILoveTypedefs_ALot", "MyType")] == holder.nodes
+    assert [("TILoveTypedefs_ALot", "MyType")] == nodes
 
 def test_enums_parsing():
     xml = """\
@@ -85,11 +85,11 @@ def test_enums_parsing():
     <enum-member name="EEnum_C" value="-1"/>
 </enum>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert 1 == len(holder.nodes)
-    assert "EEnum" == holder.nodes[0][0]
-    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == holder.nodes[0][1]
+    assert 1 == len(nodes)
+    assert "EEnum" == nodes[0][0]
+    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == nodes[0][1]
 
 def test_struct_parsing():
     xml = """\
@@ -100,14 +100,14 @@ def test_struct_parsing():
     <member name="d" type="TTypeX"/>
 </struct>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert 1 == len(holder.nodes)
-    assert "Struct" == holder.nodes[0].name
+    assert 1 == len(nodes)
+    assert "Struct" == nodes[0].name
     assert [("a", "u8", None, None, None),
             ("b", "i64", None, None, None),
             ("c", "r32", None, None, None),
-            ("d", "TTypeX", None, None, None)] == holder.nodes[0].members
+            ("d", "TTypeX", None, None, None)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array():
     xml = """\
@@ -117,10 +117,10 @@ def test_struct_parsing_dynamic_array():
     </member>
 </struct>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
     assert [("x_len", "u32", None, None, None),
-            ("x", "TTypeX", True, "x_len", None)] == holder.nodes[0].members
+            ("x", "TTypeX", True, "x_len", None)] == nodes[0].members
 
 def test_struct_parsing_static_array():
     xml = """\
@@ -130,9 +130,9 @@ def test_struct_parsing_static_array():
     </member>
 </struct>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert [("y", "TTypeY", True, None, "NUM_OF_Y")] == holder.nodes[0].members
+    assert [("y", "TTypeY", True, None, "NUM_OF_Y")] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
@@ -142,10 +142,10 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
     </member>
 </struct>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
     assert [("x_len", "TNumberOfItems", None, None, None),
-            ("x", "TTypeX", True, "x_len", None)] == holder.nodes[0].members
+            ("x", "TTypeX", True, "x_len", None)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
@@ -155,10 +155,10 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
     </member>
 </struct>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
     assert [("numOfX", "u32", None, None, None),
-            ("x", "TTypeX", True, "numOfX", None)] == holder.nodes[0].members
+            ("x", "TTypeX", True, "numOfX", None)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
@@ -168,10 +168,10 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     </member>
 </struct>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
     assert [("numOfX", "TSize", None, None, None),
-            ("x", "TTypeX", True, "numOfX", None)] == holder.nodes[0].members
+            ("x", "TTypeX", True, "numOfX", None)] == nodes[0].members
 
 def test_message_parsing():
     xml = """\
@@ -179,9 +179,9 @@ def test_message_parsing():
     <member name="x" type="TTypeX"/>
 </message>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert [("x", "TTypeX", None, None, None)] == holder.nodes[0].members
+    assert [("x", "TTypeX", None, None, None)] == nodes[0].members
 
 def test_union_parsing():
     xml = """\
@@ -191,10 +191,10 @@ def test_union_parsing():
     <member type="C" name="c"/>
 </union>
 """
-    holder = parse(xml)
+    nodes = parse(xml)
 
-    assert ["Union"] == [node.name for node in holder.nodes]
-    assert [("a", "A"), ("b", "B"), ("c", "C")] == holder.nodes[0].members
+    assert ["Union"] == [node.name for node in nodes]
+    assert [("a", "A"), ("b", "B"), ("c", "C")] == nodes[0].members
 
 def test_dependency_sort_enums():
     nodes = [model.Typedef("B", "A"),

@@ -7,8 +7,9 @@ def serialize(holder):
     return PythonSerializer.PythonSerializer().serialize_string(holder, no_prolog = True)
 
 def test_includes_rendering():
-    holder = model.Model()
-    holder.nodes = [model.Include("szydlo"), model.Include("mydlo"), model.Include("powidlo")]
+    nodes = [model.Include("szydlo"),
+             model.Include("mydlo"),
+             model.Include("powidlo")]
 
     ref = """\
 from szydlo import *
@@ -17,20 +18,20 @@ from mydlo import *
 
 from powidlo import *
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_typedefs_rendering():
-    holder = model.Model()
-    holder.nodes = [model.Typedef("a", "b")]
+    nodes = [model.Typedef("a", "b")]
 
     ref = """\
 a = b
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_enums_rendering():
-    holder = model.Model()
-    holder.nodes = [model.Enum("EEnum", [("EEnum_A", "0"), ("EEnum_B", "1"), ("EEnum_C", "2")])]
+    nodes = [model.Enum("EEnum", [("EEnum_A", "0"),
+                                  ("EEnum_B", "1"),
+                                  ("EEnum_C", "2")])]
 
     ref = """\
 class EEnum(prophy.enum):
@@ -43,26 +44,24 @@ EEnum_A = 0
 EEnum_B = 1
 EEnum_C = 2
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_constants_rendering():
-    holder = model.Model()
-    holder.nodes = [model.Constant("CONST_A", "0"), model.Constant("CONST_B", "31")]
+    nodes = [model.Constant("CONST_A", "0"),
+             model.Constant("CONST_B", "31")]
 
     ref = """\
 CONST_A = 0
 
 CONST_B = 31
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_struct_rendering():
-    members = [(model.StructMember("a", "u8", None, None, None)),
-               (model.StructMember("b", "i64", None, None, None)),
-               (model.StructMember("c", "r32", None, None, None)),
-               (model.StructMember("d", "TTypeX", None, None, None))]
-    holder = model.Model()
-    holder.nodes = [model.Struct("Struct", members)]
+    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8", None, None, None)),
+                                     (model.StructMember("b", "i64", None, None, None)),
+                                     (model.StructMember("c", "r32", None, None, None)),
+                                     (model.StructMember("d", "TTypeX", None, None, None))])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -72,13 +71,11 @@ class Struct(prophy.struct):
                    ('c', prophy.r32),
                    ('d', TTypeX)]
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_struct_rendering_with_dynamic_array():
-    members = [model.StructMember("tmpName", "TNumberOfItems", None, None, None),
-               model.StructMember("a", "u8", True, "tmpName", None)]
-    holder = model.Model()
-    holder.nodes = [model.Struct("Struct", members)]
+    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems", None, None, None),
+                                     model.StructMember("a", "u8", True, "tmpName", None)])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -86,26 +83,22 @@ class Struct(prophy.struct):
     _descriptor = [('tmpName', TNumberOfItems),
                    ('a', prophy.array(prophy.u8, bound = 'tmpName'))]
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_struct_rendering_with_static_array():
-    members = [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS")]
-    holder = model.Model()
-    holder.nodes = [model.Struct("Struct", members)]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS")])]
 
     ref = """\
 class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('a', prophy.array(prophy.u8, size = NUM_OF_ARRAY_ELEMS))]
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_union_rendering():
     nodes = [model.Union("U", [model.UnionMember("a", "A"),
                                model.UnionMember("b", "B"),
                                model.UnionMember("c", "C")])]
-    holder = model.Model()
-    holder.nodes = nodes
 
     ref = """\
 class U(prophy.union):
@@ -114,7 +107,7 @@ class U(prophy.union):
                    ('b', B),
                    ('c', C)]
 """
-    assert ref == serialize(holder)
+    assert ref == serialize(nodes)
 
 def test_of_PythonSerializer():
     ih = []
@@ -133,15 +126,15 @@ def test_of_PythonSerializer():
     members = [model.StructMember('messageResult', 'SMessageResult', None, None, None)]
     msg_h = model.Struct(name, members)
 
-    dh = model.Model()
-    dh.nodes += ih
-    dh.nodes += [model.Constant("C_A", "5"), model.Constant("C_B", "5"), model.Constant("C_C", "C_B + C_A")]
-    dh.nodes += th
-    dh.nodes += [model.Enum("test", enum)]
-    dh.nodes += [msg_h]
+    nodes = []
+    nodes += ih
+    nodes += [model.Constant("C_A", "5"), model.Constant("C_B", "5"), model.Constant("C_C", "C_B + C_A")]
+    nodes += th
+    nodes += [model.Enum("test", enum)]
+    nodes += [msg_h]
 
     ps = PythonSerializer.PythonSerializer()
-    output = ps.serialize_string(dh)
+    output = ps.serialize_string(nodes)
 
     ref = """\
 import prophy

@@ -14,8 +14,3 @@ StructMember = namedtuple("StructMember", ["name", "type", "array", "array_bound
 
 Union = namedtuple("Union", ["name", "members"])
 UnionMember = namedtuple("UnionMember", ["name", "type"])
-
-class Model(object):
-
-    def __init__(self):
-        self.nodes = []
