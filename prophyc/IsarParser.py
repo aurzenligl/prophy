@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import xml.dom.minidom
 import xml.etree.ElementTree as ElementTree
 import model
 from itertools import ifilter, islice
@@ -98,20 +97,20 @@ def make_enum(elem):
 
 def make_struct_members(elem):
     members = []
-    kname = elem.get("name")
-    ktype = elem.get("type")
+    ename = elem.get("name")
+    etype = elem.get("type")
     if len(elem):
         dimension = elem[0]
         if "isVariableSize" in dimension.attrib:
             type = dimension.get("variableSizeFieldType", "u32")
-            name = dimension.get("variableSizeFieldName", kname + "_len")
+            name = dimension.get("variableSizeFieldName", ename + "_len")
             members.append(model.StructMember(name, type, None, None, None))
-            members.append(model.StructMember(kname, ktype, True, name, None))
+            members.append(model.StructMember(ename, etype, True, name, None))
         elif "size" in dimension.attrib:
             size = dimension.get("size")
-            members.append(model.StructMember(kname, ktype, True, None, size))
+            members.append(model.StructMember(ename, etype, True, None, size))
     else:
-        members.append(model.StructMember(kname, ktype, None, None, None))
+        members.append(model.StructMember(ename, etype, None, None, None))
     return members
 
 def make_struct(elem):
@@ -127,10 +126,10 @@ def make_union(elem):
 
 class IsarParser(object):
 
-    def __get_model(self, dom, root):
+    def __get_model(self, root):
         nodes = []
         nodes += [make_include(elem) for elem in filter(lambda elem: "include" in elem.tag, root.findall('.//*[@href]'))]
-        nodes += filter(None, (make_constant(elem) for elem in root.findall('.//constant')))
+        nodes += [make_constant(elem) for elem in root.findall('.//constant')]
         nodes += filter(None, (make_typedef(elem) for elem in root.findall('.//typedef')))
         nodes += filter(None, (make_enum(elem) for elem in root.findall('.//enum')))
         nodes += filter(None, (make_struct(elem) for elem in root.findall('.//struct')))
@@ -140,7 +139,7 @@ class IsarParser(object):
         return nodes
 
     def parse_string(self, string):
-        return self.__get_model("xml.dom.minidom.parseString(string)", ElementTree.fromstring(string))
+        return self.__get_model(ElementTree.fromstring(string))
 
     def parse(self, file):
-        return self.__get_model("xml.dom.minidom.parse(file)", ElementTree.parse(file))
+        return self.__get_model(ElementTree.parse(file))
