@@ -41,10 +41,9 @@ def shiftLeft(x, y):
         return "%s = %s\n" % constant
 
     def __render_typedef(self, typedef):
-        key, val = typedef
-        if val in self.primitive_types:
-            val = self.libname + "." + val
-        return "%s = %s\n" % (key, val)
+        return "%s = %s\n" % (typedef.name, ".".join((self.libname, typedef.type))
+                                            if typedef.type in self.primitive_types
+                                            else typedef.type)
 
     def __render_enum_members(self, members):
         return (",\n" + " " * 21).join(("('%s', %s)" % (name, value) for name, value in members))
