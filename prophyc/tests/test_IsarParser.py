@@ -252,3 +252,13 @@ def test_dependency_sort_struct_with_multiple_dependencies():
     IsarParser.dependency_sort(nodes)
 
     assert ["A", "B", "C", "D"] == [node.name for node in nodes]
+
+def test_dependency_sort_union():
+    nodes = [model.Typedef("C", "B"),
+             model.Union("B", [model.UnionMember("a", "A"),
+                               model.UnionMember("b", "A")]),
+             model.Struct("A", [model.StructMember("a", "X", None, None, None)])]
+
+    IsarParser.dependency_sort(nodes)
+
+    assert ["A", "B", "C"] == [node.name for node in nodes]
