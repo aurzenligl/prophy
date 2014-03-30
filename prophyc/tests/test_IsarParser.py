@@ -218,6 +218,25 @@ def test_union_parsing():
     assert ["Union"] == [node.name for node in nodes]
     assert [("a", "A"), ("b", "B"), ("c", "C")] == nodes[0].members
 
+def test_empty_elemens_parsing():
+    xml = """\
+<x>
+    <typedef name="TILoveTypedefs_ALot"/>
+    <enum name="EEnum">
+    </enum>
+    <struct name="StructX">
+    </struct>
+    <union name="Union">
+    </union>
+    <message name="MsgX">
+    </message>
+</x>
+"""
+
+    nodes = parse(xml)
+
+    assert len(nodes) == 0
+
 def test_dependency_sort_enums():
     nodes = [model.Typedef("B", "A"),
              model.Typedef("C", "A"),

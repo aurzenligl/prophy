@@ -119,7 +119,8 @@ def make_union_member(elem):
     return model.UnionMember(elem.get("name"), elem.get("type"))
 
 def make_union(elem):
-    return model.Union(elem.get('name'), [make_union_member(member) for member in elem])
+    if len(elem):
+        return model.Union(elem.get('name'), [make_union_member(member) for member in elem])
 
 class IsarParser(object):
 
