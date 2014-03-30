@@ -133,8 +133,8 @@ class IsarParser(object):
         nodes += filter(None, (make_typedef(elem) for elem in root.iterfind('.//typedef')))
         nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
         nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
-        nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//message')))
         nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
+        nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//message')))
         dependency_sort(nodes)
         return nodes
 
