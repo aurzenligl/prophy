@@ -3,8 +3,8 @@
 import model
 import PythonSerializer
 
-def serialize(holder):
-    return PythonSerializer.PythonSerializer().serialize_string(holder, header = False)
+def serialize(nodes):
+    return PythonSerializer.PythonSerializer().serialize_string(nodes, header = False)
 
 def test_includes_rendering():
     nodes = [model.Include("szydlo"),
