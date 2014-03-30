@@ -128,13 +128,13 @@ class IsarParser(object):
 
     def __get_model(self, root):
         nodes = []
-        nodes += [make_include(elem) for elem in filter(lambda elem: "include" in elem.tag, root.findall('.//*[@href]'))]
-        nodes += [make_constant(elem) for elem in root.findall('.//constant')]
-        nodes += filter(None, (make_typedef(elem) for elem in root.findall('.//typedef')))
-        nodes += filter(None, (make_enum(elem) for elem in root.findall('.//enum')))
-        nodes += filter(None, (make_struct(elem) for elem in root.findall('.//struct')))
-        nodes += filter(None, (make_struct(elem) for elem in root.findall('.//message')))
-        nodes += filter(None, (make_union(elem) for elem in root.findall('.//union')))
+        nodes += [make_include(elem) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
+        nodes += [make_constant(elem) for elem in root.iterfind('.//constant')]
+        nodes += filter(None, (make_typedef(elem) for elem in root.iterfind('.//typedef')))
+        nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
+        nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
+        nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//message')))
+        nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
         dependency_sort(nodes)
         return nodes
 
