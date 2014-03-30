@@ -32,15 +32,15 @@ def get_struct_deps(struct):
 def get_union_deps(union):
     return [member.type for member in union.members]
 
+def get_deps(node):
+    return deps_visitor[type(node)](node)
+
 deps_visitor = {model.Include: get_include_deps,
                 model.Constant: get_constant_deps,
                 model.Typedef: get_typedef_deps,
                 model.Enum: get_enum_deps,
                 model.Struct: get_struct_deps,
                 model.Union: get_union_deps}
-
-def get_deps(node):
-    return deps_visitor[type(node)](node)
 
 def dependency_sort_rotate(nodes, known, available, index):
     node = nodes[index]
@@ -64,12 +64,6 @@ def dependency_sort(nodes):
         if not dependency_sort_rotate(nodes, known, available, index):
             index = index + 1
 
-def make_include(elem):
-    return model.Include(elem.get("href").split('.')[0])
-
-def make_constant(elem):
-    return model.Constant(elem.get("name"), elem.get("value"))
-
 primitive_types = {"8 bit integer unsigned": "u8",
                    "16 bit integer unsigned": "u16",
                    "32 bit integer unsigned": "u32",
@@ -80,6 +74,12 @@ primitive_types = {"8 bit integer unsigned": "u8",
                    "64 bit integer signed": "i64",
                    "32 bit float": "r32",
                    "64 bit float": "r64"}
+
+def make_include(elem):
+    return model.Include(elem.get("href").split('.')[0])
+
+def make_constant(elem):
+    return model.Constant(elem.get("name"), elem.get("value"))
 
 def make_typedef(elem):
     if "type" in elem.attrib:
@@ -119,33 +119,13 @@ def make_struct(elem):
         members = reduce(lambda x, y: x + y, (make_struct_members(member) for member in elem))
         return model.Struct(elem.get("name"), members)
 
-node_makers = {"{http://www.nsn.com/2008/XInclude}include": make_include,
-               "{http://www.w3.org/2001/XInclude}include": make_include,
-               "constant": make_constant,
-               "typedef": make_typedef,
-               "enum": make_enum,
-               "struct": make_struct,
-               "message": make_struct}
+def make_union_member(elem):
+    return model.UnionMember(elem.get("name"), elem.get("type"))
 
-# #         "struct",
-# #         "message",
-# #         "union"}
-
-def make_node(elem):
-    return node_makers[elem.tag](elem)
+def make_union(elem):
+    return model.Union(elem.get('name'), [make_union_member(member) for member in elem])
 
 class IsarParser(object):
-
-    def __get_union_member(self, elem):
-        return model.UnionMember(elem.getAttribute("name"), elem.getAttribute("type"))
-
-    def __get_union(self, elem):
-        name = elem.getAttribute('name')
-        members = [self.__get_union_member(member) for member in elem.getElementsByTagName("member")]
-        return model.Union(name, members)
-
-    def __get_unions(self, dom):
-        return [self.__get_union(elem) for elem in dom.getElementsByTagName('union')]
 
     def __get_model(self, dom, root):
         nodes = []
@@ -155,16 +135,12 @@ class IsarParser(object):
         nodes += filter(None, (make_enum(elem) for elem in root.findall('.//enum')))
         nodes += filter(None, (make_struct(elem) for elem in root.findall('.//struct')))
         nodes += filter(None, (make_struct(elem) for elem in root.findall('.//message')))
-
-#         known = set(node_makers.keys())
-#         nodes += filter(None, [make_node(elem) for elem in filter(lambda elem: elem.tag in known, root.findall('.//'))])
-
-        nodes += self.__get_unions(dom)
+        nodes += filter(None, (make_union(elem) for elem in root.findall('.//union')))
         dependency_sort(nodes)
         return nodes
 
     def parse_string(self, string):
-        return self.__get_model(xml.dom.minidom.parseString(string), ElementTree.fromstring(string))
+        return self.__get_model("xml.dom.minidom.parseString(string)", ElementTree.fromstring(string))
 
     def parse(self, file):
-        return self.__get_model(xml.dom.minidom.parse(file), ElementTree.parse(file))
+        return self.__get_model("xml.dom.minidom.parse(file)", ElementTree.parse(file))
