@@ -8,9 +8,7 @@ prophyc = os.path.join(prophyc_dir, "prophyc.py")
 
 simple_isar = """<dom>
       <typedef name="TPoolId" type="u32"/>
-          <include name="TNumberOfItems.h">
       <typedef name="TNumberOfItems" primitiveType="32 bit integer unsigned"/>
-      </include>
       <enum name="EL2DeployableNode">
          <enum-member name="EL2DeployableNode_Basic1" value="0"/>
          <enum-member name="EL2DeployableNode_Basic2" value="1"/>

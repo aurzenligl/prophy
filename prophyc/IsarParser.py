@@ -96,14 +96,37 @@ def make_enum(elem):
     if len(elem):
         return model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
 
+def make_struct_members(elem):
+    members = []
+    kname = elem.get("name")
+    ktype = elem.get("type")
+    if len(elem):
+        dimension = elem[0]
+        if "isVariableSize" in dimension.attrib:
+            type = dimension.get("variableSizeFieldType", "u32")
+            name = dimension.get("variableSizeFieldName", kname + "_len")
+            members.append(model.StructMember(name, type, None, None, None))
+            members.append(model.StructMember(kname, ktype, True, name, None))
+        elif "size" in dimension.attrib:
+            size = dimension.get("size")
+            members.append(model.StructMember(kname, ktype, True, None, size))
+    else:
+        members.append(model.StructMember(kname, ktype, None, None, None))
+    return members
+
+def make_struct(elem):
+    if len(elem):
+        members = reduce(lambda x, y: x + y, (make_struct_members(member) for member in elem))
+        return model.Struct(elem.get("name"), members)
+
 node_makers = {"{http://www.nsn.com/2008/XInclude}include": make_include,
                "{http://www.w3.org/2001/XInclude}include": make_include,
                "constant": make_constant,
                "typedef": make_typedef,
-               "enum": make_enum}
+               "enum": make_enum,
+               "struct": make_struct,
+               "message": make_struct}
 
-# #         "typedef",
-# #         "enum",
 # #         "struct",
 # #         "message",
 # #         "union"}
@@ -112,37 +135,6 @@ def make_node(elem):
     return node_makers[elem.tag](elem)
 
 class IsarParser(object):
-
-    def __get_struct_members(self, elem):
-        members = []
-        kname = elem.attributes["name"].value
-        ktype = elem.attributes["type"].value
-        if elem.getElementsByTagName('dimension'):
-            dimension = dict(elem.getElementsByTagName('dimension')[0].attributes.items())
-            if "isVariableSize" in dimension:
-                type = dimension.get("variableSizeFieldType", "u32")
-                name = dimension.get("variableSizeFieldName", kname + "_len")
-                members.append(model.StructMember(name, type, None, None, None))
-                members.append(model.StructMember(kname, ktype, True, name, None))
-            elif "size" in dimension:
-                size = dimension["size"]
-                members.append(model.StructMember(kname, ktype, True, None, size))
-        else:
-            members.append(model.StructMember(kname, ktype, None, None, None))
-        return members
-
-    def __get_struct(self, elem):
-        name = elem.attributes["name"].value
-        members = reduce(lambda x, y: x + y, (self.__get_struct_members(member)
-                                              for member
-                                              in elem.getElementsByTagName('member')), [])
-        return model.Struct(name, members)
-
-    def __get_structs(self, dom):
-        return [self.__get_struct(elem)
-                for elem
-                in dom.getElementsByTagName("struct") + dom.getElementsByTagName("message")
-                if elem.hasChildNodes()]
 
     def __get_union_member(self, elem):
         return model.UnionMember(elem.getAttribute("name"), elem.getAttribute("type"))
@@ -157,11 +149,16 @@ class IsarParser(object):
 
     def __get_model(self, dom, root):
         nodes = []
+        nodes += [make_include(elem) for elem in filter(lambda elem: "include" in elem.tag, root.findall('.//*[@href]'))]
+        nodes += filter(None, (make_constant(elem) for elem in root.findall('.//constant')))
+        nodes += filter(None, (make_typedef(elem) for elem in root.findall('.//typedef')))
+        nodes += filter(None, (make_enum(elem) for elem in root.findall('.//enum')))
+        nodes += filter(None, (make_struct(elem) for elem in root.findall('.//struct')))
+        nodes += filter(None, (make_struct(elem) for elem in root.findall('.//message')))
 
-        known = set(node_makers.keys())
-        nodes += filter(None, [make_node(elem) for elem in filter(lambda elem: elem.tag in known, root.findall('.//'))])
+#         known = set(node_makers.keys())
+#         nodes += filter(None, [make_node(elem) for elem in filter(lambda elem: elem.tag in known, root.findall('.//'))])
 
-        nodes += self.__get_structs(dom)
         nodes += self.__get_unions(dom)
         dependency_sort(nodes)
         return nodes

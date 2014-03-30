@@ -99,12 +99,14 @@ def test_enums_parsing():
 
 def test_struct_parsing():
     xml = """\
-<struct name="Struct">
-    <member name="a" type="u8"/>
-    <member name="b" type="i64"/>
-    <member name="c" type="r32"/>
-    <member name="d" type="TTypeX"/>
-</struct>
+<x>
+    <struct name="Struct">
+        <member name="a" type="u8"/>
+        <member name="b" type="i64"/>
+        <member name="c" type="r32"/>
+        <member name="d" type="TTypeX"/>
+    </struct>
+</x>
 """
     nodes = parse(xml)
 
@@ -117,11 +119,13 @@ def test_struct_parsing():
 
 def test_struct_parsing_dynamic_array():
     xml = """\
-<struct name="StructWithDynamic">
-    <member name="x" type="TTypeX">
-        <dimension isVariableSize="true"/>
-    </member>
-</struct>
+<x>
+    <struct name="StructWithDynamic">
+        <member name="x" type="TTypeX">
+            <dimension isVariableSize="true"/>
+        </member>
+    </struct>
+</x>
 """
     nodes = parse(xml)
 
@@ -130,11 +134,13 @@ def test_struct_parsing_dynamic_array():
 
 def test_struct_parsing_static_array():
     xml = """\
-<struct name="StructWithStatic">
-    <member name="y" type="TTypeY">
-        <dimension size="NUM_OF_Y"/>
-    </member>
-</struct>
+<x>
+    <struct name="StructWithStatic">
+        <member name="y" type="TTypeY">
+            <dimension size="NUM_OF_Y"/>
+        </member>
+    </struct>
+</x>
 """
     nodes = parse(xml)
 
@@ -142,11 +148,13 @@ def test_struct_parsing_static_array():
 
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
-<struct name="StructX">
-    <member name="x" type="TTypeX">
-        <dimension isVariableSize="true" variableSizeFieldType="TNumberOfItems"/>
-    </member>
-</struct>
+<x>
+    <struct name="StructX">
+        <member name="x" type="TTypeX">
+            <dimension isVariableSize="true" variableSizeFieldType="TNumberOfItems"/>
+        </member>
+    </struct>
+</x>
 """
     nodes = parse(xml)
 
@@ -155,11 +163,13 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
-<struct name="StructX">
-    <member name="x" type="TTypeX">
-        <dimension isVariableSize="true" variableSizeFieldName="numOfX"/>
-    </member>
-</struct>
+<x>
+    <struct name="StructX">
+        <member name="x" type="TTypeX">
+            <dimension isVariableSize="true" variableSizeFieldName="numOfX"/>
+        </member>
+    </struct>
+</x>
 """
     nodes = parse(xml)
 
@@ -168,11 +178,13 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
-<struct name="StructX">
-    <member name="x" type="TTypeX">
-        <dimension isVariableSize="true" variableSizeFieldName="numOfX" variableSizeFieldType="TSize"/>
-    </member>
-</struct>
+<x>
+    <struct name="StructX">
+        <member name="x" type="TTypeX">
+            <dimension isVariableSize="true" variableSizeFieldName="numOfX" variableSizeFieldType="TSize"/>
+        </member>
+    </struct>
+</x>
 """
     nodes = parse(xml)
 
@@ -181,9 +193,11 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
 
 def test_message_parsing():
     xml = """\
-<message name="MsgX">
-    <member name="x" type="TTypeX"/>
-</message>
+<x>
+    <message name="MsgX">
+        <member name="x" type="TTypeX"/>
+    </message>
+</x>
 """
     nodes = parse(xml)
 
@@ -191,11 +205,13 @@ def test_message_parsing():
 
 def test_union_parsing():
     xml = """\
-<union name="Union">
-    <member type="A" name="a"/>
-    <member type="B" name="b"/>
-    <member type="C" name="c"/>
-</union>
+<x>
+    <union name="Union">
+        <member type="A" name="a"/>
+        <member type="B" name="b"/>
+        <member type="C" name="c"/>
+    </union>
+</x>
 """
     nodes = parse(xml)
 
