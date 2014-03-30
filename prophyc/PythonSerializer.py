@@ -60,7 +60,7 @@ class PythonSerializer(object):
                                                     self.__render_union_members(union.members))
 
     def __render_struct_member(self, member):
-        prefixed_type = self.libname + "." + member.type if member.type in self.primitive_types else member.type
+        prefixed_type = ".".join((self.libname, member.type)) if member.type in self.primitive_types else member.type
         if member.array:
             if member.array_bound:
                 return "('%s', %s.array(%s, bound = '%s'))" % (member.name, self.libname, prefixed_type, member.array_bound)
