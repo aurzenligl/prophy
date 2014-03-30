@@ -100,6 +100,22 @@ class Struct(prophy.struct):
 """
     assert ref == serialize(holder)
 
+def test_union_rendering():
+    nodes = [model.Union("U", [model.UnionMember("a", "A"),
+                               model.UnionMember("b", "B"),
+                               model.UnionMember("c", "C")])]
+    holder = model.Model()
+    holder.nodes = nodes
+
+    ref = """\
+class U(prophy.union):
+    __metaclass__ = prophy.union_generator
+    _descriptor = [('a', A),
+                   ('b', B),
+                   ('c', C)]
+"""
+    assert ref == serialize(holder)
+
 def test_of_PythonSerializer():
     ih = []
     th = []
