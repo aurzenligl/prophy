@@ -10,8 +10,13 @@ class PythonSerializer(object):
         self.output_dir = output_dir
 
     def serialize_string(self, nodes, no_prolog = False):
-        return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
-                                             self.__render_nodes(nodes))))
+        out = ""
+        if not no_prolog:
+            out += self.__render_prolog()
+            if nodes:
+                out += "\n"
+        out += "\n".join(self.__render(node) for node in nodes)
+        return out
 
     def serialize(self, nodes, basename):
         path = os.path.join(self.output_dir, basename + ".py")
@@ -88,9 +93,6 @@ class PythonSerializer(object):
 
     def __render(self, node):
         return self.render_visitor[type(node)](self, node)
-
-    def __render_nodes(self, nodes):
-        return "\n".join((self.__render(node) for node in nodes))
 
     def __render_prolog(self):
         return """\
