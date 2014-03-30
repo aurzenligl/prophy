@@ -4,7 +4,7 @@ import model
 import PythonSerializer
 
 def serialize(holder):
-    return PythonSerializer.PythonSerializer().serialize_string(holder, no_prolog = True)
+    return PythonSerializer.PythonSerializer().serialize_string(holder, header = False)
 
 def test_includes_rendering():
     nodes = [model.Include("szydlo"),

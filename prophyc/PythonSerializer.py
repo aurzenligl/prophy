@@ -9,10 +9,10 @@ class PythonSerializer(object):
     def __init__(self, output_dir = "."):
         self.output_dir = output_dir
 
-    def serialize_string(self, nodes, no_prolog = False):
+    def serialize_string(self, nodes, header = True):
         out = ""
-        if not no_prolog:
-            out += self.__render_prolog()
+        if header:
+            out += self.__render_header()
             if nodes:
                 out += "\n"
         out += "\n".join(self.__render(node) for node in nodes)
@@ -22,6 +22,17 @@ class PythonSerializer(object):
         path = os.path.join(self.output_dir, basename + ".py")
         out = self.serialize_string(nodes)
         open(path, "w").write(out)
+
+    def __render_header(self):
+        return """\
+import %s
+
+def bitMaskOr(x, y):
+    return x | y
+
+def shiftLeft(x, y):
+    return x << y
+""" % self.libname
 
     def __render_include(self, include):
         return "from %s import *\n" % include
@@ -93,14 +104,3 @@ class PythonSerializer(object):
 
     def __render(self, node):
         return self.render_visitor[type(node)](self, node)
-
-    def __render_prolog(self):
-        return """\
-import %s
-
-def bitMaskOr(x, y):
-    return x | y
-
-def shiftLeft(x, y):
-    return x << y
-""" % self.libname
