@@ -11,7 +11,6 @@ class PythonSerializer(object):
 
     def serialize_string(self, dataHolder, no_prolog = False):
         return os.linesep.join(filter(None, (None if no_prolog else self.__render_prolog(),
-                                             self._serialize_union(dataHolder.union_dict),
                                              self.__render_nodes(dataHolder.nodes))))
 
     def serialize(self, dataHolder, basename):
@@ -48,7 +47,7 @@ class PythonSerializer(object):
                                 self.__render_enum_constants(enum.members))
 
     def __render_union(self, union):
-        return ""
+        return "%s = %s.u32\n" % (union.name, self.libname)
 
     def __render_struct_member(self, member):
         prefixed_type = self.libname + "." + member.type if member.type in self.primitive_types else member.type
@@ -93,20 +92,3 @@ def bitMaskOr(x, y):
 def shiftLeft(x, y):
     return x << y
 """ % self.libname
-
-    def _serialize_union(self, union_dict):
-        def serialize_union_members(list):
-            desc = []
-            for member in list:
-                    k, v = member
-                    desc.append("('{0}',{1})" .format(v, k))
-            return ", ".join(desc)
-        out = ""
-
-        for key, val in union_dict.iteritems():
-            out += "class {0}({1}.union):" .format(key, self.libname) + "\n"
-            out += "    __metaclass__ = {0}.union_generator" .format(self.libname) + "\n"
-            out += "    _discriminator = EDisc{0}" .format(key) + "\n"
-            out += "    _descriptor  = [" + serialize_union_members(val.list) + "]\n"
-
-        return out

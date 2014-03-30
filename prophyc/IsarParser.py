@@ -4,6 +4,14 @@ import xml.dom.minidom
 import model
 from itertools import ifilter, islice
 
+"""
+TODO:
+- nodes should be read in order that they really appear in xml file,
+  not all includes, then all typedefs, then all enums, etc.
+- arrays of u8 type should be string or bytes fields
+- dependency sort should see included xml nodes and have them in known set
+"""
+
 def get_include_deps(include):
     return []
 
