@@ -10,13 +10,7 @@ class PythonSerializer(object):
         self.output_dir = output_dir
 
     def serialize_string(self, nodes, header = True):
-        out = ""
-        if header:
-            out += self.__render_header()
-            if nodes:
-                out += "\n"
-        out += "\n".join(self.__render(node) for node in nodes)
-        return out
+        return "\n".join(header * [self.__render_header()] + [self.__render(node) for node in nodes])
 
     def serialize(self, nodes, basename):
         path = os.path.join(self.output_dir, basename + ".py")
