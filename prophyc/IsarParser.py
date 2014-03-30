@@ -16,7 +16,7 @@ def get_include_deps(include):
     return []
 
 def get_constant_deps(constant):
-    return [x for x in reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split() if not x.isdigit()]
+    return filter(lambda x: not x.isdigit(), reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
 
 def get_typedef_deps(typedef):
     return [typedef.type]
