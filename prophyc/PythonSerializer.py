@@ -61,19 +61,6 @@ def shiftLeft(x, y):
                                 self.__render_enum_members(enum.members),
                                 self.__render_enum_constants(enum.members))
 
-    def __render_union_member(self, member):
-        return "('%s', %s)" % (member.name, member.type)
-
-    def __render_union_members(self, members):
-        return (",\n" + " "*19).join(self.__render_union_member(member) for member in members)
-
-    def __render_union(self, union):
-        return ("class {1}({0}.union):\n"
-                "    __metaclass__ = {0}.union_generator\n"
-                "    _descriptor = [{2}]\n").format(self.libname,
-                                                    union.name,
-                                                    self.__render_union_members(union.members))
-
     def __render_struct_member(self, member):
         prefixed_type = ".".join((self.libname, member.type)) if member.type in self.primitive_types else member.type
         if member.array:
@@ -94,12 +81,25 @@ def shiftLeft(x, y):
                                                     struct.name,
                                                     self.__render_struct_members(struct.members))
 
+    def __render_union_member(self, member):
+        return "('%s', %s)" % (member.name, member.type)
+
+    def __render_union_members(self, members):
+        return (",\n" + " "*19).join(self.__render_union_member(member) for member in members)
+
+    def __render_union(self, union):
+        return ("class {1}({0}.union):\n"
+                "    __metaclass__ = {0}.union_generator\n"
+                "    _descriptor = [{2}]\n").format(self.libname,
+                                                    union.name,
+                                                    self.__render_union_members(union.members))
+
     render_visitor = {model.Include: __render_include,
                       model.Constant: __render_constant,
                       model.Typedef: __render_typedef,
                       model.Enum: __render_enum,
-                      model.Union: __render_union,
-                      model.Struct: __render_struct}
+                      model.Struct: __render_struct,
+                      model.Union: __render_union}
 
     def __render(self, node):
         return self.render_visitor[type(node)](self, node)

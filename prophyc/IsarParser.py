@@ -8,15 +8,16 @@ from itertools import ifilter, islice
 TODO:
 - nodes should be read in order that they really appear in xml file,
   not all includes, then all typedefs, then all enums, etc.
+  lxml library allows to do just that (+ it's faster than dom)
 - arrays of u8 type should be string or bytes fields
-- dependency sort should see included xml nodes and have them in known set
 """
 
 def get_include_deps(include):
     return []
 
 def get_constant_deps(constant):
-    return filter(lambda x: not x.isdigit(), reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
+    return filter(lambda x: not x.isdigit(),
+                  reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
 
 def get_typedef_deps(typedef):
     return [typedef.type]
@@ -24,43 +25,42 @@ def get_typedef_deps(typedef):
 def get_enum_deps(enum):
     return []
 
-def get_union_deps(union):
-    return [member.type for member in union.members]
-
 def get_struct_deps(struct):
     return [member.type for member in struct.members]
+
+def get_union_deps(union):
+    return [member.type for member in union.members]
 
 deps_visitor = {model.Include: get_include_deps,
                 model.Constant: get_constant_deps,
                 model.Typedef: get_typedef_deps,
                 model.Enum: get_enum_deps,
-                model.Union: get_union_deps,
-                model.Struct: get_struct_deps}
+                model.Struct: get_struct_deps,
+                model.Union: get_union_deps, }
 
 def get_deps(node):
     return deps_visitor[type(node)](node)
 
-def dependency_sort_rotate(nodes, known, index):
+def dependency_sort_rotate(nodes, known, available, index):
     node = nodes[index]
     for dep in get_deps(node):
-        if dep not in known:
-            found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)), None)
-            if found:
-                found_index = nodes.index(found)
-                nodes.insert(index, nodes.pop(found_index))
-                return True
-            """ if dep is not found, it means it's in another xml file """
+        if dep not in known and dep in available:
+            found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)))
+            found_index = nodes.index(found)
+            nodes.insert(index, nodes.pop(found_index))
+            return True
     known.add(node.name)
     return False
 
 def dependency_sort(nodes):
     known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
-    known.add("TBoolean")
+    available = set(node.name for node in nodes)
+
     index = 0
     max_index = len(nodes)
 
     while index < max_index:
-        if not dependency_sort_rotate(nodes, known, index):
+        if not dependency_sort_rotate(nodes, known, available, index):
             index = index + 1
 
 class IsarParser(object):
@@ -148,7 +148,9 @@ class IsarParser(object):
         return [self.__get_constant(elem) for elem in dom.getElementsByTagName('constant')]
 
     def __get_includes(self, dom):
-        return [model.Include(elem.attributes["href"].value.split('.')[0]) for elem in dom.getElementsByTagName("xi:include")]
+        return [model.Include(elem.attributes["href"].value.split('.')[0])
+                for elem
+                in dom.getElementsByTagName("xi:include")]
 
     def __get_model(self, dom):
         nodes = []
@@ -156,8 +158,8 @@ class IsarParser(object):
         nodes += self.__get_constants(dom)
         nodes += self.__get_typedefs(dom)
         nodes += self.__get_enums(dom)
-        nodes += self.__get_unions(dom)
         nodes += self.__get_structs(dom)
+        nodes += self.__get_unions(dom)
         dependency_sort(nodes)
         return nodes
 
