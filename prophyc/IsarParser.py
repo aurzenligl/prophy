@@ -96,8 +96,8 @@ def make_struct_members(elem):
     members = []
     ename = elem.get("name")
     etype = elem.get("type")
-    if len(elem):
-        dimension = elem[0]
+    dimension = elem.find("dimension")
+    if dimension is not None:
         if "isVariableSize" in dimension.attrib:
             type = dimension.get("variableSizeFieldType", "u32")
             name = dimension.get("variableSizeFieldName", ename + "_len")

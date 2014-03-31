@@ -117,6 +117,21 @@ def test_struct_parsing():
             ("c", "r32", None, None, None),
             ("d", "TTypeX", None, None, None)] == nodes[0].members
 
+def test_struct_parsing_with_constant():
+    xml = """\
+<x>
+    <struct name="Struct">
+        <member name="a" type="u8">
+            <constant name="THE_CONSTANT" value="0"/>
+        </member>
+    </struct>
+</x>
+"""
+    nodes = parse(xml)
+
+    assert [model.Constant("THE_CONSTANT", "0"),
+            model.Struct("Struct", [model.StructMember("a", "u8", None, None, None)])] == nodes
+
 def test_struct_parsing_dynamic_array():
     xml = """\
 <x>
