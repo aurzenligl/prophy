@@ -266,11 +266,26 @@ class struct_generator(type):
         super(struct_generator, cls).__init__(name, bases, attrs)
 
 def add_union_properties(cls, descriptor):
+    add_union_discriminator(cls)
     for name, type, disc in descriptor:
         if "composite" in type._tags:
             add_union_composite(cls, name, type, disc)
         else:
             add_union_scalar(cls, name, type, disc)
+
+def add_union_discriminator(cls):
+    def getter(self):
+        return self._discriminator
+    def setter(self, new_value):
+        field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
+        if field:
+            name, type, disc = field
+            if disc != self._discriminator:
+                self._discriminator = disc
+                self._fields = {}
+        else:
+            raise Exception("unknown discriminator")
+    setattr(cls, "discriminator", property(getter, setter))
 
 def add_union_scalar(cls, name, type, disc):
     def getter(self):
