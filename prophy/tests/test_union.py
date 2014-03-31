@@ -12,20 +12,17 @@ def make_U():
 def test_simple_union():
     x = make_U()
 
+    assert 0 == x.discriminator
     assert 0 == x.a
     assert 'a: 0\n' == str(x)
     assert '\x00\x00\x00\x00\x00\x00\x00\x00' == x.encode(">")
 
     x.decode('\x02\x00\x00\x00\x10\x00\x00\x00', "<")
 
+    assert 2 == x.discriminator
     assert 16 == x.c
     assert 'c: 16\n' == str(x)
     assert '\x00\x00\x00\x02\x00\x00\x00\x10' == x.encode(">")
-
-def test_simple_union_discriminator_initial_value():
-    x = make_U()
-
-    assert 0 == x.discriminator
 
 def test_simple_union_discriminator_accepts_ints_or_field_name_and_clears():
     x = make_U()
