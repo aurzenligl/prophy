@@ -96,16 +96,16 @@ class Struct(prophy.struct):
     assert ref == serialize(nodes)
 
 def test_union_rendering():
-    nodes = [model.Union("U", [model.UnionMember("a", "A"),
-                               model.UnionMember("b", "B"),
-                               model.UnionMember("c", "C")])]
+    nodes = [model.Union("U", [model.UnionMember("a", "A", "0"),
+                               model.UnionMember("b", "B", "1"),
+                               model.UnionMember("c", "C", "2")])]
 
     ref = """\
 class U(prophy.union):
     __metaclass__ = prophy.union_generator
-    _descriptor = [('a', A),
-                   ('b', B),
-                   ('c', C)]
+    _descriptor = [('a', A, 0),
+                   ('b', B, 1),
+                   ('c', C, 2)]
 """
     assert ref == serialize(nodes)
 

@@ -222,16 +222,16 @@ def test_union_parsing():
     xml = """\
 <x>
     <union name="Union">
-        <member type="A" name="a"/>
-        <member type="B" name="b"/>
-        <member type="C" name="c"/>
+        <member type="A" name="a" discriminatorValue="0"/>
+        <member type="B" name="b" discriminatorValue="1"/>
+        <member type="C" name="c" discriminatorValue="5"/>
     </union>
 </x>
 """
     nodes = parse(xml)
 
     assert ["Union"] == [node.name for node in nodes]
-    assert [("a", "A"), ("b", "B"), ("c", "C")] == nodes[0].members
+    assert [("a", "A", "0"), ("b", "B", "1"), ("c", "C", "5")] == nodes[0].members
 
 def test_empty_elemens_parsing():
     xml = """\
@@ -311,8 +311,8 @@ def test_dependency_sort_struct_with_multiple_dependencies():
 
 def test_dependency_sort_union():
     nodes = [model.Typedef("C", "B"),
-             model.Union("B", [model.UnionMember("a", "A"),
-                               model.UnionMember("b", "A")]),
+             model.Union("B", [model.UnionMember("a", "A", "0"),
+                               model.UnionMember("b", "A", "1")]),
              model.Struct("A", [model.StructMember("a", "X", None, None, None)])]
 
     IsarParser.dependency_sort(nodes)

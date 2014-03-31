@@ -263,5 +263,12 @@ class struct(object):
             else:
                 fields[name] = value
 
-union_generator = struct_generator
-union = struct
+class union_generator(type):
+    def __new__(cls, name, bases, attrs):
+        return super(union_generator, cls).__new__(cls, name, bases, attrs)
+    def __init__(cls, name, bases, attrs):
+        super(union_generator, cls).__init__(name, bases, attrs)
+
+import scalar
+
+union = scalar.u32

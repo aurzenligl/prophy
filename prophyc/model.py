@@ -13,4 +13,4 @@ Struct = namedtuple("Struct", ["name", "members"])
 StructMember = namedtuple("StructMember", ["name", "type", "array", "array_bound", "array_size"])
 
 Union = namedtuple("Union", ["name", "members"])
-UnionMember = namedtuple("UnionMember", ["name", "type"])
+UnionMember = namedtuple("UnionMember", ["name", "type", "discriminator"])

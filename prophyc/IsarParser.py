@@ -116,7 +116,7 @@ def make_struct(elem):
         return model.Struct(elem.get("name"), members)
 
 def make_union_member(elem):
-    return model.UnionMember(elem.get("name"), elem.get("type"))
+    return model.UnionMember(elem.get("name"), elem.get("type"), elem.get("discriminatorValue"))
 
 def make_union(elem):
     if len(elem):
