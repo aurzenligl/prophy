@@ -176,7 +176,7 @@ def base_enum_generator(name, bases, attrs):
 
 class enum():
     __metaclass__ = base_enum_generator
-    _base = i32
+    _base = u32
 
 class enum8():
     __metaclass__ = base_enum_generator

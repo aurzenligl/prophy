@@ -8,9 +8,7 @@ prophyc = os.path.join(prophyc_dir, "prophyc.py")
 
 simple_isar = """<dom>
       <typedef name="TPoolId" type="u32"/>
-          <include name="TNumberOfItems.h">
       <typedef name="TNumberOfItems" primitiveType="32 bit integer unsigned"/>
-      </include>
       <enum name="EL2DeployableNode">
          <enum-member name="EL2DeployableNode_Basic1" value="0"/>
          <enum-member name="EL2DeployableNode_Basic2" value="1"/>
@@ -103,7 +101,8 @@ def test_simple_struct_construct(tmpdir_cwd):
     import simple_construct
     s = simple_construct.SL2DeploymentInfo()
     s.l2NodeType = "EL2DeployableNode_Basic2"
-    print s.l2NodeType
+    s.nodeAddr = 0x1231
+    assert "\x00\x00\x00\x01\x12\x31" == s.encode(">")
 
 def test_complex_struct(tmpdir_cwd):
     write("complex.xml", complex_isar)

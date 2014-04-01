@@ -24,5 +24,5 @@ if __name__ == "__main__":
 
     for input_file in opts.input_files:
         basename = get_basename(input_file)
-        data_holder = parser.parse(input_file)
-        serializer.serialize(data_holder, basename)
+        nodes = parser.parse(input_file)
+        serializer.serialize(nodes, basename)

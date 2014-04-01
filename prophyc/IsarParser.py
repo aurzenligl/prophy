@@ -1,145 +1,143 @@
 # -*- coding: utf-8 -*-
 
-import xml.dom.minidom
-from collections import OrderedDict
-from DataHolder import IncludeHolder, TypeDefHolder, ConstantHolder, EnumHolder, MemberHolder, MessageHolder, DataHolder, UnionHolder
+import xml.etree.ElementTree as ElementTree
+import model
+from itertools import ifilter, islice
+
+"""
+TODO:
+- arrays of u8 type should be string or bytes fields
+"""
+
+def get_include_deps(include):
+    return []
+
+def get_constant_deps(constant):
+    return filter(lambda x: not x.isdigit(),
+                  reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
+
+def get_typedef_deps(typedef):
+    return [typedef.type]
+
+def get_enum_deps(enum):
+    return []
+
+def get_struct_deps(struct):
+    return [member.type for member in struct.members]
+
+def get_union_deps(union):
+    return [member.type for member in union.members]
+
+def get_deps(node):
+    return deps_visitor[type(node)](node)
+
+deps_visitor = {model.Include: get_include_deps,
+                model.Constant: get_constant_deps,
+                model.Typedef: get_typedef_deps,
+                model.Enum: get_enum_deps,
+                model.Struct: get_struct_deps,
+                model.Union: get_union_deps}
+
+def dependency_sort_rotate(nodes, known, available, index):
+    node = nodes[index]
+    for dep in get_deps(node):
+        if dep not in known and dep in available:
+            found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)))
+            found_index = nodes.index(found)
+            nodes.insert(index, nodes.pop(found_index))
+            return True
+    known.add(node.name)
+    return False
+
+def dependency_sort(nodes):
+    known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
+    available = set(node.name for node in nodes)
+
+    index = 0
+    max_index = len(nodes)
+
+    while index < max_index:
+        if not dependency_sort_rotate(nodes, known, available, index):
+            index = index + 1
+
+primitive_types = {"8 bit integer unsigned": "u8",
+                   "16 bit integer unsigned": "u16",
+                   "32 bit integer unsigned": "u32",
+                   "64 bit integer unsigned": "u64",
+                   "8 bit integer signed": "i8",
+                   "16 bit integer signed": "i16",
+                   "32 bit integer signed": "i32",
+                   "64 bit integer signed": "i64",
+                   "32 bit float": "r32",
+                   "64 bit float": "r64"}
+
+def make_include(elem):
+    return model.Include(elem.get("href").split('.')[0])
+
+def make_constant(elem):
+    return model.Constant(elem.get("name"), elem.get("value"))
+
+def make_typedef(elem):
+    if "type" in elem.attrib:
+        return model.Typedef(elem.get("name"), elem.get("type"))
+    elif "primitiveType" in elem.attrib:
+        return model.Typedef(elem.get("name"), primitive_types[elem.get("primitiveType")])
+
+def make_enum_member(elem):
+    value = elem.get('value')
+    value = value if value != "-1" else "0xFFFFFFFF"
+    return model.EnumMember(elem.get("name"), value)
+
+def make_enum(elem):
+    if len(elem):
+        return model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
+
+def make_struct_members(elem):
+    members = []
+    ename = elem.get("name")
+    etype = elem.get("type")
+    dimension = elem.find("dimension")
+    if dimension is not None:
+        if "isVariableSize" in dimension.attrib:
+            type = dimension.get("variableSizeFieldType", "u32")
+            name = dimension.get("variableSizeFieldName", ename + "_len")
+            members.append(model.StructMember(name, type, None, None, None))
+            members.append(model.StructMember(ename, etype, True, name, None))
+        elif "size" in dimension.attrib:
+            size = dimension.get("size")
+            members.append(model.StructMember(ename, etype, True, None, size))
+    else:
+        members.append(model.StructMember(ename, etype, None, None, None))
+    return members
+
+def make_struct(elem):
+    if len(elem):
+        members = reduce(lambda x, y: x + y, (make_struct_members(member) for member in elem))
+        return model.Struct(elem.get("name"), members)
+
+def make_union_member(elem):
+    return model.UnionMember(elem.get("name"), elem.get("type"), elem.get("discriminatorValue"))
+
+def make_union(elem):
+    if len(elem):
+        return model.Union(elem.get('name'), [make_union_member(member) for member in elem])
 
 class IsarParser(object):
 
-    tmp_dict = OrderedDict()
-    typedef_dict = {}
-    enum_dict = {}
-    constant_dict = {}
-    class_aprot_string = "aprot."
-
-    def __struct_parse(self, tree_node, element_name):
-        list = []
-        struct_nodes = tree_node.getElementsByTagName(element_name)
-        for p in struct_nodes:
-            if p.hasChildNodes():
-                msg = MessageHolder()
-                msg.name = p.attributes["name"].value
-                member = p.getElementsByTagName('member')
-                for k in member:
-                    msg.add_to_list(self.__checkin_member_fields(k))
-                list.append(msg)
-        return list
-
-    def __checkin_member_fields(self, k):
-        member = MemberHolder(k.attributes["name"].value, k.attributes["type"].value)
-        if k.hasChildNodes() and k.getElementsByTagName('dimension'):
-            dimension = k.getElementsByTagName('dimension')
-            for item , dim_val in dimension[0].attributes.items():
-                if 'Comment' not in item:
-                    member.add_to_list(item, dim_val)
-        return member
-
-    def __enum_parse(self, tree_node):
-        dict = {}
-        enum_nodes = tree_node.getElementsByTagName('enum')
-        for enum_element in enum_nodes:
-            if enum_element.hasChildNodes():
-                name = enum_element.attributes["name"].value
-                enum = EnumHolder()
-                member = enum_element.getElementsByTagName('enum-member')
-                for member_enum_element in member:
-                    value = member_enum_element.getAttribute('value')
-                    if "bitMaskOr" in value:
-                        value = 2
-                    elif "EAaMemPoolCid_ApplicationCidStart" in value:
-                        value = value.replace("EAaMemPoolCid_ApplicationCidStart", '2')
-                    enum.add_to_list(member_enum_element.attributes["name"].value, value)
-                dict[name] = enum
-        return dict
-
-    def __union_parse(self, tree_node):
-        union_dict = {}
-        enum_dict = {}
-
-        union_nodes = tree_node.getElementsByTagName('union')
-        for union_element in union_nodes:
-            name = union_element.getAttribute('name')
-            union = UnionHolder()
-            enum = EnumHolder()
-            member = union_element.getElementsByTagName("member")
-            for member_union_element in member:
-                discriminatorValue = member_union_element.getAttribute('discriminatorValue')
-                member_type = member_union_element.getAttribute('type')
-                member_name = member_union_element.getAttribute('name')
-                union.add_to_list(member_type, member_name)
-                enum.add_to_list("EDisc" + name + "_" + member_name + "_" + discriminatorValue, discriminatorValue)
-            union_dict[name] = union
-            enum_dict["EDisc" + name] = enum
-        return union_dict, enum_dict
-
-    def __typedef_parse(self, tree_node):
-        typedef_dict = TypeDefHolder()
-        typedef_nodes = tree_node.getElementsByTagName('typedef')
-        for typedef_element in typedef_nodes:
-            if typedef_element.hasAttribute("type"):
-                typedef_dict.add_to_list(typedef_element.attributes["name"].value, typedef_element.attributes["type"].value)
-            elif typedef_element.hasAttribute("primitiveType"):
-                type = self.__get_type_of_typedef(typedef_element.attributes["primitiveType"].value)
-                typedef_dict.add_to_list(typedef_element.attributes["name"].value, type)
-        return typedef_dict
-
-    def __get_type_of_typedef(self, value):
-        if "8 bit integer unsigned" in value:
-            return "u8"
-        elif "16 bit integer unsigned" in value:
-            return "u16"
-        elif "32 bit integer unsigned" in value:
-            return "u32"
-        elif "64 bit integer unsigned" in value:
-            return "u64"
-        elif "8 bit integer signed" in value:
-            return "i8"
-        elif "16 bit integer signed" in value:
-            return "i16"
-        elif "32 bit integer signed" in value:
-            return "i32"
-        elif "64 bit integer signed" in value:
-            return "i64"
-        elif "32 bit float" in value:
-            # should be r32 ale nie ma teraz w aprocie obsługi
-            return "r32"
-        elif "64 bit float" in value:
-            # should be r64 ale nie ma teraz w aprocie obsługi
-            return "r64"
-
-    def __constant_parse(self, tree_node):
-        constant = ConstantHolder()
-        constant_nodes = tree_node.getElementsByTagName('constant')
-        for constant_element in constant_nodes:
-            if constant_element.hasAttribute("value"):
-                constant.add_to_list(constant_element.attributes["name"].value, constant_element.attributes["value"].value)
-        return constant
-
-    def __get_include(self, tree_node):
-            include = IncludeHolder()
-            include_nodes = tree_node.getElementsByTagName("xi:include")
-            for include_element in include_nodes:
-                if include_element.hasAttribute("href"):
-                    x = include_element.attributes["href"].value
-                    x = x.partition('.')[0]
-                    include.add_to_list(x)
-            return include
-
-    def __parse_tree_node(self, tree_node):
-        temp_dict = {}
-        data_holder = DataHolder()
-        data_holder.constant = self.__constant_parse(tree_node)
-        data_holder.typedef = self.__typedef_parse(tree_node)
-        data_holder.enum_dict = self.__enum_parse(tree_node)
-        data_holder.msgs_list = self.__struct_parse(tree_node, "message")
-        data_holder.struct_list = self.__struct_parse(tree_node, "struct")
-        data_holder.include = self.__get_include(tree_node)
-        data_holder.union_dict, temp_dict = self.__union_parse(tree_node)
-        data_holder.enum_dict = dict(data_holder.enum_dict.items() + temp_dict.items())
-        return data_holder
+    def __get_model(self, root):
+        nodes = []
+        nodes += [make_include(elem) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
+        nodes += [make_constant(elem) for elem in root.iterfind('.//constant')]
+        nodes += filter(None, (make_typedef(elem) for elem in root.iterfind('.//typedef')))
+        nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
+        nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
+        nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
+        nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//message')))
+        dependency_sort(nodes)
+        return nodes
 
     def parse_string(self, string):
-        return self.__parse_tree_node(xml.dom.minidom.parseString(string))
+        return self.__get_model(ElementTree.fromstring(string))
 
     def parse(self, file):
-        return self.__parse_tree_node(xml.dom.minidom.parse(file))
+        return self.__get_model(ElementTree.parse(file))
