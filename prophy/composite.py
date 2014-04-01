@@ -1,3 +1,5 @@
+from itertools import ifilter
+
 def check_greedy_field(descriptor, greedy_found = False):
     for _, field_type in descriptor:
         if "composite" in field_type._tags:
@@ -74,15 +76,6 @@ def add_composite(cls, field_name, field_type):
     def setter(self, new_value):
         raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
-
-class struct_generator(type):
-    def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = ["_fields"]
-        return super(struct_generator, cls).__new__(cls, name, bases, attrs)
-    def __init__(cls, name, bases, attrs):
-        descriptor = attrs["_descriptor"]
-        add_properties(cls, descriptor)
-        super(struct_generator, cls).__init__(name, bases, attrs)
 
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
@@ -263,12 +256,102 @@ class struct(object):
             else:
                 fields[name] = value
 
-class union_generator(type):
+class struct_generator(type):
     def __new__(cls, name, bases, attrs):
-        return super(union_generator, cls).__new__(cls, name, bases, attrs)
+        attrs["__slots__"] = ["_fields"]
+        return super(struct_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        super(union_generator, cls).__init__(name, bases, attrs)
+        descriptor = attrs["_descriptor"]
+        add_properties(cls, descriptor)
+        super(struct_generator, cls).__init__(name, bases, attrs)
+
+def add_union_properties(cls, descriptor):
+    add_union_discriminator(cls)
+    for name, type, disc in descriptor:
+        if "composite" in type._tags:
+            add_union_composite(cls, name, type, disc)
+        else:
+            add_union_scalar(cls, name, type, disc)
+
+def add_union_discriminator(cls):
+    def getter(self):
+        return self._discriminator
+    def setter(self, new_value):
+        field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
+        if field:
+            name, type, disc = field
+            if disc != self._discriminator:
+                self._discriminator = disc
+                self._fields = {}
+        else:
+            raise Exception("unknown discriminator")
+    setattr(cls, "discriminator", property(getter, setter))
+
+def add_union_scalar(cls, name, type, disc):
+    def getter(self):
+        if self._discriminator is not disc:
+            raise Exception("currently field %s is discriminated" % self._discriminator)
+        value = self._fields.get(name, type._DEFAULT)
+        if "enum" in type._tags:
+            value = type._int_to_name[value]
+        return value
+    def setter(self, new_value):
+        if self._discriminator is not disc:
+            raise Exception("currently field %s is discriminated" % self._discriminator)
+        new_value = type._checker.check(new_value)
+        self._fields[name] = new_value
+    setattr(cls, name, property(getter, setter))
+
+def add_union_composite(cls, name, type):
+    def getter(self):
+        if self._discriminator is not disc:
+            raise Exception("currently field %s is discriminated" % self._discriminator)
+        value = self._fields.get(name)
+        if value is None:
+            value = type()
+            value = self._fields.setdefault(name, value)
+        return value
+    def setter(self, new_value):
+        raise Exception("assignment to composite field not allowed")
+    setattr(cls, name, property(getter, setter))
 
 import scalar
 
-union = scalar.u32
+class union(object):
+    __slots__ = []
+    _tags = ["composite"]
+
+    def __init__(self):
+        self._fields = {}
+        self._discriminator = self._descriptor[0][2]
+
+    def __str__(self):
+        name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
+        value = getattr(self, name)
+        return field_to_string(name, type, value)
+
+    def encode(self, endianess):
+        name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
+        value = getattr(self, name)
+        return scalar.u32._encoder.encode(self._discriminator, endianess) + encode_field(type, value, endianess)
+
+    def decode(self, data, endianess, terminal = True):
+        disc, bytes_read = scalar.u32._decoder.decode(data, endianess)
+        field = next(ifilter(lambda x: x[2] == disc, self._descriptor), None)
+        if not field:
+            raise Exception("unknown discriminator")
+        self._discriminator = disc
+        name, type, _ = field
+        bytes_read += decode_field(self, name, type, data[bytes_read:], endianess)
+        if terminal and data[bytes_read:]:
+            raise Exception("not all bytes read")
+        return bytes_read
+
+class union_generator(type):
+    def __new__(cls, name, bases, attrs):
+        attrs["__slots__"] = ["_fields", "_discriminator"]
+        return super(union_generator, cls).__new__(cls, name, bases, attrs)
+    def __init__(cls, name, bases, attrs):
+        descriptor = attrs["_descriptor"]
+        add_union_properties(cls, descriptor)
+        super(union_generator, cls).__init__(name, bases, attrs)
