@@ -181,9 +181,6 @@ class enum8():
     __metaclass__ = base_enum_generator
     _base = u8
 
-class bytes_base(object):
-    _tags = ["scalar", "string"]
-
 def bytes(**kwargs):
     if "shift" in kwargs and (not "bound" in kwargs or "size" in kwargs):
         raise Exception("only shifting bound bytes implemented")
@@ -192,17 +189,18 @@ def bytes(**kwargs):
     shift = kwargs.pop("shift", 0)
     if kwargs:
         raise Exception("unknown arguments to bytes field")
-    tags = []
+
+    tags = {"scalar", "string"}
     default = ""
     if size and bound:
-        tags += ["limited"]
+        tags.add("limited")
     elif size and not bound:
-        tags += ["static"]
+        tags.add("static")
         default = "\x00" * size
     elif not size and not bound:
-        tags += ["greedy"]
+        tags.add("greedy")
     elif not size and bound:
-        tags += ["bound"]
+        tags.add("bound")
 
     class checker(object):
         def check(self, proposed_value):
@@ -214,8 +212,8 @@ def bytes(**kwargs):
                 return proposed_value.ljust(size, '\x00')
             return proposed_value
 
-    class _bytes(bytes_base):
-        _tags = bytes_base._tags + tags
+    class _bytes(object):
+        _tags = tags
         _SIZE = size
         _DEFAULT = default
         _checker = checker()
