@@ -214,7 +214,7 @@ def bytes(**kwargs):
                 return proposed_value.ljust(size, '\x00')
             return proposed_value
 
-    class concrete_bytes(bytes_base):
+    class _bytes(bytes_base):
         _tags = bytes_base._tags + tags
         _SIZE = size
         _DEFAULT = default
@@ -222,4 +222,4 @@ def bytes(**kwargs):
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift
-    return concrete_bytes
+    return _bytes
