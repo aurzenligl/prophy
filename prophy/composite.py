@@ -1,6 +1,11 @@
+import scalar
+from itertools import ifilter
+
 def check_greedy_field(descriptor, greedy_found = False):
     for _, field_type in descriptor:
-        if "composite" in field_type._tags:
+        if "union" in field_type._tags:
+            pass
+        elif "composite" in field_type._tags:
             greedy_found = check_greedy_field(field_type._descriptor, greedy_found)
         else:
             if greedy_found:
@@ -20,7 +25,9 @@ def add_properties(cls, descriptor):
             add_scalar(cls, field_name, field_type)
 
 def add_repeated(cls, field_name, field_type):
-    if "composite" in field_type._TYPE._tags:
+    if "union" in field_type._TYPE._tags:
+        pass
+    elif "composite" in field_type._TYPE._tags:
         if check_greedy_field(field_type._TYPE._descriptor):
             raise Exception("array with composite with greedy field disallowed")
     def getter(self):
@@ -75,15 +82,6 @@ def add_composite(cls, field_name, field_type):
         raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
 
-class struct_generator(type):
-    def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = ["_fields"]
-        return super(struct_generator, cls).__new__(cls, name, bases, attrs)
-    def __init__(cls, name, bases, attrs):
-        descriptor = attrs["_descriptor"]
-        add_properties(cls, descriptor)
-        super(struct_generator, cls).__init__(name, bases, attrs)
-
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
@@ -107,9 +105,10 @@ def encode_field(field_type, field_value, endianess):
     if "repeated" in field_type._tags:
         for elem in field_value:
             out += encode_field(field_type._TYPE, elem, endianess)
-        if not "composite" in field_type._TYPE._tags and field_type._LIMIT:
+        if field_type._LIMIT:
             remaining = field_type._LIMIT - len(field_value)
-            out += remaining * encode_field(field_type._TYPE, field_type._TYPE._DEFAULT, endianess)
+            default = field_type._TYPE() if "composite" in field_type._TYPE._tags else field_type._TYPE._DEFAULT
+            out += remaining * encode_field(field_type._TYPE, default, endianess)
     elif "composite" in field_type._tags:
         out += field_value.encode(endianess)
     elif "string" in field_type._tags:
@@ -117,7 +116,7 @@ def encode_field(field_type, field_value, endianess):
         if field_type._LIMIT:
             out += "\x00" * (field_type._LIMIT - len(field_value))
     elif "enum" in field_type._tags:
-        numeric_value = field_type._name_to_int[field_value]
+        numeric_value = field_value if isinstance(field_value, int) else field_type._name_to_int[field_value]
         out += field_type._encoder.encode(numeric_value, endianess)
     else:
         out += field_type._encoder.encode(field_value, endianess)
@@ -138,6 +137,11 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
                 for composite_value in composite_array:
                     bytes_read = composite_value.decode(data[size:], endianess, terminal = False)
                     size += bytes_read
+            if field_type._LIMIT:
+                limit = field_type._LIMIT * len(field_type._TYPE().encode(">"))
+                if len(data) < limit:
+                    raise Exception("too few bytes to decode limited array")
+                size = limit
         else:
             scalar_array = getattr(field_parent, field_name)
             scalar_decoder = scalar_array._TYPE._decoder
@@ -263,12 +267,146 @@ class struct(object):
             else:
                 fields[name] = value
 
+class struct_generator(type):
+    def __new__(cls, name, bases, attrs):
+        attrs["__slots__"] = ["_fields"]
+        return super(struct_generator, cls).__new__(cls, name, bases, attrs)
+    def __init__(cls, name, bases, attrs):
+        descriptor = attrs["_descriptor"]
+        add_properties(cls, descriptor)
+        super(struct_generator, cls).__init__(name, bases, attrs)
+
+def validate_union_type(type, static_containers = True):
+    if "union" in type._tags:
+        map(validate_union_type, (type for _, type, _ in type._descriptor))
+    elif "composite" in type._tags:
+        map(validate_union_type, (type for _, type in type._descriptor))
+    elif "repeated" in type._tags:
+        if not hasattr(type, "_SIZE"):
+            raise Exception("non-sized array not allowed inside union")
+        if not static_containers:
+            raise Exception("array not allowed as union member")
+    elif "string" in type._tags:
+        if not type._LIMIT:
+            raise Exception("non-sized bytes not allowed inside union")
+        if not static_containers:
+            raise Exception("bytes not allowed as union member")
+
+def add_union_properties(cls, descriptor):
+    add_union_size(cls, descriptor)
+    add_union_discriminator(cls)
+    for name, type, disc in descriptor:
+        if "composite" in type._tags:
+            add_union_composite(cls, name, type, disc)
+        else:
+            add_union_scalar(cls, name, type, disc)
+
+def add_union_size(cls, descriptor):
+    def field_size(type):
+        if "composite" in type._tags:
+            return len(type().encode(">"))
+        else:
+            return type._SIZE
+
+    cls._SIZE = scalar.u32._SIZE + max(field_size(type) for _, type, _ in descriptor)
+
+def add_union_discriminator(cls):
+    def getter(self):
+        return self._discriminator
+    def setter(self, new_value):
+        field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
+        if field:
+            name, type, disc = field
+            if disc != self._discriminator:
+                self._discriminator = disc
+                self._fields = {}
+        else:
+            raise Exception("unknown discriminator")
+    setattr(cls, "discriminator", property(getter, setter))
+
+def add_union_scalar(cls, name, type, disc):
+    def getter(self):
+        if self._discriminator is not disc:
+            raise Exception("currently field %s is discriminated" % self._discriminator)
+        value = self._fields.get(name, type._DEFAULT)
+        if "enum" in type._tags:
+            value = type._int_to_name[value]
+        return value
+    def setter(self, new_value):
+        if self._discriminator is not disc:
+            raise Exception("currently field %s is discriminated" % self._discriminator)
+        new_value = type._checker.check(new_value)
+        self._fields[name] = new_value
+    setattr(cls, name, property(getter, setter))
+
+def add_union_composite(cls, name, type, disc):
+    def getter(self):
+        if self._discriminator is not disc:
+            raise Exception("currently field %s is discriminated" % self._discriminator)
+        value = self._fields.get(name)
+        if value is None:
+            value = type()
+            value = self._fields.setdefault(name, value)
+        return value
+    def setter(self, new_value):
+        raise Exception("assignment to composite field not allowed")
+    setattr(cls, name, property(getter, setter))
+
+class union(object):
+    __slots__ = []
+    _tags = ["composite", "union"]
+
+    def __init__(self):
+        self._fields = {}
+        self._discriminator = self._descriptor[0][2]
+
+    def __str__(self):
+        name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
+        value = getattr(self, name)
+        return field_to_string(name, type, value)
+
+    def encode(self, endianess):
+        name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
+        value = getattr(self, name)
+        bytes = scalar.u32._encoder.encode(self._discriminator, endianess) + encode_field(type, value, endianess)
+        return bytes + "\x00" * (self._SIZE - len(bytes))
+
+    def decode(self, data, endianess, terminal = True):
+        disc, bytes_read = scalar.u32._decoder.decode(data, endianess)
+        field = next(ifilter(lambda x: x[2] == disc, self._descriptor), None)
+        if not field:
+            raise Exception("unknown discriminator")
+        self._discriminator = disc
+        name, type, _ = field
+        bytes_read += decode_field(self, name, type, data[bytes_read:], endianess)
+        if len(data) < self._SIZE:
+            raise Exception("not enough bytes")
+        if terminal and len(data) > self._SIZE:
+            raise Exception("not all bytes read")
+        return self._SIZE
+
+    def copy_from(self, other):
+        if not isinstance(other, self.__class__):
+            raise TypeError("Parameter to copy_from must be instance of same class.")
+        if other is self:
+            return
+
+        disc = other._discriminator
+        self._discriminator = disc
+        self._fields = {}
+        name, type, _ = next(ifilter(lambda x: x[2] == disc, self._descriptor))
+        value = getattr(self, name)
+        if "composite" in type._tags:
+            getattr(self, name).copy_from(getattr(other, name))
+        else:
+            setattr(self, name, getattr(other, name))
+
 class union_generator(type):
     def __new__(cls, name, bases, attrs):
+        attrs["__slots__"] = ["_fields", "_discriminator"]
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
+        descriptor = attrs["_descriptor"]
+        map(lambda x: validate_union_type(x, static_containers = False), (type for _, type, _ in descriptor))
+        add_union_properties(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)
-
-import scalar
-
-union = scalar.u32

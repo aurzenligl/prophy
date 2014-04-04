@@ -188,6 +188,48 @@ class bound_composite_array(base_array):
                             'other repeated composite fields.')
         return self._values == other._values
 
+class limited_composite_array(base_array):
+
+    __slots__ = []
+
+    def __init__(self):
+        super(limited_composite_array, self).__init__()
+
+    def add(self):
+        if self._LIMIT and len(self) == self._LIMIT:
+            raise Exception("exceeded array limit")
+
+        new_element = self._TYPE()
+        self._values.append(new_element)
+        return new_element
+
+    def extend(self, elem_seq):
+        if self._LIMIT and len(self) + len(elem_seq) > self._LIMIT:
+            raise Exception("exceeded array limit")
+
+        composite_cls = self._TYPE
+        for message in elem_seq:
+            new_element = composite_cls()
+            new_element.copy_from(message)
+            self._values.append(new_element)
+
+    def __delitem__(self, key):
+        del self._values[key]
+
+    def __getslice__(self, start, stop):
+        return self._values[start:stop]
+
+    def __delslice__(self, start, stop):
+        del self._values[start:stop]
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if not isinstance(other, self.__class__):
+            raise TypeError('Can only compare repeated composite fields against '
+                            'other repeated composite fields.')
+        return self._values == other._values
+
 def array(field_type, **kwargs):
     field_tags = field_type._tags
     if "repeated" in field_tags:
@@ -206,7 +248,7 @@ def array(field_type, **kwargs):
     actual_size = size
     if size and bound:
         if "composite" in field_tags:
-            raise Exception("limited composite array not supported")
+            base = limited_composite_array
         else:
             base = bound_scalar_array
     elif size and not bound:
