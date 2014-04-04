@@ -181,23 +181,6 @@ class enum8():
     __metaclass__ = base_enum_generator
     _base = u8
 
-class bytes_checker(object):
-    def __init__(self, type):
-        self.type = type
-    def check(self, proposed_value):
-        if not isinstance(proposed_value, str):
-            raise Exception("not a str")
-        if self.type._SIZE and len(proposed_value) > self.type._SIZE:
-            raise Exception("too long")
-        if "static" in self.type._tags:
-            return proposed_value.ljust(self.type._SIZE, '\x00')
-        return proposed_value
-
-def bytes_generator(name, bases, attrs):
-    bytes_type = type(name, bases, attrs)
-    bytes_type._checker = bytes_checker(bytes_type)
-    return bytes_type
-
 class bytes_base(object):
     _tags = ["scalar", "string"]
 
@@ -221,12 +204,22 @@ def bytes(**kwargs):
     elif not size and bound:
         tags += ["bound"]
 
+    class checker(object):
+        def check(self, proposed_value):
+            if not isinstance(proposed_value, str):
+                raise Exception("not a str")
+            if size and len(proposed_value) > size:
+                raise Exception("too long")
+            if "static" in tags:
+                return proposed_value.ljust(size, '\x00')
+            return proposed_value
+
     class concrete_bytes(bytes_base):
-        __metaclass__ = bytes_generator
         _tags = bytes_base._tags + tags
         _SIZE = size
         _LIMIT = size
         _DEFAULT = default
+        _checker = checker()
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift
