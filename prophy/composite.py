@@ -166,19 +166,23 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
         field_value = getattr(field_parent, field_name)
         size = field_value.decode(data, endianess, terminal = False)
     elif "string" in field_type._tags:
-        field_value = getattr(field_parent, field_name)
-        size = len(field_value)
-        if "greedy" in field_type._tags:
-            size = len(data)
-        else:
-            if len(data) < size:
+        current_size = len(getattr(field_parent, field_name))
+        if len(data) < field_type._SIZE:
+            raise Exception("too few bytes to decode string")
+        if "static" in field_type._tags:
+            setattr(field_parent, field_name, data[:field_type._SIZE])
+            return field_type._SIZE
+        elif "limited" in field_type._tags:
+            setattr(field_parent, field_name, data[:current_size])
+            return field_type._SIZE
+        elif "bound" in field_type._tags:
+            if len(data) < current_size:
                 raise Exception("too few bytes to decode string")
-        setattr(field_parent, field_name, data[:size])
-        if field_type._LIMIT:
-            limit = field_type._LIMIT
-            if len(data) < limit:
-                raise Exception("too few bytes to decode limited string")
-            size = limit
+            setattr(field_parent, field_name, data[:current_size])
+            return current_size
+        else:  # greedy
+            setattr(field_parent, field_name, data)
+            return len(data)
     else:
         value, size = field_type._decoder.decode(data, endianess)
         if hasattr(field_type, "_bound"):

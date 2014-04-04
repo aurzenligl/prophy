@@ -182,20 +182,21 @@ class enum8():
     _base = u8
 
 class bytes_checker(object):
-    def __init__(self, size, limit):
-        self.size = size
-        self.limit = limit
+    def __init__(self, type):
+        self.type = type
     def check(self, proposed_value):
         if not isinstance(proposed_value, str):
             raise Exception("not a str")
-        if self.limit and len(proposed_value) > self.limit:
+        if self.type._SIZE and len(proposed_value) > self.type._SIZE:
             raise Exception("too long")
-        remaining = self.size - len(proposed_value)
-        return proposed_value + "\x00" * remaining
+        if "static" in self.type._tags:
+            return proposed_value.ljust(self.type._SIZE, '\x00')
+        return proposed_value
 
 def bytes_generator(name, bases, attrs):
-    attrs["_checker"] = bytes_checker(attrs["_SIZE"], attrs["_LIMIT"])
-    return type(name, bases, attrs)
+    bytes_type = type(name, bases, attrs)
+    bytes_type._checker = bytes_checker(bytes_type)
+    return bytes_type
 
 class bytes_base(object):
     _tags = ["scalar", "string"]
@@ -210,17 +211,20 @@ def bytes(**kwargs):
         raise Exception("unknown arguments to bytes field")
     tags = []
     default = ""
-    actual_size = size
     if size and bound:
-        actual_size = 0
+        tags += ["limited"]
     elif size and not bound:
+        tags += ["static"]
         default = "\x00" * size
     elif not size and not bound:
         tags += ["greedy"]
+    elif not size and bound:
+        tags += ["bound"]
+
     class concrete_bytes(bytes_base):
         __metaclass__ = bytes_generator
         _tags = bytes_base._tags + tags
-        _SIZE = actual_size
+        _SIZE = size
         _LIMIT = size
         _DEFAULT = default
         if bound:
