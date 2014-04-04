@@ -13,7 +13,7 @@ class int_checker(object):
 
 class float_checker(object):
     def check(self, proposed_value):
-        if not isinstance(proposed_value, (float, int, long )):
+        if not isinstance(proposed_value, (float, int, long)):
             raise Exception("not a float")
         return proposed_value
 
@@ -150,19 +150,18 @@ class enum_checker(object):
 
 def enum_generator(name, bases, attrs):
     enumerators = attrs["_enumerators"]
-    name, value = enumerators[0]
-    attrs["_DEFAULT"] = value
+    attrs["_DEFAULT"] = enumerators[0][1]
     name_to_int = {}
     int_to_name = {}
-    if len(set([name for name, _ in enumerators])) != len(enumerators):
+    if len(set([ename for ename, _ in enumerators])) != len(enumerators):
         raise Exception("names overlap")
     if len(set([value for _, value in enumerators])) != len(enumerators):
         raise Exception("values overlap")
     for _, value in enumerators:
         bases[0]._base._checker.check(value)
-    for name, value in enumerators:
-        name_to_int[name] = value
-        int_to_name[value] = name
+    for ename, value in enumerators:
+        name_to_int[ename] = value
+        int_to_name[value] = ename
     attrs["_name_to_int"] = name_to_int
     attrs["_int_to_name"] = int_to_name
     attrs["_checker"] = enum_checker(name_to_int, int_to_name)

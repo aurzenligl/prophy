@@ -206,6 +206,21 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     assert [("numOfX", "TSize", None, None, None),
             ("x", "TTypeX", True, "numOfX", None)] == nodes[0].members
 
+def test_struct_parsing_limited_array():
+    xml = """\
+<x>
+    <struct name="StructX">
+        <member name="x" type="TTypeX">
+            <dimension isVariableSize="true" size="3"/>
+        </member>
+    </struct>
+</x>
+"""
+    nodes = parse(xml)
+
+    assert [("x_len", "u32", None, None, None),
+            ("x", "TTypeX", True, "x_len", "3")] == nodes[0].members
+
 def test_message_parsing():
     xml = """\
 <x>

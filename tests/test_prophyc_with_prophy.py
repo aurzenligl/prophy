@@ -7,6 +7,7 @@ prophyc_dir = os.path.join(main_dir, "prophyc")
 prophyc = os.path.join(prophyc_dir, "prophyc.py")
 
 simple_isar = """<dom>
+      <constant name="MAX_NUM_OF_L2DEPLOYABLE_NODE" value="10"/>
       <typedef name="TPoolId" type="u32"/>
       <typedef name="TNumberOfItems" primitiveType="32 bit integer unsigned"/>
       <enum name="EL2DeployableNode">

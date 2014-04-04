@@ -95,6 +95,18 @@ class Struct(prophy.struct):
 """
     assert ref == serialize(nodes)
 
+def test_struct_rendering_with_limited_array():
+    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8", None, None, None),
+                                     model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS")])]
+
+    ref = """\
+class Struct(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a_len', prophy.u8),
+                   ('a', prophy.array(prophy.u8, bound = 'a_len', size = NUM_OF_ARRAY_ELEMS))]
+"""
+    assert ref == serialize(nodes)
+
 def test_union_rendering():
     nodes = [model.Union("U", [model.UnionMember("a", "A", "0"),
                                model.UnionMember("b", "B", "1"),
