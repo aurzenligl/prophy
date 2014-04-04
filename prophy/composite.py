@@ -112,9 +112,7 @@ def encode_field(field_type, field_value, endianess):
     elif "composite" in field_type._tags:
         out += field_value.encode(endianess)
     elif "string" in field_type._tags:
-        out += field_value
-        if field_type._LIMIT:
-            out += "\x00" * (field_type._LIMIT - len(field_value))
+        out += field_value.ljust(field_type._SIZE, '\x00')
     elif "enum" in field_type._tags:
         numeric_value = field_value if isinstance(field_value, int) else field_type._name_to_int[field_value]
         out += field_type._encoder.encode(numeric_value, endianess)
@@ -291,7 +289,7 @@ def validate_union_type(type, static_containers = True):
         if not static_containers:
             raise Exception("array not allowed as union member")
     elif "string" in type._tags:
-        if not type._LIMIT:
+        if not type._SIZE:
             raise Exception("non-sized bytes not allowed inside union")
         if not static_containers:
             raise Exception("bytes not allowed as union member")

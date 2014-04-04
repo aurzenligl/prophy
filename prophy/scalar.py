@@ -217,7 +217,6 @@ def bytes(**kwargs):
     class concrete_bytes(bytes_base):
         _tags = bytes_base._tags + tags
         _SIZE = size
-        _LIMIT = size
         _DEFAULT = default
         _checker = checker()
         if bound:
