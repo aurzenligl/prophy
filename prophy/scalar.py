@@ -215,6 +215,8 @@ def bytes(**kwargs):
     class _bytes(object):
         _tags = tags
         _SIZE = size
+        _DYNAMIC = not size
+        _UNLIMITED = not size and not bound
         _DEFAULT = default
         _checker = checker()
         if bound:
