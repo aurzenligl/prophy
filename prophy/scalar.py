@@ -171,11 +171,11 @@ class enum8(u8):
     _tags = u8._tags + ["enum"]
 
 def bytes(**kwargs):
-    if "shift" in kwargs and (not "bound" in kwargs or "size" in kwargs):
-        raise Exception("only shifting bound bytes implemented")
     size = kwargs.pop("size", 0)
     bound = kwargs.pop("bound", "")
     shift = kwargs.pop("shift", 0)
+    if shift and (not bound or size):
+        raise Exception("only shifting bound bytes implemented")
     if kwargs:
         raise Exception("unknown arguments to bytes field")
 
