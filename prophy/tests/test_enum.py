@@ -126,20 +126,26 @@ class TestEnum8():
         with pytest.raises(Exception):
             class NoEnumerators(prophy.enum8):
                 __metaclass__ = prophy.enum_generator
-        with pytest.raises(Exception):
+
+        with pytest.raises(Exception) as e:
             class NamesOverlapping(prophy.enum8):
                 __metaclass__ = prophy.enum_generator
                 _enumerators = [("NamesOverlapping_Overlap", 1),
                                 ("NamesOverlapping_Overlap", 2)]
-        with pytest.raises(Exception):
+        assert "names overlap" == e.value.message
+
+        with pytest.raises(Exception) as e:
             class ValuesOverlapping(prophy.enum8):
                 __metaclass__ = prophy.enum_generator
                 _enumerators = [("ValuesOverlapping_First", 42),
                                 ("ValuesOverlapping_Second", 42)]
-        with pytest.raises(Exception):
+        assert "values overlap" == e.value.message
+
+        with pytest.raises(Exception) as e:
             class ValueOutOfBounds(prophy.enum8):
                 __metaclass__ = prophy.enum_generator
                 _enumerators = [("OutOfBounds", 256)]
+        assert "out of bounds" == e.value.message
 
 class TestEnumFixedArray():
 
