@@ -46,12 +46,31 @@ def test_float_attributes():
     assert 4 == prophy.r32._SIZE
     assert False == prophy.r32._DYNAMIC
     assert False == prophy.r32._UNLIMITED
-    assert 0 == prophy.r32._DEFAULT
+    assert 0.0 == prophy.r32._DEFAULT
 
     assert 8 == prophy.r64._SIZE
     assert False == prophy.r64._DYNAMIC
     assert False == prophy.r64._UNLIMITED
-    assert 0 == prophy.r64._DEFAULT
+    assert 0.0 == prophy.r64._DEFAULT
+
+def test_enum_attributes():
+    class E(prophy.enum):
+        __metaclass__ = prophy.enum_generator
+        _enumerators = [("E_1", 1)]
+
+    assert 4 == E._SIZE
+    assert False == E._DYNAMIC
+    assert False == E._UNLIMITED
+    assert 1 == E._DEFAULT
+
+    class E8(prophy.enum8):
+        __metaclass__ = prophy.enum_generator
+        _enumerators = [("E_1", 1)]
+
+    assert 1 == E8._SIZE
+    assert False == E8._DYNAMIC
+    assert False == E8._UNLIMITED
+    assert 1 == E8._DEFAULT
 
 def test_bytes_static_attributes():
     B = prophy.bytes(size = 3)
