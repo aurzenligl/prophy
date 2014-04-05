@@ -50,9 +50,10 @@ def float_generator(name, bases, attrs):
 class int_base(object):
     _tags = ["scalar"]
     _DEFAULT = 0
+    _DYNAMIC = False
+    _UNLIMITED = False
 
-class float_base(object):
-    _tags = ["scalar"]
+class float_base(int_base):
     _DEFAULT = 0.0
 
 class i8(int_base):
@@ -120,13 +121,13 @@ class u64(int_base):
     _SIZE = 8
 
 class r32(float_base):
-    _tags = int_base._tags + ["signed_float"]
+    _tags = float_base._tags + ["signed_float"]
     __metaclass__ = float_generator
     _TYPE = "f"
     _SIZE = 4
 
 class r64(float_base):
-    _tags = int_base._tags + ["signed_float"]
+    _tags = float_base._tags + ["signed_float"]
     __metaclass__ = float_generator
     _TYPE = "d"
     _SIZE = 8
