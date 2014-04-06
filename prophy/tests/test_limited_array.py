@@ -151,7 +151,7 @@ class TestLimitedCompositeArray():
 
         with pytest.raises(Exception) as e:
             a.decode(("\x00\x00\x00\x00"), ">")
-        assert "too few bytes to decode limited array" == e.value.message
+        assert "too few bytes to decode array" == e.value.message
 
     def test_encode(self):
         a = Array()

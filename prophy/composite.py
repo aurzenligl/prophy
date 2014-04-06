@@ -126,23 +126,18 @@ def encode_field(field_type, field_value, endianess):
 def decode_field(field_parent, field_name, field_type, data, endianess):
     if "repeated" in field_type._tags:
         if "composite" in field_type._TYPE._tags:
-            composite_array = getattr(field_parent, field_name)
-            size = 0
+            if field_type._SIZE > len(data):
+                raise Exception("too few bytes to decode array")
+            value = getattr(field_parent, field_name)
+            decoded = 0
             if "greedy" in field_type._tags:
-                del composite_array[:]
-                while size < len(data):
-                    composite_value = composite_array.add()
-                    bytes_read = composite_value.decode(data[size:], endianess, terminal = False)
-                    size += bytes_read
+                del value[:]
+                while decoded < len(data):
+                    decoded += value.add().decode(data[decoded:], endianess, terminal = False)
             else:
-                for composite_value in composite_array:
-                    bytes_read = composite_value.decode(data[size:], endianess, terminal = False)
-                    size += bytes_read
-            if field_type._LIMIT:
-                limit = field_type._LIMIT * len(field_type._TYPE().encode(">"))
-                if len(data) < limit:
-                    raise Exception("too few bytes to decode limited array")
-                size = limit
+                for elem in value:
+                    decoded += elem.decode(data[decoded:], endianess, terminal = False)
+            return max(decoded, field_type._SIZE)
         else:
             scalar_array = getattr(field_parent, field_name)
             scalar_decoder = scalar_array._TYPE._decoder
