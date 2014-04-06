@@ -182,7 +182,7 @@ def test_struct_dynamic_attributes():
     class S3(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", S1),
-                       ("a", S2)]
+                       ("b", S2)]
 
     assert 2 == S3._SIZE
     assert True == S3._DYNAMIC
