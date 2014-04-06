@@ -284,13 +284,13 @@ def validate_union_type(type, static_containers = True):
     elif "composite" in type._tags:
         map(validate_union_type, (type for _, type in type._descriptor))
     elif "repeated" in type._tags:
-        if not hasattr(type, "_SIZE"):
-            raise Exception("non-sized array not allowed inside union")
+        if type._DYNAMIC:
+            raise Exception("dynamic array not allowed inside union")
         if not static_containers:
             raise Exception("array not allowed as union member")
     elif "string" in type._tags:
-        if not type._SIZE:
-            raise Exception("non-sized bytes not allowed inside union")
+        if type._DYNAMIC:
+            raise Exception("dynamic bytes not allowed inside union")
         if not static_containers:
             raise Exception("bytes not allowed as union member")
 
