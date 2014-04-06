@@ -284,21 +284,13 @@ class struct_generator(type):
         add_properties(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 
-def validate_union_type(type, static_containers = True):
-    if "union" in type._tags:
-        map(validate_union_type, (type for _, type, _ in type._descriptor))
-    elif "composite" in type._tags:
-        map(validate_union_type, (type for _, type in type._descriptor))
-    elif "repeated" in type._tags:
-        if type._DYNAMIC:
-            raise Exception("dynamic array not allowed inside union")
-        if not static_containers:
-            raise Exception("array not allowed as union member")
-    elif "string" in type._tags:
-        if type._DYNAMIC:
-            raise Exception("dynamic bytes not allowed inside union")
-        if not static_containers:
-            raise Exception("bytes not allowed as union member")
+def validate_union(descriptor):
+    if any(type._DYNAMIC for _, type, _ in descriptor):
+        raise Exception("dynamic types not allowed in union")
+    if any(hasattr(type, "_LENGTH_FIELD") and type._LENGTH_FIELD for _, type, _ in descriptor):
+        raise Exception("bound array/bytes not allowed in union")
+    if any("repeated" in type._tags for _, type, _ in descriptor):
+        raise Exception("static array not implemented in union")
 
 def add_union_properties(cls, descriptor):
     add_union_size(cls, descriptor)
@@ -417,6 +409,6 @@ class union_generator(type):
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
         descriptor = attrs["_descriptor"]
-        map(lambda x: validate_union_type(x, static_containers = False), (type for _, type, _ in descriptor))
+        validate_union(descriptor)
         add_union_properties(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)

@@ -489,27 +489,27 @@ def test_union_exceptions_with_dynamic_arrays_and_bytes():
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
             _descriptor = [("a", prophy.array(prophy.u32), 0)]
-    assert "dynamic array not allowed inside union" == e.value.message
+    assert "dynamic types not allowed in union" == e.value.message
 
     with pytest.raises(Exception) as e:
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
             _descriptor = [("a_len", prophy.u8, 0),
                            ("a", prophy.array(prophy.u32, bound = "a_len"), 1)]
-    assert "dynamic array not allowed inside union" == e.value.message
+    assert "dynamic types not allowed in union" == e.value.message
 
     with pytest.raises(Exception) as e:
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
             _descriptor = [("a", prophy.bytes(), 0)]
-    assert "dynamic bytes not allowed inside union" == e.value.message
+    assert "dynamic types not allowed in union" == e.value.message
 
     with pytest.raises(Exception) as e:
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
             _descriptor = [("a_len", prophy.u8, 0),
                            ("a", prophy.bytes(bound = "a_len"), 1)]
-    assert "dynamic bytes not allowed inside union" == e.value.message
+    assert "dynamic types not allowed in union" == e.value.message
 
 def test_union_exceptions_with_nested_limited_greedy_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
@@ -522,31 +522,40 @@ def test_union_exceptions_with_nested_limited_greedy_dynamic_arrays_and_bytes():
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
             _descriptor = [("a", S, 0)]
-    assert "dynamic array not allowed inside union" == e.value.message
+    assert "dynamic types not allowed in union" == e.value.message
 
-def test_union_exceptions_with_static_and_limited_array_and_bytes():
+def test_union_with_limited_array_and_bytes():
     with pytest.raises(Exception) as e:
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
-            _descriptor = [("a", prophy.array(prophy.u32, size = 3), 0)]
-    assert "array not allowed as union member" == e.value.message
+            _descriptor = [("a_len", prophy.u8, 0),
+                           ("a", prophy.bytes(bound = "a_len", size = 3), 1)]
+    assert "bound array/bytes not allowed in union" == e.value.message
 
     with pytest.raises(Exception) as e:
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
             _descriptor = [("a_len", prophy.u8, 0),
                            ("a", prophy.array(prophy.u32, bound = "a_len", size = 3), 1)]
-    assert "array not allowed as union member" == e.value.message
+    assert "bound array/bytes not allowed in union" == e.value.message
 
     with pytest.raises(Exception) as e:
         class U(prophy.union):
             __metaclass__ = prophy.union_generator
-            _descriptor = [("a", prophy.bytes(size = 3), 0)]
-    assert "bytes not allowed as union member" == e.value.message
+            _descriptor = [("a", prophy.array(prophy.u8, size = 3), 0)]
+    assert "static array not implemented in union" == e.value.message
 
-    with pytest.raises(Exception) as e:
-        class U(prophy.union):
-            __metaclass__ = prophy.union_generator
-            _descriptor = [("a_len", prophy.u8, 0),
-                           ("a", prophy.bytes(bound = "a_len", size = 3), 1)]
-    assert "bytes not allowed as union member" == e.value.message
+def test_union_with_static_bytes():
+    class U(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a", prophy.bytes(size = 3), 0)]
+
+    x = U()
+
+    assert "\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+
+    x.decode("\x00\x00\x00\x00\x01\x02\x03", "<")
+
+    assert """\
+a: '\\x01\\x02\\x03'
+""" == str(x)
