@@ -237,44 +237,30 @@ def array(type, **kwargs):
     if kwargs:
         raise Exception("unknown arguments to array field")
 
-    type_tags = type._tags
     if "repeated" in type._tags:
         raise Exception("array of arrays not allowed")
-    if "string" in type_tags:
+    if "string" in type._tags:
         raise Exception("array of strings not allowed")
     if size and type._DYNAMIC:
         raise Exception("static/limited array of dynamic type not allowed")
     if shift and (not bound or size):
         raise Exception("only shifting bound array implemented")
 
+    is_composite = "composite" in type._tags
+
     tags = []
     actual_size = size
 
-    """ TODO kl. it needs to be checked if type of limited and static array is not dynamic """
-
-
     if size and bound:
-        if "composite" in type_tags:
-            base = limited_composite_array
-        else:
-            base = bound_scalar_array
+        base = limited_composite_array if is_composite else bound_scalar_array
     elif size and not bound:
         actual_size = 0
-        if "composite" in type_tags:
-            base = fixed_composite_array
-        else:
-            base = fixed_scalar_array
+        base = fixed_composite_array if is_composite else fixed_scalar_array
     elif not size and bound:
-        if "composite" in type_tags:
-            base = bound_composite_array
-        else:
-            base = bound_scalar_array
+        base = bound_composite_array if is_composite else bound_scalar_array
     elif not size and not bound:
         tags += ["greedy"]
-        if "composite" in type_tags:
-            base = bound_composite_array
-        else:
-            base = bound_scalar_array
+        base = bound_composite_array if is_composite else bound_scalar_array
 
     class _array(base):
         __slots__ = []
