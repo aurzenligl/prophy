@@ -91,19 +91,14 @@ def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
 def field_to_string(name, type, value):
-    out = ""
     if "repeated" in type._tags:
-        for elem in value:
-            out += field_to_string(name, type._TYPE, elem)
+        return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
     elif "composite" in type._tags:
-        out += "%s {\n" % name
-        out += indent(str(value), spaces = 2)
-        out += "}\n"
+        return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
     elif "string" in type._tags:
-        out += "%s: %s\n" % (name, repr(value))
+        return "%s: %s\n" % (name, repr(value))
     else:
-        out += "%s: %s\n" % (name, value)
-    return out
+        return "%s: %s\n" % (name, value)
 
 def encode_field(type, value, endianess):
     if "repeated" in type._tags:
