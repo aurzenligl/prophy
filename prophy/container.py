@@ -32,7 +32,7 @@ class fixed_scalar_array(base_array):
 
     def __init__(self):
         super(fixed_scalar_array, self).__init__()
-        self._values = [self._TYPE._DEFAULT] * self._initial_len
+        self._values = [self._TYPE._DEFAULT] * self._max_len
 
     def __setitem__(self, key, value):
         value = self._TYPE._checker.check(value)
@@ -72,20 +72,20 @@ class bound_scalar_array(base_array):
 
     def append(self, value):
         value = self._TYPE._checker.check(value)
-        if self._LIMIT and len(self) == self._LIMIT:
+        if self._max_len and len(self) == self._max_len:
             raise Exception("exceeded array limit")
         self._values.append(value)
 
     def insert(self, key, value):
         value = self._TYPE._checker.check(value)
-        if self._LIMIT and len(self) == self._LIMIT:
+        if self._max_len and len(self) == self._max_len:
             raise Exception("exceeded array limit")
         self._values.insert(key, value)
 
     def extend(self, elem_seq):
         if not elem_seq:
             return
-        if self._LIMIT and len(self) + len(elem_seq) > self._LIMIT:
+        if self._max_len and len(self) + len(elem_seq) > self._max_len:
             raise Exception("exceeded array limit")
         new_values = []
         for elem in elem_seq:
@@ -108,7 +108,7 @@ class bound_scalar_array(base_array):
         return values
 
     def __setslice__(self, start, stop, values):
-        if self._LIMIT and len(self) + len(values) - len(self._values[start:stop]) > self._LIMIT:
+        if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
             raise Exception("exceeded array limit")
         new_values = []
         for value in values:
@@ -137,7 +137,7 @@ class fixed_composite_array(base_array):
 
     def __init__(self):
         super(fixed_composite_array, self).__init__()
-        self._values = [self._TYPE() for _ in xrange(self._initial_len)]
+        self._values = [self._TYPE() for _ in xrange(self._max_len)]
 
     def __getslice__(self, start, stop):
         return self._values[start:stop]
@@ -157,46 +157,9 @@ class bound_composite_array(base_array):
     def __init__(self):
         super(bound_composite_array, self).__init__()
 
-    # TODO kl. implement **kwargs to fill structure with data at addition time already
+    """ TODO kl. implement **kwargs to fill structure with data at addition time already """
     def add(self):
-        new_element = self._TYPE()
-        self._values.append(new_element)
-        return new_element
-
-    def extend(self, elem_seq):
-        composite_cls = self._TYPE
-        values = self._values
-        for message in elem_seq:
-            new_element = composite_cls()
-            new_element.copy_from(message)
-            values.append(new_element)
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
-
-    def __delitem__(self, key):
-        del self._values[key]
-
-    def __delslice__(self, start, stop):
-        del self._values[start:stop]
-
-    def __eq__(self, other):
-        if self is other:
-            return True
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only compare repeated composite fields against '
-                            'other repeated composite fields.')
-        return self._values == other._values
-
-class limited_composite_array(base_array):
-
-    __slots__ = []
-
-    def __init__(self):
-        super(limited_composite_array, self).__init__()
-
-    def add(self):
-        if self._LIMIT and len(self) == self._LIMIT:
+        if self._max_len and len(self) == self._max_len:
             raise Exception("exceeded array limit")
 
         new_element = self._TYPE()
@@ -204,7 +167,7 @@ class limited_composite_array(base_array):
         return new_element
 
     def extend(self, elem_seq):
-        if self._LIMIT and len(self) + len(elem_seq) > self._LIMIT:
+        if self._max_len and len(self) + len(elem_seq) > self._max_len:
             raise Exception("exceeded array limit")
 
         composite_cls = self._TYPE
@@ -213,11 +176,11 @@ class limited_composite_array(base_array):
             new_element.copy_from(message)
             self._values.append(new_element)
 
-    def __delitem__(self, key):
-        del self._values[key]
-
     def __getslice__(self, start, stop):
         return self._values[start:stop]
+
+    def __delitem__(self, key):
+        del self._values[key]
 
     def __delslice__(self, start, stop):
         del self._values[start:stop]
@@ -252,7 +215,7 @@ def array(type, **kwargs):
     actual_size = size
 
     if size and bound:
-        base = limited_composite_array if is_composite else bound_scalar_array
+        base = bound_composite_array if is_composite else bound_scalar_array
     elif size and not bound:
         actual_size = 0
         base = fixed_composite_array if is_composite else fixed_scalar_array
@@ -265,7 +228,7 @@ def array(type, **kwargs):
     class _array(base):
         __slots__ = []
         _tags = base._tags + tags
-        _initial_len = size
+        _max_len = size
         _TYPE = type
         _LIMIT = actual_size
         _SIZE = size * type._SIZE
