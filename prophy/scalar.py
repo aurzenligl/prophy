@@ -1,21 +1,10 @@
-from struct import pack, unpack
-
-class decoder(object):
-    def __init__(self, struct_type, size):
-        self.type = struct_type
-        self.size = size
-    def decode(self, data, endianess):
-        size = self.size
-        if len(data) < size:
-            raise Exception("too few bytes to decode integer")
-        int_data = data[:size]
-        value, = unpack(endianess + self.type, int_data)
-        return value, size
+import struct
 
 def int_generator(name, bases, attrs):
     min = attrs["_MIN"]
     max = attrs["_MAX"]
     id = attrs["_TYPE"]
+    size = attrs["_SIZE"]
 
     def check(value):
         if not isinstance(value, (int, long)):
@@ -25,15 +14,22 @@ def int_generator(name, bases, attrs):
         return value
 
     def encode(value, endianess):
-        return pack(endianess + id, value)
+        return struct.pack(endianess + id, value)
+
+    def decode(data, endianess):
+        if len(data) < size:
+            raise Exception("too few bytes to decode integer")
+        value, = struct.unpack(endianess + id, data[:size])
+        return value, size
 
     attrs["_check"] = staticmethod(check)
     attrs["_encode"] = staticmethod(encode)
-    attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
+    attrs["_decode"] = staticmethod(decode)
     return type(name, bases, attrs)
 
 def float_generator(name, bases, attrs):
     id = attrs["_TYPE"]
+    size = attrs["_SIZE"]
 
     def check(value):
         if not isinstance(value, (float, int, long)):
@@ -41,11 +37,17 @@ def float_generator(name, bases, attrs):
         return value
 
     def encode(value, endianess):
-        return pack(endianess + id, value)
+        return struct.pack(endianess + id, value)
+
+    def decode(data, endianess):
+        if len(data) < size:
+            raise Exception("too few bytes to decode integer")
+        value, = struct.unpack(endianess + id, data[:size])
+        return value, size
 
     attrs["_check"] = staticmethod(check)
     attrs["_encode"] = staticmethod(encode)
-    attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
+    attrs["_decode"] = staticmethod(decode)
     return type(name, bases, attrs)
 
 class int_base(object):

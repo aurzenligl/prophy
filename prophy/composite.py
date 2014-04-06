@@ -117,17 +117,16 @@ def decode_field(parent, name, type, data, endianess):
             if type._SIZE > len(data):
                 raise Exception("too few bytes to decode array")
             value = getattr(parent, name)
-            decoder = value._TYPE._decoder
             decoded = 0
             if "greedy" in type._tags:
                 del value[:]
                 while decoded < len(data):
-                    elem, elem_size = decoder.decode(data[decoded:], endianess)
+                    elem, elem_size = value._TYPE._decode(data[decoded:], endianess)
                     value.append(elem)
                     decoded += elem_size
             else:
                 for i in xrange(len(value)):
-                    elem, elem_size = decoder.decode(data[decoded:], endianess)
+                    elem, elem_size = value._TYPE._decode(data[decoded:], endianess)
                     value[i] = elem
                     decoded += elem_size
             return max(decoded, type._SIZE)
@@ -152,7 +151,7 @@ def decode_field(parent, name, type, data, endianess):
             setattr(parent, name, data)
             return len(data)
     else:
-        value, size = type._decoder.decode(data, endianess)
+        value, size = type._decode(data, endianess)
         if hasattr(type, "_bound"):
             ARRAY_GUARD = 65536
             if value > ARRAY_GUARD:
@@ -333,7 +332,7 @@ class union(object):
         return bytes + "\x00" * (self._SIZE - len(bytes))
 
     def decode(self, data, endianess, terminal = True):
-        disc, bytes_read = self._discriminator_type._decoder.decode(data, endianess)
+        disc, bytes_read = self._discriminator_type._decode(data, endianess)
         field = next(ifilter(lambda x: x[2] == disc, self._descriptor), None)
         if not field:
             raise Exception("unknown discriminator")
