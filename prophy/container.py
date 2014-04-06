@@ -246,6 +246,9 @@ def array(field_type, **kwargs):
 
     tags = []
     actual_size = size
+
+    """ TODO kl. it needs to be checked if type of limited and static array is not dynamic """
+
     if size and bound:
         if "composite" in field_tags:
             base = limited_composite_array
