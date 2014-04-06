@@ -292,25 +292,19 @@ def validate_union(descriptor):
     if any("repeated" in type._tags for _, type, _ in descriptor):
         raise Exception("static array not implemented in union")
 
+def add_union_attributes(cls, descriptor):
+    cls._discriminator_type = scalar.u32
+    cls._SIZE = cls._discriminator_type._SIZE + max(type._SIZE for _, type, _ in descriptor)
+    cls._DYNAMIC = False
+    cls._UNLIMITED = False
+
 def add_union_properties(cls, descriptor):
-    add_union_size(cls, descriptor)
     add_union_discriminator(cls)
     for name, type, disc in descriptor:
         if "composite" in type._tags:
             add_union_composite(cls, name, type, disc)
         else:
             add_union_scalar(cls, name, type, disc)
-
-def add_union_size(cls, descriptor):
-    def field_size(type):
-        if "composite" in type._tags:
-            return len(type().encode(">"))
-        else:
-            return type._SIZE
-
-    cls._SIZE = scalar.u32._SIZE + max(field_size(type) for _, type, _ in descriptor)
-    cls._DYNAMIC = False
-    cls._UNLIMITED = False
 
 def add_union_discriminator(cls):
     def getter(self):
@@ -410,5 +404,6 @@ class union_generator(type):
     def __init__(cls, name, bases, attrs):
         descriptor = attrs["_descriptor"]
         validate_union(descriptor)
+        add_union_attributes(cls, descriptor)
         add_union_properties(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)
