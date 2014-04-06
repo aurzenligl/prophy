@@ -141,21 +141,21 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
         else:
             if field_type._SIZE > len(data):
                 raise Exception("too few bytes to decode array")
-            scalar_array = getattr(field_parent, field_name)
-            scalar_decoder = scalar_array._TYPE._decoder
-            size = 0
+            value = getattr(field_parent, field_name)
+            decoder = value._TYPE._decoder
+            decoded = 0
             if "greedy" in field_type._tags:
-                del scalar_array[:]
-                while size < len(data):
-                    value, bytes_read = scalar_decoder.decode(data[size:], endianess)
-                    scalar_array.append(value)
-                    size += bytes_read
+                del value[:]
+                while decoded < len(data):
+                    elem, elem_size = decoder.decode(data[decoded:], endianess)
+                    value.append(elem)
+                    decoded += elem_size
             else:
-                for i in range(len(scalar_array)):
-                    value, bytes_read = scalar_decoder.decode(data[size:], endianess)
-                    scalar_array[i] = value
-                    size += bytes_read
-            return max(size, field_type._SIZE)
+                for i in xrange(len(value)):
+                    elem, elem_size = decoder.decode(data[decoded:], endianess)
+                    value[i] = elem
+                    decoded += elem_size
+            return max(decoded, field_type._SIZE)
     elif "composite" in field_type._tags:
         field_value = getattr(field_parent, field_name)
         size = field_value.decode(data, endianess, terminal = False)
