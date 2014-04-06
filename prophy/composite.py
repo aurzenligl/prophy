@@ -343,11 +343,11 @@ class union(object):
     def encode(self, endianess):
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
-        bytes = scalar.u32._encoder.encode(self._discriminator, endianess) + encode_field(type, value, endianess)
+        bytes = self._discriminator_type._encoder.encode(self._discriminator, endianess) + encode_field(type, value, endianess)
         return bytes + "\x00" * (self._SIZE - len(bytes))
 
     def decode(self, data, endianess, terminal = True):
-        disc, bytes_read = scalar.u32._decoder.decode(data, endianess)
+        disc, bytes_read = self._discriminator_type._decoder.decode(data, endianess)
         field = next(ifilter(lambda x: x[2] == disc, self._descriptor), None)
         if not field:
             raise Exception("unknown discriminator")
