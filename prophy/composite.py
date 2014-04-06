@@ -192,8 +192,7 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
                 array_element_type = array_value._TYPE
                 if "composite" in array_element_type._tags:
                     del array_value[:]
-                    new_elements = [array_element_type() for _ in range(value)]
-                    array_value.extend(new_elements)
+                    array_value.extend([array_element_type() for _ in range(value)])
                 else:
                     array_value[:] = [array_element_type._DEFAULT] * value
         else:
