@@ -14,6 +14,11 @@ def check_greedy_field(descriptor, greedy_found = False):
                 greedy_found = True
     return greedy_found
 
+def add_attributes(cls, descriptor):
+    cls._SIZE = reduce(lambda x, y: x + y, (type._SIZE for _, type in descriptor))
+    cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
+    cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
+
 def add_properties(cls, descriptor):
     check_greedy_field(descriptor)
     for field_name, field_type in descriptor:
@@ -275,6 +280,7 @@ class struct_generator(type):
         return super(struct_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
         descriptor = attrs["_descriptor"]
+        add_attributes(cls, descriptor)
         add_properties(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 
@@ -311,6 +317,8 @@ def add_union_size(cls, descriptor):
             return type._SIZE
 
     cls._SIZE = scalar.u32._SIZE + max(field_size(type) for _, type, _ in descriptor)
+    cls._DYNAMIC = False
+    cls._UNLIMITED = False
 
 def add_union_discriminator(cls):
     def getter(self):

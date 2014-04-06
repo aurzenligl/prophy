@@ -230,8 +230,8 @@ class limited_composite_array(base_array):
                             'other repeated composite fields.')
         return self._values == other._values
 
-def array(field_type, **kwargs):
-    field_tags = field_type._tags
+def array(type, **kwargs):
+    field_tags = type._tags
     if "repeated" in field_tags:
         raise Exception("array of arrays not allowed")
     elif "string" in field_tags:
@@ -276,8 +276,9 @@ def array(field_type, **kwargs):
         __slots__ = []
         _tags = base._tags + tags
         _initial_len = size
-        _TYPE = field_type
+        _TYPE = type
         _LIMIT = actual_size
+        _SIZE = size * type._SIZE
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
         if bound:
