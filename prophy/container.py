@@ -231,43 +231,47 @@ class limited_composite_array(base_array):
         return self._values == other._values
 
 def array(type, **kwargs):
-    field_tags = type._tags
-    if "repeated" in field_tags:
-        raise Exception("array of arrays not allowed")
-    elif "string" in field_tags:
-        raise Exception("array of strings not allowed")
-    if "shift" in kwargs and (not "bound" in kwargs or "size" in kwargs):
-        raise Exception("only shifting bound array implemented")
     size = kwargs.pop("size", 0)
     bound = kwargs.pop("bound", "")
     shift = kwargs.pop("shift", 0)
     if kwargs:
         raise Exception("unknown arguments to array field")
 
+    type_tags = type._tags
+    if "repeated" in type._tags:
+        raise Exception("array of arrays not allowed")
+    if "string" in type_tags:
+        raise Exception("array of strings not allowed")
+    if size and type._DYNAMIC:
+        raise Exception("static/limited array of dynamic type not allowed")
+    if shift and (not bound or size):
+        raise Exception("only shifting bound array implemented")
+
     tags = []
     actual_size = size
 
     """ TODO kl. it needs to be checked if type of limited and static array is not dynamic """
 
+
     if size and bound:
-        if "composite" in field_tags:
+        if "composite" in type_tags:
             base = limited_composite_array
         else:
             base = bound_scalar_array
     elif size and not bound:
         actual_size = 0
-        if "composite" in field_tags:
+        if "composite" in type_tags:
             base = fixed_composite_array
         else:
             base = fixed_scalar_array
     elif not size and bound:
-        if "composite" in field_tags:
+        if "composite" in type_tags:
             base = bound_composite_array
         else:
             base = bound_scalar_array
     elif not size and not bound:
         tags += ["greedy"]
-        if "composite" in field_tags:
+        if "composite" in type_tags:
             base = bound_composite_array
         else:
             base = bound_scalar_array

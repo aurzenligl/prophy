@@ -58,6 +58,31 @@ class TestFixedScalarArray():
         x.decode("\x00\x00\x00\x01\x00\x00\x00\x02", ">")
         assert x.value[:] == [1, 2]
 
+    def test_exception(self):
+        class D(prophy.struct):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("a_len", prophy.u8),
+                           ("a", prophy.array(prophy.u8, bound = "a_len"))]
+        class U(prophy.struct):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("a", prophy.array(prophy.u8))]
+
+        with pytest.raises(Exception) as e:
+            prophy.array(D, size = 2)
+        assert "static/limited array of dynamic type not allowed" == e.value.message
+
+        with pytest.raises(Exception) as e:
+            prophy.array(U, size = 2)
+        assert "static/limited array of dynamic type not allowed" == e.value.message
+
+        with pytest.raises(Exception) as e:
+            prophy.array(D, bound = "a_len", size = 2)
+        assert "static/limited array of dynamic type not allowed" == e.value.message
+
+        with pytest.raises(Exception) as e:
+            prophy.array(U, bound = "a_len", size = 2)
+        assert "static/limited array of dynamic type not allowed" == e.value.message
+
 class TestFixedCompositeArray():
 
     class Array(prophy.struct):
