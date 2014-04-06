@@ -1,11 +1,5 @@
 from struct import pack, unpack
 
-class encoder(object):
-    def __init__(self, struct_type):
-        self.type = struct_type
-    def encode(self, value, endianess):
-        return pack(endianess + self.type, value)
-
 class decoder(object):
     def __init__(self, struct_type, size):
         self.type = struct_type
@@ -21,6 +15,7 @@ class decoder(object):
 def int_generator(name, bases, attrs):
     min = attrs["_MIN"]
     max = attrs["_MAX"]
+    id = attrs["_TYPE"]
 
     def check(value):
         if not isinstance(value, (int, long)):
@@ -29,20 +24,27 @@ def int_generator(name, bases, attrs):
             raise Exception("out of bounds")
         return value
 
+    def encode(value, endianess):
+        return pack(endianess + id, value)
+
     attrs["_check"] = staticmethod(check)
-    attrs["_encoder"] = encoder(attrs["_TYPE"])
+    attrs["_encode"] = staticmethod(encode)
     attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
     return type(name, bases, attrs)
 
 def float_generator(name, bases, attrs):
+    id = attrs["_TYPE"]
 
     def check(value):
         if not isinstance(value, (float, int, long)):
             raise Exception("not a float")
         return value
 
+    def encode(value, endianess):
+        return pack(endianess + id, value)
+
     attrs["_check"] = staticmethod(check)
-    attrs["_encoder"] = encoder(attrs["_TYPE"])
+    attrs["_encode"] = staticmethod(encode)
     attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
     return type(name, bases, attrs)
 

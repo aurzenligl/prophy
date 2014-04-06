@@ -94,9 +94,9 @@ def encode_field(type, value, endianess):
         return value.ljust(type._SIZE, '\x00')
     elif "enum" in type._tags:
         numeric_value = value if isinstance(value, int) else type._name_to_int[value]
-        return type._encoder.encode(numeric_value, endianess)
+        return type._encode(numeric_value, endianess)
     else:
-        return type._encoder.encode(value, endianess)
+        return type._encode(value, endianess)
 
 def decode_field(parent, name, type, data, endianess):
     if "repeated" in type._tags:
@@ -195,7 +195,7 @@ class struct(object):
         for field_name, field_type in self._descriptor:
             if hasattr(field_type, "_bound"):
                 array_value = getattr(self, field_type._bound)
-                out += field_type._encoder.encode(len(array_value) + field_type._LENGTH_SHIFT, endianess)
+                out += field_type._encode(len(array_value) + field_type._LENGTH_SHIFT, endianess)
             else:
                 field_value = getattr(self, field_name)
                 out += encode_field(field_type, field_value, endianess)
@@ -329,7 +329,7 @@ class union(object):
     def encode(self, endianess):
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
-        bytes = self._discriminator_type._encoder.encode(self._discriminator, endianess) + encode_field(type, value, endianess)
+        bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(type, value, endianess)
         return bytes + "\x00" * (self._SIZE - len(bytes))
 
     def decode(self, data, endianess, terminal = True):
