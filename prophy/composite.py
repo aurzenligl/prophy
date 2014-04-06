@@ -90,38 +90,33 @@ def add_composite(cls, field_name, field_type):
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
-def field_to_string(field_name, field_type, field_value):
+def field_to_string(name, type, value):
     out = ""
-    if "repeated" in field_type._tags:
-        for elem in field_value:
-            out += field_to_string(field_name, field_type._TYPE, elem)
-    elif "composite" in field_type._tags:
-        out += "%s {\n" % field_name
-        out += indent(str(field_value), spaces = 2)
+    if "repeated" in type._tags:
+        for elem in value:
+            out += field_to_string(name, type._TYPE, elem)
+    elif "composite" in type._tags:
+        out += "%s {\n" % name
+        out += indent(str(value), spaces = 2)
         out += "}\n"
-    elif "string" in field_type._tags:
-        out += "%s: %s\n" % (field_name, repr(field_value))
+    elif "string" in type._tags:
+        out += "%s: %s\n" % (name, repr(value))
     else:
-        out += "%s: %s\n" % (field_name, field_value)
+        out += "%s: %s\n" % (name, value)
     return out
 
-def encode_field(field_type, field_value, endianess):
-    out = ""
-    if "repeated" in field_type._tags:
-        for elem in field_value:
-            out += encode_field(field_type._TYPE, elem, endianess)
-        if len(out) < field_type._SIZE:
-            out = out.ljust(field_type._SIZE, "\x00")
-    elif "composite" in field_type._tags:
-        out += field_value.encode(endianess)
-    elif "string" in field_type._tags:
-        out += field_value.ljust(field_type._SIZE, '\x00')
-    elif "enum" in field_type._tags:
-        numeric_value = field_value if isinstance(field_value, int) else field_type._name_to_int[field_value]
-        out += field_type._encoder.encode(numeric_value, endianess)
+def encode_field(type, value, endianess):
+    if "repeated" in type._tags:
+        return "".join(encode_field(type._TYPE, elem, endianess) for elem in value).ljust(type._SIZE, "\x00")
+    elif "composite" in type._tags:
+        return value.encode(endianess)
+    elif "string" in type._tags:
+        return value.ljust(type._SIZE, '\x00')
+    elif "enum" in type._tags:
+        numeric_value = value if isinstance(value, int) else type._name_to_int[value]
+        return type._encoder.encode(numeric_value, endianess)
     else:
-        out += field_type._encoder.encode(field_value, endianess)
-    return out
+        return type._encoder.encode(value, endianess)
 
 def decode_field(field_parent, field_name, field_type, data, endianess):
     if "repeated" in field_type._tags:
