@@ -47,7 +47,7 @@ def add_scalar(cls, field_name, field_type):
             value = field_type._int_to_name[value]
         return value
     def setter(self, new_value):
-        new_value = field_type._checker.check(new_value)
+        new_value = field_type._check(new_value)
         self._fields[field_name] = new_value
     setattr(cls, field_name, property(getter, setter))
     if hasattr(field_type, "_LENGTH_FIELD"):
@@ -296,7 +296,7 @@ def add_union_scalar(cls, name, type, disc):
     def setter(self, new_value):
         if self._discriminator is not disc:
             raise Exception("currently field %s is discriminated" % self._discriminator)
-        new_value = type._checker.check(new_value)
+        new_value = type._check(new_value)
         self._fields[name] = new_value
     setattr(cls, name, property(getter, setter))
 

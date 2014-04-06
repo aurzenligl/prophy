@@ -35,7 +35,7 @@ class fixed_scalar_array(base_array):
         self._values = [self._TYPE._DEFAULT] * self._max_len
 
     def __setitem__(self, key, value):
-        value = self._TYPE._checker.check(value)
+        value = self._TYPE._check(value)
         self._values[key] = value
 
     def __getslice__(self, start, stop):
@@ -50,7 +50,7 @@ class fixed_scalar_array(base_array):
             raise Exception("setting slice with different length collection")
         new_values = []
         for value in values:
-            value = self._TYPE._checker.check(value)
+            value = self._TYPE._check(value)
             new_values.append(value)
         self._values[start:stop] = new_values
 
@@ -71,13 +71,13 @@ class bound_scalar_array(base_array):
         super(bound_scalar_array, self).__init__()
 
     def append(self, value):
-        value = self._TYPE._checker.check(value)
+        value = self._TYPE._check(value)
         if self._max_len and len(self) == self._max_len:
             raise Exception("exceeded array limit")
         self._values.append(value)
 
     def insert(self, key, value):
-        value = self._TYPE._checker.check(value)
+        value = self._TYPE._check(value)
         if self._max_len and len(self) == self._max_len:
             raise Exception("exceeded array limit")
         self._values.insert(key, value)
@@ -89,7 +89,7 @@ class bound_scalar_array(base_array):
             raise Exception("exceeded array limit")
         new_values = []
         for elem in elem_seq:
-            elem = self._TYPE._checker.check(elem)
+            elem = self._TYPE._check(elem)
             new_values.append(elem)
         self._values.extend(new_values)
 
@@ -97,7 +97,7 @@ class bound_scalar_array(base_array):
         self._values.remove(elem)
 
     def __setitem__(self, key, value):
-        value = self._TYPE._checker.check(value)
+        value = self._TYPE._check(value)
         self._values[key] = value
 
     def __getslice__(self, start, stop):
@@ -112,7 +112,7 @@ class bound_scalar_array(base_array):
             raise Exception("exceeded array limit")
         new_values = []
         for value in values:
-            value = self._TYPE._checker.check(value)
+            value = self._TYPE._check(value)
             new_values.append(value)
         self._values[start:stop] = new_values
 

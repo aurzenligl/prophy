@@ -1,22 +1,5 @@
 from struct import pack, unpack
 
-class int_checker(object):
-    def __init__(self, min_value, max_value):
-        self.min = min_value
-        self.max = max_value
-    def check(self, proposed_value):
-        if not isinstance(proposed_value, (int, long)):
-            raise Exception("not an int")
-        if not self.min <= proposed_value <= self.max:
-            raise Exception("out of bounds")
-        return proposed_value
-
-class float_checker(object):
-    def check(self, proposed_value):
-        if not isinstance(proposed_value, (float, int, long)):
-            raise Exception("not a float")
-        return proposed_value
-
 class encoder(object):
     def __init__(self, struct_type):
         self.type = struct_type
@@ -36,13 +19,29 @@ class decoder(object):
         return value, size
 
 def int_generator(name, bases, attrs):
-    attrs["_checker"] = int_checker(attrs["_MIN"], attrs["_MAX"])
+    min = attrs["_MIN"]
+    max = attrs["_MAX"]
+
+    def check(value):
+        if not isinstance(value, (int, long)):
+            raise Exception("not an int")
+        if not min <= value <= max:
+            raise Exception("out of bounds")
+        return value
+
+    attrs["_check"] = staticmethod(check)
     attrs["_encoder"] = encoder(attrs["_TYPE"])
     attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
     return type(name, bases, attrs)
 
 def float_generator(name, bases, attrs):
-    attrs["_checker"] = float_checker()
+
+    def check(value):
+        if not isinstance(value, (float, int, long)):
+            raise Exception("not a float")
+        return value
+
+    attrs["_check"] = staticmethod(check)
     attrs["_encoder"] = encoder(attrs["_TYPE"])
     attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
     return type(name, bases, attrs)
@@ -132,24 +131,21 @@ class r64(float_base):
     _TYPE = "d"
     _SIZE = 8
 
-class enum_checker(object):
-    def __init__(self, name_to_int, int_to_name):
-        self.name_to_int = name_to_int
-        self.int_to_name = int_to_name
-    def check(self, proposed_value):
-        if isinstance(proposed_value, str):
-            value = self.name_to_int.get(proposed_value)
+def enum_generator(name, bases, attrs):
+
+    def check(value):
+        if isinstance(value, str):
+            value = name_to_int.get(value)
             if value is None:
                 raise Exception("unknown enumerator name")
             return value
-        elif isinstance(proposed_value, (int, long)):
-            if not proposed_value in self.int_to_name:
+        elif isinstance(value, (int, long)):
+            if not value in int_to_name:
                 raise Exception("unknown enumerator value")
-            return proposed_value
+            return value
         else:
             raise Exception("neither string nor int")
 
-def enum_generator(name, bases, attrs):
     enumerators = attrs["_enumerators"]
     name_to_int = {name:value for name, value in enumerators}
     int_to_name = {value:name for name, value in enumerators}
@@ -157,11 +153,12 @@ def enum_generator(name, bases, attrs):
         raise Exception("names overlap")
     if len(int_to_name) < len(enumerators):
         raise Exception("values overlap")
-    map(bases[0]._checker.check, (value for _, value in enumerators))
+    map(bases[0]._check, (value for _, value in enumerators))
     attrs["_DEFAULT"] = enumerators[0][1]
     attrs["_name_to_int"] = name_to_int
     attrs["_int_to_name"] = int_to_name
-    attrs["_checker"] = enum_checker(name_to_int, int_to_name)
+    attrs["_check"] = staticmethod(check)
+
     return type(name, bases, attrs)
 
 class enum(u32):
@@ -191,23 +188,23 @@ def bytes(**kwargs):
     elif not size and bound:
         tags.add("bound")
 
-    class checker(object):
-        def check(self, proposed_value):
-            if not isinstance(proposed_value, str):
-                raise Exception("not a str")
-            if size and len(proposed_value) > size:
-                raise Exception("too long")
-            if "static" in tags:
-                return proposed_value.ljust(size, '\x00')
-            return proposed_value
-
     class _bytes(object):
         _tags = tags
         _SIZE = size
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
         _DEFAULT = default
-        _checker = checker()
+
+        @staticmethod
+        def _check(value):
+            if not isinstance(value, str):
+                raise Exception("not a str")
+            if size and len(value) > size:
+                raise Exception("too long")
+            if "static" in tags:
+                return value.ljust(size, '\x00')
+            return value
+
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift
