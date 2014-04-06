@@ -157,8 +157,7 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
                     decoded += elem_size
             return max(decoded, field_type._SIZE)
     elif "composite" in field_type._tags:
-        field_value = getattr(field_parent, field_name)
-        size = field_value.decode(data, endianess, terminal = False)
+        return getattr(field_parent, field_name).decode(data, endianess, terminal = False)
     elif "string" in field_type._tags:
         current_size = len(getattr(field_parent, field_name))
         if len(data) < field_type._SIZE:
