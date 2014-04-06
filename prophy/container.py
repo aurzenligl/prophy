@@ -212,7 +212,6 @@ def array(type, **kwargs):
     is_composite = "composite" in type._tags
 
     tags = []
-    actual_size = size
 
     if size and bound:
         base = bound_composite_array if is_composite else bound_scalar_array
@@ -230,7 +229,6 @@ def array(type, **kwargs):
         _tags = base._tags + tags
         _max_len = size
         _TYPE = type
-        _LIMIT = actual_size
         _SIZE = size * type._SIZE
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
