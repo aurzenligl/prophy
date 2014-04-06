@@ -131,3 +131,27 @@ def test_array_greedy_attributes():
     assert 0 == A._SIZE
     assert True == A._DYNAMIC
     assert True == A._UNLIMITED
+
+def test_struct_static_attributes():
+    class S(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.u8),
+                       ("c_len", prophy.u8),
+                       ("e_len", prophy.u8),
+                       ("b", prophy.bytes(size = 3)),
+                       ("c", prophy.bytes(bound = "c_len", size = 3)),
+                       ("d", prophy.array(prophy.u8, size = 3)),
+                       ("e", prophy.array(prophy.u8, bound = "e_len", size = 3))]
+    assert 15 == S._SIZE
+    assert False == S._DYNAMIC
+    assert False == S._UNLIMITED
+
+    class S1(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", S),
+                       ("b_len", prophy.u8),
+                       ("b", prophy.array(S, bound = "b_len", size = 3))]
+
+    assert 61 == S1._SIZE
+    assert False == S1._DYNAMIC
+    assert False == S1._UNLIMITED
