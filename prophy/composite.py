@@ -118,28 +118,28 @@ def encode_field(type, value, endianess):
     else:
         return type._encoder.encode(value, endianess)
 
-def decode_field(field_parent, field_name, field_type, data, endianess):
-    if "repeated" in field_type._tags:
-        if "composite" in field_type._TYPE._tags:
-            if field_type._SIZE > len(data):
+def decode_field(parent, name, type, data, endianess):
+    if "repeated" in type._tags:
+        if "composite" in type._TYPE._tags:
+            if type._SIZE > len(data):
                 raise Exception("too few bytes to decode array")
-            value = getattr(field_parent, field_name)
+            value = getattr(parent, name)
             decoded = 0
-            if "greedy" in field_type._tags:
+            if "greedy" in type._tags:
                 del value[:]
                 while decoded < len(data):
                     decoded += value.add().decode(data[decoded:], endianess, terminal = False)
             else:
                 for elem in value:
                     decoded += elem.decode(data[decoded:], endianess, terminal = False)
-            return max(decoded, field_type._SIZE)
+            return max(decoded, type._SIZE)
         else:
-            if field_type._SIZE > len(data):
+            if type._SIZE > len(data):
                 raise Exception("too few bytes to decode array")
-            value = getattr(field_parent, field_name)
+            value = getattr(parent, name)
             decoder = value._TYPE._decoder
             decoded = 0
-            if "greedy" in field_type._tags:
+            if "greedy" in type._tags:
                 del value[:]
                 while decoded < len(data):
                     elem, elem_size = decoder.decode(data[decoded:], endianess)
@@ -150,39 +150,39 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
                     elem, elem_size = decoder.decode(data[decoded:], endianess)
                     value[i] = elem
                     decoded += elem_size
-            return max(decoded, field_type._SIZE)
-    elif "composite" in field_type._tags:
-        return getattr(field_parent, field_name).decode(data, endianess, terminal = False)
-    elif "string" in field_type._tags:
-        current_size = len(getattr(field_parent, field_name))
-        if len(data) < field_type._SIZE:
+            return max(decoded, type._SIZE)
+    elif "composite" in type._tags:
+        return getattr(parent, name).decode(data, endianess, terminal = False)
+    elif "string" in type._tags:
+        current_size = len(getattr(parent, name))
+        if len(data) < type._SIZE:
             raise Exception("too few bytes to decode string")
-        if "static" in field_type._tags:
-            setattr(field_parent, field_name, data[:field_type._SIZE])
-            return field_type._SIZE
-        elif "limited" in field_type._tags:
-            setattr(field_parent, field_name, data[:current_size])
-            return field_type._SIZE
-        elif "bound" in field_type._tags:
+        if "static" in type._tags:
+            setattr(parent, name, data[:type._SIZE])
+            return type._SIZE
+        elif "limited" in type._tags:
+            setattr(parent, name, data[:current_size])
+            return type._SIZE
+        elif "bound" in type._tags:
             if len(data) < current_size:
                 raise Exception("too few bytes to decode string")
-            setattr(field_parent, field_name, data[:current_size])
+            setattr(parent, name, data[:current_size])
             return current_size
         else:  # greedy
-            setattr(field_parent, field_name, data)
+            setattr(parent, name, data)
             return len(data)
     else:
-        value, size = field_type._decoder.decode(data, endianess)
-        if hasattr(field_type, "_bound"):
+        value, size = type._decoder.decode(data, endianess)
+        if hasattr(type, "_bound"):
             ARRAY_GUARD = 65536
             if value > ARRAY_GUARD:
                 raise Exception("decoded array length over %s" % ARRAY_GUARD)
-            if value < field_type._LENGTH_SHIFT:
+            if value < type._LENGTH_SHIFT:
                 raise Exception("decoded array length smaller than shift")
-            value -= field_type._LENGTH_SHIFT
-            array_value = getattr(field_parent, field_type._bound)
+            value -= type._LENGTH_SHIFT
+            array_value = getattr(parent, type._bound)
             if isinstance(array_value, str):
-                setattr(field_parent, field_type._bound, "\x00" * value)
+                setattr(parent, type._bound, "\x00" * value)
             else:
                 array_element_type = array_value._TYPE
                 if "composite" in array_element_type._tags:
@@ -191,8 +191,8 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
                 else:
                     array_value[:] = [array_element_type._DEFAULT] * value
         else:
-            setattr(field_parent, field_name, value)
-    return size
+            setattr(parent, name, value)
+        return size
 
 class struct(object):
     __slots__ = []
