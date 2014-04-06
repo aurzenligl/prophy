@@ -216,3 +216,14 @@ def test_struct_unlimited_attributes():
     assert 0 == S3._SIZE
     assert True == S3._DYNAMIC
     assert True == S3._UNLIMITED
+
+def test_union_attributes():
+    class U(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a", prophy.u8, 0),
+                       ("b", prophy.u16, 1),
+                       ("c", prophy.u32, 2)]
+
+    assert 8 == U._SIZE
+    assert False == U._DYNAMIC
+    assert False == U._UNLIMITED
