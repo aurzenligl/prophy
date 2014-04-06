@@ -32,7 +32,7 @@ class fixed_scalar_array(base_array):
 
     def __init__(self):
         super(fixed_scalar_array, self).__init__()
-        self._values = [self._TYPE._DEFAULT] * self._SIZE
+        self._values = [self._TYPE._DEFAULT] * self._initial_len
 
     def __setitem__(self, key, value):
         value = self._TYPE._checker.check(value)
@@ -137,7 +137,7 @@ class fixed_composite_array(base_array):
 
     def __init__(self):
         super(fixed_composite_array, self).__init__()
-        self._values = [self._TYPE() for _ in range(self._SIZE)]
+        self._values = [self._TYPE() for _ in xrange(self._initial_len)]
 
     def __getslice__(self, start, stop):
         return self._values[start:stop]
@@ -275,10 +275,9 @@ def array(field_type, **kwargs):
     class concrete_array(base):
         __slots__ = []
         _tags = base._tags + tags
+        _initial_len = size
         _TYPE = field_type
         _LIMIT = actual_size
-        if size:
-            _SIZE = size
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
         if bound:
