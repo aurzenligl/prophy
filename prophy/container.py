@@ -208,6 +208,8 @@ def array(type, **kwargs):
         raise Exception("static/limited array of dynamic type not allowed")
     if shift and (not bound or size):
         raise Exception("only shifting bound array implemented")
+    if type._UNLIMITED:
+        raise Exception("array with unlimited field disallowed")
 
     is_composite = "composite" in type._tags
 

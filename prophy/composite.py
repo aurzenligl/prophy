@@ -1,18 +1,9 @@
 import scalar
 from itertools import ifilter
 
-def check_greedy_field(descriptor, greedy_found = False):
-    for _, field_type in descriptor:
-        if "union" in field_type._tags:
-            pass
-        elif "composite" in field_type._tags:
-            greedy_found = check_greedy_field(field_type._descriptor, greedy_found)
-        else:
-            if greedy_found:
-                raise Exception("greedy field is not the last one")
-            if "greedy" in field_type._tags:
-                greedy_found = True
-    return greedy_found
+def validate(descriptor):
+    if any(type._UNLIMITED for _, type in descriptor[:-1]):
+        raise Exception("unlimited field is not the last one")
 
 def add_attributes(cls, descriptor):
     cls._SIZE = reduce(lambda x, y: x + y, (type._SIZE for _, type in descriptor))
@@ -20,7 +11,6 @@ def add_attributes(cls, descriptor):
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
 
 def add_properties(cls, descriptor):
-    check_greedy_field(descriptor)
     for field_name, field_type in descriptor:
         if "repeated" in field_type._tags:
             add_repeated(cls, field_name, field_type)
@@ -30,11 +20,6 @@ def add_properties(cls, descriptor):
             add_scalar(cls, field_name, field_type)
 
 def add_repeated(cls, field_name, field_type):
-    if "union" in field_type._TYPE._tags:
-        pass
-    elif "composite" in field_type._TYPE._tags:
-        if check_greedy_field(field_type._TYPE._descriptor):
-            raise Exception("array with composite with greedy field disallowed")
     def getter(self):
         field_value = self._fields.get(field_name)
         if field_value is None:
@@ -259,6 +244,7 @@ class struct_generator(type):
         return super(struct_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
         descriptor = attrs["_descriptor"]
+        validate(descriptor)
         add_attributes(cls, descriptor)
         add_properties(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
