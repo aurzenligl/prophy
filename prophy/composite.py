@@ -139,6 +139,8 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
                     decoded += elem.decode(data[decoded:], endianess, terminal = False)
             return max(decoded, field_type._SIZE)
         else:
+            if field_type._SIZE > len(data):
+                raise Exception("too few bytes to decode array")
             scalar_array = getattr(field_parent, field_name)
             scalar_decoder = scalar_array._TYPE._decoder
             size = 0
@@ -153,11 +155,7 @@ def decode_field(field_parent, field_name, field_type, data, endianess):
                     value, bytes_read = scalar_decoder.decode(data[size:], endianess)
                     scalar_array[i] = value
                     size += bytes_read
-            if field_type._LIMIT:
-                limit = field_type._LIMIT * field_type._TYPE._SIZE
-                if len(data) < limit:
-                    raise Exception("too few bytes to decode limited array")
-                size = limit
+            return max(size, field_type._SIZE)
     elif "composite" in field_type._tags:
         field_value = getattr(field_parent, field_name)
         size = field_value.decode(data, endianess, terminal = False)

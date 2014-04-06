@@ -130,3 +130,13 @@ class TestFixedCompositeArray():
         x.decode("\x00\x00\x00\x01\x00\x00\x00\x02", ">")
         assert x.value[0].x == 1
         assert x.value[1].x == 2
+
+def test_static_array_decode_exception():
+    class A(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a_len", prophy.u8),
+                       ("a", prophy.array(prophy.u8, bound = "a_len", size = 3))]
+
+    with pytest.raises(Exception) as e:
+        A().decode("\x00", ">")
+    assert "too few bytes to decode array" == e.value.message
