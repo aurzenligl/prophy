@@ -187,3 +187,32 @@ def test_struct_dynamic_attributes():
     assert 2 == S3._SIZE
     assert True == S3._DYNAMIC
     assert False == S3._UNLIMITED
+
+def test_struct_unlimited_attributes():
+    class S(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.u8)]
+
+    class S1(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.bytes())]
+
+    assert 0 == S1._SIZE
+    assert True == S1._DYNAMIC
+    assert True == S1._UNLIMITED
+
+    class S2(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.array(prophy.u8))]
+
+    assert 0 == S2._SIZE
+    assert True == S2._DYNAMIC
+    assert True == S2._UNLIMITED
+
+    class S3(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", S2)]
+
+    assert 0 == S3._SIZE
+    assert True == S3._DYNAMIC
+    assert True == S3._UNLIMITED
