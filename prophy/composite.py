@@ -110,10 +110,8 @@ def encode_field(field_type, field_value, endianess):
     if "repeated" in field_type._tags:
         for elem in field_value:
             out += encode_field(field_type._TYPE, elem, endianess)
-        if field_type._LIMIT:
-            remaining = field_type._LIMIT - len(field_value)
-            default = field_type._TYPE() if "composite" in field_type._TYPE._tags else field_type._TYPE._DEFAULT
-            out += remaining * encode_field(field_type._TYPE, default, endianess)
+        if len(out) < field_type._SIZE:
+            out = out.ljust(field_type._SIZE, "\x00")
     elif "composite" in field_type._tags:
         out += field_value.encode(endianess)
     elif "string" in field_type._tags:
