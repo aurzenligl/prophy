@@ -103,3 +103,31 @@ def test_bytes_greedy_attributes():
     assert True == B._DYNAMIC
     assert True == B._UNLIMITED
     assert '' == B._DEFAULT
+
+def test_array_static_attributes():
+    A = prophy.array(prophy.u8, size = 3)
+
+#     assert x == A._SIZE
+    assert False == A._DYNAMIC
+    assert False == A._UNLIMITED
+
+def test_array_limited_attributes():
+    A = prophy.array(prophy.u8, bound = "a_len", size = 3)
+
+#     assert x == A._SIZE
+    assert False == A._DYNAMIC
+    assert False == A._UNLIMITED
+
+def test_array_bound_attributes():
+    A = prophy.array(prophy.u8, bound = "a_len")
+
+#     assert x == A._SIZE
+    assert True == A._DYNAMIC
+    assert False == A._UNLIMITED
+
+def test_array_greedy_attributes():
+    A = prophy.array(prophy.u8)
+
+#     assert x == A._SIZE
+    assert True == A._DYNAMIC
+    assert True == A._UNLIMITED
