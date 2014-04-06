@@ -272,7 +272,7 @@ def array(type, **kwargs):
         else:
             base = bound_scalar_array
 
-    class concrete_array(base):
+    class _array(base):
         __slots__ = []
         _tags = base._tags + tags
         _initial_len = size
@@ -284,4 +284,4 @@ def array(type, **kwargs):
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift
-    return concrete_array
+    return _array
