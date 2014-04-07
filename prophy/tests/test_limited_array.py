@@ -151,7 +151,7 @@ class TestLimitedCompositeArray():
 
         with pytest.raises(Exception) as e:
             a.decode(("\x00\x00\x00\x00"), ">")
-        assert "too few bytes to decode limited array" == e.value.message
+        assert "too few bytes to decode array" == e.value.message
 
     def test_encode(self):
         a = Array()
@@ -250,12 +250,12 @@ def test_limited_array_with_enum():
 
     x = A()
 
-    assert "\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01" == x.encode(">")
+    assert "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
 
     x.a.append(2)
     x.a.append("E_3")
 
-    assert "\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x01" == x.encode(">")
+    assert "\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x00" == x.encode(">")
 
     x.decode("\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00", ">")
 

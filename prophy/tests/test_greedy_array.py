@@ -296,15 +296,18 @@ class TestGreedyComplexCompositeArray():
             a.decode("\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08\x00", ">")
 
 def test_exceptions():
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as e:
         class NotLast(prophy.struct):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("y", prophy.array(prophy.u32)),
                            ("x", prophy.u32)]
-    with pytest.raises(Exception):
+    assert "unlimited field is not the last one" == e.value.message
+
+    with pytest.raises(Exception) as e:
         class GreedyComposite(prophy.struct):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.array(prophy.u32))]
         class GreedyArrayOfGreedyComposites(prophy.struct):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.array(GreedyComposite))]
+    assert "array with unlimited field disallowed" == e.value.message

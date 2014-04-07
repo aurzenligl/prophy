@@ -1,58 +1,62 @@
-from struct import pack, unpack
-
-class int_checker(object):
-    def __init__(self, min_value, max_value):
-        self.min = min_value
-        self.max = max_value
-    def check(self, proposed_value):
-        if not isinstance(proposed_value, (int, long)):
-            raise Exception("not an int")
-        if not self.min <= proposed_value <= self.max:
-            raise Exception("out of bounds")
-        return proposed_value
-
-class float_checker(object):
-    def check(self, proposed_value):
-        if not isinstance(proposed_value, (float, int, long)):
-            raise Exception("not a float")
-        return proposed_value
-
-class encoder(object):
-    def __init__(self, struct_type):
-        self.type = struct_type
-    def encode(self, value, endianess):
-        return pack(endianess + self.type, value)
-
-class decoder(object):
-    def __init__(self, struct_type, size):
-        self.type = struct_type
-        self.size = size
-    def decode(self, data, endianess):
-        size = self.size
-        if len(data) < size:
-            raise Exception("too few bytes to decode integer")
-        int_data = data[:size]
-        value, = unpack(endianess + self.type, int_data)
-        return value, size
+import struct
 
 def int_generator(name, bases, attrs):
-    attrs["_checker"] = int_checker(attrs["_MIN"], attrs["_MAX"])
-    attrs["_encoder"] = encoder(attrs["_TYPE"])
-    attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
+    min = attrs["_MIN"]
+    max = attrs["_MAX"]
+    id = attrs["_TYPE"]
+    size = attrs["_SIZE"]
+
+    def check(value):
+        if not isinstance(value, (int, long)):
+            raise Exception("not an int")
+        if not min <= value <= max:
+            raise Exception("out of bounds")
+        return value
+
+    def encode(value, endianess):
+        return struct.pack(endianess + id, value)
+
+    def decode(data, endianess):
+        if len(data) < size:
+            raise Exception("too few bytes to decode integer")
+        value, = struct.unpack(endianess + id, data[:size])
+        return value, size
+
+    attrs["_check"] = staticmethod(check)
+    attrs["_encode"] = staticmethod(encode)
+    attrs["_decode"] = staticmethod(decode)
     return type(name, bases, attrs)
 
 def float_generator(name, bases, attrs):
-    attrs["_checker"] = float_checker()
-    attrs["_encoder"] = encoder(attrs["_TYPE"])
-    attrs["_decoder"] = decoder(attrs["_TYPE"], attrs["_SIZE"])
+    id = attrs["_TYPE"]
+    size = attrs["_SIZE"]
+
+    def check(value):
+        if not isinstance(value, (float, int, long)):
+            raise Exception("not a float")
+        return value
+
+    def encode(value, endianess):
+        return struct.pack(endianess + id, value)
+
+    def decode(data, endianess):
+        if len(data) < size:
+            raise Exception("too few bytes to decode integer")
+        value, = struct.unpack(endianess + id, data[:size])
+        return value, size
+
+    attrs["_check"] = staticmethod(check)
+    attrs["_encode"] = staticmethod(encode)
+    attrs["_decode"] = staticmethod(decode)
     return type(name, bases, attrs)
 
 class int_base(object):
     _tags = ["scalar"]
     _DEFAULT = 0
+    _DYNAMIC = False
+    _UNLIMITED = False
 
-class float_base(object):
-    _tags = ["scalar"]
+class float_base(int_base):
     _DEFAULT = 0.0
 
 class i8(int_base):
@@ -120,110 +124,92 @@ class u64(int_base):
     _SIZE = 8
 
 class r32(float_base):
-    _tags = int_base._tags + ["signed_float"]
+    _tags = float_base._tags + ["signed_float"]
     __metaclass__ = float_generator
     _TYPE = "f"
     _SIZE = 4
 
 class r64(float_base):
-    _tags = int_base._tags + ["signed_float"]
+    _tags = float_base._tags + ["signed_float"]
     __metaclass__ = float_generator
     _TYPE = "d"
     _SIZE = 8
 
-class enum_checker(object):
-    def __init__(self, name_to_int, int_to_name):
-        self.name_to_int = name_to_int
-        self.int_to_name = int_to_name
-    def check(self, proposed_value):
-        if isinstance(proposed_value, str):
-            value = self.name_to_int.get(proposed_value)
+def enum_generator(name, bases, attrs):
+
+    def check(value):
+        if isinstance(value, str):
+            value = name_to_int.get(value)
             if value is None:
                 raise Exception("unknown enumerator name")
             return value
-        elif isinstance(proposed_value, (int, long)):
-            if not proposed_value in self.int_to_name:
+        elif isinstance(value, (int, long)):
+            if not value in int_to_name:
                 raise Exception("unknown enumerator value")
-            return proposed_value
+            return value
         else:
             raise Exception("neither string nor int")
 
-def enum_generator(name, bases, attrs):
     enumerators = attrs["_enumerators"]
-    attrs["_DEFAULT"] = enumerators[0][1]
-    name_to_int = {}
-    int_to_name = {}
-    if len(set([ename for ename, _ in enumerators])) != len(enumerators):
+    name_to_int = {name:value for name, value in enumerators}
+    int_to_name = {value:name for name, value in enumerators}
+    if len(name_to_int) < len(enumerators):
         raise Exception("names overlap")
-    if len(set([value for _, value in enumerators])) != len(enumerators):
+    if len(int_to_name) < len(enumerators):
         raise Exception("values overlap")
-    for _, value in enumerators:
-        bases[0]._base._checker.check(value)
-    for ename, value in enumerators:
-        name_to_int[ename] = value
-        int_to_name[value] = ename
+    map(bases[0]._check, (value for _, value in enumerators))
+    attrs["_DEFAULT"] = enumerators[0][1]
     attrs["_name_to_int"] = name_to_int
     attrs["_int_to_name"] = int_to_name
-    attrs["_checker"] = enum_checker(name_to_int, int_to_name)
+    attrs["_check"] = staticmethod(check)
+
     return type(name, bases, attrs)
 
-def base_enum_generator(name, bases, attrs):
-    base = attrs["_base"]
-    attrs["_tags"] = base._tags + ["enum"]
-    bases = (base,)
-    return type(name, bases, attrs)
+class enum(u32):
+    _tags = u32._tags + ["enum"]
 
-class enum():
-    __metaclass__ = base_enum_generator
-    _base = u32
-
-class enum8():
-    __metaclass__ = base_enum_generator
-    _base = u8
-
-class bytes_checker(object):
-    def __init__(self, size, limit):
-        self.size = size
-        self.limit = limit
-    def check(self, proposed_value):
-        if not isinstance(proposed_value, str):
-            raise Exception("not a str")
-        if self.limit and len(proposed_value) > self.limit:
-            raise Exception("too long")
-        remaining = self.size - len(proposed_value)
-        return proposed_value + "\x00" * remaining
-
-def bytes_generator(name, bases, attrs):
-    attrs["_checker"] = bytes_checker(attrs["_SIZE"], attrs["_LIMIT"])
-    return type(name, bases, attrs)
-
-class bytes_base(object):
-    _tags = ["scalar", "string"]
+class enum8(u8):
+    _tags = u8._tags + ["enum"]
 
 def bytes(**kwargs):
-    if "shift" in kwargs and (not "bound" in kwargs or "size" in kwargs):
-        raise Exception("only shifting bound bytes implemented")
     size = kwargs.pop("size", 0)
     bound = kwargs.pop("bound", "")
     shift = kwargs.pop("shift", 0)
+    if shift and (not bound or size):
+        raise Exception("only shifting bound bytes implemented")
     if kwargs:
         raise Exception("unknown arguments to bytes field")
-    tags = []
+
+    tags = {"scalar", "string"}
     default = ""
-    actual_size = size
     if size and bound:
-        actual_size = 0
+        tags.add("limited")
     elif size and not bound:
+        tags.add("static")
         default = "\x00" * size
     elif not size and not bound:
-        tags += ["greedy"]
-    class concrete_bytes(bytes_base):
-        __metaclass__ = bytes_generator
-        _tags = bytes_base._tags + tags
-        _SIZE = actual_size
-        _LIMIT = size
+        tags.add("greedy")
+    elif not size and bound:
+        tags.add("bound")
+
+    class _bytes(object):
+        _tags = tags
+        _SIZE = size
+        _DYNAMIC = not size
+        _UNLIMITED = not size and not bound
         _DEFAULT = default
+
+        @staticmethod
+        def _check(value):
+            if not isinstance(value, str):
+                raise Exception("not a str")
+            if size and len(value) > size:
+                raise Exception("too long")
+            if "static" in tags:
+                return value.ljust(size, '\x00')
+            return value
+
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift
-    return concrete_bytes
+    return _bytes
