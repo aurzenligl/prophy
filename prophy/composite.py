@@ -6,7 +6,7 @@ def validate(descriptor):
         raise Exception("unlimited field is not the last one")
 
 def add_attributes(cls, descriptor):
-    cls._SIZE = reduce(lambda x, y: x + y, (type._SIZE for _, type in descriptor))
+    cls._SIZE = sum(type._SIZE for _, type in descriptor)
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
 
