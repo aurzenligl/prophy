@@ -14,7 +14,7 @@ setup(name = 'prophy',
       keywords = ["IDL", "codec", "binary data"],
       classifiers = [
             "Intended Audience :: Developers",
-            "Intended Audience :: Telecommunications Industry"
+            "Intended Audience :: Telecommunications Industry",
             "Programming Language :: Python",
             "Development Status :: 3 - Alpha",
             "License :: OSI Approved :: MIT License",
