@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name = 'prophy',
-      packages = ['prophy'],
+      packages = ['prophy', 'prophyc'],
       entry_points = {
         'console_scripts': [
             'prophyc = prophyc.prophyc:main']
