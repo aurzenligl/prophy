@@ -1,12 +1,25 @@
-from distutils.core import setup
+from setuptools import setup
 
-PATHS = [
-         "prophy",
-         ]
-
-setup(name='prophyc',
-      version='1.0',
-      description='prophyc library',
-      package_dir = {'': 'prophyc'},
-      packages=PATHS,
-     )
+setup(name = 'prophy',
+      packages = ['prophy', 'prophyc'],
+      entry_points = {
+        'console_scripts': [
+            'prophyc = prophyc.prophyc:main']
+        },
+      version = '0.1',
+      description = 'Binary data interchange format toolchain',
+      author = 'Krzysztof Laskowski',
+      author_email = 'krzysztof.laskowski@nsn.com',
+      url = "https://pypi.python.org/pypi",
+      keywords = ["IDL", "codec", "binary data"],
+      classifiers = [
+            "Intended Audience :: Developers",
+            "Intended Audience :: Telecommunications Industry",
+            "Programming Language :: Python",
+            "Development Status :: 3 - Alpha",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: Unix",
+            "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+            ]
+      )

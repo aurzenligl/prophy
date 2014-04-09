@@ -9,7 +9,7 @@ import os
 def get_basename(filename):
     return os.path.splitext(os.path.basename(filename))[0]
 
-if __name__ == "__main__":
+def main():
     opts = options.parse_options()
 
     if opts.isar:
@@ -26,3 +26,6 @@ if __name__ == "__main__":
         basename = get_basename(input_file)
         nodes = parser.parse(input_file)
         serializer.serialize(nodes, basename)
+
+if __name__ == "__main__":
+    main()
