@@ -72,6 +72,13 @@ def test_enum_attributes():
     assert False == E8._UNLIMITED
     assert 1 == E8._DEFAULT
 
+def test_optional_attributes():
+    assert 1 == prophy.optional(prophy.i8)._SIZE
+    assert False == prophy.optional(prophy.i8)._DYNAMIC
+    assert False == prophy.optional(prophy.i8)._UNLIMITED
+    assert 0 == prophy.optional(prophy.i8)._DEFAULT
+    assert True == prophy.optional(prophy.i8)._OPTIONAL
+
 def test_bytes_static_attributes():
     B = prophy.bytes(size = 3)
 
