@@ -113,3 +113,9 @@ def test_optional_encoding_with_enum():
     assert "\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
 
     """ add decoding tests """
+
+""" prohibit:
+optional of bytes
+optional of array
+union with optional
+"""
