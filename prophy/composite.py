@@ -353,7 +353,7 @@ class union(object):
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
         bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(type, value, endianess)
-        return bytes + "\x00" * (self._SIZE - len(bytes))
+        return bytes + "\x00" * ((self._SIZE if not self._OPTIONAL else self._TYPE._SIZE) - len(bytes))
 
     def decode(self, data, endianess, terminal = True):
         disc, bytes_read = self._discriminator_type._decode(data, endianess)
@@ -390,7 +390,7 @@ class union_generator(type):
         attrs["__slots__"] = ["_fields", "_discriminator"]
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        descriptor = attrs["_descriptor"]
+        descriptor = cls._descriptor
         validate_union(descriptor)
         add_union_attributes(cls, descriptor)
         add_union_properties(cls, descriptor)

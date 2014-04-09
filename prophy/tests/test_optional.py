@@ -114,6 +114,28 @@ def test_optional_encoding_with_enum():
 
     """ add decoding tests """
 
+def test_optional_with_union():
+    class U(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a", prophy.u32, 5)]
+    class O(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.optional(U))]
+
+    x = O()
+    assert "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+
+    x.a
+    assert "\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x00" == x.encode(">")
+
+    x.a.a = 3
+    assert "\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x03" == x.encode(">")
+
+    x.a = None
+    assert "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+
+    """ add decoding tests """
+
 """ prohibit:
 optional of bytes
 optional of array
