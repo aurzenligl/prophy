@@ -112,10 +112,10 @@ def test_struct_parsing():
 
     assert 1 == len(nodes)
     assert "Struct" == nodes[0].name
-    assert [("a", "u8", None, None, None),
-            ("b", "i64", None, None, None),
-            ("c", "r32", None, None, None),
-            ("d", "TTypeX", None, None, None)] == nodes[0].members
+    assert [("a", "u8", None, None, None, None),
+            ("b", "i64", None, None, None, None),
+            ("c", "r32", None, None, None, None),
+            ("d", "TTypeX", None, None, None, None)] == nodes[0].members
 
 def test_struct_parsing_with_constant():
     xml = """\
@@ -130,7 +130,7 @@ def test_struct_parsing_with_constant():
     nodes = parse(xml)
 
     assert [model.Constant("THE_CONSTANT", "0"),
-            model.Struct("Struct", [model.StructMember("a", "u8", None, None, None)])] == nodes
+            model.Struct("Struct", [model.StructMember("a", "u8", None, None, None, None)])] == nodes
 
 def test_struct_parsing_dynamic_array():
     xml = """\
@@ -144,8 +144,8 @@ def test_struct_parsing_dynamic_array():
 """
     nodes = parse(xml)
 
-    assert [("x_len", "u32", None, None, None),
-            ("x", "TTypeX", True, "x_len", None)] == nodes[0].members
+    assert [("x_len", "u32", None, None, None, None),
+            ("x", "TTypeX", True, "x_len", None, None)] == nodes[0].members
 
 def test_struct_parsing_static_array():
     xml = """\
@@ -159,7 +159,7 @@ def test_struct_parsing_static_array():
 """
     nodes = parse(xml)
 
-    assert [("y", "TTypeY", True, None, "NUM_OF_Y")] == nodes[0].members
+    assert [("y", "TTypeY", True, None, "NUM_OF_Y", None)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
@@ -173,8 +173,8 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
 """
     nodes = parse(xml)
 
-    assert [("x_len", "TNumberOfItems", None, None, None),
-            ("x", "TTypeX", True, "x_len", None)] == nodes[0].members
+    assert [("x_len", "TNumberOfItems", None, None, None, None),
+            ("x", "TTypeX", True, "x_len", None, None)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
@@ -188,8 +188,8 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
 """
     nodes = parse(xml)
 
-    assert [("numOfX", "u32", None, None, None),
-            ("x", "TTypeX", True, "numOfX", None)] == nodes[0].members
+    assert [("numOfX", "u32", None, None, None, None),
+            ("x", "TTypeX", True, "numOfX", None, None)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
@@ -203,8 +203,8 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
 """
     nodes = parse(xml)
 
-    assert [("numOfX", "TSize", None, None, None),
-            ("x", "TTypeX", True, "numOfX", None)] == nodes[0].members
+    assert [("numOfX", "TSize", None, None, None, None),
+            ("x", "TTypeX", True, "numOfX", None, None)] == nodes[0].members
 
 def test_struct_parsing_limited_array():
     xml = """\
@@ -218,8 +218,21 @@ def test_struct_parsing_limited_array():
 """
     nodes = parse(xml)
 
-    assert [("x_len", "u32", None, None, None),
-            ("x", "TTypeX", True, "x_len", "3")] == nodes[0].members
+    assert [("x_len", "u32", None, None, None, None),
+            ("x", "TTypeX", True, "x_len", "3", None)] == nodes[0].members
+
+def test_struct_parsing_with_optional():
+    xml = """\
+<x>
+    <struct name="Struct">
+        <member name="a" type="u8" optional="true"/>
+    </struct>
+</x>
+"""
+
+    nodes = parse(xml)
+
+    assert [("a", "u8", None, None, None, None)] == nodes[0].members
 
 def test_message_parsing():
     xml = """\
@@ -231,7 +244,7 @@ def test_message_parsing():
 """
     nodes = parse(xml)
 
-    assert [("x", "TTypeX", None, None, None)] == nodes[0].members
+    assert [("x", "TTypeX", None, None, None, None)] == nodes[0].members
 
 def test_union_parsing():
     xml = """\
@@ -288,36 +301,36 @@ def test_dependency_sort_typedefs():
     assert ["A", "B", "C", "D", "E"] == [node.name for node in nodes]
 
 def test_dependency_sort_structs():
-    nodes = [model.Struct("C", [model.StructMember("a", "B", None, None, None),
-                                model.StructMember("b", "A", None, None, None),
-                                model.StructMember("c", "D", None, None, None)]),
-             model.Struct("B", [model.StructMember("a", "X", None, None, None),
-                                model.StructMember("b", "A", None, None, None),
-                                model.StructMember("c", "Y", None, None, None)]),
-             model.Struct("A", [model.StructMember("a", "X", None, None, None),
-                                model.StructMember("b", "Y", None, None, None),
-                                model.StructMember("c", "Z", None, None, None)])]
+    nodes = [model.Struct("C", [model.StructMember("a", "B", None, None, None, None),
+                                model.StructMember("b", "A", None, None, None, None),
+                                model.StructMember("c", "D", None, None, None, None)]),
+             model.Struct("B", [model.StructMember("a", "X", None, None, None, None),
+                                model.StructMember("b", "A", None, None, None, None),
+                                model.StructMember("c", "Y", None, None, None, None)]),
+             model.Struct("A", [model.StructMember("a", "X", None, None, None, None),
+                                model.StructMember("b", "Y", None, None, None, None),
+                                model.StructMember("c", "Z", None, None, None, None)])]
 
     IsarParser.dependency_sort(nodes)
 
     assert ["A", "B", "C"] == [node.name for node in nodes]
 
 def test_dependency_sort_struct_with_two_deps():
-    nodes = [model.Struct("C", [model.StructMember("a", "B", None, None, None)]),
-             model.Struct("B", [model.StructMember("a", "A", None, None, None)]),
-             model.Struct("A", [model.StructMember("a", "X", None, None, None)])]
+    nodes = [model.Struct("C", [model.StructMember("a", "B", None, None, None, None)]),
+             model.Struct("B", [model.StructMember("a", "A", None, None, None, None)]),
+             model.Struct("A", [model.StructMember("a", "X", None, None, None, None)])]
 
     IsarParser.dependency_sort(nodes)
 
     assert ["A", "B", "C"] == [node.name for node in nodes]
 
 def test_dependency_sort_struct_with_multiple_dependencies():
-    nodes = [model.Struct("D", [model.StructMember("a", "A", None, None, None),
-                                model.StructMember("b", "B", None, None, None),
-                                model.StructMember("c", "C", None, None, None)]),
-             model.Struct("C", [model.StructMember("a", "A", None, None, None),
-                                model.StructMember("b", "B", None, None, None)]),
-             model.Struct("B", [model.StructMember("a", "A", None, None, None)]),
+    nodes = [model.Struct("D", [model.StructMember("a", "A", None, None, None, None),
+                                model.StructMember("b", "B", None, None, None, None),
+                                model.StructMember("c", "C", None, None, None, None)]),
+             model.Struct("C", [model.StructMember("a", "A", None, None, None, None),
+                                model.StructMember("b", "B", None, None, None, None)]),
+             model.Struct("B", [model.StructMember("a", "A", None, None, None, None)]),
              model.Typedef("A", "TTypeX")]
 
     IsarParser.dependency_sort(nodes)
@@ -328,7 +341,7 @@ def test_dependency_sort_union():
     nodes = [model.Typedef("C", "B"),
              model.Union("B", [model.UnionMember("a", "A", "0"),
                                model.UnionMember("b", "A", "1")]),
-             model.Struct("A", [model.StructMember("a", "X", None, None, None)])]
+             model.Struct("A", [model.StructMember("a", "X", None, None, None, None)])]
 
     IsarParser.dependency_sort(nodes)
 

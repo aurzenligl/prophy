@@ -58,10 +58,10 @@ CONST_B = 31
     assert ref == serialize(nodes)
 
 def test_struct_rendering():
-    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8", None, None, None)),
-                                     (model.StructMember("b", "i64", None, None, None)),
-                                     (model.StructMember("c", "r32", None, None, None)),
-                                     (model.StructMember("d", "TTypeX", None, None, None))])]
+    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8", None, None, None, None)),
+                                     (model.StructMember("b", "i64", None, None, None, None)),
+                                     (model.StructMember("c", "r32", None, None, None, None)),
+                                     (model.StructMember("d", "TTypeX", None, None, None, None))])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -74,8 +74,8 @@ class Struct(prophy.struct):
     assert ref == serialize(nodes)
 
 def test_struct_rendering_with_dynamic_array():
-    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems", None, None, None),
-                                     model.StructMember("a", "u8", True, "tmpName", None)])]
+    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems", None, None, None, None),
+                                     model.StructMember("a", "u8", True, "tmpName", None, None)])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -86,7 +86,7 @@ class Struct(prophy.struct):
     assert ref == serialize(nodes)
 
 def test_struct_rendering_with_static_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS")])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS", None)])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -96,8 +96,8 @@ class Struct(prophy.struct):
     assert ref == serialize(nodes)
 
 def test_struct_rendering_with_limited_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8", None, None, None),
-                                     model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS")])]
+    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8", None, None, None, None),
+                                     model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS", None)])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -135,7 +135,7 @@ def test_of_PythonSerializer():
         enum.append(("elem_" + str(x), "val_" + str(x)))
 
     name = "MAC_L2CallConfigResp"
-    members = [model.StructMember('messageResult', 'SMessageResult', None, None, None)]
+    members = [model.StructMember('messageResult', 'SMessageResult', None, None, None, None)]
     msg_h = model.Struct(name, members)
 
     nodes = []

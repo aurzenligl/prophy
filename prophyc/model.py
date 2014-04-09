@@ -10,7 +10,7 @@ Enum = namedtuple("Enum", ["name", "members"])
 EnumMember = namedtuple("EnumMember", ["name", "value"])
 
 Struct = namedtuple("Struct", ["name", "members"])
-StructMember = namedtuple("StructMember", ["name", "type", "array", "array_bound", "array_size"])
+StructMember = namedtuple("StructMember", ["name", "type", "array", "array_bound", "array_size", "optional"])
 
 Union = namedtuple("Union", ["name", "members"])
 UnionMember = namedtuple("UnionMember", ["name", "type", "discriminator"])
