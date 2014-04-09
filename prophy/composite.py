@@ -9,6 +9,7 @@ def add_attributes(cls, descriptor):
     cls._SIZE = sum(type._SIZE for _, type in descriptor)
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
+    cls._OPTIONAL = False
 
 def add_properties(cls, descriptor):
     for field_name, field_type in descriptor:
@@ -261,6 +262,7 @@ def add_union_attributes(cls, descriptor):
     cls._SIZE = cls._discriminator_type._SIZE + max(type._SIZE for _, type, _ in descriptor)
     cls._DYNAMIC = False
     cls._UNLIMITED = False
+    cls._OPTIONAL = False
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)

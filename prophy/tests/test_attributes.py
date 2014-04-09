@@ -6,41 +6,49 @@ def test_int_attributes():
     assert False == prophy.i8._DYNAMIC
     assert False == prophy.i8._UNLIMITED
     assert 0 == prophy.i8._DEFAULT
+    assert False == prophy.i8._OPTIONAL
 
     assert 2 == prophy.i16._SIZE
     assert False == prophy.i16._DYNAMIC
     assert False == prophy.i16._UNLIMITED
     assert 0 == prophy.i16._DEFAULT
+    assert False == prophy.i16._OPTIONAL
 
     assert 4 == prophy.i32._SIZE
     assert False == prophy.i32._DYNAMIC
     assert False == prophy.i32._UNLIMITED
     assert 0 == prophy.i32._DEFAULT
+    assert False == prophy.i32._OPTIONAL
 
     assert 8 == prophy.i64._SIZE
     assert False == prophy.i64._DYNAMIC
     assert False == prophy.i64._UNLIMITED
     assert 0 == prophy.i64._DEFAULT
+    assert False == prophy.i64._OPTIONAL
 
     assert 1 == prophy.u8._SIZE
     assert False == prophy.u8._DYNAMIC
     assert False == prophy.u8._UNLIMITED
     assert 0 == prophy.u8._DEFAULT
+    assert False == prophy.u8._OPTIONAL
 
     assert 2 == prophy.u16._SIZE
     assert False == prophy.u16._DYNAMIC
     assert False == prophy.u16._UNLIMITED
     assert 0 == prophy.u16._DEFAULT
+    assert False == prophy.u16._OPTIONAL
 
     assert 4 == prophy.u32._SIZE
     assert False == prophy.u32._DYNAMIC
     assert False == prophy.u32._UNLIMITED
     assert 0 == prophy.u32._DEFAULT
+    assert False == prophy.u32._OPTIONAL
 
     assert 8 == prophy.u64._SIZE
     assert False == prophy.u64._DYNAMIC
     assert False == prophy.u64._UNLIMITED
     assert 0 == prophy.u64._DEFAULT
+    assert False == prophy.u64._OPTIONAL
 
 def test_float_attributes():
     assert 4 == prophy.r32._SIZE
@@ -62,6 +70,7 @@ def test_enum_attributes():
     assert False == E._DYNAMIC
     assert False == E._UNLIMITED
     assert 1 == E._DEFAULT
+    assert False == E._OPTIONAL
 
     class E8(prophy.enum8):
         __metaclass__ = prophy.enum_generator
@@ -71,6 +80,7 @@ def test_enum_attributes():
     assert False == E8._DYNAMIC
     assert False == E8._UNLIMITED
     assert 1 == E8._DEFAULT
+    assert False == E._OPTIONAL
 
 def test_optional_attributes():
     assert 1 == prophy.optional(prophy.i8)._SIZE
@@ -86,6 +96,7 @@ def test_bytes_static_attributes():
     assert False == B._DYNAMIC
     assert False == B._UNLIMITED
     assert '\x00\x00\x00' == B._DEFAULT
+    assert False == B._OPTIONAL
 
 def test_bytes_limited_attributes():
     B = prophy.bytes(bound = "a_len", size = 3)
@@ -94,6 +105,7 @@ def test_bytes_limited_attributes():
     assert False == B._DYNAMIC
     assert False == B._UNLIMITED
     assert '' == B._DEFAULT
+    assert False == B._OPTIONAL
 
 def test_bytes_bound_attributes():
     B = prophy.bytes(bound = "a_len")
@@ -102,6 +114,7 @@ def test_bytes_bound_attributes():
     assert True == B._DYNAMIC
     assert False == B._UNLIMITED
     assert '' == B._DEFAULT
+    assert False == B._OPTIONAL
 
 def test_bytes_greedy_attributes():
     B = prophy.bytes()
@@ -110,6 +123,7 @@ def test_bytes_greedy_attributes():
     assert True == B._DYNAMIC
     assert True == B._UNLIMITED
     assert '' == B._DEFAULT
+    assert False == B._OPTIONAL
 
 def test_array_static_attributes():
     A = prophy.array(prophy.u16, size = 3)
@@ -117,6 +131,7 @@ def test_array_static_attributes():
     assert 6 == A._SIZE
     assert False == A._DYNAMIC
     assert False == A._UNLIMITED
+    assert False == A._OPTIONAL
 
 def test_array_limited_attributes():
     A = prophy.array(prophy.u16, bound = "a_len", size = 3)
@@ -124,6 +139,7 @@ def test_array_limited_attributes():
     assert 6 == A._SIZE
     assert False == A._DYNAMIC
     assert False == A._UNLIMITED
+    assert False == A._OPTIONAL
 
 def test_array_bound_attributes():
     A = prophy.array(prophy.u16, bound = "a_len")
@@ -131,6 +147,7 @@ def test_array_bound_attributes():
     assert 0 == A._SIZE
     assert True == A._DYNAMIC
     assert False == A._UNLIMITED
+    assert False == A._OPTIONAL
 
 def test_array_greedy_attributes():
     A = prophy.array(prophy.u16)
@@ -138,6 +155,7 @@ def test_array_greedy_attributes():
     assert 0 == A._SIZE
     assert True == A._DYNAMIC
     assert True == A._UNLIMITED
+    assert False == A._OPTIONAL
 
 def test_struct_static_attributes():
     class S(prophy.struct):
@@ -152,6 +170,7 @@ def test_struct_static_attributes():
     assert 15 == S._SIZE
     assert False == S._DYNAMIC
     assert False == S._UNLIMITED
+    assert False == S._OPTIONAL
 
     class S1(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -162,6 +181,7 @@ def test_struct_static_attributes():
     assert 61 == S1._SIZE
     assert False == S1._DYNAMIC
     assert False == S1._UNLIMITED
+    assert False == S1._OPTIONAL
 
 def test_struct_dynamic_attributes():
     class S(prophy.struct):
@@ -176,6 +196,7 @@ def test_struct_dynamic_attributes():
     assert 1 == S1._SIZE
     assert True == S1._DYNAMIC
     assert False == S1._UNLIMITED
+    assert False == S1._OPTIONAL
 
     class S2(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -185,6 +206,7 @@ def test_struct_dynamic_attributes():
     assert 1 == S2._SIZE
     assert True == S2._DYNAMIC
     assert False == S2._UNLIMITED
+    assert False == S2._OPTIONAL
 
     class S3(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -194,6 +216,7 @@ def test_struct_dynamic_attributes():
     assert 2 == S3._SIZE
     assert True == S3._DYNAMIC
     assert False == S3._UNLIMITED
+    assert False == S3._OPTIONAL
 
 def test_struct_unlimited_attributes():
     class S(prophy.struct):
@@ -207,6 +230,7 @@ def test_struct_unlimited_attributes():
     assert 0 == S1._SIZE
     assert True == S1._DYNAMIC
     assert True == S1._UNLIMITED
+    assert False == S1._OPTIONAL
 
     class S2(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -215,6 +239,7 @@ def test_struct_unlimited_attributes():
     assert 0 == S2._SIZE
     assert True == S2._DYNAMIC
     assert True == S2._UNLIMITED
+    assert False == S2._OPTIONAL
 
     class S3(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -223,6 +248,7 @@ def test_struct_unlimited_attributes():
     assert 0 == S3._SIZE
     assert True == S3._DYNAMIC
     assert True == S3._UNLIMITED
+    assert False == S3._OPTIONAL
 
 def test_union_attributes():
     class U(prophy.union):
@@ -234,3 +260,4 @@ def test_union_attributes():
     assert 8 == U._SIZE
     assert False == U._DYNAMIC
     assert False == U._UNLIMITED
+    assert False == U._OPTIONAL
