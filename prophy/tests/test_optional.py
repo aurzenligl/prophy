@@ -7,13 +7,24 @@ def test_optional_assignment_scalar():
         _descriptor = [("a", prophy.optional(prophy.u32))]
 
     x = O()
-    assert None == x.a
+    assert """\
+""" == str(x)
+
+    x.a
+    assert 0 == x.a
+    assert """\
+a: 0
+""" == str(x)
 
     x.a = 10
     assert 10 == x.a
+    assert """\
+a: 10
+""" == str(x)
 
     x.a = None
-    assert None == x.a
+    assert """\
+""" == str(x)
 
 def test_optional_assignment_struct():
     class S(prophy.struct):

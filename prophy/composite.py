@@ -43,13 +43,18 @@ def add_repeated(cls, field_name, field_type):
 
 def add_scalar(cls, field_name, field_type):
     def getter(self):
+        if field_type._OPTIONAL and field_name not in self._optionals:
+            self._optionals.add(field_name)
         value = self._fields.get(field_name, field_type._DEFAULT)
         if "enum" in field_type._tags:
             value = field_type._int_to_name[value]
         return value
     def setter(self, new_value):
-        new_value = field_type._check(new_value)
-        self._fields[field_name] = new_value
+        if field_type._OPTIONAL and new_value is None:
+            self._fields.pop(field_name, None)
+            self._optionals.discard(field_name)
+        else:
+            self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
     if hasattr(field_type, "_LENGTH_FIELD"):
         bound_name = field_type._LENGTH_FIELD
