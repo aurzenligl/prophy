@@ -112,10 +112,10 @@ def test_struct_parsing():
 
     assert 1 == len(nodes)
     assert "Struct" == nodes[0].name
-    assert [("a", "u8", None, None, None, None),
-            ("b", "i64", None, None, None, None),
-            ("c", "r32", None, None, None, None),
-            ("d", "TTypeX", None, None, None, None)] == nodes[0].members
+    assert [("a", "u8", None, None, None, False),
+            ("b", "i64", None, None, None, False),
+            ("c", "r32", None, None, None, False),
+            ("d", "TTypeX", None, None, None, False)] == nodes[0].members
 
 def test_struct_parsing_with_constant():
     xml = """\
@@ -130,7 +130,7 @@ def test_struct_parsing_with_constant():
     nodes = parse(xml)
 
     assert [model.Constant("THE_CONSTANT", "0"),
-            model.Struct("Struct", [model.StructMember("a", "u8", None, None, None, None)])] == nodes
+            model.Struct("Struct", [model.StructMember("a", "u8", None, None, None, False)])] == nodes
 
 def test_struct_parsing_dynamic_array():
     xml = """\
@@ -144,8 +144,8 @@ def test_struct_parsing_dynamic_array():
 """
     nodes = parse(xml)
 
-    assert [("x_len", "u32", None, None, None, None),
-            ("x", "TTypeX", True, "x_len", None, None)] == nodes[0].members
+    assert [("x_len", "u32", None, None, None, False),
+            ("x", "TTypeX", True, "x_len", None, False)] == nodes[0].members
 
 def test_struct_parsing_static_array():
     xml = """\
@@ -159,7 +159,7 @@ def test_struct_parsing_static_array():
 """
     nodes = parse(xml)
 
-    assert [("y", "TTypeY", True, None, "NUM_OF_Y", None)] == nodes[0].members
+    assert [("y", "TTypeY", True, None, "NUM_OF_Y", False)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
@@ -173,8 +173,8 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
 """
     nodes = parse(xml)
 
-    assert [("x_len", "TNumberOfItems", None, None, None, None),
-            ("x", "TTypeX", True, "x_len", None, None)] == nodes[0].members
+    assert [("x_len", "TNumberOfItems", None, None, None, False),
+            ("x", "TTypeX", True, "x_len", None, False)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
@@ -188,8 +188,8 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
 """
     nodes = parse(xml)
 
-    assert [("numOfX", "u32", None, None, None, None),
-            ("x", "TTypeX", True, "numOfX", None, None)] == nodes[0].members
+    assert [("numOfX", "u32", None, None, None, False),
+            ("x", "TTypeX", True, "numOfX", None, False)] == nodes[0].members
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
@@ -203,8 +203,8 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
 """
     nodes = parse(xml)
 
-    assert [("numOfX", "TSize", None, None, None, None),
-            ("x", "TTypeX", True, "numOfX", None, None)] == nodes[0].members
+    assert [("numOfX", "TSize", None, None, None, False),
+            ("x", "TTypeX", True, "numOfX", None, False)] == nodes[0].members
 
 def test_struct_parsing_limited_array():
     xml = """\
@@ -218,8 +218,8 @@ def test_struct_parsing_limited_array():
 """
     nodes = parse(xml)
 
-    assert [("x_len", "u32", None, None, None, None),
-            ("x", "TTypeX", True, "x_len", "3", None)] == nodes[0].members
+    assert [("x_len", "u32", None, None, None, False),
+            ("x", "TTypeX", True, "x_len", "3", False)] == nodes[0].members
 
 def test_struct_parsing_with_optional():
     xml = """\
@@ -232,7 +232,7 @@ def test_struct_parsing_with_optional():
 
     nodes = parse(xml)
 
-    assert [("a", "u8", None, None, None, None)] == nodes[0].members
+    assert [("a", "u8", None, None, None, True)] == nodes[0].members
 
 def test_message_parsing():
     xml = """\
@@ -244,7 +244,7 @@ def test_message_parsing():
 """
     nodes = parse(xml)
 
-    assert [("x", "TTypeX", None, None, None, None)] == nodes[0].members
+    assert [("x", "TTypeX", None, None, None, False)] == nodes[0].members
 
 def test_union_parsing():
     xml = """\
