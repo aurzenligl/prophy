@@ -44,6 +44,8 @@ def _render_enum(enum):
 
 def _render_struct_member(member):
     prefixed_type = ".".join((libname, member.type)) if member.type in primitive_types else member.type
+    if member.optional:
+        prefixed_type = "%s.optional(%s)" % (libname, prefixed_type)
     if member.array:
         if member.array_bound and member.array_size:
             return "('%s', %s.array(%s, bound = '%s', size = %s))" % (member.name, libname, prefixed_type, member.array_bound, member.array_size)

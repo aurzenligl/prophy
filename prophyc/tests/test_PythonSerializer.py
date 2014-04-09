@@ -107,6 +107,16 @@ class Struct(prophy.struct):
 """
     assert ref == serialize(nodes)
 
+def test_struct_rendering_with_optional():
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u32", False, None, None, True)])]
+
+    ref = """\
+class Struct(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a', prophy.optional(prophy.u32))]
+"""
+    assert ref == serialize(nodes)
+
 def test_union_rendering():
     nodes = [model.Union("U", [model.UnionMember("a", "A", "0"),
                                model.UnionMember("b", "B", "1"),
