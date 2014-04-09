@@ -64,13 +64,17 @@ def add_scalar(cls, field_name, field_type):
 
 def add_composite(cls, field_name, field_type):
     def getter(self):
-        field_value = self._fields.get(field_name)
-        if field_value is None:
-            field_value = field_type()
-            field_value = self._fields.setdefault(field_name, field_value)
-        return field_value
+        if field_name not in self._fields:
+            value = None if field_type._OPTIONAL else field_type()
+            self._fields[field_name] = value
+            return value
+        else:
+            return self._fields.get(field_name)
     def setter(self, new_value):
-        raise Exception("assignment to composite field not allowed")
+        if field_type._OPTIONAL and new_value is None:
+            self._fields[field_name] = None
+        else:
+            raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
 
 def indent(lines, spaces):
@@ -243,7 +247,7 @@ class struct_generator(type):
         attrs["__slots__"] = ["_fields"]
         return super(struct_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        descriptor = attrs["_descriptor"]
+        descriptor = cls._descriptor
         validate(descriptor)
         add_attributes(cls, descriptor)
         add_properties(cls, descriptor)
