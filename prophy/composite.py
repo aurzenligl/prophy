@@ -64,15 +64,18 @@ def add_scalar(cls, field_name, field_type):
 
 def add_composite(cls, field_name, field_type):
     def getter(self):
+        if field_type._OPTIONAL and field_name not in self._optionals:
+            self._optionals.add(field_name)
         if field_name not in self._fields:
-            value = None if field_type._OPTIONAL else field_type()
+            value = field_type()
             self._fields[field_name] = value
             return value
         else:
             return self._fields.get(field_name)
     def setter(self, new_value):
         if field_type._OPTIONAL and new_value is None:
-            self._fields[field_name] = None
+            self._fields.pop(field_name, None)
+            self._optionals.discard(field_name)
         else:
             raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
@@ -184,11 +187,14 @@ class struct(object):
 
     def __init__(self):
         self._fields = {}
+        self._optionals = set()
 
     def __str__(self):
         out = ""
         for field_name, field_type in self._descriptor:
             if hasattr(field_type, "_bound"):
+                continue
+            if field_type._OPTIONAL and field_name not in self._optionals:
                 continue
             field_value = getattr(self, field_name)
             out += field_to_string(field_name, field_type, field_value)
@@ -244,7 +250,7 @@ class struct(object):
 
 class struct_generator(type):
     def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = ["_fields"]
+        attrs["__slots__"] = ["_fields", "_optionals"]
         return super(struct_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
         descriptor = cls._descriptor

@@ -24,4 +24,16 @@ def test_optional_assignment_struct():
         _descriptor = [("a", prophy.optional(S))]
 
     x = O()
-    assert None == x.a
+    assert """\
+""" == str(x)
+
+    x.a
+    assert """\
+a {
+  a: 0
+}
+""" == str(x)
+
+    x.a = None
+    assert """\
+""" == str(x)
