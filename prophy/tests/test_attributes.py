@@ -83,7 +83,7 @@ def test_enum_attributes():
     assert False == E._OPTIONAL
 
 def test_optional_attributes():
-    assert 1 == prophy.optional(prophy.i8)._SIZE
+    assert 5 == prophy.optional(prophy.i8)._SIZE
     assert False == prophy.optional(prophy.i8)._DYNAMIC
     assert False == prophy.optional(prophy.i8)._UNLIMITED
     assert 0 == prophy.optional(prophy.i8)._DEFAULT

@@ -48,3 +48,15 @@ a {
     x.a = None
     assert """\
 """ == str(x)
+
+def test_optional_encoding_scalar():
+    class O(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.optional(prophy.u32))]
+
+    x = O()
+    assert "\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+
+    x.a = 10
+    assert "\x00\x00\x00\x01\x00\x00\x00\x0a" == x.encode(">")
+    assert "\x01\x00\x00\x00\x0a\x00\x00\x00" == x.encode("<")

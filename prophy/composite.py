@@ -50,6 +50,8 @@ def add_scalar(cls, field_name, field_type):
             value = field_type._int_to_name[value]
         return value
     def setter(self, new_value):
+        if field_type._OPTIONAL and field_name not in self._optionals:
+            self._optionals.add(field_name)
         if field_type._OPTIONAL and new_value is None:
             self._fields.pop(field_name, None)
             self._optionals.discard(field_name)
@@ -211,9 +213,14 @@ class struct(object):
             if hasattr(field_type, "_bound"):
                 array_value = getattr(self, field_type._bound)
                 out += field_type._encode(len(array_value) + field_type._LENGTH_SHIFT, endianess)
+            elif field_type._OPTIONAL:
+                if field_name in self._optionals:
+                    out += field_type._optional_type._encode(True, endianess)
+                    out += encode_field(field_type, getattr(self, field_name), endianess)
+                else:
+                    out += "\x00" * field_type._SIZE
             else:
-                field_value = getattr(self, field_name)
-                out += encode_field(field_type, field_value, endianess)
+                out += encode_field(field_type, getattr(self, field_name), endianess)
         return out
 
     def decode(self, data, endianess, terminal = True):
