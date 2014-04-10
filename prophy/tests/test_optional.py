@@ -103,10 +103,20 @@ def test_optional_union():
     assert None == x.a
 
 def test_optional_bytes():
-    """ exception """
+    with pytest.raises(Exception) as e:
+        prophy.optional(prophy.bytes(size = 3))
+    assert "optional bytes not implemented" == e.value.message
 
 def test_optional_array():
-    """ exception """
+    with pytest.raises(Exception) as e:
+        prophy.optional(prophy.array(prophy.u8, size = 3))
+    assert "optional array not implemented" == e.value.message
 
 def test_optional_inside_union():
-    """ exception """
+    with pytest.raises(Exception) as e:
+        class U(prophy.union):
+            __metaclass__ = prophy.union_generator
+            _descriptor = [("a", prophy.u32, 0),
+                           ("b", prophy.optional(prophy.u32), 1),
+                           ("c", prophy.u32, 2)]
+    assert "union with optional field disallowed" == e.value.message

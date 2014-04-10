@@ -283,6 +283,8 @@ def validate_union(descriptor):
         raise Exception("bound array/bytes not allowed in union")
     if any("repeated" in type._tags for _, type, _ in descriptor):
         raise Exception("static array not implemented in union")
+    if any(type._OPTIONAL for _, type, _ in descriptor):
+        raise Exception("union with optional field disallowed")
 
 def add_union_attributes(cls, descriptor):
     cls._discriminator_type = scalar.u32
