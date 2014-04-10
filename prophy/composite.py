@@ -34,6 +34,8 @@ def add_repeated(cls, field_name, field_type):
     if hasattr(field_type, "_LENGTH_FIELD"):
         bound_name = field_type._LENGTH_FIELD
         index, bound_type = ((index, field[1]) for index, field in enumerate(cls._descriptor) if field[0] == bound_name).next()
+        if bound_type._OPTIONAL:
+            raise Exception("array must not be bound to optional field")
         if "unsigned_integer" not in bound_type._tags:
             raise Exception("array must be bound to an unsigned integer")
         class bound_int(bound_type):

@@ -146,6 +146,17 @@ def test_optional_array():
         prophy.optional(prophy.array(prophy.u8, size = 3))
     assert "optional array not implemented" == e.value.message
 
+    with pytest.raises(Exception) as e:
+        class S(prophy.struct):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("a_len", prophy.optional(prophy.u32)),
+                           ("a", prophy.array(prophy.u32, bound = "a_len"))]
+    assert "array must not be bound to optional field" == e.value.message
+
+    with pytest.raises(Exception) as e:
+        prophy.array(prophy.optional(prophy.u32))
+    assert "array of optional type not allowed" == e.value.message
+
 def test_optional_inside_union():
     with pytest.raises(Exception) as e:
         class U(prophy.union):
