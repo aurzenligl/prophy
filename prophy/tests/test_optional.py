@@ -102,6 +102,40 @@ def test_optional_union():
     x.decode("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
     assert None == x.a
 
+def test_optional_struct_in_array():
+    class A(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('a', prophy.u32),
+                       ('b', prophy.u32)]
+    class B(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('a', prophy.optional(A))]
+    class C(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('a_len', prophy.u32),
+                       ('a', prophy.array(B, bound = 'a_len'))]
+
+    x = C()
+    x.a.add()
+    assert "\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+
+    x.decode("\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
+    assert """\
+a {
+
+}
+""" == str(x)
+
+    x.decode("\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x06\x00\x00\x00\x03", ">")
+    assert """\
+a {
+  a {
+    a: 6
+    b: 3
+  }
+}
+""" == str(x)
+
 def test_optional_bytes():
     with pytest.raises(Exception) as e:
         prophy.optional(prophy.bytes(size = 3))

@@ -225,11 +225,13 @@ class struct(object):
             if type._OPTIONAL:
                 value, size = type._optional_type._decode(data, endianess)
                 data = data[size:]
+                bytes_read += size
                 if value:
                     setattr(self, name, True)
                 else:
                     setattr(self, name, None)
                     data = data[type._SIZE:]
+                    bytes_read += type._SIZE
                     continue
             size = decode_field(self, name, type, data, endianess)
             data = data[size:]
