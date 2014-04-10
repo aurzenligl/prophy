@@ -221,8 +221,17 @@ class struct(object):
 
     def decode(self, data, endianess, terminal = True):
         bytes_read = 0
-        for field_name, field_type in self._descriptor:
-            size = decode_field(self, field_name, field_type, data, endianess)
+        for name, type in self._descriptor:
+            if type._OPTIONAL:
+                value, size = type._optional_type._decode(data, endianess)
+                data = data[size:]
+                if value:
+                    setattr(self, name, True)
+                else:
+                    setattr(self, name, None)
+                    data = data[type._SIZE:]
+                    continue
+            size = decode_field(self, name, type, data, endianess)
             data = data[size:]
             bytes_read += size
         if terminal and data:

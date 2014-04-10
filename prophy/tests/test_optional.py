@@ -25,7 +25,11 @@ a: 10
     assert """\
 """ == str(x)
 
-    """ add decoding tests """
+    x.decode("\x00\x00\x00\x01\x00\x00\x00\x0a", ">")
+    assert 10 == x.a
+
+    x.decode("\x00\x00\x00\x00\x00\x00\x00\x00", ">")
+    assert None == x.a
 
 def test_optional_struct():
     class S(prophy.struct):
@@ -65,7 +69,11 @@ a {
     assert """\
 """ == str(x)
 
-    """ add decoding tests """
+    x.decode("\x00\x00\x00\x01\x00\x00\x00\x0a", ">")
+    assert 10 == x.a.a
+
+    x.decode("\x00\x00\x00\x00\x00\x00\x00\x00", ">")
+    assert None == x.a
 
 def test_optional_union():
     class U(prophy.union):
@@ -87,7 +95,12 @@ def test_optional_union():
     x.a = None
     assert "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
 
-    """ add decoding tests """
+    x.decode("\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x03", ">")
+    assert 5 == x.a.discriminator
+    assert 3 == x.a.a
+
+    x.decode("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
+    assert None == x.a
 
 def test_optional_bytes():
     """ exception """
