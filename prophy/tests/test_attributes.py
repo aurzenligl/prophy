@@ -183,6 +183,26 @@ def test_struct_static_attributes():
     assert False == S1._UNLIMITED
     assert False == S1._OPTIONAL
 
+def test_struct_with_optional_attributes():
+    class S(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.u32)]
+    class U(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a", prophy.u8, 0),
+                       ("b", prophy.u16, 1),
+                       ("c", prophy.u32, 2)]
+    class O(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.optional(prophy.u32)),
+                       ("b", prophy.optional(S)),
+                       ("c", prophy.optional(U))]
+
+    assert 28 == O._SIZE
+    assert False == O._DYNAMIC
+    assert False == O._UNLIMITED
+    assert False == O._OPTIONAL
+
 def test_struct_dynamic_attributes():
     class S(prophy.struct):
         __metaclass__ = prophy.struct_generator

@@ -7,6 +7,7 @@ def validate(descriptor):
 
 def add_attributes(cls, descriptor):
     cls._SIZE = sum(type._SIZE for _, type in descriptor)
+    cls._SIZE += sum(x._optional_type._SIZE for x in filter(lambda x: x._OPTIONAL, (type for _, type in descriptor)))
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
@@ -348,7 +349,7 @@ class union(object):
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
         bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(type, value, endianess)
-        return bytes + "\x00" * ((self._SIZE if not self._OPTIONAL else self._TYPE._SIZE) - len(bytes))
+        return bytes + "\x00" * (self._SIZE - len(bytes))
 
     def decode(self, data, endianess, terminal = True):
         disc, bytes_read = self._discriminator_type._decode(data, endianess)
