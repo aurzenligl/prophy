@@ -234,6 +234,22 @@ def test_struct_parsing_with_optional():
 
     assert [("a", "u8", None, None, None, True)] == nodes[0].members
 
+def test_struct_parsing_with_optional_array():
+    xml = """\
+<x>
+    <message name="X">
+        <member name="a" optional="true" type="A">
+            <dimension isVariableSize="true" size="5"/>
+        </member>
+    </message>
+</x>
+"""
+    nodes = parse(xml)
+
+    assert [("has_a", "u32", None, None, None, False),
+            ("a_len", "u32", None, None, None, False),
+            ("a", "A", True, "a_len", "5", False)] == nodes[0].members
+
 def test_message_parsing():
     xml = """\
 <x>
