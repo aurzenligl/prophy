@@ -96,18 +96,21 @@ def make_struct_members(elem):
     members = []
     ename = elem.get("name")
     etype = elem.get("type")
+    optional = bool(elem.get("optional"))
     dimension = elem.find("dimension")
     if dimension is not None:
         size = dimension.get("size", None)
+        if optional:
+            members.append(model.StructMember("has_" + ename, "u32", None, None, None, False))
         if "isVariableSize" in dimension.attrib:
             type = dimension.get("variableSizeFieldType", "u32")
             name = dimension.get("variableSizeFieldName", ename + "_len")
-            members.append(model.StructMember(name, type, None, None, None))
-            members.append(model.StructMember(ename, etype, True, name, size))
+            members.append(model.StructMember(name, type, None, None, None, False))
+            members.append(model.StructMember(ename, etype, True, name, size, False))
         else:
-            members.append(model.StructMember(ename, etype, True, None, size))
+            members.append(model.StructMember(ename, etype, True, None, size, False))
     else:
-        members.append(model.StructMember(ename, etype, None, None, None))
+        members.append(model.StructMember(ename, etype, None, None, None, optional))
     return members
 
 def make_struct(elem):

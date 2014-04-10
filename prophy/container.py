@@ -210,6 +210,8 @@ def array(type, **kwargs):
         raise Exception("only shifting bound array implemented")
     if type._UNLIMITED:
         raise Exception("array with unlimited field disallowed")
+    if type._OPTIONAL:
+        raise Exception("array of optional type not allowed")
 
     is_composite = "composite" in type._tags
 
@@ -234,6 +236,7 @@ def array(type, **kwargs):
         _SIZE = size * type._SIZE
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
+        _OPTIONAL = False
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift

@@ -55,6 +55,7 @@ class int_base(object):
     _DEFAULT = 0
     _DYNAMIC = False
     _UNLIMITED = False
+    _OPTIONAL = False
 
 class float_base(int_base):
     _DEFAULT = 0.0
@@ -198,6 +199,7 @@ def bytes(**kwargs):
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
         _DEFAULT = default
+        _OPTIONAL = False
 
         @staticmethod
         def _check(value):

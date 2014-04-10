@@ -58,10 +58,10 @@ CONST_B = 31
     assert ref == serialize(nodes)
 
 def test_struct_rendering():
-    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8", None, None, None)),
-                                     (model.StructMember("b", "i64", None, None, None)),
-                                     (model.StructMember("c", "r32", None, None, None)),
-                                     (model.StructMember("d", "TTypeX", None, None, None))])]
+    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8", None, None, None, False)),
+                                     (model.StructMember("b", "i64", None, None, None, False)),
+                                     (model.StructMember("c", "r32", None, None, None, False)),
+                                     (model.StructMember("d", "TTypeX", None, None, None, False))])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -74,8 +74,8 @@ class Struct(prophy.struct):
     assert ref == serialize(nodes)
 
 def test_struct_rendering_with_dynamic_array():
-    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems", None, None, None),
-                                     model.StructMember("a", "u8", True, "tmpName", None)])]
+    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems", None, None, None, False),
+                                     model.StructMember("a", "u8", True, "tmpName", None, False)])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -86,7 +86,7 @@ class Struct(prophy.struct):
     assert ref == serialize(nodes)
 
 def test_struct_rendering_with_static_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS")])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS", False)])]
 
     ref = """\
 class Struct(prophy.struct):
@@ -96,14 +96,24 @@ class Struct(prophy.struct):
     assert ref == serialize(nodes)
 
 def test_struct_rendering_with_limited_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8", None, None, None),
-                                     model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS")])]
+    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8", None, None, None, False),
+                                     model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS", False)])]
 
     ref = """\
 class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('a_len', prophy.u8),
                    ('a', prophy.array(prophy.u8, bound = 'a_len', size = NUM_OF_ARRAY_ELEMS))]
+"""
+    assert ref == serialize(nodes)
+
+def test_struct_rendering_with_optional():
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u32", False, None, None, True)])]
+
+    ref = """\
+class Struct(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a', prophy.optional(prophy.u32))]
 """
     assert ref == serialize(nodes)
 
@@ -135,7 +145,7 @@ def test_of_PythonSerializer():
         enum.append(("elem_" + str(x), "val_" + str(x)))
 
     name = "MAC_L2CallConfigResp"
-    members = [model.StructMember('messageResult', 'SMessageResult', None, None, None)]
+    members = [model.StructMember('messageResult', 'SMessageResult', None, None, None, False)]
     msg_h = model.Struct(name, members)
 
     nodes = []

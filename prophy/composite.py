@@ -7,8 +7,10 @@ def validate(descriptor):
 
 def add_attributes(cls, descriptor):
     cls._SIZE = sum(type._SIZE for _, type in descriptor)
+    cls._SIZE += sum(x._optional_type._SIZE for x in filter(lambda x: x._OPTIONAL, (type for _, type in descriptor)))
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
+    cls._OPTIONAL = False
 
 def add_properties(cls, descriptor):
     for field_name, field_type in descriptor:
@@ -32,6 +34,8 @@ def add_repeated(cls, field_name, field_type):
     if hasattr(field_type, "_LENGTH_FIELD"):
         bound_name = field_type._LENGTH_FIELD
         index, bound_type = ((index, field[1]) for index, field in enumerate(cls._descriptor) if field[0] == bound_name).next()
+        if bound_type._OPTIONAL:
+            raise Exception("array must not be bound to optional field")
         if "unsigned_integer" not in bound_type._tags:
             raise Exception("array must be bound to an unsigned integer")
         class bound_int(bound_type):
@@ -42,13 +46,17 @@ def add_repeated(cls, field_name, field_type):
 
 def add_scalar(cls, field_name, field_type):
     def getter(self):
+        if field_type._OPTIONAL and field_name not in self._fields:
+            return None
         value = self._fields.get(field_name, field_type._DEFAULT)
         if "enum" in field_type._tags:
             value = field_type._int_to_name[value]
         return value
     def setter(self, new_value):
-        new_value = field_type._check(new_value)
-        self._fields[field_name] = new_value
+        if field_type._OPTIONAL and new_value is None:
+            self._fields.pop(field_name, None)
+        else:
+            self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
     if hasattr(field_type, "_LENGTH_FIELD"):
         bound_name = field_type._LENGTH_FIELD
@@ -63,13 +71,21 @@ def add_scalar(cls, field_name, field_type):
 
 def add_composite(cls, field_name, field_type):
     def getter(self):
-        field_value = self._fields.get(field_name)
-        if field_value is None:
-            field_value = field_type()
-            field_value = self._fields.setdefault(field_name, field_value)
-        return field_value
+        if field_type._OPTIONAL and field_name not in self._fields:
+            return None
+        if field_name not in self._fields:
+            value = field_type()
+            self._fields[field_name] = value
+            return value
+        else:
+            return self._fields.get(field_name)
     def setter(self, new_value):
-        raise Exception("assignment to composite field not allowed")
+        if field_type._OPTIONAL and new_value is True:
+            self._fields[field_name] = field_type()
+        elif field_type._OPTIONAL and new_value is None:
+            self._fields.pop(field_name, None)
+        else:
+            raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
 
 def indent(lines, spaces):
@@ -182,28 +198,44 @@ class struct(object):
 
     def __str__(self):
         out = ""
-        for field_name, field_type in self._descriptor:
-            if hasattr(field_type, "_bound"):
-                continue
-            field_value = getattr(self, field_name)
-            out += field_to_string(field_name, field_type, field_value)
+        for name, type in self._descriptor:
+            value = getattr(self, name, None)
+            if value is not None:
+                out += field_to_string(name, type, value)
         return out
 
     def encode(self, endianess):
         out = ""
-        for field_name, field_type in self._descriptor:
-            if hasattr(field_type, "_bound"):
-                array_value = getattr(self, field_type._bound)
-                out += field_type._encode(len(array_value) + field_type._LENGTH_SHIFT, endianess)
+        for name, type in self._descriptor:
+            value = getattr(self, name, None)
+            if type._OPTIONAL and value is None:
+                out += type._optional_type._encode(False, endianess)
+                out += "\x00" * type._SIZE
+            elif type._OPTIONAL:
+                out += type._optional_type._encode(True, endianess)
+                out += encode_field(type, value, endianess)
+            elif hasattr(type, "_bound"):
+                array_value = getattr(self, type._bound)
+                out += type._encode(len(array_value) + type._LENGTH_SHIFT, endianess)
             else:
-                field_value = getattr(self, field_name)
-                out += encode_field(field_type, field_value, endianess)
+                out += encode_field(type, value, endianess)
         return out
 
     def decode(self, data, endianess, terminal = True):
         bytes_read = 0
-        for field_name, field_type in self._descriptor:
-            size = decode_field(self, field_name, field_type, data, endianess)
+        for name, type in self._descriptor:
+            if type._OPTIONAL:
+                value, size = type._optional_type._decode(data, endianess)
+                data = data[size:]
+                bytes_read += size
+                if value:
+                    setattr(self, name, True)
+                else:
+                    setattr(self, name, None)
+                    data = data[type._SIZE:]
+                    bytes_read += type._SIZE
+                    continue
+            size = decode_field(self, name, type, data, endianess)
             data = data[size:]
             bytes_read += size
         if terminal and data:
@@ -242,7 +274,7 @@ class struct_generator(type):
         attrs["__slots__"] = ["_fields"]
         return super(struct_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        descriptor = attrs["_descriptor"]
+        descriptor = cls._descriptor
         validate(descriptor)
         add_attributes(cls, descriptor)
         add_properties(cls, descriptor)
@@ -255,12 +287,15 @@ def validate_union(descriptor):
         raise Exception("bound array/bytes not allowed in union")
     if any("repeated" in type._tags for _, type, _ in descriptor):
         raise Exception("static array not implemented in union")
+    if any(type._OPTIONAL for _, type, _ in descriptor):
+        raise Exception("union with optional field disallowed")
 
 def add_union_attributes(cls, descriptor):
     cls._discriminator_type = scalar.u32
     cls._SIZE = cls._discriminator_type._SIZE + max(type._SIZE for _, type, _ in descriptor)
     cls._DYNAMIC = False
     cls._UNLIMITED = False
+    cls._OPTIONAL = False
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
@@ -366,7 +401,7 @@ class union_generator(type):
         attrs["__slots__"] = ["_fields", "_discriminator"]
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        descriptor = attrs["_descriptor"]
+        descriptor = cls._descriptor
         validate_union(descriptor)
         add_union_attributes(cls, descriptor)
         add_union_properties(cls, descriptor)
