@@ -237,11 +237,11 @@ def test_struct_parsing_with_optional():
 def test_struct_parsing_with_optional_array():
     xml = """\
 <x>
-    <message name="X">
+    <struct name="X">
         <member name="a" optional="true" type="A">
             <dimension isVariableSize="true" size="5"/>
         </member>
-    </message>
+    </struct>
 </x>
 """
     nodes = parse(xml)
@@ -261,6 +261,28 @@ def test_message_parsing():
     nodes = parse(xml)
 
     assert [("x", "TTypeX", None, None, None, False)] == nodes[0].members
+
+def test_struct_and_message_with_dynamic_array_parsing():
+    xml = """\
+<x>
+    <struct name="X">
+        <member name="a" type="A">
+            <dimension isVariableSize="true" size="5"/>
+        </member>
+    </struct>
+    <message name="Y">
+        <member name="b" type="B">
+            <dimension isVariableSize="true" size="5"/>
+        </member>
+    </message>
+</x>"""
+
+    nodes = parse(xml)
+
+    assert [('a_len', 'u32', None, None, None, False),
+            ('a', 'A', True, 'a_len', '5', False)] == nodes[0].members
+    assert [('b_len', 'u32', None, None, None, False),
+            ('b', 'B', True, 'b_len', None, False)] == nodes[1].members
 
 def test_union_parsing():
     xml = """\
