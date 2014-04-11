@@ -92,7 +92,7 @@ def make_enum(elem):
     if len(elem):
         return model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
 
-def make_struct_members(elem):
+def make_struct_members(elem, dynamic_array = False):
     members = []
     ename = elem.get("name")
     etype = elem.get("type")
@@ -106,16 +106,17 @@ def make_struct_members(elem):
             type = dimension.get("variableSizeFieldType", "u32")
             name = dimension.get("variableSizeFieldName", ename + "_len")
             members.append(model.StructMember(name, type, None, None, None, False))
-            members.append(model.StructMember(ename, etype, True, name, size, False))
+            members.append(model.StructMember(ename, etype, True, name, None if dynamic_array else size, False))
         else:
             members.append(model.StructMember(ename, etype, True, None, size, False))
     else:
         members.append(model.StructMember(ename, etype, None, None, None, optional))
     return members
 
-def make_struct(elem):
+def make_struct(elem, last_member_array_is_dynamic = False):
     if len(elem):
-        members = reduce(lambda x, y: x + y, (make_struct_members(member) for member in elem))
+        members = reduce(lambda x, y: x + y, (make_struct_members(member) for member in elem[:-1]), [])
+        members += make_struct_members(elem[-1], last_member_array_is_dynamic)
         return model.Struct(elem.get("name"), members)
 
 def make_union_member(elem):
@@ -135,7 +136,7 @@ class IsarParser(object):
         nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
         nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
         nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
-        nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//message')))
+        nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic = True) for elem in root.iterfind('.//message')))
         dependency_sort(nodes)
         return nodes
 
