@@ -60,7 +60,7 @@ def _render_struct_members(keys):
     return (",\n" + " " * 19).join((_render_struct_member(member) for member in keys))
 
 def _render_struct(struct):
-    return ("class {1}({0}.struct):\n"
+    return ("class {1}({0}.struct_padded):\n"
             "    __metaclass__ = {0}.struct_generator\n"
             "    _descriptor = [{2}]\n").format(libname,
                                                 struct.name,

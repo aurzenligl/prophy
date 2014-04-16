@@ -10,6 +10,7 @@ class TestStruct():
 
     def test_assignment(self):
         x = X()
+
         assert x.x == 0
         assert x.y == 0
         x.x = 3
@@ -234,3 +235,4 @@ class TestDeeplyNestedStruct():
         assert z.n.x == 5
         assert z.n.y == 6
         assert z.o == 7
+

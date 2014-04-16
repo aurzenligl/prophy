@@ -237,6 +237,7 @@ def array(type, **kwargs):
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
         _OPTIONAL = False
+        _ALIGNMENT = type._ALIGNMENT
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift
