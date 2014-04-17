@@ -142,29 +142,19 @@ def encode_field(type, value, endianess):
     else:
         return type._encode(value, endianess)
 
-def decode_field(parent, name, type, data, endianess):
+def decode_field(parent, name, type, data, endianess, len_hints):
     if "repeated" in type._tags:
-        return getattr(parent, name).decode(data, endianess)
+        return getattr(parent, name).decode(data, endianess, len_hints.get(name))
     elif "composite" in type._tags:
         return getattr(parent, name).decode(data, endianess, terminal = False)
     elif "string" in type._tags:
-        current_size = len(getattr(parent, name))
-        value, size = type._decode(data, endianess, current_size)
+        value, size = type._decode(data, endianess, len_hints.get(name))
         setattr(parent, name, value)
         return size
     else:
         value, size = type._decode(data, endianess)
         if hasattr(type, "_bound"):
-            array_value = getattr(parent, type._bound)
-            if isinstance(array_value, str):
-                setattr(parent, type._bound, "\x00" * value)
-            else:
-                array_element_type = array_value._TYPE
-                if "composite" in array_element_type._tags:
-                    del array_value[:]
-                    array_value.extend([array_element_type() for _ in range(value)])
-                else:
-                    array_value[:] = [array_element_type._DEFAULT] * value
+            len_hints[type._bound] = value
         else:
             setattr(parent, name, value)
         return size
@@ -203,6 +193,7 @@ class struct(object):
         return out
 
     def decode(self, data, endianess, terminal = True):
+        len_hints = {}
         bytes_read = 0
         for name, type, padding in self._descriptor:
             if type._OPTIONAL:
@@ -216,7 +207,7 @@ class struct(object):
                     data = data[type._SIZE:]
                     bytes_read += type._SIZE
                     continue
-            size = decode_field(self, name, type, data, endianess)
+            size = decode_field(self, name, type, data, endianess, len_hints)
             size += padding
             data = data[size:]
             bytes_read += size
@@ -359,7 +350,7 @@ class union(object):
             raise Exception("unknown discriminator")
         self._discriminator = disc
         name, type, _ = field
-        bytes_read += decode_field(self, name, type, data[bytes_read:], endianess)
+        bytes_read += decode_field(self, name, type, data[bytes_read:], endianess, {})
         if len(data) < self._SIZE:
             raise Exception("not enough bytes")
         if terminal and len(data) > self._SIZE:
