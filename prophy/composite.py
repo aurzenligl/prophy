@@ -55,7 +55,7 @@ def add_repeated(cls, field_name, field_type):
     def setter(self, new_value):
         raise Exception("assignment to array field not allowed")
     setattr(cls, field_name, property(getter, setter))
-    if hasattr(field_type, "_LENGTH_FIELD"):
+    if field_type._BOUND:
         substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_scalar(cls, field_name, field_type):
@@ -69,7 +69,7 @@ def add_scalar(cls, field_name, field_type):
         else:
             self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
-    if hasattr(field_type, "_LENGTH_FIELD"):
+    if field_type._BOUND:
         substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_composite(cls, field_name, field_type):
@@ -92,9 +92,9 @@ def add_composite(cls, field_name, field_type):
     setattr(cls, field_name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
-    index, field = ifilter(lambda x: x[1][0] is container_tp._LENGTH_FIELD, enumerate(descriptor)).next()
+    index, field = ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)).next()
     name, tp, padding = field
-    bound_shift = container_tp._LENGTH_SHIFT
+    bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
         raise Exception("array must not be bound to optional field")
@@ -185,7 +185,7 @@ class struct(object):
             elif type._OPTIONAL:
                 out += type._optional_type._encode(True, endianess)
                 out += encode_field(type, value, endianess)
-            elif type._BOUND:
+            elif type._BOUND and issubclass(type, int):
                 array_value = getattr(self, type._BOUND)
                 out += type._encode(len(array_value), endianess)
             else:
@@ -263,7 +263,7 @@ class struct_generator(type):
 def validate_union(descriptor):
     if any(type._DYNAMIC for _, type, _ in descriptor):
         raise Exception("dynamic types not allowed in union")
-    if any(hasattr(type, "_LENGTH_FIELD") and type._LENGTH_FIELD for _, type, _ in descriptor):
+    if any(type._BOUND for _, type, _ in descriptor):
         raise Exception("bound array/bytes not allowed in union")
     if any("repeated" in type._tags for _, type, _ in descriptor):
         raise Exception("static array not implemented in union")

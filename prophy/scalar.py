@@ -145,7 +145,7 @@ class enum8(u8):
 
 def bytes(**kwargs):
     size = kwargs.pop("size", 0)
-    bound = kwargs.pop("bound", "")
+    bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if shift and (not bound or size):
         raise Exception("only shifting bound bytes implemented")
@@ -172,7 +172,8 @@ def bytes(**kwargs):
         _DEFAULT = default
         _OPTIONAL = False
         _ALIGNMENT = 1
-        _BOUND = None
+        _BOUND = bound
+        _BOUND_SHIFT = shift
 
         @staticmethod
         def _check(value):
@@ -203,7 +204,4 @@ def bytes(**kwargs):
             else:  # greedy
                 return data, len(data)
 
-        if bound:
-            _LENGTH_FIELD = bound
-            _LENGTH_SHIFT = shift
     return _bytes

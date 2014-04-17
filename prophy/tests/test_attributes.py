@@ -135,7 +135,7 @@ def test_bytes_limited_attributes():
     assert '' == B._DEFAULT
     assert False == B._OPTIONAL
     assert 1 == B._ALIGNMENT
-    assert None == B._BOUND
+    assert "a_len" == B._BOUND
 
 def test_bytes_bound_attributes():
     B = prophy.bytes(bound = "a_len")
@@ -146,7 +146,7 @@ def test_bytes_bound_attributes():
     assert '' == B._DEFAULT
     assert False == B._OPTIONAL
     assert 1 == B._ALIGNMENT
-    assert None == B._BOUND
+    assert "a_len" == B._BOUND
 
 def test_bytes_greedy_attributes():
     B = prophy.bytes()
@@ -177,7 +177,7 @@ def test_array_limited_attributes():
     assert False == A._UNLIMITED
     assert False == A._OPTIONAL
     assert 2 == A._ALIGNMENT
-    assert None == A._BOUND
+    assert "a_len" == A._BOUND
 
 def test_array_bound_attributes():
     A = prophy.array(prophy.u16, bound = "a_len")
@@ -187,7 +187,7 @@ def test_array_bound_attributes():
     assert False == A._UNLIMITED
     assert False == A._OPTIONAL
     assert 2 == A._ALIGNMENT
-    assert None == A._BOUND
+    assert "a_len" == A._BOUND
 
 def test_array_greedy_attributes():
     A = prophy.array(prophy.u16)
@@ -207,7 +207,7 @@ def test_container_len_attributes():
                        ("b_len", prophy.u8),
                        ("b", prophy.array(prophy.u8, bound = "b_len"))]
 
-    assert ["a", None, "b", None] == [tp._BOUND for _, tp, _ in S._descriptor]
+    assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp, _ in S._descriptor]
 
 def test_struct_static_attributes():
     class S(prophy.struct_packed):

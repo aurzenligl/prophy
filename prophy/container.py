@@ -184,7 +184,7 @@ class bound_composite_array(base_array):
 
 def array(type, **kwargs):
     size = kwargs.pop("size", 0)
-    bound = kwargs.pop("bound", "")
+    bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if kwargs:
         raise Exception("unknown arguments to array field")
@@ -227,11 +227,8 @@ def array(type, **kwargs):
         _UNLIMITED = not size and not bound
         _OPTIONAL = False
         _ALIGNMENT = type._ALIGNMENT
-        _BOUND = None
-
-        if bound:
-            _LENGTH_FIELD = bound
-            _LENGTH_SHIFT = shift
+        _BOUND = bound
+        _BOUND_SHIFT = shift
 
         def encode(self, endianness):
             if issubclass(self._TYPE, int):
