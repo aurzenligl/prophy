@@ -31,6 +31,7 @@ def int_decorator(size, id, min, max):
         cls._DYNAMIC = False
         cls._UNLIMITED = False
         cls._OPTIONAL = False
+        cls._BOUND = None
         return cls
     return decorator
 
@@ -63,6 +64,7 @@ def float_decorator(size, id):
         cls._DYNAMIC = False
         cls._UNLIMITED = False
         cls._OPTIONAL = False
+        cls._BOUND = None
         return cls
     return decorator
 
@@ -170,6 +172,7 @@ def bytes(**kwargs):
         _DEFAULT = default
         _OPTIONAL = False
         _ALIGNMENT = 1
+        _BOUND = None
 
         @staticmethod
         def _check(value):

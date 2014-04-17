@@ -12,6 +12,7 @@ def add_attributes(cls, descriptor):
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
     cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor)
+    cls._BOUND = None
 
 def add_padding(cls, descriptor):
     if any(tp._DYNAMIC for _, tp in descriptor[:-1]):
@@ -153,7 +154,7 @@ def decode_field(parent, name, type, data, endianess, len_hints):
         return size
     else:
         value, size = type._decode(data, endianess)
-        if hasattr(type, "_BOUND"):
+        if type._BOUND:
             len_hints[type._BOUND] = value
         else:
             setattr(parent, name, value)
@@ -184,7 +185,7 @@ class struct(object):
             elif type._OPTIONAL:
                 out += type._optional_type._encode(True, endianess)
                 out += encode_field(type, value, endianess)
-            elif hasattr(type, "_BOUND"):
+            elif type._BOUND:
                 array_value = getattr(self, type._BOUND)
                 out += type._encode(len(array_value), endianess)
             else:
@@ -276,6 +277,7 @@ def add_union_attributes(cls, descriptor):
     cls._UNLIMITED = False
     cls._OPTIONAL = False
     cls._ALIGNMENT = max(type._ALIGNMENT for _, type, _ in descriptor)
+    cls._BOUND = None
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
