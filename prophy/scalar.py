@@ -101,11 +101,11 @@ class u64(int):
     pass
 
 @float_decorator(size = 4, id = 'f')
-class r32(int):
+class r32(float):
     pass
 
 @float_decorator(size = 8, id = 'd')
-class r64(int):
+class r64(float):
     pass
 
 def enum_generator(name, bases, attrs):

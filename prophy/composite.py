@@ -1,4 +1,5 @@
 import scalar
+import container
 from itertools import ifilter
 
 def validate(descriptor):
@@ -38,9 +39,9 @@ def add_null_padding(descriptor):
 
 def add_properties(cls, descriptor):
     for name, type, _ in descriptor:
-        if "repeated" in type._tags:
+        if issubclass(type, container.base_array):
             add_repeated(cls, name, type)
-        elif "composite" in type._tags:
+        elif issubclass(type, (struct, union)):
             add_composite(cls, name, type)
         else:
             add_scalar(cls, name, type)
@@ -98,7 +99,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
     if tp._OPTIONAL:
         raise Exception("array must not be bound to optional field")
-    if "unsigned_integer" not in tp._tags:
+    if not issubclass(tp, int):
         raise Exception("array must be bound to an unsigned integer")
 
     class container_len(tp):

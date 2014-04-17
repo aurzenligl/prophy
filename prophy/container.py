@@ -231,7 +231,7 @@ def array(type, **kwargs):
         _BOUND_SHIFT = shift
 
         def encode(self, endianness):
-            if issubclass(self._TYPE, int):
+            if issubclass(self._TYPE, (int, float)):
                 data = "".join(self._TYPE._encode(value, endianness) for value in self)
             else:
                 data = "".join(value.encode(endianness) for value in self)
