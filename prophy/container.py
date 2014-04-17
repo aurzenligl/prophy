@@ -252,4 +252,34 @@ def array(type, **kwargs):
                 data = "".join(value.encode(endianness) for value in self)
             return data.ljust(self._SIZE, "\x00")
 
+        def decode(self, data, endianness):
+            if "composite" in self._TYPE._tags:
+                if self._SIZE > len(data):
+                    raise Exception("too few bytes to decode array")
+                decoded = 0
+                if "greedy" in self._tags:
+                    del self[:]
+                    while decoded < len(data):
+                        decoded += self.add().decode(data[decoded:], endianness, terminal = False)
+                else:
+                    for elem in self:
+                        decoded += elem.decode(data[decoded:], endianness, terminal = False)
+                return max(decoded, self._SIZE)
+            else:
+                if self._SIZE > len(data):
+                    raise Exception("too few bytes to decode array")
+                decoded = 0
+                if "greedy" in self._tags:
+                    del self[:]
+                    while decoded < len(data):
+                        elem, elem_size = self._TYPE._decode(data[decoded:], endianness)
+                        self.append(elem)
+                        decoded += elem_size
+                else:
+                    for i in xrange(len(self)):
+                        elem, elem_size = self._TYPE._decode(data[decoded:], endianness)
+                        self[i] = elem
+                        decoded += elem_size
+                return max(decoded, self._SIZE)
+
     return _array

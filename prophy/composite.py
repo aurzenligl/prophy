@@ -148,36 +148,7 @@ def encode_field(type, value, endianess):
 
 def decode_field(parent, name, type, data, endianess):
     if "repeated" in type._tags:
-        if "composite" in type._TYPE._tags:
-            if type._SIZE > len(data):
-                raise Exception("too few bytes to decode array")
-            value = getattr(parent, name)
-            decoded = 0
-            if "greedy" in type._tags:
-                del value[:]
-                while decoded < len(data):
-                    decoded += value.add().decode(data[decoded:], endianess, terminal = False)
-            else:
-                for elem in value:
-                    decoded += elem.decode(data[decoded:], endianess, terminal = False)
-            return max(decoded, type._SIZE)
-        else:
-            if type._SIZE > len(data):
-                raise Exception("too few bytes to decode array")
-            value = getattr(parent, name)
-            decoded = 0
-            if "greedy" in type._tags:
-                del value[:]
-                while decoded < len(data):
-                    elem, elem_size = value._TYPE._decode(data[decoded:], endianess)
-                    value.append(elem)
-                    decoded += elem_size
-            else:
-                for i in xrange(len(value)):
-                    elem, elem_size = value._TYPE._decode(data[decoded:], endianess)
-                    value[i] = elem
-                    decoded += elem_size
-            return max(decoded, type._SIZE)
+        return getattr(parent, name).decode(data, endianess)
     elif "composite" in type._tags:
         return getattr(parent, name).decode(data, endianess, terminal = False)
     elif "string" in type._tags:
