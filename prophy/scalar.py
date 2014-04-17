@@ -186,18 +186,17 @@ def bytes(**kwargs):
             return value.ljust(size, '\x00')
 
         @staticmethod
-        def _decode(data, endianess, container_len):
-            current_size = container_len
+        def _decode(data, endianess, len_hint):
             if len(data) < size:
                 raise Exception("too few bytes to decode string")
             if "static" in tags:
                 return data[:size], size
             elif "limited" in tags:
-                return data[:current_size], size
+                return data[:len_hint], size
             elif "bound" in tags:
-                if len(data) < current_size:
+                if len(data) < len_hint:
                     raise Exception("too few bytes to decode string")
-                return data[:current_size], current_size
+                return data[:len_hint], len_hint
             else:  # greedy
                 return data, len(data)
 
