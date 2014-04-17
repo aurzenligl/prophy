@@ -1,140 +1,110 @@
 import struct
 
-def int_generator(name, bases, attrs):
-    min = attrs["_MIN"]
-    max = attrs["_MAX"]
-    id = attrs["_TYPE"]
-    size = attrs["_SIZE"]
+def int_decorator(size, id, min, max):
+    def decorator(cls):
+        @staticmethod
+        def check(value):
+            if not isinstance(value, (int, long)):
+                raise Exception("not an int")
+            if not min <= value <= max:
+                raise Exception("out of bounds")
+            return value
 
-    def check(value):
-        if not isinstance(value, (int, long)):
-            raise Exception("not an int")
-        if not min <= value <= max:
-            raise Exception("out of bounds")
-        return value
+        @staticmethod
+        def encode(value, endianess):
+            return struct.pack(endianess + id, value)
 
-    def encode(value, endianess):
-        return struct.pack(endianess + id, value)
+        @staticmethod
+        def decode(data, endianess):
+            if len(data) < size:
+                raise Exception("too few bytes to decode integer")
+            value, = struct.unpack(endianess + id, data[:size])
+            return value, size
 
-    def decode(data, endianess):
-        if len(data) < size:
-            raise Exception("too few bytes to decode integer")
-        value, = struct.unpack(endianess + id, data[:size])
-        return value, size
+        cls._check = check
+        cls._encode = encode
+        cls._decode = decode
+        cls._tags = ["scalar", "unsigned_integer"]
+        cls._DEFAULT = 0
+        cls._SIZE = size
+        cls._ALIGNMENT = size
+        cls._DYNAMIC = False
+        cls._UNLIMITED = False
+        cls._OPTIONAL = False
+        return cls
+    return decorator
 
-    attrs["_check"] = staticmethod(check)
-    attrs["_encode"] = staticmethod(encode)
-    attrs["_decode"] = staticmethod(decode)
-    return type(name, bases, attrs)
+def float_decorator(size, id):
+    def decorator(cls):
+        @staticmethod
+        def check(value):
+            if not isinstance(value, (float, int, long)):
+                raise Exception("not a float")
+            return value
 
-def float_generator(name, bases, attrs):
-    id = attrs["_TYPE"]
-    size = attrs["_SIZE"]
+        @staticmethod
+        def encode(value, endianess):
+            return struct.pack(endianess + id, value)
 
-    def check(value):
-        if not isinstance(value, (float, int, long)):
-            raise Exception("not a float")
-        return value
+        @staticmethod
+        def decode(data, endianess):
+            if len(data) < size:
+                raise Exception("too few bytes to decode integer")
+            value, = struct.unpack(endianess + id, data[:size])
+            return value, size
 
-    def encode(value, endianess):
-        return struct.pack(endianess + id, value)
+        cls._check = check
+        cls._encode = encode
+        cls._decode = decode
+        cls._tags = ["scalar"]
+        cls._DEFAULT = 0.0
+        cls._SIZE = size
+        cls._ALIGNMENT = size
+        cls._DYNAMIC = False
+        cls._UNLIMITED = False
+        cls._OPTIONAL = False
+        return cls
+    return decorator
 
-    def decode(data, endianess):
-        if len(data) < size:
-            raise Exception("too few bytes to decode integer")
-        value, = struct.unpack(endianess + id, data[:size])
-        return value, size
+@int_decorator(size = 1, id = 'b', min = -(1 << 7), max = (1 << 7) - 1)
+class i8(int):
+    pass
 
-    attrs["_check"] = staticmethod(check)
-    attrs["_encode"] = staticmethod(encode)
-    attrs["_decode"] = staticmethod(decode)
-    return type(name, bases, attrs)
+@int_decorator(size = 2, id = 'h', min = -(1 << 15), max = (1 << 15) - 1)
+class i16(int):
+    pass
 
-class int_base(object):
-    _tags = ["scalar"]
-    _DEFAULT = 0
-    _DYNAMIC = False
-    _UNLIMITED = False
-    _OPTIONAL = False
+@int_decorator(size = 4, id = 'i', min = -(1 << 31), max = (1 << 31) - 1)
+class i32(int):
+    pass
 
-class float_base(int_base):
-    _DEFAULT = 0.0
+@int_decorator(size = 8, id = 'q', min = -(1 << 63), max = (1 << 63) - 1)
+class i64(int):
+    pass
 
-class i8(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = -(1 << 7)
-    _MAX = (1 << 7) - 1
-    _TYPE = "b"
-    _SIZE = 1
+@int_decorator(size = 1, id = 'B', min = 0, max = (1 << 8) - 1)
+class u8(int):
+    pass
 
-class i16(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = -(1 << 15)
-    _MAX = (1 << 15) - 1
-    _TYPE = "h"
-    _SIZE = 2
+@int_decorator(size = 2, id = 'H', min = 0, max = (1 << 16) - 1)
+class u16(int):
+    pass
 
-class i32(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = -(1 << 31)
-    _MAX = (1 << 31) - 1
-    _TYPE = "i"
-    _SIZE = 4
+@int_decorator(size = 4, id = 'I', min = 0, max = (1 << 32) - 1)
+class u32(int):
+    pass
 
-class i64(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = -(1 << 63)
-    _MAX = (1 << 63) - 1
-    _TYPE = "q"
-    _SIZE = 8
+@int_decorator(size = 8, id = 'Q', min = 0, max = (1 << 64) - 1)
+class u64(int):
+    pass
 
-class u8(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = 0
-    _MAX = (1 << 8) - 1
-    _TYPE = "B"
-    _SIZE = 1
+@float_decorator(size = 4, id = 'f')
+class r32(int):
+    pass
 
-class u16(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = 0
-    _MAX = (1 << 16) - 1
-    _TYPE = "H"
-    _SIZE = 2
-
-class u32(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = 0
-    _MAX = (1 << 32) - 1
-    _TYPE = "I"
-    _SIZE = 4
-
-class u64(int_base):
-    _tags = int_base._tags + ["unsigned_integer"]
-    __metaclass__ = int_generator
-    _MIN = 0
-    _MAX = (1 << 64) - 1
-    _TYPE = "Q"
-    _SIZE = 8
-
-class r32(float_base):
-    _tags = float_base._tags + ["signed_float"]
-    __metaclass__ = float_generator
-    _TYPE = "f"
-    _SIZE = 4
-
-class r64(float_base):
-    _tags = float_base._tags + ["signed_float"]
-    __metaclass__ = float_generator
-    _TYPE = "d"
-    _SIZE = 8
+@float_decorator(size = 8, id = 'd')
+class r64(int):
+    pass
 
 def enum_generator(name, bases, attrs):
 
@@ -163,7 +133,6 @@ def enum_generator(name, bases, attrs):
     attrs["_name_to_int"] = name_to_int
     attrs["_int_to_name"] = int_to_name
     attrs["_check"] = staticmethod(check)
-
     return type(name, bases, attrs)
 
 class enum(u32):
@@ -200,6 +169,7 @@ def bytes(**kwargs):
         _UNLIMITED = not size and not bound
         _DEFAULT = default
         _OPTIONAL = False
+        _ALIGNMENT = 1
 
         @staticmethod
         def _check(value):

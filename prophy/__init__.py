@@ -15,6 +15,7 @@ from scalar import bytes
 from optional import optional
 from container import array
 from composite import struct
+from composite import struct_padded
 from composite import struct_generator
 from composite import union
 from composite import union_generator

@@ -103,7 +103,7 @@ def test_simple_struct_construct(tmpdir_cwd):
     s = simple_construct.SL2DeploymentInfo()
     s.l2NodeType = "EL2DeployableNode_Basic2"
     s.nodeAddr = 0x1231
-    assert "\x00\x00\x00\x01\x12\x31" == s.encode(">")
+    assert "\x00\x00\x00\x01\x12\x31\x00\x00" == s.encode(">")
 
 def test_complex_struct(tmpdir_cwd):
     write("complex.xml", complex_isar)

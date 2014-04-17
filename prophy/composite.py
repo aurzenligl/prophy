@@ -11,15 +11,40 @@ def add_attributes(cls, descriptor):
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
+    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor)
+
+def add_padding(cls, descriptor):
+    if any(tp._DYNAMIC for _, tp in descriptor[:-1]):
+        raise Exception("only last field can be dynamic in padded struct")
+
+    offset = 0
+    paddings = []
+    sizes = [tp._SIZE for _, tp in descriptor]
+    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]] + [cls._ALIGNMENT]
+
+    for size, alignment in zip(sizes, alignments):
+        offset += size
+        padding = (alignment - offset % alignment) % alignment
+        offset += padding
+        paddings.append(padding)
+
+    for i, member in enumerate(descriptor):
+        descriptor[i] = member + (paddings[i],)
+
+    cls._SIZE += sum(paddings)
+
+def add_null_padding(cls, descriptor):
+    for i, member in enumerate(descriptor):
+        descriptor[i] = member + (0,)
 
 def add_properties(cls, descriptor):
-    for field_name, field_type in descriptor:
-        if "repeated" in field_type._tags:
-            add_repeated(cls, field_name, field_type)
-        elif "composite" in field_type._tags:
-            add_composite(cls, field_name, field_type)
+    for name, type, _ in descriptor:
+        if "repeated" in type._tags:
+            add_repeated(cls, name, type)
+        elif "composite" in type._tags:
+            add_composite(cls, name, type)
         else:
-            add_scalar(cls, field_name, field_type)
+            add_scalar(cls, name, type)
 
 def add_repeated(cls, field_name, field_type):
     def getter(self):
@@ -34,6 +59,7 @@ def add_repeated(cls, field_name, field_type):
     if hasattr(field_type, "_LENGTH_FIELD"):
         bound_name = field_type._LENGTH_FIELD
         index, bound_type = ((index, field[1]) for index, field in enumerate(cls._descriptor) if field[0] == bound_name).next()
+        bound_padding = index
         if bound_type._OPTIONAL:
             raise Exception("array must not be bound to optional field")
         if "unsigned_integer" not in bound_type._tags:
@@ -41,7 +67,7 @@ def add_repeated(cls, field_name, field_type):
         class bound_int(bound_type):
             _bound = field_name
             _LENGTH_SHIFT = field_type._LENGTH_SHIFT
-        cls._descriptor[index] = (bound_name, bound_int)
+        cls._descriptor[index] = ((name, bound_int, padding) for name, _, padding in (cls._descriptor[index],)).next()
         delattr(cls, bound_name)
 
 def add_scalar(cls, field_name, field_type):
@@ -66,7 +92,7 @@ def add_scalar(cls, field_name, field_type):
         class bound_int(bound_type):
             _bound = field_name
             _LENGTH_SHIFT = field_type._LENGTH_SHIFT
-        cls._descriptor[index] = (bound_name, bound_int)
+        cls._descriptor[index] = ((name, bound_int, padding) for name, _, padding in (cls._descriptor[index],)).next()
         delattr(cls, bound_name)
 
 def add_composite(cls, field_name, field_type):
@@ -198,7 +224,7 @@ class struct(object):
 
     def __str__(self):
         out = ""
-        for name, type in self._descriptor:
+        for name, type, _ in self._descriptor:
             value = getattr(self, name, None)
             if value is not None:
                 out += field_to_string(name, type, value)
@@ -206,7 +232,7 @@ class struct(object):
 
     def encode(self, endianess):
         out = ""
-        for name, type in self._descriptor:
+        for name, type, padding in self._descriptor:
             value = getattr(self, name, None)
             if type._OPTIONAL and value is None:
                 out += type._optional_type._encode(False, endianess)
@@ -219,11 +245,12 @@ class struct(object):
                 out += type._encode(len(array_value) + type._LENGTH_SHIFT, endianess)
             else:
                 out += encode_field(type, value, endianess)
+            out += '\x00' * padding
         return out
 
     def decode(self, data, endianess, terminal = True):
         bytes_read = 0
-        for name, type in self._descriptor:
+        for name, type, padding in self._descriptor:
             if type._OPTIONAL:
                 value, size = type._optional_type._decode(data, endianess)
                 data = data[size:]
@@ -236,6 +263,7 @@ class struct(object):
                     bytes_read += type._SIZE
                     continue
             size = decode_field(self, name, type, data, endianess)
+            size += padding
             data = data[size:]
             bytes_read += size
         if terminal and data:
@@ -251,10 +279,10 @@ class struct(object):
         fields = self._fields
 
         for name, value in other._fields.iteritems():
-            cls = (cls for dsc_name, cls in self._descriptor if dsc_name == name).next()
-            if "repeated" in cls._tags:
+            type = (type for _name, type, _ in self._descriptor if _name == name).next()
+            if "repeated" in type._tags:
                 field_value = getattr(self, name)
-                if "composite" in cls._TYPE._tags:
+                if "composite" in type._TYPE._tags:
                     if len(field_value) != len(value):
                         del field_value[:]
                         field_value.extend(value[:])
@@ -263,21 +291,30 @@ class struct(object):
                             elem.copy_from(other_elem)
                 else:
                     field_value[:] = value[:]
-            elif "composite" in cls._tags:
+            elif "composite" in type._tags:
                 field_value = getattr(self, name)
                 field_value.copy_from(value)
             else:
                 fields[name] = value
+
+class struct_padded(struct):
+    __slots__ = []
 
 class struct_generator(type):
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = ["_fields"]
         return super(struct_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        descriptor = cls._descriptor
-        validate(descriptor)
-        add_attributes(cls, descriptor)
-        add_properties(cls, descriptor)
+        if not hasattr(cls, "_generated"):
+            cls._generated = True
+            descriptor = cls._descriptor
+            validate(descriptor)
+            add_attributes(cls, descriptor)
+            if issubclass(cls, struct_padded):
+                add_padding(cls, descriptor)
+            else:
+                add_null_padding(cls, descriptor)
+            add_properties(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 
 def validate_union(descriptor):
@@ -296,6 +333,7 @@ def add_union_attributes(cls, descriptor):
     cls._DYNAMIC = False
     cls._UNLIMITED = False
     cls._OPTIONAL = False
+    cls._ALIGNMENT = max(type._ALIGNMENT for _, type, _ in descriptor)
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
