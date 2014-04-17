@@ -237,17 +237,13 @@ def array(type, **kwargs):
     if type._OPTIONAL:
         raise Exception("array of optional type not allowed")
 
+    is_static = size and not bound
     is_composite = issubclass(type, (composite.struct, composite.union))
 
-    if size and bound:
-        base = bound_composite_array if is_composite else bound_scalar_array
-    elif size and not bound:
-        actual_size = 0
-        base = fixed_composite_array if is_composite else fixed_scalar_array
-    elif not size and bound:
-        base = bound_composite_array if is_composite else bound_scalar_array
-    elif not size and not bound:
-        base = bound_composite_array if is_composite else bound_scalar_array
+    if is_composite:
+        base = fixed_composite_array if is_static else bound_composite_array
+    else:
+        base = fixed_scalar_array if is_static else bound_scalar_array
 
     class _array(base):
         __slots__ = []
