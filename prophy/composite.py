@@ -55,18 +55,7 @@ def add_repeated(cls, field_name, field_type):
         raise Exception("assignment to array field not allowed")
     setattr(cls, field_name, property(getter, setter))
     if hasattr(field_type, "_LENGTH_FIELD"):
-        bound_name = field_type._LENGTH_FIELD
-        index, bound_type = ((index, field[1]) for index, field in enumerate(cls._descriptor) if field[0] == bound_name).next()
-        bound_padding = index
-        if bound_type._OPTIONAL:
-            raise Exception("array must not be bound to optional field")
-        if "unsigned_integer" not in bound_type._tags:
-            raise Exception("array must be bound to an unsigned integer")
-        class bound_int(bound_type):
-            _bound = field_name
-            _LENGTH_SHIFT = field_type._LENGTH_SHIFT
-        cls._descriptor[index] = ((name, bound_int, padding) for name, _, padding in (cls._descriptor[index],)).next()
-        delattr(cls, bound_name)
+        substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_scalar(cls, field_name, field_type):
     def getter(self):
@@ -83,15 +72,7 @@ def add_scalar(cls, field_name, field_type):
             self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
     if hasattr(field_type, "_LENGTH_FIELD"):
-        bound_name = field_type._LENGTH_FIELD
-        index, bound_type = ((index, field[1]) for index, field in enumerate(cls._descriptor) if field[0] == bound_name).next()
-        if "unsigned_integer" not in bound_type._tags:
-            raise Exception("array must be bound to an unsigned integer")
-        class bound_int(bound_type):
-            _bound = field_name
-            _LENGTH_SHIFT = field_type._LENGTH_SHIFT
-        cls._descriptor[index] = ((name, bound_int, padding) for name, _, padding in (cls._descriptor[index],)).next()
-        delattr(cls, bound_name)
+        substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_composite(cls, field_name, field_type):
     def getter(self):
@@ -111,6 +92,19 @@ def add_composite(cls, field_name, field_type):
         else:
             raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
+
+def substitute_len_field(cls, descriptor, container_name, container_tp):
+    index, field = ifilter(lambda x: x[1][0] is container_tp._LENGTH_FIELD, enumerate(descriptor)).next()
+    name, tp, padding = field
+    if tp._OPTIONAL:
+        raise Exception("array must not be bound to optional field")
+    if "unsigned_integer" not in tp._tags:
+        raise Exception("array must be bound to an unsigned integer")
+    class bound_int(tp):
+        _bound = container_name
+        _LENGTH_SHIFT = container_tp._LENGTH_SHIFT
+    descriptor[index] = (name, bound_int, padding)
+    delattr(cls, name)
 
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
