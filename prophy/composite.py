@@ -138,9 +138,7 @@ def field_to_string(name, type, value):
         return "%s: %s\n" % (name, value)
 
 def encode_field(type, value, endianess):
-    if "repeated" in type._tags:
-        return "".join(encode_field(type._TYPE, elem, endianess) for elem in value).ljust(type._SIZE, "\x00")
-    elif "composite" in type._tags:
+    if "repeated" in type._tags or "composite" in type._tags:
         return value.encode(endianess)
     elif "enum" in type._tags:
         numeric_value = value if isinstance(value, int) else type._name_to_int[value]

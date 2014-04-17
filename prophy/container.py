@@ -241,4 +241,15 @@ def array(type, **kwargs):
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift
+
+        def encode(self, endianness):
+            def convert(tp, value):
+                return value if isinstance(value, int) else tp._name_to_int[value]
+            tp = self._TYPE
+            if issubclass(tp, int):
+                data = "".join(tp._encode(convert(tp, value), endianness) for value in self)
+            else:
+                data = "".join(value.encode(endianness) for value in self)
+            return data.ljust(self._SIZE, "\x00")
+
     return _array
