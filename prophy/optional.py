@@ -1,9 +1,10 @@
 import scalar
+import container
 
 def optional(cls):
-    if "string" in cls._tags:
+    if issubclass(cls, str):
         raise Exception("optional bytes not implemented")
-    if "repeated" in cls._tags:
+    if issubclass(cls, container.base_array):
         raise Exception("optional array not implemented")
 
     class _optional(cls):

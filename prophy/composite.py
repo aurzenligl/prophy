@@ -127,29 +127,29 @@ def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
 def field_to_string(name, type, value):
-    if "repeated" in type._tags:
+    if issubclass(type, container.base_array):
         return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
-    elif "composite" in type._tags:
+    elif issubclass(type, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
-    elif "string" in type._tags:
+    elif issubclass(type, str):
         return "%s: %s\n" % (name, repr(value))
-    elif "enum" in type._tags:
+    elif issubclass(type, scalar.enum):
         return "%s: %s\n" % (name, type._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
 
 def encode_field(type, value, endianess):
-    if "repeated" in type._tags or "composite" in type._tags:
+    if issubclass(type, (container.base_array, struct, union)):
         return value.encode(endianess)
     else:
         return type._encode(value, endianess)
 
 def decode_field(parent, name, type, data, endianess, len_hints):
-    if "repeated" in type._tags:
+    if issubclass(type, container.base_array):
         return getattr(parent, name).decode(data, endianess, len_hints.get(name))
-    elif "composite" in type._tags:
+    elif issubclass(type, (struct, union)):
         return getattr(parent, name).decode(data, endianess, terminal = False)
-    elif "string" in type._tags:
+    elif issubclass(type, str):
         value, size = type._decode(data, endianess, len_hints.get(name))
         setattr(parent, name, value)
         return size
@@ -227,9 +227,9 @@ class struct(object):
 
         for name, value in other._fields.iteritems():
             type = (type for _name, type, _ in self._descriptor if _name == name).next()
-            if "repeated" in type._tags:
+            if issubclass(type, container.base_array):
                 field_value = getattr(self, name)
-                if "composite" in type._TYPE._tags:
+                if issubclass(type._TYPE, (struct, union)):
                     if len(field_value) != len(value):
                         del field_value[:]
                         field_value.extend(value[:])
@@ -238,7 +238,7 @@ class struct(object):
                             elem.copy_from(other_elem)
                 else:
                     field_value[:] = value[:]
-            elif "composite" in type._tags:
+            elif issubclass(type, (struct, union)):
                 field_value = getattr(self, name)
                 field_value.copy_from(value)
             else:
@@ -266,7 +266,7 @@ def validate_union(descriptor):
         raise Exception("dynamic types not allowed in union")
     if any(type._BOUND for _, type, _ in descriptor):
         raise Exception("bound array/bytes not allowed in union")
-    if any("repeated" in type._tags for _, type, _ in descriptor):
+    if any(issubclass(type, container.base_array) for _, type, _ in descriptor):
         raise Exception("static array not implemented in union")
     if any(type._OPTIONAL for _, type, _ in descriptor):
         raise Exception("union with optional field disallowed")

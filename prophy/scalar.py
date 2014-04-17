@@ -140,7 +140,7 @@ def enum_generator(name, bases, attrs):
 class enum(u32):
     _tags = u32._tags + ["enum"]
 
-class enum8(u8):
+class enum8(u8, enum):
     _tags = u8._tags + ["enum"]
 
 def bytes(**kwargs):
@@ -164,7 +164,7 @@ def bytes(**kwargs):
     elif not size and bound:
         tags.add("bound")
 
-    class _bytes(object):
+    class _bytes(str):
         _tags = tags
         _SIZE = size
         _DYNAMIC = not size

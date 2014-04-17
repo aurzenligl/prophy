@@ -189,9 +189,9 @@ def array(type, **kwargs):
     if kwargs:
         raise Exception("unknown arguments to array field")
 
-    if "repeated" in type._tags:
+    if issubclass(type, base_array):
         raise Exception("array of arrays not allowed")
-    if "string" in type._tags:
+    if issubclass(type, str):
         raise Exception("array of strings not allowed")
     if size and type._DYNAMIC:
         raise Exception("static/limited array of dynamic type not allowed")
