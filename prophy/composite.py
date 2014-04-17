@@ -283,7 +283,7 @@ def add_union_attributes(cls, descriptor):
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
     for name, type, disc in descriptor:
-        if "composite" in type._tags:
+        if issubclass(type, (struct, union)):
             add_union_composite(cls, name, type, disc)
         else:
             add_union_scalar(cls, name, type, disc)
@@ -371,7 +371,7 @@ class union(object):
         self._fields = {}
         name, type, _ = next(ifilter(lambda x: x[2] == disc, self._descriptor))
         value = getattr(self, name)
-        if "composite" in type._tags:
+        if issubclass(type, (struct, union)):
             getattr(self, name).copy_from(getattr(other, name))
         else:
             setattr(self, name, getattr(other, name))

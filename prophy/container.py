@@ -1,3 +1,5 @@
+import composite
+
 class base_array(object):
     __slots__ = ['_values']
     _tags = ["repeated"]
@@ -202,7 +204,7 @@ def array(type, **kwargs):
     if type._OPTIONAL:
         raise Exception("array of optional type not allowed")
 
-    is_composite = "composite" in type._tags
+    is_composite = issubclass(type, (composite.struct, composite.union))
 
     tags = []
 
@@ -238,7 +240,7 @@ def array(type, **kwargs):
             return data.ljust(self._SIZE, "\x00")
 
         def decode(self, data, endianness, len_hint):
-            if "composite" in self._TYPE._tags:
+            if is_composite:
                 if self._SIZE > len(data):
                     raise Exception("too few bytes to decode array")
                 if len_hint is not None:
