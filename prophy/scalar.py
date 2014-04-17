@@ -181,6 +181,26 @@ def bytes(**kwargs):
                 return value.ljust(size, '\x00')
             return value
 
+        @staticmethod
+        def _encode(value, endianess):
+            return value.ljust(size, '\x00')
+
+        @staticmethod
+        def _decode(data, endianess, container_len):
+            current_size = container_len
+            if len(data) < size:
+                raise Exception("too few bytes to decode string")
+            if "static" in tags:
+                return data[:size], size
+            elif "limited" in tags:
+                return data[:current_size], size
+            elif "bound" in tags:
+                if len(data) < current_size:
+                    raise Exception("too few bytes to decode string")
+                return data[:current_size], current_size
+            else:  # greedy
+                return data, len(data)
+
         if bound:
             _LENGTH_FIELD = bound
             _LENGTH_SHIFT = shift

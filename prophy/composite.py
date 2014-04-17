@@ -142,8 +142,6 @@ def encode_field(type, value, endianess):
         return "".join(encode_field(type._TYPE, elem, endianess) for elem in value).ljust(type._SIZE, "\x00")
     elif "composite" in type._tags:
         return value.encode(endianess)
-    elif "string" in type._tags:
-        return value.ljust(type._SIZE, '\x00')
     elif "enum" in type._tags:
         numeric_value = value if isinstance(value, int) else type._name_to_int[value]
         return type._encode(numeric_value, endianess)
@@ -186,22 +184,9 @@ def decode_field(parent, name, type, data, endianess):
         return getattr(parent, name).decode(data, endianess, terminal = False)
     elif "string" in type._tags:
         current_size = len(getattr(parent, name))
-        if len(data) < type._SIZE:
-            raise Exception("too few bytes to decode string")
-        if "static" in type._tags:
-            setattr(parent, name, data[:type._SIZE])
-            return type._SIZE
-        elif "limited" in type._tags:
-            setattr(parent, name, data[:current_size])
-            return type._SIZE
-        elif "bound" in type._tags:
-            if len(data) < current_size:
-                raise Exception("too few bytes to decode string")
-            setattr(parent, name, data[:current_size])
-            return current_size
-        else:  # greedy
-            setattr(parent, name, data)
-            return len(data)
+        value, size = type._decode(data, endianess, current_size)
+        setattr(parent, name, value)
+        return size
     else:
         value, size = type._decode(data, endianess)
         if hasattr(type, "_bound"):
