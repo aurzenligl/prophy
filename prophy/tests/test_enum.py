@@ -19,11 +19,11 @@ class TestEnum():
 
     def test_assignment(self):
         x = self.Enum()
-        assert x.value == "Enumeration_One"
+        assert x.value == 1
         x.value = "Enumeration_Two"
-        assert x.value == "Enumeration_Two"
+        assert x.value == 2
         x.value = 3
-        assert x.value == "Enumeration_Three"
+        assert x.value == 3
 
         with pytest.raises(Exception):
             x.value = "Enumeration_Four"
@@ -31,9 +31,9 @@ class TestEnum():
             x.value = 4
 
         y = self.Enum()
-        assert y.value == "Enumeration_One"
+        assert y.value == 1
         y.copy_from(x)
-        assert y.value == "Enumeration_Three"
+        assert y.value == 3
 
     def test_print(self):
         x = self.Enum()
@@ -48,7 +48,7 @@ class TestEnum():
     def test_decode(self):
         x = self.Enum()
         x.decode("\x00\x00\x00\x02", ">")
-        assert x.value == "Enumeration_Two"
+        assert x.value == 2
 
         with pytest.raises(Exception):
             x.decode("\x00\x00\x00\x09", ">")
@@ -84,11 +84,11 @@ class TestEnum8():
 
     def test_assignment(self):
         x = self.Enum()
-        assert x.value == "Enumeration_One"
+        assert x.value == 1
         x.value = "Enumeration_Two"
-        assert x.value == "Enumeration_Two"
+        assert x.value == 2
         x.value = 3
-        assert x.value == "Enumeration_Three"
+        assert x.value == 3
 
         with pytest.raises(Exception):
             x.value = "Enumeration_Four"
@@ -96,9 +96,9 @@ class TestEnum8():
             x.value = 4
 
         y = self.Enum()
-        assert y.value == "Enumeration_One"
+        assert y.value == 1
         y.copy_from(x)
-        assert y.value == "Enumeration_Three"
+        assert y.value == 3
 
     def test_print(self):
         x = self.Enum()
@@ -113,7 +113,7 @@ class TestEnum8():
     def test_decode(self):
         x = self.Enum()
         x.decode("\x02", ">")
-        assert x.value == "Enumeration_Two"
+        assert x.value == 2
 
         with pytest.raises(Exception):
             x.decode("\x09", ">")
@@ -155,17 +155,17 @@ class TestEnumFixedArray():
 
     def test_assignment(self):
         x = self.Enum()
-        assert x.value[:] == ["Enumeration_One", "Enumeration_One"]
-        assert x.value[0] == "Enumeration_One"
-        assert x.value[1] == "Enumeration_One"
+        assert x.value[:] == [1, 1]
+        assert x.value[0] == 1
+        assert x.value[1] == 1
         x.value[0] = 2
         x.value[1] = "Enumeration_Two"
-        assert x.value[:] == ["Enumeration_Two", "Enumeration_Two"]
+        assert x.value[:] == [2, 2]
 
         y = self.Enum()
-        assert y.value[:] == ["Enumeration_One", "Enumeration_One"]
+        assert y.value[:] == [1, 1]
         y.copy_from(x)
-        assert y.value[:] == ["Enumeration_Two", "Enumeration_Two"]
+        assert y.value[:] == [2, 2]
 
     def test_print(self):
         x = self.Enum()
@@ -181,8 +181,8 @@ class TestEnumFixedArray():
     def test_decode(self):
         x = self.Enum()
         x.decode("\x00\x00\x00\x02\x00\x00\x00\x02", ">")
-        assert x.value[0] == "Enumeration_Two"
-        assert x.value[1] == "Enumeration_Two"
+        assert x.value[0] == 2
+        assert x.value[1] == 2
 
 class TestEnumBoundArray():
 
@@ -195,12 +195,12 @@ class TestEnumBoundArray():
         x = self.Enum()
         assert x.value[:] == []
         x.value[:] = [1, "Enumeration_One"]
-        assert x.value[:] == ["Enumeration_One", "Enumeration_One"]
-        assert x.value[0] == "Enumeration_One"
-        assert x.value[1] == "Enumeration_One"
+        assert x.value[:] == [1, 1]
+        assert x.value[0] == 1
+        assert x.value[1] == 1
         x.value[0] = 2
         x.value[1] = "Enumeration_Two"
-        assert x.value[:] == ["Enumeration_Two", "Enumeration_Two"]
+        assert x.value[:] == [2, 2]
 
     def test_print(self):
         x = self.Enum()
@@ -216,8 +216,8 @@ class TestEnumBoundArray():
     def test_decode(self):
         x = self.Enum()
         x.decode("\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02", ">")
-        assert x.value[0] == "Enumeration_Two"
-        assert x.value[1] == "Enumeration_Two"
+        assert x.value[0] == 2
+        assert x.value[1] == 2
 
 def test_enum_with_0xFFFFFFFF_value():
     class Enum(prophy.enum):
@@ -227,4 +227,4 @@ def test_enum_with_0xFFFFFFFF_value():
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", Enum)]
 
-    assert Enclosing().value == 'Enum_Infinity'
+    assert Enclosing().value == 0xFFFFFFFF

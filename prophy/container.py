@@ -1,15 +1,25 @@
+import composite
+
+def decode_scalar_array(tp, data, endianness, count):
+    if count is None:
+        items, remainder = divmod(len(data), tp._SIZE)
+        count = items + bool(remainder)
+    cursor = 0
+    values = []
+    for _ in xrange(count):
+        value, size = tp._decode(data[cursor:], endianness)
+        cursor += size
+        values.append(value)
+    return values, cursor
+
 class base_array(object):
     __slots__ = ['_values']
-    _tags = ["repeated"]
 
     def __init__(self):
         self._values = []
 
     def __getitem__(self, key):
-        value = self._values[key]
-        if "enum" in self._TYPE._tags:
-            return self._TYPE._int_to_name[value]
-        return value
+        return self._values[key]
 
     def __len__(self):
         return len(self._values)
@@ -39,11 +49,7 @@ class fixed_scalar_array(base_array):
         self._values[key] = value
 
     def __getslice__(self, start, stop):
-        values = self._values[start:stop]
-        if "enum" in self._TYPE._tags:
-            int_to_name = self._TYPE._int_to_name
-            values = [int_to_name[val] for val in values]
-        return values
+        return self._values[start:stop]
 
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) is not len(values):
@@ -62,6 +68,13 @@ class fixed_scalar_array(base_array):
             return other._values == self._values
         # We are presumably comparing against some other sequence type.
         return other == self._values
+
+    def encode(self, endianness):
+        return "".join(self._TYPE._encode(value, endianness) for value in self)
+
+    def decode(self, data, endianness, _):
+        self[:], size = decode_scalar_array(self._TYPE, data, endianness, len(self))
+        return size
 
 class bound_scalar_array(base_array):
 
@@ -101,11 +114,7 @@ class bound_scalar_array(base_array):
         self._values[key] = value
 
     def __getslice__(self, start, stop):
-        values = self._values[start:stop]
-        if "enum" in self._TYPE._tags:
-            int_to_name = self._TYPE._int_to_name
-            values = [int_to_name[val] for val in values]
-        return values
+        return self._values[start:stop]
 
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
@@ -131,6 +140,15 @@ class bound_scalar_array(base_array):
         # We are presumably comparing against some other sequence type.
         return other == self._values
 
+    def encode(self, endianness):
+        return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
+
+    def decode(self, data, endianness, len_hint):
+        if self._SIZE > len(data):
+            raise Exception("too few bytes to decode array")
+        self[:], size = decode_scalar_array(self._TYPE, data, endianness, len_hint)
+        return max(size, self._SIZE)
+
 class fixed_composite_array(base_array):
 
     __slots__ = []
@@ -149,6 +167,15 @@ class fixed_composite_array(base_array):
             raise TypeError('Can only compare repeated composite fields against '
                             'other repeated composite fields.')
         return self._values == other._values
+
+    def encode(self, endianness):
+        return "".join(value.encode(endianness) for value in self)
+
+    def decode(self, data, endianness, _):
+        cursor = 0
+        for elem in self:
+            cursor += elem.decode(data[cursor:], endianness, terminal = False)
+        return cursor
 
 class bound_composite_array(base_array):
 
@@ -193,16 +220,32 @@ class bound_composite_array(base_array):
                             'other repeated composite fields.')
         return self._values == other._values
 
+    def encode(self, endianness):
+        return "".join(value.encode(endianness) for value in self).ljust(self._SIZE, "\x00")
+
+    def decode(self, data, endianness, len_hint):
+        if self._SIZE > len(data):
+            raise Exception("too few bytes to decode array")
+        del self[:]
+        cursor = 0
+        if not self._SIZE and not self._BOUND:
+            while cursor < len(data):
+                cursor += self.add().decode(data[cursor:], endianness, terminal = False)
+        else:
+            for _ in xrange(len_hint):
+                cursor += self.add().decode(data[cursor:], endianness, terminal = False)
+        return max(cursor, self._SIZE)
+
 def array(type, **kwargs):
     size = kwargs.pop("size", 0)
-    bound = kwargs.pop("bound", "")
+    bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if kwargs:
         raise Exception("unknown arguments to array field")
 
-    if "repeated" in type._tags:
+    if issubclass(type, base_array):
         raise Exception("array of arrays not allowed")
-    if "string" in type._tags:
+    if issubclass(type, str):
         raise Exception("array of strings not allowed")
     if size and type._DYNAMIC:
         raise Exception("static/limited array of dynamic type not allowed")
@@ -213,24 +256,16 @@ def array(type, **kwargs):
     if type._OPTIONAL:
         raise Exception("array of optional type not allowed")
 
-    is_composite = "composite" in type._tags
+    is_static = size and not bound
+    is_composite = issubclass(type, (composite.struct, composite.union))
 
-    tags = []
-
-    if size and bound:
-        base = bound_composite_array if is_composite else bound_scalar_array
-    elif size and not bound:
-        actual_size = 0
-        base = fixed_composite_array if is_composite else fixed_scalar_array
-    elif not size and bound:
-        base = bound_composite_array if is_composite else bound_scalar_array
-    elif not size and not bound:
-        tags += ["greedy"]
-        base = bound_composite_array if is_composite else bound_scalar_array
+    if is_composite:
+        base = fixed_composite_array if is_static else bound_composite_array
+    else:
+        base = fixed_scalar_array if is_static else bound_scalar_array
 
     class _array(base):
         __slots__ = []
-        _tags = base._tags + tags
         _max_len = size
         _TYPE = type
         _SIZE = size * type._SIZE
@@ -238,7 +273,7 @@ def array(type, **kwargs):
         _UNLIMITED = not size and not bound
         _OPTIONAL = False
         _ALIGNMENT = type._ALIGNMENT
-        if bound:
-            _LENGTH_FIELD = bound
-            _LENGTH_SHIFT = shift
+        _BOUND = bound
+        _BOUND_SHIFT = shift
+
     return _array

@@ -24,13 +24,13 @@ def int_decorator(size, id, min, max):
         cls._check = check
         cls._encode = encode
         cls._decode = decode
-        cls._tags = ["scalar", "unsigned_integer"]
         cls._DEFAULT = 0
         cls._SIZE = size
         cls._ALIGNMENT = size
         cls._DYNAMIC = False
         cls._UNLIMITED = False
         cls._OPTIONAL = False
+        cls._BOUND = None
         return cls
     return decorator
 
@@ -56,13 +56,13 @@ def float_decorator(size, id):
         cls._check = check
         cls._encode = encode
         cls._decode = decode
-        cls._tags = ["scalar"]
         cls._DEFAULT = 0.0
         cls._SIZE = size
         cls._ALIGNMENT = size
         cls._DYNAMIC = False
         cls._UNLIMITED = False
         cls._OPTIONAL = False
+        cls._BOUND = None
         return cls
     return decorator
 
@@ -99,11 +99,11 @@ class u64(int):
     pass
 
 @float_decorator(size = 4, id = 'f')
-class r32(int):
+class r32(float):
     pass
 
 @float_decorator(size = 8, id = 'd')
-class r64(int):
+class r64(float):
     pass
 
 def enum_generator(name, bases, attrs):
@@ -136,40 +136,29 @@ def enum_generator(name, bases, attrs):
     return type(name, bases, attrs)
 
 class enum(u32):
-    _tags = u32._tags + ["enum"]
+    pass
 
-class enum8(u8):
-    _tags = u8._tags + ["enum"]
+class enum8(u8, enum):
+    pass
 
 def bytes(**kwargs):
     size = kwargs.pop("size", 0)
-    bound = kwargs.pop("bound", "")
+    bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if shift and (not bound or size):
         raise Exception("only shifting bound bytes implemented")
     if kwargs:
         raise Exception("unknown arguments to bytes field")
 
-    tags = {"scalar", "string"}
-    default = ""
-    if size and bound:
-        tags.add("limited")
-    elif size and not bound:
-        tags.add("static")
-        default = "\x00" * size
-    elif not size and not bound:
-        tags.add("greedy")
-    elif not size and bound:
-        tags.add("bound")
-
-    class _bytes(object):
-        _tags = tags
+    class _bytes(str):
         _SIZE = size
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
-        _DEFAULT = default
+        _DEFAULT = "\x00" * size if size and not bound else ""
         _OPTIONAL = False
         _ALIGNMENT = 1
+        _BOUND = bound
+        _BOUND_SHIFT = shift
 
         @staticmethod
         def _check(value):
@@ -177,11 +166,27 @@ def bytes(**kwargs):
                 raise Exception("not a str")
             if size and len(value) > size:
                 raise Exception("too long")
-            if "static" in tags:
+            if size and not bound:
                 return value.ljust(size, '\x00')
             return value
 
-        if bound:
-            _LENGTH_FIELD = bound
-            _LENGTH_SHIFT = shift
+        @staticmethod
+        def _encode(value, endianess):
+            return value.ljust(size, '\x00')
+
+        @staticmethod
+        def _decode(data, endianess, len_hint):
+            if len(data) < size:
+                raise Exception("too few bytes to decode string")
+            if size and not bound:
+                return data[:size], size
+            elif size and bound:
+                return data[:len_hint], size
+            elif bound:
+                if len(data) < len_hint:
+                    raise Exception("too few bytes to decode string")
+                return data[:len_hint], len_hint
+            else:  # greedy
+                return data, len(data)
+
     return _bytes

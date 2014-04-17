@@ -69,7 +69,6 @@ class TestLimitedScalarArray():
         with pytest.raises(Exception):
             a.decode("\x00\x00\x00\x00", ">")
 
-
 class Composite(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("x", prophy.u32),
@@ -259,7 +258,7 @@ def test_limited_array_with_enum():
 
     x.decode("\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00", ">")
 
-    assert ["E_3", "E_1"] == x.a[:]
+    assert [3, 1] == x.a[:]
 
 def test_limited_array_with_field_afterwards():
     class S(prophy.struct_packed):

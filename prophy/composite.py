@@ -1,4 +1,5 @@
 import scalar
+import container
 from itertools import ifilter
 
 def validate(descriptor):
@@ -12,6 +13,7 @@ def add_attributes(cls, descriptor):
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
     cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor)
+    cls._BOUND = None
 
 def add_padding(cls, descriptor):
     if any(tp._DYNAMIC for _, tp in descriptor[:-1]):
@@ -37,9 +39,9 @@ def add_null_padding(descriptor):
 
 def add_properties(cls, descriptor):
     for name, type, _ in descriptor:
-        if "repeated" in type._tags:
+        if issubclass(type, container.base_array):
             add_repeated(cls, name, type)
-        elif "composite" in type._tags:
+        elif issubclass(type, (struct, union)):
             add_composite(cls, name, type)
         else:
             add_scalar(cls, name, type)
@@ -54,44 +56,22 @@ def add_repeated(cls, field_name, field_type):
     def setter(self, new_value):
         raise Exception("assignment to array field not allowed")
     setattr(cls, field_name, property(getter, setter))
-    if hasattr(field_type, "_LENGTH_FIELD"):
-        bound_name = field_type._LENGTH_FIELD
-        index, bound_type = ((index, field[1]) for index, field in enumerate(cls._descriptor) if field[0] == bound_name).next()
-        bound_padding = index
-        if bound_type._OPTIONAL:
-            raise Exception("array must not be bound to optional field")
-        if "unsigned_integer" not in bound_type._tags:
-            raise Exception("array must be bound to an unsigned integer")
-        class bound_int(bound_type):
-            _bound = field_name
-            _LENGTH_SHIFT = field_type._LENGTH_SHIFT
-        cls._descriptor[index] = ((name, bound_int, padding) for name, _, padding in (cls._descriptor[index],)).next()
-        delattr(cls, bound_name)
+    if field_type._BOUND:
+        substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_scalar(cls, field_name, field_type):
     def getter(self):
         if field_type._OPTIONAL and field_name not in self._fields:
             return None
-        value = self._fields.get(field_name, field_type._DEFAULT)
-        if "enum" in field_type._tags:
-            value = field_type._int_to_name[value]
-        return value
+        return self._fields.get(field_name, field_type._DEFAULT)
     def setter(self, new_value):
         if field_type._OPTIONAL and new_value is None:
             self._fields.pop(field_name, None)
         else:
             self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
-    if hasattr(field_type, "_LENGTH_FIELD"):
-        bound_name = field_type._LENGTH_FIELD
-        index, bound_type = ((index, field[1]) for index, field in enumerate(cls._descriptor) if field[0] == bound_name).next()
-        if "unsigned_integer" not in bound_type._tags:
-            raise Exception("array must be bound to an unsigned integer")
-        class bound_int(bound_type):
-            _bound = field_name
-            _LENGTH_SHIFT = field_type._LENGTH_SHIFT
-        cls._descriptor[index] = ((name, bound_int, padding) for name, _, padding in (cls._descriptor[index],)).next()
-        delattr(cls, bound_name)
+    if field_type._BOUND:
+        substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_composite(cls, field_name, field_type):
     def getter(self):
@@ -112,110 +92,77 @@ def add_composite(cls, field_name, field_type):
             raise Exception("assignment to composite field not allowed")
     setattr(cls, field_name, property(getter, setter))
 
+def substitute_len_field(cls, descriptor, container_name, container_tp):
+    index, field = ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)).next()
+    name, tp, padding = field
+    bound_shift = container_tp._BOUND_SHIFT
+
+    if tp._OPTIONAL:
+        raise Exception("array must not be bound to optional field")
+    if not issubclass(tp, int):
+        raise Exception("array must be bound to an unsigned integer")
+
+    class container_len(tp):
+        _BOUND = container_name
+
+        @staticmethod
+        def _encode(value, endianness):
+            return tp._encode(value + bound_shift, endianness)
+
+        @staticmethod
+        def _decode(data, endianness):
+            value, size = tp._decode(data, endianness)
+            array_guard = 65536
+            if value > array_guard:
+                raise Exception("decoded array length over %s" % array_guard)
+            value -= bound_shift
+            if value < 0:
+                raise Exception("decoded array length smaller than shift")
+            return value, size
+
+    descriptor[index] = (name, container_len, padding)
+    delattr(cls, name)
+
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
 def field_to_string(name, type, value):
-    if "repeated" in type._tags:
+    if issubclass(type, container.base_array):
         return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
-    elif "composite" in type._tags:
+    elif issubclass(type, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
-    elif "string" in type._tags:
+    elif issubclass(type, str):
         return "%s: %s\n" % (name, repr(value))
+    elif issubclass(type, scalar.enum):
+        return "%s: %s\n" % (name, type._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
 
 def encode_field(type, value, endianess):
-    if "repeated" in type._tags:
-        return "".join(encode_field(type._TYPE, elem, endianess) for elem in value).ljust(type._SIZE, "\x00")
-    elif "composite" in type._tags:
+    if issubclass(type, (container.base_array, struct, union)):
         return value.encode(endianess)
-    elif "string" in type._tags:
-        return value.ljust(type._SIZE, '\x00')
-    elif "enum" in type._tags:
-        numeric_value = value if isinstance(value, int) else type._name_to_int[value]
-        return type._encode(numeric_value, endianess)
     else:
         return type._encode(value, endianess)
 
-def decode_field(parent, name, type, data, endianess):
-    if "repeated" in type._tags:
-        if "composite" in type._TYPE._tags:
-            if type._SIZE > len(data):
-                raise Exception("too few bytes to decode array")
-            value = getattr(parent, name)
-            decoded = 0
-            if "greedy" in type._tags:
-                del value[:]
-                while decoded < len(data):
-                    decoded += value.add().decode(data[decoded:], endianess, terminal = False)
-            else:
-                for elem in value:
-                    decoded += elem.decode(data[decoded:], endianess, terminal = False)
-            return max(decoded, type._SIZE)
-        else:
-            if type._SIZE > len(data):
-                raise Exception("too few bytes to decode array")
-            value = getattr(parent, name)
-            decoded = 0
-            if "greedy" in type._tags:
-                del value[:]
-                while decoded < len(data):
-                    elem, elem_size = value._TYPE._decode(data[decoded:], endianess)
-                    value.append(elem)
-                    decoded += elem_size
-            else:
-                for i in xrange(len(value)):
-                    elem, elem_size = value._TYPE._decode(data[decoded:], endianess)
-                    value[i] = elem
-                    decoded += elem_size
-            return max(decoded, type._SIZE)
-    elif "composite" in type._tags:
+def decode_field(parent, name, type, data, endianess, len_hints):
+    if issubclass(type, container.base_array):
+        return getattr(parent, name).decode(data, endianess, len_hints.get(name))
+    elif issubclass(type, (struct, union)):
         return getattr(parent, name).decode(data, endianess, terminal = False)
-    elif "string" in type._tags:
-        current_size = len(getattr(parent, name))
-        if len(data) < type._SIZE:
-            raise Exception("too few bytes to decode string")
-        if "static" in type._tags:
-            setattr(parent, name, data[:type._SIZE])
-            return type._SIZE
-        elif "limited" in type._tags:
-            setattr(parent, name, data[:current_size])
-            return type._SIZE
-        elif "bound" in type._tags:
-            if len(data) < current_size:
-                raise Exception("too few bytes to decode string")
-            setattr(parent, name, data[:current_size])
-            return current_size
-        else:  # greedy
-            setattr(parent, name, data)
-            return len(data)
+    elif issubclass(type, str):
+        value, size = type._decode(data, endianess, len_hints.get(name))
+        setattr(parent, name, value)
+        return size
     else:
         value, size = type._decode(data, endianess)
-        if hasattr(type, "_bound"):
-            ARRAY_GUARD = 65536
-            if value > ARRAY_GUARD:
-                raise Exception("decoded array length over %s" % ARRAY_GUARD)
-            if value < type._LENGTH_SHIFT:
-                raise Exception("decoded array length smaller than shift")
-            value -= type._LENGTH_SHIFT
-            array_value = getattr(parent, type._bound)
-            if isinstance(array_value, str):
-                setattr(parent, type._bound, "\x00" * value)
-            else:
-                array_element_type = array_value._TYPE
-                if "composite" in array_element_type._tags:
-                    del array_value[:]
-                    array_value.extend([array_element_type() for _ in range(value)])
-                else:
-                    array_value[:] = [array_element_type._DEFAULT] * value
+        if type._BOUND:
+            len_hints[type._BOUND] = value
         else:
             setattr(parent, name, value)
         return size
 
 class struct(object):
     __slots__ = []
-    _tags = ["composite"]
 
     def __init__(self):
         self._fields = {}
@@ -238,15 +185,16 @@ class struct(object):
             elif type._OPTIONAL:
                 out += type._optional_type._encode(True, endianess)
                 out += encode_field(type, value, endianess)
-            elif hasattr(type, "_bound"):
-                array_value = getattr(self, type._bound)
-                out += type._encode(len(array_value) + type._LENGTH_SHIFT, endianess)
+            elif type._BOUND and issubclass(type, int):
+                array_value = getattr(self, type._BOUND)
+                out += type._encode(len(array_value), endianess)
             else:
                 out += encode_field(type, value, endianess)
             out += '\x00' * padding
         return out
 
     def decode(self, data, endianess, terminal = True):
+        len_hints = {}
         bytes_read = 0
         for name, type, padding in self._descriptor:
             if type._OPTIONAL:
@@ -260,7 +208,7 @@ class struct(object):
                     data = data[type._SIZE:]
                     bytes_read += type._SIZE
                     continue
-            size = decode_field(self, name, type, data, endianess)
+            size = decode_field(self, name, type, data, endianess, len_hints)
             size += padding
             data = data[size:]
             bytes_read += size
@@ -278,9 +226,9 @@ class struct(object):
 
         for name, value in other._fields.iteritems():
             type = (type for _name, type, _ in self._descriptor if _name == name).next()
-            if "repeated" in type._tags:
+            if issubclass(type, container.base_array):
                 field_value = getattr(self, name)
-                if "composite" in type._TYPE._tags:
+                if issubclass(type._TYPE, (struct, union)):
                     if len(field_value) != len(value):
                         del field_value[:]
                         field_value.extend(value[:])
@@ -289,7 +237,7 @@ class struct(object):
                             elem.copy_from(other_elem)
                 else:
                     field_value[:] = value[:]
-            elif "composite" in type._tags:
+            elif issubclass(type, (struct, union)):
                 field_value = getattr(self, name)
                 field_value.copy_from(value)
             else:
@@ -315,9 +263,9 @@ class struct_generator(type):
 def validate_union(descriptor):
     if any(type._DYNAMIC for _, type, _ in descriptor):
         raise Exception("dynamic types not allowed in union")
-    if any(hasattr(type, "_LENGTH_FIELD") and type._LENGTH_FIELD for _, type, _ in descriptor):
+    if any(type._BOUND for _, type, _ in descriptor):
         raise Exception("bound array/bytes not allowed in union")
-    if any("repeated" in type._tags for _, type, _ in descriptor):
+    if any(issubclass(type, container.base_array) for _, type, _ in descriptor):
         raise Exception("static array not implemented in union")
     if any(type._OPTIONAL for _, type, _ in descriptor):
         raise Exception("union with optional field disallowed")
@@ -329,11 +277,12 @@ def add_union_attributes(cls, descriptor):
     cls._UNLIMITED = False
     cls._OPTIONAL = False
     cls._ALIGNMENT = max(type._ALIGNMENT for _, type, _ in descriptor)
+    cls._BOUND = None
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
     for name, type, disc in descriptor:
-        if "composite" in type._tags:
+        if issubclass(type, (struct, union)):
             add_union_composite(cls, name, type, disc)
         else:
             add_union_scalar(cls, name, type, disc)
@@ -356,10 +305,7 @@ def add_union_scalar(cls, name, type, disc):
     def getter(self):
         if self._discriminator is not disc:
             raise Exception("currently field %s is discriminated" % self._discriminator)
-        value = self._fields.get(name, type._DEFAULT)
-        if "enum" in type._tags:
-            value = type._int_to_name[value]
-        return value
+        return self._fields.get(name, type._DEFAULT)
     def setter(self, new_value):
         if self._discriminator is not disc:
             raise Exception("currently field %s is discriminated" % self._discriminator)
@@ -382,7 +328,6 @@ def add_union_composite(cls, name, type, disc):
 
 class union(object):
     __slots__ = []
-    _tags = ["composite", "union"]
 
     def __init__(self):
         self._fields = {}
@@ -406,7 +351,7 @@ class union(object):
             raise Exception("unknown discriminator")
         self._discriminator = disc
         name, type, _ = field
-        bytes_read += decode_field(self, name, type, data[bytes_read:], endianess)
+        bytes_read += decode_field(self, name, type, data[bytes_read:], endianess, {})
         if len(data) < self._SIZE:
             raise Exception("not enough bytes")
         if terminal and len(data) > self._SIZE:
@@ -424,7 +369,7 @@ class union(object):
         self._fields = {}
         name, type, _ = next(ifilter(lambda x: x[2] == disc, self._descriptor))
         value = getattr(self, name)
-        if "composite" in type._tags:
+        if issubclass(type, (struct, union)):
             getattr(self, name).copy_from(getattr(other, name))
         else:
             setattr(self, name, getattr(other, name))
