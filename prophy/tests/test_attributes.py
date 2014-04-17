@@ -304,7 +304,7 @@ def test_struct_unlimited_attributes():
     assert 1 == S3._ALIGNMENT
 
 def test_struct_padded():
-    class S(prophy.struct_padded):
+    class S(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u32),
@@ -314,7 +314,7 @@ def test_struct_padded():
     assert 16 == S._SIZE
     assert [3, 0, 0] == [padding for _, _, padding in S._descriptor]
 
-    class S2(prophy.struct_padded):
+    class S2(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u32),
                        ("b", S)]
@@ -323,7 +323,7 @@ def test_struct_padded():
     assert 24 == S2._SIZE
     assert [4, 0] == [padding for _, _, padding in S2._descriptor]
 
-    class S3(prophy.struct_padded):
+    class S3(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u32),
                        ("b", prophy.u8)]
@@ -332,7 +332,7 @@ def test_struct_padded():
     assert 8 == S3._SIZE
     assert [0, 3] == [padding for _, _, padding in S3._descriptor]
 
-    class S4(prophy.struct_padded):
+    class S4(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.array(prophy.u8, size = 7)),
                        ("b", prophy.u32)]
@@ -347,7 +347,7 @@ def test_struct_padded():
                        ("b", prophy.u16, 1),
                        ("c", prophy.u32, 2)]
 
-    class S5(prophy.struct_padded):
+    class S5(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8),
                        ("b", U),

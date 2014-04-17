@@ -3,7 +3,7 @@ import pytest
 
 def test_exception_with_dynamic_fields():
     with pytest.raises(Exception) as e:
-        class X(prophy.struct_padded):
+        class X(prophy.struct):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x_len", prophy.u32),
                            ("x", prophy.array(prophy.u8, bound = "x_len")),
@@ -12,13 +12,13 @@ def test_exception_with_dynamic_fields():
 
 def test_exception_with_access_to_nonexistent_field():
     with pytest.raises(AttributeError) as e:
-        class X(prophy.struct_padded):
+        class X(prophy.struct):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a", prophy.u32)]
         X().im_not_there
 
 def test_encoding_with_scalars():
-    class S(prophy.struct_padded):
+    class S(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u16),
@@ -38,12 +38,12 @@ def test_encoding_with_scalars():
 
 def test_encoding_with_inner_struct():
 
-    class A(prophy.struct_padded):
+    class A(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u16),
                        ("b", prophy.u8)]
 
-    class B(prophy.struct_padded):
+    class B(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", A),
                        ("b", prophy.u64)]
@@ -61,7 +61,7 @@ def test_encoding_with_inner_struct():
     assert 0xc == x.b
 
 def test_encoding_with_arrays():
-    class A(prophy.struct_padded):
+    class A(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.array(prophy.u8, size = 3)),
                        ("b_len", prophy.u16),

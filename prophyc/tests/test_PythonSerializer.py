@@ -64,7 +64,7 @@ def test_struct_rendering():
                                      (model.StructMember("d", "TTypeX", None, None, None, False))])]
 
     ref = """\
-class Struct(prophy.struct_padded):
+class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('a', prophy.u8),
                    ('b', prophy.i64),
@@ -78,7 +78,7 @@ def test_struct_rendering_with_dynamic_array():
                                      model.StructMember("a", "u8", True, "tmpName", None, False)])]
 
     ref = """\
-class Struct(prophy.struct_padded):
+class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('tmpName', TNumberOfItems),
                    ('a', prophy.array(prophy.u8, bound = 'tmpName'))]
@@ -89,7 +89,7 @@ def test_struct_rendering_with_static_array():
     nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS", False)])]
 
     ref = """\
-class Struct(prophy.struct_padded):
+class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('a', prophy.array(prophy.u8, size = NUM_OF_ARRAY_ELEMS))]
 """
@@ -100,7 +100,7 @@ def test_struct_rendering_with_limited_array():
                                      model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS", False)])]
 
     ref = """\
-class Struct(prophy.struct_padded):
+class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('a_len', prophy.u8),
                    ('a', prophy.array(prophy.u8, bound = 'a_len', size = NUM_OF_ARRAY_ELEMS))]
@@ -111,7 +111,7 @@ def test_struct_rendering_with_optional():
     nodes = [model.Struct("Struct", [model.StructMember("a", "u32", False, None, None, True)])]
 
     ref = """\
-class Struct(prophy.struct_padded):
+class Struct(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('a', prophy.optional(prophy.u32))]
 """
@@ -209,7 +209,7 @@ elem_31 = val_31
 elem_61 = val_61
 elem_91 = val_91
 
-class MAC_L2CallConfigResp(prophy.struct_padded):
+class MAC_L2CallConfigResp(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('messageResult', SMessageResult)]
 """

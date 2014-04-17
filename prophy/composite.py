@@ -213,7 +213,7 @@ def decode_field(parent, name, type, data, endianess):
             setattr(parent, name, value)
         return size
 
-class struct_packed(object):
+class struct(object):
     __slots__ = []
     _tags = ["composite"]
 
@@ -295,7 +295,7 @@ class struct_packed(object):
             else:
                 fields[name] = value
 
-class struct_padded(struct_packed):
+class struct_packed(struct):
     __slots__ = []
 
 class struct_generator(type):
@@ -308,7 +308,7 @@ class struct_generator(type):
             descriptor = cls._descriptor
             validate(descriptor)
             add_attributes(cls, descriptor)
-            add_padding(cls, descriptor) if issubclass(cls, struct_padded) else add_null_padding(descriptor)
+            add_null_padding(descriptor) if issubclass(cls, struct_packed) else add_padding(cls, descriptor)
             add_properties(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 
