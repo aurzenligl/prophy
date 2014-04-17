@@ -18,26 +18,26 @@ class EMsgType(prophy.enum):
                     ("EMsgType_TraceStop", 0x1300),
                     ("EMsgType_TraceFailure", 0x1A00)]
 
-class Version(prophy.struct):
+class Version(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("eNodeBVersion", prophy.u8),
                    ("eNodeBSubversion", prophy.u8),
                    ("threeGPPVersion", prophy.u8),
                    ("vendorVersion", prophy.u8)]
 
-class MsgInfo(prophy.struct):
+class MsgInfo(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("msgType", EMsgType),
                    ("udpSeqNumber", prophy.u16),
                    ("udpOffset", prophy.u16),
                    ("reserved", prophy.u32)]
 
-class TraceReportHeader(prophy.struct):
+class TraceReportHeader(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("traceReference", prophy.bytes(size = 6)),
                    ("seqNum", prophy.u32)]
 
-class MsgReportHeader(prophy.struct):
+class MsgReportHeader(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("synchId", prophy.u32),
                    ("length", prophy.u32),
@@ -46,12 +46,12 @@ class MsgReportHeader(prophy.struct):
                    ("eNodeBId", TENodeBId),
                    ("msgInfo", MsgInfo)]
 
-class SUtcTime(prophy.struct):
+class SUtcTime(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("seconds", TTimeUnit),
                    ("microseconds", TTimeUnit)]
 
-class Type(prophy.struct):
+class Type(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("traceType", ETraceType8),
                    ("linkItfName", TLinkItfName),
@@ -59,18 +59,18 @@ class Type(prophy.struct):
                    ("protFormat", ETraceProtocolFormat8),
                    ("protMsgType", prophy.u16)]
 
-class Value(prophy.struct):
+class Value(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("cellIdentity", TEci),
                    ("ueId", TUeS1X2Id)]
 
-class TraceObject(prophy.struct):
+class TraceObject(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("type", Type),
                    ("value", Value),
                    ("crnti", TCrnti)]
 
-class TraceMsg(prophy.struct):
+class TraceMsg(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("sizeofTraceMsg", prophy.u32),
                    ("timeStamp", SUtcTime),
@@ -78,7 +78,7 @@ class TraceMsg(prophy.struct):
                    ("traceObject", TraceObject),
                    ("traceData", prophy.bytes(bound = "sizeofTraceMsg", shift = 32))]
 
-class LOM_TracingExtReportInd(prophy.struct):
+class LOM_TracingExtReportInd(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("header", MsgReportHeader),
                    ("reportHeader", TraceReportHeader),

@@ -176,7 +176,7 @@ def test_union_decode_according_to_largest_field():
     assert 0x123456789ABCDEF1 == x.d
 
 def test_union_with_struct():
-    class S(prophy.struct):
+    class S(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u32),
                        ("b", prophy.u32)]
@@ -269,7 +269,7 @@ def test_struct_with_union():
         _descriptor = [("a", prophy.u32, 0),
                        ("b", prophy.u8, 1),
                        ("c", prophy.u8, 2)]
-    class StructWithU(prophy.struct):
+    class StructWithU(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8),
                        ("b", UVarLen),
@@ -306,7 +306,7 @@ def test_array_with_union():
         _descriptor = [("a", prophy.u16, 0),
                        ("b", prophy.u8, 1),
                        ("c", prophy.u8, 2)]
-    class StructWithU(prophy.struct):
+    class StructWithU(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(UVarLen, bound = "a_len"))]
@@ -338,7 +338,7 @@ a {
 """ == str(x)
 
 def test_union_with_plain_struct():
-    class S(prophy.struct):
+    class S(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u8)]
@@ -367,13 +367,13 @@ b {
 """ == str(x)
 
 def test_union_with_struct_with_array_and_bytes():
-    class S(prophy.struct):
+    class S(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8)]
-    class SBytesSized(prophy.struct):
+    class SBytesSized(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.bytes(size = 3))]
-    class SArraySized(prophy.struct):
+    class SArraySized(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.array(S, size = 3))]
     class U(prophy.union):
@@ -414,10 +414,10 @@ b {
 """ == str(x)
 
 def test_union_with_nested_struct_and_union():
-    class SInner(prophy.struct):
+    class SInner(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8)]
-    class S(prophy.struct):
+    class S(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", SInner)]
     class UInner(prophy.union):
@@ -513,10 +513,10 @@ def test_union_exceptions_with_dynamic_arrays_and_bytes():
 
 def test_union_exceptions_with_nested_limited_greedy_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
-        class S2(prophy.struct):
+        class S2(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a", prophy.array(prophy.u32))]
-        class S(prophy.struct):
+        class S(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a", S2)]
         class U(prophy.union):

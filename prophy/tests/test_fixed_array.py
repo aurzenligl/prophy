@@ -1,13 +1,13 @@
 import prophy
 import pytest
 
-class X(prophy.struct):
+class X(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("x", prophy.u32)]
 
 class TestFixedScalarArray():
 
-    class Array(prophy.struct):
+    class Array(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.array(prophy.u32, size = 2))]
 
@@ -59,11 +59,11 @@ class TestFixedScalarArray():
         assert x.value[:] == [1, 2]
 
     def test_exception(self):
-        class D(prophy.struct):
+        class D(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a_len", prophy.u8),
                            ("a", prophy.array(prophy.u8, bound = "a_len"))]
-        class U(prophy.struct):
+        class U(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a", prophy.array(prophy.u8))]
 
@@ -85,7 +85,7 @@ class TestFixedScalarArray():
 
 class TestFixedCompositeArray():
 
-    class Array(prophy.struct):
+    class Array(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.array(X, size = 2))]
 
@@ -132,7 +132,7 @@ class TestFixedCompositeArray():
         assert x.value[1].x == 2
 
 def test_static_array_decode_exception():
-    class A(prophy.struct):
+    class A(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(prophy.u8, bound = "a_len", size = 3))]

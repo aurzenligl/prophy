@@ -12,17 +12,17 @@ TSize = prophy.u32
 TTraceProtocolMsgType = prophy.u32
 TTracedProtocols = prophy.u32
 
-class STransportLayerAddress(prophy.struct):
+class STransportLayerAddress(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("addressLength", TTraceHandle),
                    ("address", prophy.bytes(size = 16, bound = "addressLength"))]
 
-class SUdpAddress(prophy.struct):
+class SUdpAddress(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("ipAddress", STransportLayerAddress),
                    ("port", TTracePort)]
 
-class STraceMsgs(prophy.struct):
+class STraceMsgs(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("ueS1State", ESTraceMsgsState),
                    ("ueS1Length", TSize),
@@ -44,7 +44,7 @@ class STraceMsgs(prophy.struct):
                    ("nonUeRrcMsgs", prophy.array(TTraceProtocolMsgType, size = 10, bound = "nonUeRrcLength")),
                    ("vendorProtocols", TTracedProtocols)]
 
-class LOM_TracingCtrlStartProviderReq(prophy.struct):
+class LOM_TracingCtrlStartProviderReq(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("handle", TTraceHandle),
                    ("eutranTraceId", prophy.bytes(size = 8)),

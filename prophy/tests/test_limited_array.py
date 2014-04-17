@@ -3,7 +3,7 @@ import pytest
 
 class TestLimitedScalarArray():
 
-    class Array(prophy.struct):
+    class Array(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("len", prophy.u32),
                        ("value", prophy.array(prophy.u32, size = 3, bound = "len"))]
@@ -70,12 +70,12 @@ class TestLimitedScalarArray():
             a.decode("\x00\x00\x00\x00", ">")
 
 
-class Composite(prophy.struct):
+class Composite(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("x", prophy.u32),
                    ("y", prophy.u32)]
 
-class Array(prophy.struct):
+class Array(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("len", prophy.u32),
                    ("value", prophy.array(Composite, size = 3, bound = "len"))]
@@ -229,7 +229,7 @@ def test_static_array_with_enum():
         _enumerators = [("E_1", 1),
                         ("E_2", 2),
                         ("E_3", 3)]
-    class A(prophy.struct):
+    class A(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.array(E, size = 3))]
 
@@ -243,7 +243,7 @@ def test_limited_array_with_enum():
         _enumerators = [("E_1", 1),
                         ("E_2", 2),
                         ("E_3", 3)]
-    class A(prophy.struct):
+    class A(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a_len", prophy.u32),
                        ("a", prophy.array(E, size = 3, bound = "a_len"))]
@@ -262,10 +262,10 @@ def test_limited_array_with_enum():
     assert ["E_3", "E_1"] == x.a[:]
 
 def test_limited_array_with_field_afterwards():
-    class S(prophy.struct):
+    class S(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8)]
-    class A(prophy.struct):
+    class A(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(S, size = 3, bound = "a_len")),

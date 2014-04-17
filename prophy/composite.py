@@ -213,7 +213,7 @@ def decode_field(parent, name, type, data, endianess):
             setattr(parent, name, value)
         return size
 
-class struct(object):
+class struct_packed(object):
     __slots__ = []
     _tags = ["composite"]
 
@@ -295,7 +295,7 @@ class struct(object):
             else:
                 fields[name] = value
 
-class struct_padded(struct):
+class struct_padded(struct_packed):
     __slots__ = []
 
 class struct_generator(type):

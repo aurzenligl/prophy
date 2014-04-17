@@ -9,13 +9,13 @@ TLomSessionId = prophy.u32
 TNumberOfItems = prophy.u32
 TDataCount = prophy.u32
 
-class SBrowserObjectInfo(prophy.struct):
+class SBrowserObjectInfo(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("objectName", EBrowserObjectName),
                    ("objectId", TBrowserObjectId),
                    ("objectHandle", TLomHandle)]
 
-class LteBrowserObjectsResp(prophy.struct):
+class LteBrowserObjectsResp(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("status", EBrowserStatus),
                    ("contextId", TBrowserContextId),
