@@ -171,6 +171,12 @@ class fixed_composite_array(base_array):
     def encode(self, endianness):
         return "".join(value.encode(endianness) for value in self)
 
+    def decode(self, data, endianness, _):
+        cursor = 0
+        for elem in self:
+            cursor += elem.decode(data[cursor:], endianness, terminal = False)
+        return cursor
+
 class bound_composite_array(base_array):
 
     __slots__ = []
@@ -217,6 +223,19 @@ class bound_composite_array(base_array):
     def encode(self, endianness):
         return "".join(value.encode(endianness) for value in self).ljust(self._SIZE, "\x00")
 
+    def decode(self, data, endianness, len_hint):
+        if self._SIZE > len(data):
+            raise Exception("too few bytes to decode array")
+        del self[:]
+        cursor = 0
+        if not self._SIZE and not self._BOUND:
+            while cursor < len(data):
+                cursor += self.add().decode(data[cursor:], endianness, terminal = False)
+        else:
+            for _ in xrange(len_hint):
+                cursor += self.add().decode(data[cursor:], endianness, terminal = False)
+        return max(cursor, self._SIZE)
+
 def array(type, **kwargs):
     size = kwargs.pop("size", 0)
     bound = kwargs.pop("bound", None)
@@ -256,24 +275,5 @@ def array(type, **kwargs):
         _ALIGNMENT = type._ALIGNMENT
         _BOUND = bound
         _BOUND_SHIFT = shift
-
-        if is_composite:
-            def decode(self, data, endianness, len_hint):
-
-                    if self._SIZE > len(data):
-                        raise Exception("too few bytes to decode array")
-                    if len_hint is not None:
-                        del self[:]
-                        self.extend([self._TYPE() for _ in xrange(len_hint)])
-
-                    decoded = 0
-                    if not size and not bound:
-                        del self[:]
-                        while decoded < len(data):
-                            decoded += self.add().decode(data[decoded:], endianness, terminal = False)
-                    else:
-                        for elem in self:
-                            decoded += elem.decode(data[decoded:], endianness, terminal = False)
-                    return max(decoded, self._SIZE)
 
     return _array
