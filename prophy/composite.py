@@ -163,7 +163,6 @@ def decode_field(parent, name, type, data, endianess, len_hints):
 
 class struct(object):
     __slots__ = []
-    _tags = ["composite"]
 
     def __init__(self):
         self._fields = {}
@@ -329,7 +328,6 @@ def add_union_composite(cls, name, type, disc):
 
 class union(object):
     __slots__ = []
-    _tags = ["composite", "union"]
 
     def __init__(self):
         self._fields = {}

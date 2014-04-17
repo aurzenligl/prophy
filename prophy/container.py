@@ -2,7 +2,6 @@ import composite
 
 class base_array(object):
     __slots__ = ['_values']
-    _tags = ["repeated"]
 
     def __init__(self):
         self._values = []
@@ -206,8 +205,6 @@ def array(type, **kwargs):
 
     is_composite = issubclass(type, (composite.struct, composite.union))
 
-    tags = []
-
     if size and bound:
         base = bound_composite_array if is_composite else bound_scalar_array
     elif size and not bound:
@@ -216,12 +213,10 @@ def array(type, **kwargs):
     elif not size and bound:
         base = bound_composite_array if is_composite else bound_scalar_array
     elif not size and not bound:
-        tags += ["greedy"]
         base = bound_composite_array if is_composite else bound_scalar_array
 
     class _array(base):
         __slots__ = []
-        _tags = base._tags + tags
         _max_len = size
         _TYPE = type
         _SIZE = size * type._SIZE

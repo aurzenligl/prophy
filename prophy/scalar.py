@@ -24,7 +24,6 @@ def int_decorator(size, id, min, max):
         cls._check = check
         cls._encode = encode
         cls._decode = decode
-        cls._tags = ["scalar", "unsigned_integer"]
         cls._DEFAULT = 0
         cls._SIZE = size
         cls._ALIGNMENT = size
@@ -57,7 +56,6 @@ def float_decorator(size, id):
         cls._check = check
         cls._encode = encode
         cls._decode = decode
-        cls._tags = ["scalar"]
         cls._DEFAULT = 0.0
         cls._SIZE = size
         cls._ALIGNMENT = size
@@ -138,10 +136,10 @@ def enum_generator(name, bases, attrs):
     return type(name, bases, attrs)
 
 class enum(u32):
-    _tags = u32._tags + ["enum"]
+    pass
 
 class enum8(u8, enum):
-    _tags = u8._tags + ["enum"]
+    pass
 
 def bytes(**kwargs):
     size = kwargs.pop("size", 0)
@@ -152,24 +150,11 @@ def bytes(**kwargs):
     if kwargs:
         raise Exception("unknown arguments to bytes field")
 
-    tags = {"scalar", "string"}
-    default = ""
-    if size and bound:
-        tags.add("limited")
-    elif size and not bound:
-        tags.add("static")
-        default = "\x00" * size
-    elif not size and not bound:
-        tags.add("greedy")
-    elif not size and bound:
-        tags.add("bound")
-
     class _bytes(str):
-        _tags = tags
         _SIZE = size
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
-        _DEFAULT = default
+        _DEFAULT = "\x00" * size if size and not bound else ""
         _OPTIONAL = False
         _ALIGNMENT = 1
         _BOUND = bound
