@@ -2,7 +2,7 @@ import prophy
 import pytest
 
 def test_optional_scalar():
-    class O(prophy.struct):
+    class O(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.optional(prophy.u32))]
 
@@ -32,10 +32,10 @@ a: 10
     assert None == x.a
 
 def test_optional_struct():
-    class S(prophy.struct):
+    class S(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u32)]
-    class O(prophy.struct):
+    class O(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.optional(S))]
 
@@ -79,7 +79,7 @@ def test_optional_union():
     class U(prophy.union):
         __metaclass__ = prophy.union_generator
         _descriptor = [("a", prophy.u32, 5)]
-    class O(prophy.struct):
+    class O(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.optional(U))]
 
@@ -103,14 +103,14 @@ def test_optional_union():
     assert None == x.a
 
 def test_optional_struct_in_array():
-    class A(prophy.struct):
+    class A(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [('a', prophy.u32),
                        ('b', prophy.u32)]
-    class B(prophy.struct):
+    class B(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [('a', prophy.optional(A))]
-    class C(prophy.struct):
+    class C(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [('a_len', prophy.u32),
                        ('a', prophy.array(B, bound = 'a_len'))]
@@ -147,7 +147,7 @@ def test_optional_array():
     assert "optional array not implemented" == e.value.message
 
     with pytest.raises(Exception) as e:
-        class S(prophy.struct):
+        class S(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a_len", prophy.optional(prophy.u32)),
                            ("a", prophy.array(prophy.u32, bound = "a_len"))]

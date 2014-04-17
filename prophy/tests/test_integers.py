@@ -3,7 +3,7 @@ import pytest
 
 class TestI8():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.i8)]
 
@@ -50,7 +50,7 @@ class TestI8():
 
 class TestI16():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.i16)]
 
@@ -97,7 +97,7 @@ class TestI16():
 
 class TestI32():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.i32)]
 
@@ -144,7 +144,7 @@ class TestI32():
 
 class TestI64():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.i64)]
 
@@ -191,7 +191,7 @@ class TestI64():
 
 class TestU8():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.u8)]
 
@@ -233,7 +233,7 @@ class TestU8():
 
 class TestU16():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.u16)]
 
@@ -275,7 +275,7 @@ class TestU16():
 
 class TestU32():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.u32)]
 
@@ -317,7 +317,7 @@ class TestU32():
 
 class TestU64():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.u64)]
 

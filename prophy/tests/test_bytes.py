@@ -3,7 +3,7 @@ import pytest
 
 class TestFixedBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.bytes(size = 5))]
 
@@ -59,7 +59,7 @@ class TestFixedBytes():
 
 class TestTwoFixedBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", prophy.bytes(size = 5)),
                        ("y", prophy.bytes(size = 5))]
@@ -80,7 +80,7 @@ class TestTwoFixedBytes():
 
 class TestBoundBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.bytes(bound = "value_len"))]
@@ -130,7 +130,7 @@ class TestBoundBytes():
 
 class TestShiftBoundBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value_len", prophy.u8),
                        ("value", prophy.bytes(bound = "value_len", shift = 2))]
@@ -161,19 +161,19 @@ class TestShiftBoundBytes():
 
     def test_exceptions(self):
         with pytest.raises(Exception) as e:
-            class Bytes(prophy.struct):
+            class Bytes(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("value_len", prophy.u8),
                                ("value", prophy.bytes(shift = 2))]
         assert e.value.message == "only shifting bound bytes implemented"
         with pytest.raises(Exception) as e:
-            class Bytes(prophy.struct):
+            class Bytes(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("value_len", prophy.u8),
                                ("value", prophy.bytes(size = 1, shift = 2))]
         assert e.value.message == "only shifting bound bytes implemented"
         with pytest.raises(Exception) as e:
-            class Bytes(prophy.struct):
+            class Bytes(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("value_len", prophy.u8),
                                ("value", prophy.bytes(bound = "value_len", size = 1, shift = 2))]
@@ -181,7 +181,7 @@ class TestShiftBoundBytes():
 
 class TestTwoBoundBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x_len", prophy.u32),
                        ("y_len", prophy.u32),
@@ -204,7 +204,7 @@ class TestTwoBoundBytes():
 
 class TestLimitedBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.bytes(size = 5, bound = "value_len"))]
@@ -256,7 +256,7 @@ class TestLimitedBytes():
 
 class TestTwoLimitedBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x_len", prophy.u32),
                        ("y_len", prophy.u32),
@@ -279,7 +279,7 @@ class TestTwoLimitedBytes():
 
 class TestGreedyBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.bytes())]
 
@@ -328,7 +328,7 @@ class TestGreedyBytes():
 
 class TestLastGreedyBytes():
 
-    class Bytes(prophy.struct):
+    class Bytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", prophy.u32),
                        ("y", prophy.bytes())]
@@ -349,60 +349,60 @@ class TestLastGreedyBytes():
 
 def test_greedy_bytes_not_last_exceptions():
     with pytest.raises(Exception):
-        class LastGreedyBytes(prophy.struct):
+        class LastGreedyBytes(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.bytes()),
                            ("y", prophy.u32)]
     with pytest.raises(Exception):
-        class X(prophy.struct):
+        class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
                            ("y", prophy.bytes())]
-        class Y(prophy.struct):
+        class Y(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", X),
                            ("y", prophy.u32)]
     with pytest.raises(Exception):
-        class X(prophy.struct):
+        class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
                            ("y", prophy.bytes())]
-        class Y(prophy.struct):
+        class Y(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
                            ("y", prophy.array(X, size = 2))]
     with pytest.raises(Exception):
-        class X(prophy.struct):
+        class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
                            ("y", prophy.bytes())]
-        class Y(prophy.struct):
+        class Y(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
                            ("y", X)]
-        class Z(prophy.struct):
+        class Z(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", Y),
                            ("y", X)]
 
 def test_array_of_bytes_exceptions():
     with pytest.raises(Exception):
-        class Bytes(prophy.struct):
+        class Bytes(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("value", prophy.array(prophy.bytes(size = 5), size = 5))]
     with pytest.raises(Exception):
-        class Bytes(prophy.struct):
+        class Bytes(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("value_len", prophy.u32),
                            ("value", prophy.array(prophy.bytes(size = 5), bound = "value_len"))]
 
 def test_greedy_bytes_in_array_exceptions():
     with pytest.raises(Exception):
-        class X(prophy.struct):
+        class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.array(prophy.bytes(size = 2), size = 2))]
     with pytest.raises(Exception):
-        class X(prophy.struct):
+        class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("z", prophy.u32),
                            ("y", prophy.u32),

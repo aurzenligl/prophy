@@ -13,7 +13,7 @@ class Enumeration8(prophy.enum8):
 
 class TestEnum():
 
-    class Enum(prophy.struct):
+    class Enum(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", Enumeration)]
 
@@ -78,7 +78,7 @@ class TestEnum():
 
 class TestEnum8():
 
-    class Enum(prophy.struct):
+    class Enum(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", Enumeration8)]
 
@@ -149,7 +149,7 @@ class TestEnum8():
 
 class TestEnumFixedArray():
 
-    class Enum(prophy.struct):
+    class Enum(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.array(Enumeration, size = 2))]
 
@@ -186,7 +186,7 @@ class TestEnumFixedArray():
 
 class TestEnumBoundArray():
 
-    class Enum(prophy.struct):
+    class Enum(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.array(Enumeration, bound = "value_len"))]
@@ -223,7 +223,7 @@ def test_enum_with_0xFFFFFFFF_value():
     class Enum(prophy.enum):
         __metaclass__ = prophy.enum_generator
         _enumerators = [('Enum_Infinity', 0xFFFFFFFF)]
-    class Enclosing(prophy.struct):
+    class Enclosing(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", Enum)]
 

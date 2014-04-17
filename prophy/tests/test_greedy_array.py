@@ -1,12 +1,12 @@
 import prophy
 import pytest
 
-class Composite(prophy.struct):
+class Composite(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("x", prophy.u16),
                    ("y", prophy.i16)]
 
-class ComplexComposite(prophy.struct):
+class ComplexComposite(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("y_len", prophy.u32),
                    ("x", Composite),
@@ -14,7 +14,7 @@ class ComplexComposite(prophy.struct):
 
 class TestGreedyScalarArray():
 
-    class Array(prophy.struct):
+    class Array(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", prophy.array(prophy.u32))]
 
@@ -71,7 +71,7 @@ class TestGreedyScalarArray():
 
 class TestGreedyCompositeArray():
 
-    class Array(prophy.struct):
+    class Array(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", prophy.array(Composite))]
 
@@ -161,7 +161,7 @@ class TestGreedyCompositeArray():
 
 class TestGreedyComplexCompositeArray():
 
-    class Array(prophy.struct):
+    class Array(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", prophy.array(ComplexComposite))]
 
@@ -297,17 +297,17 @@ class TestGreedyComplexCompositeArray():
 
 def test_exceptions():
     with pytest.raises(Exception) as e:
-        class NotLast(prophy.struct):
+        class NotLast(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("y", prophy.array(prophy.u32)),
                            ("x", prophy.u32)]
     assert "unlimited field is not the last one" == e.value.message
 
     with pytest.raises(Exception) as e:
-        class GreedyComposite(prophy.struct):
+        class GreedyComposite(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.array(prophy.u32))]
-        class GreedyArrayOfGreedyComposites(prophy.struct):
+        class GreedyArrayOfGreedyComposites(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.array(GreedyComposite))]
     assert "array with unlimited field disallowed" == e.value.message

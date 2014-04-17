@@ -1,7 +1,7 @@
 import prophy
 import pytest
 
-class X(prophy.struct):
+class X(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("x", prophy.u32),
                    ("y", prophy.u32)]
@@ -54,7 +54,7 @@ class TestStruct():
         assert x.x == 1
         assert x.y == 2
 
-class Y(prophy.struct):
+class Y(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("a", X),
                    ("b", X)]
@@ -125,7 +125,7 @@ class TestNestedStruct():
         assert y.b.x == 3
         assert y.b.y == 4
 
-class Z(prophy.struct):
+class Z(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("m", Y),
                    ("n", X),

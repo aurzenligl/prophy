@@ -3,7 +3,7 @@ import pytest
 
 class Testr32():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.r32)]
 
@@ -48,7 +48,7 @@ class Testr32():
 
 class Testr64():
 
-    class X(prophy.struct):
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.r64)]
 

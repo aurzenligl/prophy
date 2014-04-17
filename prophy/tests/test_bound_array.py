@@ -1,12 +1,12 @@
 import prophy
 import pytest
 
-class X(prophy.struct):
+class X(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("len", prophy.u32),
                    ("value", prophy.array(prophy.u32, bound = "len"))]
 
-class Y(prophy.struct):
+class Y(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("len", prophy.u32),
                    ("value", prophy.array(X, bound = "len"))]
@@ -64,23 +64,23 @@ class TestBoundScalarArray():
 
     def test_exceptions(self):
         with pytest.raises(Exception):
-            class LengthFieldNonexistent(prophy.struct):
+            class LengthFieldNonexistent(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("a", prophy.array(prophy.i32, bound = "nonexistent"))]
         with pytest.raises(Exception):
-            class LengthFieldAfter(prophy.struct):
+            class LengthFieldAfter(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("a", prophy.array(prophy.i32, bound = "after")),
                                ("after", prophy.i32)]
         with pytest.raises(Exception):
-            class LengthFieldIsNotAnInteger(prophy.struct):
+            class LengthFieldIsNotAnInteger(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("not_an_int", A),
                                ("a", prophy.array(prophy.i32, bound = "not_an_int"))]
 
 class TestShiftBoundScalarArray():
 
-    class Array(prophy.struct):
+    class Array(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("len", prophy.u8),
                        ("value", prophy.array(prophy.u8, bound = "len", shift = 2))]
@@ -107,19 +107,19 @@ class TestShiftBoundScalarArray():
 
     def test_exceptions(self):
         with pytest.raises(Exception) as e:
-            class Array(prophy.struct):
+            class Array(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("value_len", prophy.u8),
                                ("value", prophy.array(prophy.u8, shift = 2))]
         assert e.value.message == "only shifting bound array implemented"
         with pytest.raises(Exception) as e:
-            class Array(prophy.struct):
+            class Array(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("value_len", prophy.u8),
                                ("value", prophy.array(prophy.u8, size = 1, shift = 2))]
         assert e.value.message == "only shifting bound array implemented"
         with pytest.raises(Exception) as e:
-            class Array(prophy.struct):
+            class Array(prophy.struct_packed):
                 __metaclass__ = prophy.struct_generator
                 _descriptor = [("value_len", prophy.u8),
                                ("value", prophy.array(prophy.u8, bound = "value_len", size = 1, shift = 2))]

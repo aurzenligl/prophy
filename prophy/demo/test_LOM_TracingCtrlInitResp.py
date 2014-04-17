@@ -9,17 +9,17 @@ TNumberOfItems = prophy.u32
 TTracePort = prophy.u32
 TEci = prophy.u32
 
-class STransportLayerAddress(prophy.struct):
+class STransportLayerAddress(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("addressLength", TTraceHandle),
                    ("address", prophy.bytes(size = 16, bound = "addressLength"))]
 
-class SUdpAddress(prophy.struct):
+class SUdpAddress(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("ipAddress", STransportLayerAddress),
                    ("port", TTracePort)]
 
-class LOM_TracingCtrlInitResp(prophy.struct):
+class LOM_TracingCtrlInitResp(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("handle", TTraceHandle),
                    ("eutranTraceId", prophy.bytes(size = 8)),
