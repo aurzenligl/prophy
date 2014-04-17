@@ -17,25 +17,23 @@ def add_padding(cls, descriptor):
     if any(tp._DYNAMIC for _, tp in descriptor[:-1]):
         raise Exception("only last field can be dynamic in padded struct")
 
-    offset = 0
-    paddings = []
+    class padder(object):
+        def __init__(self):
+            self.offset = 0
+        def __call__(self, size, alignment):
+            self.offset += size
+            padding = (alignment - self.offset % alignment) % alignment
+            self.offset += padding
+            return padding
+
     sizes = [tp._SIZE for _, tp in descriptor]
     alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]] + [cls._ALIGNMENT]
-
-    for size, alignment in zip(sizes, alignments):
-        offset += size
-        padding = (alignment - offset % alignment) % alignment
-        offset += padding
-        paddings.append(padding)
-
-    for i, member in enumerate(descriptor):
-        descriptor[i] = member + (paddings[i],)
-
+    paddings = map(padder(), sizes, alignments)
+    descriptor[:] = [field + (padding,) for field, padding in zip(descriptor, paddings)]
     cls._SIZE += sum(paddings)
 
-def add_null_padding(cls, descriptor):
-    for i, member in enumerate(descriptor):
-        descriptor[i] = member + (0,)
+def add_null_padding(descriptor):
+    descriptor[:] = [field + (0,) for field in descriptor]
 
 def add_properties(cls, descriptor):
     for name, type, _ in descriptor:
@@ -310,10 +308,7 @@ class struct_generator(type):
             descriptor = cls._descriptor
             validate(descriptor)
             add_attributes(cls, descriptor)
-            if issubclass(cls, struct_padded):
-                add_padding(cls, descriptor)
-            else:
-                add_null_padding(cls, descriptor)
+            add_padding(cls, descriptor) if issubclass(cls, struct_padded) else add_null_padding(descriptor)
             add_properties(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 
