@@ -100,10 +100,27 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
         raise Exception("array must not be bound to optional field")
     if "unsigned_integer" not in tp._tags:
         raise Exception("array must be bound to an unsigned integer")
-    class bound_int(tp):
+
+    class container_len(tp):
         _bound = container_name
         _LENGTH_SHIFT = container_tp._LENGTH_SHIFT
-    descriptor[index] = (name, bound_int, padding)
+
+        @staticmethod
+        def _encode(value, endianness):
+            return tp._encode(value + container_tp._LENGTH_SHIFT, endianness)
+
+        @staticmethod
+        def _decode(data, endianness):
+            value, size = tp._decode(data, endianness)
+            array_guard = 65536
+            if value > array_guard:
+                raise Exception("decoded array length over %s" % array_guard)
+            value -= container_tp._LENGTH_SHIFT
+            if value < 0:
+                raise Exception("decoded array length smaller than shift")
+            return value, size
+
+    descriptor[index] = (name, container_len, padding)
     delattr(cls, name)
 
 def indent(lines, spaces):
@@ -187,12 +204,6 @@ def decode_field(parent, name, type, data, endianess):
     else:
         value, size = type._decode(data, endianess)
         if hasattr(type, "_bound"):
-            ARRAY_GUARD = 65536
-            if value > ARRAY_GUARD:
-                raise Exception("decoded array length over %s" % ARRAY_GUARD)
-            if value < type._LENGTH_SHIFT:
-                raise Exception("decoded array length smaller than shift")
-            value -= type._LENGTH_SHIFT
             array_value = getattr(parent, type._bound)
             if isinstance(array_value, str):
                 setattr(parent, type._bound, "\x00" * value)
@@ -234,7 +245,7 @@ class struct(object):
                 out += encode_field(type, value, endianess)
             elif hasattr(type, "_bound"):
                 array_value = getattr(self, type._bound)
-                out += type._encode(len(array_value) + type._LENGTH_SHIFT, endianess)
+                out += type._encode(len(array_value), endianess)
             else:
                 out += encode_field(type, value, endianess)
             out += '\x00' * padding
