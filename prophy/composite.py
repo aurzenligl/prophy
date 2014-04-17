@@ -96,6 +96,7 @@ def add_composite(cls, field_name, field_type):
 def substitute_len_field(cls, descriptor, container_name, container_tp):
     index, field = ifilter(lambda x: x[1][0] is container_tp._LENGTH_FIELD, enumerate(descriptor)).next()
     name, tp, padding = field
+
     if tp._OPTIONAL:
         raise Exception("array must not be bound to optional field")
     if "unsigned_integer" not in tp._tags:
