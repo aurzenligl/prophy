@@ -93,6 +93,7 @@ def add_composite(cls, field_name, field_type):
 def substitute_len_field(cls, descriptor, container_name, container_tp):
     index, field = ifilter(lambda x: x[1][0] is container_tp._LENGTH_FIELD, enumerate(descriptor)).next()
     name, tp, padding = field
+    bound_shift = container_tp._LENGTH_SHIFT
 
     if tp._OPTIONAL:
         raise Exception("array must not be bound to optional field")
@@ -100,12 +101,11 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
         raise Exception("array must be bound to an unsigned integer")
 
     class container_len(tp):
-        _bound = container_name
-        _LENGTH_SHIFT = container_tp._LENGTH_SHIFT
+        _BOUND = container_name
 
         @staticmethod
         def _encode(value, endianness):
-            return tp._encode(value + container_tp._LENGTH_SHIFT, endianness)
+            return tp._encode(value + bound_shift, endianness)
 
         @staticmethod
         def _decode(data, endianness):
@@ -113,7 +113,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
             array_guard = 65536
             if value > array_guard:
                 raise Exception("decoded array length over %s" % array_guard)
-            value -= container_tp._LENGTH_SHIFT
+            value -= bound_shift
             if value < 0:
                 raise Exception("decoded array length smaller than shift")
             return value, size
@@ -153,8 +153,8 @@ def decode_field(parent, name, type, data, endianess, len_hints):
         return size
     else:
         value, size = type._decode(data, endianess)
-        if hasattr(type, "_bound"):
-            len_hints[type._bound] = value
+        if hasattr(type, "_BOUND"):
+            len_hints[type._BOUND] = value
         else:
             setattr(parent, name, value)
         return size
@@ -184,8 +184,8 @@ class struct(object):
             elif type._OPTIONAL:
                 out += type._optional_type._encode(True, endianess)
                 out += encode_field(type, value, endianess)
-            elif hasattr(type, "_bound"):
-                array_value = getattr(self, type._bound)
+            elif hasattr(type, "_BOUND"):
+                array_value = getattr(self, type._BOUND)
                 out += type._encode(len(array_value), endianess)
             else:
                 out += encode_field(type, value, endianess)
