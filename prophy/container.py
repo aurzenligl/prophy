@@ -1,5 +1,17 @@
 import composite
 
+def decode_scalar_array(tp, data, endianness, count):
+    if count is None:
+        items, remainder = divmod(len(data), tp._SIZE)
+        count = items + bool(remainder)
+    cursor = 0
+    values = []
+    for _ in xrange(count):
+        value, size = tp._decode(data[cursor:], endianness)
+        cursor += size
+        values.append(value)
+    return values, cursor
+
 class base_array(object):
     __slots__ = ['_values']
 
@@ -59,6 +71,10 @@ class fixed_scalar_array(base_array):
 
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self)
+
+    def decode(self, data, endianness, _):
+        self[:], size = decode_scalar_array(self._TYPE, data, endianness, len(self))
+        return size
 
 class bound_scalar_array(base_array):
 
@@ -126,6 +142,12 @@ class bound_scalar_array(base_array):
 
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
+
+    def decode(self, data, endianness, len_hint):
+        if self._SIZE > len(data):
+            raise Exception("too few bytes to decode array")
+        self[:], size = decode_scalar_array(self._TYPE, data, endianness, len_hint)
+        return max(size, self._SIZE)
 
 class fixed_composite_array(base_array):
 
@@ -239,41 +261,23 @@ def array(type, **kwargs):
         _BOUND = bound
         _BOUND_SHIFT = shift
 
-        def decode(self, data, endianness, len_hint):
-            if is_composite:
-                if self._SIZE > len(data):
-                    raise Exception("too few bytes to decode array")
-                if len_hint is not None:
-                    del self[:]
-                    self.extend([self._TYPE() for _ in xrange(len_hint)])
+        if is_composite:
+            def decode(self, data, endianness, len_hint):
 
-                decoded = 0
-                if not size and not bound:
-                    del self[:]
-                    while decoded < len(data):
-                        decoded += self.add().decode(data[decoded:], endianness, terminal = False)
-                else:
-                    for elem in self:
-                        decoded += elem.decode(data[decoded:], endianness, terminal = False)
-                return max(decoded, self._SIZE)
-            else:
-                if self._SIZE > len(data):
-                    raise Exception("too few bytes to decode array")
-                if len_hint is not None:
-                    self[:] = [self._TYPE._DEFAULT] * len_hint
+                    if self._SIZE > len(data):
+                        raise Exception("too few bytes to decode array")
+                    if len_hint is not None:
+                        del self[:]
+                        self.extend([self._TYPE() for _ in xrange(len_hint)])
 
-                decoded = 0
-                if not size and not bound:
-                    del self[:]
-                    while decoded < len(data):
-                        elem, elem_size = self._TYPE._decode(data[decoded:], endianness)
-                        self.append(elem)
-                        decoded += elem_size
-                else:
-                    for i in xrange(len(self)):
-                        elem, elem_size = self._TYPE._decode(data[decoded:], endianness)
-                        self[i] = elem
-                        decoded += elem_size
-                return max(decoded, self._SIZE)
+                    decoded = 0
+                    if not size and not bound:
+                        del self[:]
+                        while decoded < len(data):
+                            decoded += self.add().decode(data[decoded:], endianness, terminal = False)
+                    else:
+                        for elem in self:
+                            decoded += elem.decode(data[decoded:], endianness, terminal = False)
+                    return max(decoded, self._SIZE)
 
     return _array

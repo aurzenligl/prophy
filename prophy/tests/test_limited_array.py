@@ -69,7 +69,6 @@ class TestLimitedScalarArray():
         with pytest.raises(Exception):
             a.decode("\x00\x00\x00\x00", ">")
 
-
 class Composite(prophy.struct_packed):
     __metaclass__ = prophy.struct_generator
     _descriptor = [("x", prophy.u32),
