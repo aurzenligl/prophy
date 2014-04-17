@@ -248,7 +248,7 @@ def array(type, **kwargs):
                     self.extend([self._TYPE() for _ in xrange(len_hint)])
 
                 decoded = 0
-                if "greedy" in self._tags:
+                if not size and not bound:
                     del self[:]
                     while decoded < len(data):
                         decoded += self.add().decode(data[decoded:], endianness, terminal = False)
@@ -263,7 +263,7 @@ def array(type, **kwargs):
                     self[:] = [self._TYPE._DEFAULT] * len_hint
 
                 decoded = 0
-                if "greedy" in self._tags:
+                if not size and not bound:
                     del self[:]
                     while decoded < len(data):
                         elem, elem_size = self._TYPE._decode(data[decoded:], endianness)

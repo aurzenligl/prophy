@@ -181,7 +181,7 @@ def bytes(**kwargs):
                 raise Exception("not a str")
             if size and len(value) > size:
                 raise Exception("too long")
-            if "static" in tags:
+            if size and not bound:
                 return value.ljust(size, '\x00')
             return value
 
@@ -193,11 +193,11 @@ def bytes(**kwargs):
         def _decode(data, endianess, len_hint):
             if len(data) < size:
                 raise Exception("too few bytes to decode string")
-            if "static" in tags:
+            if size and not bound:
                 return data[:size], size
-            elif "limited" in tags:
+            elif size and bound:
                 return data[:len_hint], size
-            elif "bound" in tags:
+            elif bound:
                 if len(data) < len_hint:
                     raise Exception("too few bytes to decode string")
                 return data[:len_hint], len_hint
