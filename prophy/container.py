@@ -6,10 +6,7 @@ class base_array(object):
         self._values = []
 
     def __getitem__(self, key):
-        value = self._values[key]
-        if "enum" in self._TYPE._tags:
-            return self._TYPE._int_to_name[value]
-        return value
+        return self._values[key]
 
     def __len__(self):
         return len(self._values)
@@ -39,11 +36,7 @@ class fixed_scalar_array(base_array):
         self._values[key] = value
 
     def __getslice__(self, start, stop):
-        values = self._values[start:stop]
-        if "enum" in self._TYPE._tags:
-            int_to_name = self._TYPE._int_to_name
-            values = [int_to_name[val] for val in values]
-        return values
+        return self._values[start:stop]
 
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) is not len(values):
@@ -101,11 +94,7 @@ class bound_scalar_array(base_array):
         self._values[key] = value
 
     def __getslice__(self, start, stop):
-        values = self._values[start:stop]
-        if "enum" in self._TYPE._tags:
-            int_to_name = self._TYPE._int_to_name
-            values = [int_to_name[val] for val in values]
-        return values
+        return self._values[start:stop]
 
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:

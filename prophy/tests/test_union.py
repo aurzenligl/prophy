@@ -478,7 +478,7 @@ def test_union_with_typedef_and_enum():
 
     x.decode("\x00\x00\x00\x01\x00\x00\x00\x01", ">")
     assert 1 == x.discriminator
-    assert "E_1" == x.b
+    assert 1 == x.b
 
     assert """\
 b: E_1

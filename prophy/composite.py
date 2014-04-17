@@ -61,10 +61,7 @@ def add_scalar(cls, field_name, field_type):
     def getter(self):
         if field_type._OPTIONAL and field_name not in self._fields:
             return None
-        value = self._fields.get(field_name, field_type._DEFAULT)
-        if "enum" in field_type._tags:
-            value = field_type._int_to_name[value]
-        return value
+        return self._fields.get(field_name, field_type._DEFAULT)
     def setter(self, new_value):
         if field_type._OPTIONAL and new_value is None:
             self._fields.pop(field_name, None)
@@ -134,6 +131,8 @@ def field_to_string(name, type, value):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
     elif "string" in type._tags:
         return "%s: %s\n" % (name, repr(value))
+    elif "enum" in type._tags:
+        return "%s: %s\n" % (name, type._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
 
@@ -316,10 +315,7 @@ def add_union_scalar(cls, name, type, disc):
     def getter(self):
         if self._discriminator is not disc:
             raise Exception("currently field %s is discriminated" % self._discriminator)
-        value = self._fields.get(name, type._DEFAULT)
-        if "enum" in type._tags:
-            value = type._int_to_name[value]
-        return value
+        return self._fields.get(name, type._DEFAULT)
     def setter(self, new_value):
         if self._discriminator is not disc:
             raise Exception("currently field %s is discriminated" % self._discriminator)
