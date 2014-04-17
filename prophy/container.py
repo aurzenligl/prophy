@@ -57,6 +57,9 @@ class fixed_scalar_array(base_array):
         # We are presumably comparing against some other sequence type.
         return other == self._values
 
+    def encode(self, endianness):
+        return "".join(self._TYPE._encode(value, endianness) for value in self)
+
 class bound_scalar_array(base_array):
 
     __slots__ = []
@@ -121,6 +124,9 @@ class bound_scalar_array(base_array):
         # We are presumably comparing against some other sequence type.
         return other == self._values
 
+    def encode(self, endianness):
+        return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
+
 class fixed_composite_array(base_array):
 
     __slots__ = []
@@ -139,6 +145,9 @@ class fixed_composite_array(base_array):
             raise TypeError('Can only compare repeated composite fields against '
                             'other repeated composite fields.')
         return self._values == other._values
+
+    def encode(self, endianness):
+        return "".join(value.encode(endianness) for value in self)
 
 class bound_composite_array(base_array):
 
@@ -183,6 +192,9 @@ class bound_composite_array(base_array):
                             'other repeated composite fields.')
         return self._values == other._values
 
+    def encode(self, endianness):
+        return "".join(value.encode(endianness) for value in self).ljust(self._SIZE, "\x00")
+
 def array(type, **kwargs):
     size = kwargs.pop("size", 0)
     bound = kwargs.pop("bound", None)
@@ -226,13 +238,6 @@ def array(type, **kwargs):
         _ALIGNMENT = type._ALIGNMENT
         _BOUND = bound
         _BOUND_SHIFT = shift
-
-        def encode(self, endianness):
-            if issubclass(self._TYPE, (int, float)):
-                data = "".join(self._TYPE._encode(value, endianness) for value in self)
-            else:
-                data = "".join(value.encode(endianness) for value in self)
-            return data.ljust(self._SIZE, "\x00")
 
         def decode(self, data, endianness, len_hint):
             if is_composite:
