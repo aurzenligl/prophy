@@ -208,3 +208,21 @@ class TestBoundCompositeArray():
             x.decode("\x00\x00\x00", ">")
         with pytest.raises(Exception):
             x.decode("\x00\x00\x00\x00\x00", ">")
+
+def test_struct_with_two_dynamic_arrays():
+    class X(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("b_len", prophy.u8),
+                       ("a_len", prophy.u8),
+                       ("a", prophy.array(prophy.u8, bound = "a_len")),
+                       ("b", prophy.array(prophy.u8, bound = "b_len"))]
+
+    x = X()
+
+    x.a[:] = [1, 2, 3]
+    x.b[:] = [6, 7]
+    assert "\x02\x03\x01\x02\x03\x06\x07" == x.encode(">")
+
+    x.decode("\x01\x02\x07\x08\x01", ">")
+    assert [7, 8] == x.a[:]
+    assert [1] == x.b[:]
