@@ -131,6 +131,26 @@ struct X
 
     assert [("X", [("a", "u32", True, None, 4, None)])] == nodes
 
-# struct with array
+def test_enum():
+    hpp = """\
+enum Enum
+{
+    Enum_One = 2,
+    Enum_Two = 2,
+    Enum_Three = 2
+};
+struct X
+{
+    Enum a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("Enum", [("Enum_One", "2"),
+                      ("Enum_Two", "2"),
+                      ("Enum_Three", "2")]),
+            ("X", [("a", "Enum", None, None, None, None)])] == nodes
+
 # struct with enum
 # struct with union
+# struct with multiple structs, enums, unions

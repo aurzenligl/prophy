@@ -25,6 +25,9 @@ builtins = {TypeKind.UCHAR: 'u8',
 def get_struct_name(cursor):
     return cursor.type.spelling.replace('::', '__')
 
+def get_enum_member(cursor):
+    return model.EnumMember(cursor.spelling, "2")
+
 class Builder(object):
     def __init__(self):
         self.known = set()
@@ -49,6 +52,10 @@ class Builder(object):
                 return get_struct_name(decl)
         elif tp.kind is TypeKind.CONSTANTARRAY:
             return self._build_field_type_name(tp.element_type)
+        elif tp.kind is TypeKind.ENUM:
+            decl = tp.get_declaration()
+            self.add_enum(decl)
+            return decl.spelling
         return builtins[tp.kind]
 
     def _build_struct_member(self, cursor):
@@ -57,6 +64,11 @@ class Builder(object):
         array_len = self._get_field_array_len(cursor.type)
         is_array = None if array_len is None else True
         return model.StructMember(name, type_name, is_array, None, array_len, None)
+
+    def add_enum(self, cursor):
+        members = map(get_enum_member, cursor.get_children())
+        node = model.Enum(get_struct_name(cursor), members)
+        self._add_node(node)
 
     def add_struct(self, cursor):
         members = [self._build_struct_member(x)
