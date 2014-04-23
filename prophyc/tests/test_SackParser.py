@@ -172,12 +172,21 @@ struct X
                        ("c", "u32", "2")]),
             ("X", [("a", "Union", None, None, None, None)])] == nodes
 
-# typedef union
-# {
-#   SDccAesaFormat   dccAesa;       /* (not so elegant, but should work ;-)*/
-#   SIcdAesaFormat   icdAesa;
-#   SE164AesaFormat  e164Aesa;
-#   SLocalAesaFormat localAesa;
-# } UAesa;
+def test_typedefed_union():
+    hpp = """\
+#include <stdint.h>
+typedef union
+{
+    uint8_t a;
+} Union;
+struct X
+{
+    Union a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("Union", [("a", "u8", "0")]),
+            ("X", [("a", "Union", None, None, None, None)])] == nodes
 
 # struct with multiple structs, enums, unions
