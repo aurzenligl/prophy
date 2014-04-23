@@ -44,6 +44,7 @@ struct X
     void* n;
     float o;
     double p;
+    bool r;
 };
 """
     nodes = parse(hpp)
@@ -63,7 +64,8 @@ struct X
                    ("m", "i32", None, None, None, None),
                    ("n", "u32", None, None, None, None),
                    ("o", "r32", None, None, None, None),
-                   ("p", "r64", None, None, None, None)])] == nodes
+                   ("p", "r64", None, None, None, None),
+                   ("r", "u32", None, None, None, None)])] == nodes
 
 def test_nested_typedefs():
     hpp = """\

@@ -14,7 +14,8 @@ builtins = {TypeKind.UCHAR: 'u8',
             TypeKind.LONGLONG: 'i64',
             TypeKind.POINTER: 'u32',
             TypeKind.FLOAT: 'r32',
-            TypeKind.DOUBLE: 'r64'}
+            TypeKind.DOUBLE: 'r64',
+            TypeKind.BOOL: 'u32'}
 
 def get_struct_name(cursor):
     return reduce(lambda x, ch: x.replace(ch, '__'), ['<', '>', ',', ' ', '::'], cursor.type.spelling)
