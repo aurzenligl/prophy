@@ -236,3 +236,27 @@ class TestDeeplyNestedStruct():
         assert z.n.y == 6
         assert z.o == 7
 
+def test_empty_struct():
+    class Empty(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = []
+
+    x = Empty()
+
+    assert "" == str(x)
+    assert "" == x.encode(">")
+    assert 0 == x.decode("", ">")
+
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", Empty)]
+
+    x = X()
+
+    assert """\
+a {
+
+}
+""" == str(x)
+    assert "" == x.encode(">")
+    assert 0 == x.decode("", ">")

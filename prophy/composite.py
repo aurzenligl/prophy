@@ -12,7 +12,7 @@ def add_attributes(cls, descriptor):
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
-    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor)
+    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor) if descriptor else 1
     cls._BOUND = None
 
 def add_padding(cls, descriptor):
@@ -29,7 +29,9 @@ def add_padding(cls, descriptor):
             return padding
 
     sizes = [tp._SIZE for _, tp in descriptor]
-    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]] + [cls._ALIGNMENT]
+    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]]
+    if descriptor:
+        alignments.append(cls._ALIGNMENT)
     paddings = map(padder(), sizes, alignments)
     descriptor[:] = [field + (padding,) for field, padding in zip(descriptor, paddings)]
     cls._SIZE += sum(paddings)

@@ -390,6 +390,18 @@ def test_struct_padded():
     assert 16 == S5._SIZE
     assert [3, 0, 3] == [padding for _, _, padding in S5._descriptor]
 
+def test_empty_struct():
+    class E(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = []
+
+    assert 0 == E._SIZE
+    assert False == E._DYNAMIC
+    assert False == E._UNLIMITED
+    assert False == E._OPTIONAL
+    assert 1 == E._ALIGNMENT
+    assert None == E._BOUND
+
 def test_union_attributes():
     class U(prophy.union):
         __metaclass__ = prophy.union_generator
