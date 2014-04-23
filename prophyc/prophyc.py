@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 
 import options
-import IsarParser
-import PythonSerializer
 import sys
 import os
 
@@ -13,11 +11,14 @@ def main():
     opts = options.parse_options()
 
     if opts.isar:
+        import IsarParser
         parser = IsarParser.IsarParser()
     elif opts.sack:
-        sys.exit("Sack header parsing mode not yet implemented")
+        import SackParser
+        parser = SackParser.SackParser()
 
     if opts.python_out:
+        import PythonSerializer
         serializer = PythonSerializer.PythonSerializer(opts.python_out)
     else:
         sys.exit("Missing output directives")

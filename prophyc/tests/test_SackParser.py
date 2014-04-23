@@ -212,5 +212,3 @@ struct Z
             ("Y", [("a", "X", None, None, None, None)]),
             ("Z", [("a", "X", None, None, None, None),
                    ("b", "Y", None, None, None, None)])] == nodes
-
-# struct with multiple structs, enums, unions

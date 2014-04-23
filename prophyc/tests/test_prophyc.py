@@ -83,9 +83,10 @@ def test_outputs_to_correct_directory(tmpdir_cwd):
     assert err == ""
     assert empty_python_output == open(os.path.join("output", "input.py")).read()
 
-def test_sack_not_supported(tmpdir_cwd):
-    open("input.h", "w").write("")
-    ret, out, err = call(["python", prophyc, "--sack", "--python_out", ".", "input.h"])
-    assert ret == 1
+def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
+    open("input.hpp", "w").write("")
+    ret, out, err = call(["python", prophyc, "--sack", "--python_out", ".", "input.hpp"])
+    assert ret == 0
     assert out == ""
-    assert err == "Sack header parsing mode not yet implemented\n"
+    assert err == ""
+    assert empty_python_output == open("input.py").read()
