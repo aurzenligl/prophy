@@ -126,8 +126,6 @@ def enum_generator(name, bases, attrs):
     int_to_name = {value:name for name, value in enumerators}
     if len(name_to_int) < len(enumerators):
         raise Exception("names overlap")
-    if len(int_to_name) < len(enumerators):
-        raise Exception("values overlap")
     map(bases[0]._check, (value for _, value in enumerators))
     attrs["_DEFAULT"] = enumerators[0][1]
     attrs["_name_to_int"] = name_to_int

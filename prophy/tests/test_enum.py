@@ -67,11 +67,6 @@ class TestEnum():
                 _enumerators = [("NamesOverlapping_Overlap", 1),
                                 ("NamesOverlapping_Overlap", 2)]
         with pytest.raises(Exception):
-            class ValuesOverlapping(prophy.enum):
-                __metaclass__ = prophy.enum_generator
-                _enumerators = [("ValuesOverlapping_First", 42),
-                                ("ValuesOverlapping_Second", 42)]
-        with pytest.raises(Exception):
             class ValueOutOfBounds(prophy.enum):
                 __metaclass__ = prophy.enum_generator
                 _enumerators = [("OutOfBounds", 0xFFFFFFFF + 1)]
@@ -135,17 +130,28 @@ class TestEnum8():
         assert "names overlap" == e.value.message
 
         with pytest.raises(Exception) as e:
-            class ValuesOverlapping(prophy.enum8):
-                __metaclass__ = prophy.enum_generator
-                _enumerators = [("ValuesOverlapping_First", 42),
-                                ("ValuesOverlapping_Second", 42)]
-        assert "values overlap" == e.value.message
-
-        with pytest.raises(Exception) as e:
             class ValueOutOfBounds(prophy.enum8):
                 __metaclass__ = prophy.enum_generator
                 _enumerators = [("OutOfBounds", 256)]
         assert "out of bounds" == e.value.message
+
+def test_enum_with_overlapping_values():
+    class ValuesOverlapping(prophy.enum8):
+        __metaclass__ = prophy.enum_generator
+        _enumerators = [("ValuesOverlapping_First", 42),
+                        ("ValuesOverlapping_Second", 42)]
+    class X(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x", ValuesOverlapping)]
+
+    x = X()
+    assert 42 == x.x
+    assert "x: ValuesOverlapping_Second\n" == str(x)
+
+    x.x = "ValuesOverlapping_Second"
+    x.x = "ValuesOverlapping_First"
+    assert 42 == x.x
+    assert "x: ValuesOverlapping_Second\n" == str(x)
 
 class TestEnumFixedArray():
 
