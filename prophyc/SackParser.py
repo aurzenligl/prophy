@@ -1,12 +1,6 @@
 from clang.cindex import Index, CursorKind, TypeKind
 import model
 
-""" tests: """
-""" prepend with typedefed struct """
-""" prepend with namespaced struct """
-""" prepend with enum """
-""" prepend with union """
-
 builtins = {TypeKind.UCHAR: 'u8',
             TypeKind.USHORT: 'u16',
             TypeKind.UINT: 'u32',
