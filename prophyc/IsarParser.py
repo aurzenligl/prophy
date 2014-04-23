@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import xml.etree.ElementTree as ElementTree
 import model
 from itertools import ifilter, islice
