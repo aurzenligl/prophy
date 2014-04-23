@@ -179,6 +179,33 @@ struct X
                       ("Enum_Three", "3")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
+def test_namespaced_enum():
+    hpp = """\
+namespace m
+{
+namespace n
+{
+enum Enum
+{
+    Enum_One = 1,
+    Enum_Two = 2,
+    Enum_Three = 3
+};
+}
+}
+struct X
+{
+    m::n::Enum a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("m__n__Enum", [("Enum_One", "1"),
+                            ("Enum_Two", "2"),
+                            ("Enum_Three", "3")]),
+            ("X", [("a", "m__n__Enum", None, None, None, None)])] == nodes
+
+
 def test_multiple_enums():
     hpp = """\
 typedef enum Enum

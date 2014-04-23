@@ -60,7 +60,7 @@ class Builder(object):
             return self._build_field_type_name(tp.element_type)
         elif tp.kind is TypeKind.ENUM:
             decl = tp.get_declaration()
-            name = decl.type.spelling
+            name = get_struct_name(decl)
             if name not in self.known:
                 self.add_enum(decl)
             return name
