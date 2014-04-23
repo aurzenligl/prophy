@@ -63,7 +63,21 @@ struct X
                    ("m", "i32", None, None, None, None),
                    ("n", "u32", None, None, None, None),
                    ("o", "r32", None, None, None, None),
-                   ("p", "r64", None, None, None, None), ])] == nodes
+                   ("p", "r64", None, None, None, None)])] == nodes
+
+def test_nested_typedefs():
+    hpp = """\
+typedef int my_int;
+typedef my_int i_like_typedefs;
+typedef i_like_typedefs i_really_do;
+struct X
+{
+    i_really_do a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("X", [("a", "i32", None, None, None, None)])] == nodes
 
 # struct typedefed
 # struct with struct (in namespace, typedefed)
