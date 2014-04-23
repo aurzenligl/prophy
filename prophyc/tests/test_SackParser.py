@@ -283,3 +283,21 @@ struct X
 
     assert [("A__int____3__", []),
             ("X", [("a", "A__int____3__", None, None, None, None)])] == nodes
+
+def test_c_struct():
+    hpp = """\
+#ifdef __cplusplus
+extern "C" {
+#endif
+struct X
+{
+    int x;
+};
+typedef struct X X;
+#ifdef __cplusplus
+}
+#endif
+"""
+    nodes = parse(hpp)
+
+    assert [("X", [("x", "i32", None, None, None, None)])] == nodes

@@ -98,6 +98,10 @@ class Builder(object):
 def build_model(tu):
     builder = Builder()
     for cursor in tu.cursor.get_children():
+        if cursor.kind is CursorKind.UNEXPOSED_DECL:
+            for in_cursor in cursor.get_children():
+                if in_cursor.kind is CursorKind.STRUCT_DECL and in_cursor.spelling:
+                    builder.add_struct(in_cursor)
         if cursor.kind is CursorKind.STRUCT_DECL and cursor.spelling:
             builder.add_struct(cursor)
     return builder.nodes
