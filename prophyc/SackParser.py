@@ -7,6 +7,21 @@ import model
 """ prepend with enum """
 """ prepend with union """
 
+builtins = {TypeKind.UCHAR: 'u8',
+            TypeKind.USHORT: 'u16',
+            TypeKind.UINT: 'u32',
+            TypeKind.ULONG: 'u32',
+            TypeKind.ULONGLONG: 'u64',
+            TypeKind.SCHAR: 'i8',
+            TypeKind.CHAR_S: 'i8',
+            TypeKind.SHORT: 'i16',
+            TypeKind.INT: 'i32',
+            TypeKind.LONG: 'i32',
+            TypeKind.LONGLONG: 'i64',
+            TypeKind.POINTER: 'u32',
+            TypeKind.FLOAT: 'r32',
+            TypeKind.DOUBLE: 'r64'}
+
 class Builder(object):
     def __init__(self):
         self.known = set()
@@ -19,13 +34,14 @@ class Builder(object):
     def _get_field_array_len(self, cursor):
         return None
 
-    def _build_field_type_name(self, cursor):
-        # ... add needed enums, structs, unions if not known
-        return 'u32'
+    def _build_field_type_name(self, tp):
+        if tp.kind is TypeKind.TYPEDEF:
+            return self._build_field_type_name(tp.get_declaration().underlying_typedef_type)
+        return builtins[tp.kind]
 
     def _build_struct_member(self, cursor):
         name = cursor.spelling
-        type_name = self._build_field_type_name(cursor)
+        type_name = self._build_field_type_name(cursor.type)
         array_len = self._get_field_array_len(cursor)
         is_array = None if array_len is None else True
         return model.StructMember(name, type_name, is_array, array_len, None, None)
