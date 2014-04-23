@@ -135,9 +135,9 @@ def test_enum():
     hpp = """\
 enum Enum
 {
-    Enum_One = 2,
+    Enum_One = 1,
     Enum_Two = 2,
-    Enum_Three = 2
+    Enum_Three = 3
 };
 struct X
 {
@@ -146,9 +146,9 @@ struct X
 """
     nodes = parse(hpp)
 
-    assert [("Enum", [("Enum_One", "2"),
+    assert [("Enum", [("Enum_One", "1"),
                       ("Enum_Two", "2"),
-                      ("Enum_Three", "2")]),
+                      ("Enum_Three", "3")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
 # struct with enum

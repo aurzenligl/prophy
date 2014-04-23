@@ -26,7 +26,7 @@ def get_struct_name(cursor):
     return cursor.type.spelling.replace('::', '__')
 
 def get_enum_member(cursor):
-    return model.EnumMember(cursor.spelling, "2")
+    return model.EnumMember(cursor.spelling, str(cursor.enum_value))
 
 class Builder(object):
     def __init__(self):
