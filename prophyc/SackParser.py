@@ -48,11 +48,15 @@ class Builder(object):
         elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.RECORD):
             decl = tp.get_declaration()
             if decl.kind is CursorKind.STRUCT_DECL:
-                self.add_struct(decl)
-                return get_struct_name(decl)
+                name = get_struct_name(decl)
+                if name not in self.known:
+                    self.add_struct(decl)
+                return name
             elif decl.kind is CursorKind.UNION_DECL:
-                self.add_union(decl)
-                return get_struct_name(decl)
+                name = get_struct_name(decl)
+                if name not in self.known:
+                    self.add_union(decl)
+                return name
         elif tp.kind is TypeKind.CONSTANTARRAY:
             return self._build_field_type_name(tp.element_type)
         elif tp.kind is TypeKind.ENUM:

@@ -189,4 +189,28 @@ struct X
     assert [("Union", [("a", "u8", "0")]),
             ("X", [("a", "Union", None, None, None, None)])] == nodes
 
+def test_multiple_structs():
+    hpp = """\
+#include <stdint.h>
+struct X
+{
+    uint8_t a;
+};
+struct Y
+{
+    X a;
+};
+struct Z
+{
+    X a;
+    Y b;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("X", [("a", "u8", None, None, None, None)]),
+            ("Y", [("a", "X", None, None, None, None)]),
+            ("Z", [("a", "X", None, None, None, None),
+                   ("b", "Y", None, None, None, None)])] == nodes
+
 # struct with multiple structs, enums, unions
