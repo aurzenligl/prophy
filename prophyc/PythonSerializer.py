@@ -67,7 +67,8 @@ def _render_struct(struct):
                                                 _render_struct_members(struct.members))
 
 def _render_union_member(member):
-    return "('%s', %s, %s)" % (member.name, member.type, member.discriminator)
+    prefixed_type = ".".join((libname, member.type)) if member.type in primitive_types else member.type
+    return "('%s', %s, %s)" % (member.name, prefixed_type, member.discriminator)
 
 def _render_union_members(members):
     return (",\n" + " "*19).join(_render_union_member(member) for member in members)
