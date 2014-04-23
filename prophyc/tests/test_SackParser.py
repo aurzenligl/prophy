@@ -79,6 +79,22 @@ struct X
 
     assert [("X", [("a", "i32", None, None, None, None)])] == nodes
 
+def test_typedefed_struct():
+    hpp = """\
+typedef struct
+{
+    uint32_t a;
+} OldStruct;
+struct X
+{
+    OldStruct a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("OldStruct", [("a", "i32", None, None, None, None)]),
+            ("X", [("a", "OldStruct", None, None, None, None)])] == nodes
+
 # struct typedefed
 # struct with struct (in namespace, typedefed)
 # struct with nested typedefs

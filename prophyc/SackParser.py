@@ -37,6 +37,11 @@ class Builder(object):
     def _build_field_type_name(self, tp):
         if tp.kind is TypeKind.TYPEDEF:
             return self._build_field_type_name(tp.get_declaration().underlying_typedef_type)
+        elif tp.kind is TypeKind.UNEXPOSED:
+            decl = tp.get_declaration()
+            if decl.kind is CursorKind.STRUCT_DECL:
+                self.add_struct(decl)
+                return decl.type.spelling
         return builtins[tp.kind]
 
     def _build_struct_member(self, cursor):
@@ -50,7 +55,7 @@ class Builder(object):
         members = [self._build_struct_member(x)
                    for x in cursor.get_children()
                    if x.kind is CursorKind.FIELD_DECL]
-        node = model.Struct(cursor.spelling, members)
+        node = model.Struct(cursor.type.spelling, members)
         self._add_node(node)
 
 def build_model(tu):
