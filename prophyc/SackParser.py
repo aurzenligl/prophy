@@ -23,7 +23,11 @@ def get_struct_name(cursor):
     return reduce(lambda x, ch: x.replace(ch, '__'), disallowed_chars, cursor.type.spelling)
 
 def get_enum_member(cursor):
-    return model.EnumMember(cursor.spelling, str(cursor.enum_value))
+    name = cursor.spelling
+    value = str(cursor.enum_value)
+    if value == "-1":
+        value = "0xFFFFFFFF"
+    return model.EnumMember(name, value)
 
 class Builder(object):
     def __init__(self):
