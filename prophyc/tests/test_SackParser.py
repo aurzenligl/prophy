@@ -151,6 +151,33 @@ struct X
                       ("Enum_Three", "3")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
-# struct with enum
-# struct with union
+def test_union():
+    hpp = """\
+#include <stdint.h>
+union Union
+{
+    uint8_t a;
+    uint16_t b;
+    uint32_t c;
+};
+struct X
+{
+    Union a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("Union", [("a", "u8", "0"),
+                       ("b", "u16", "1"),
+                       ("c", "u32", "2")]),
+            ("X", [("a", "Union", None, None, None, None)])] == nodes
+
+# typedef union
+# {
+#   SDccAesaFormat   dccAesa;       /* (not so elegant, but should work ;-)*/
+#   SIcdAesaFormat   icdAesa;
+#   SE164AesaFormat  e164Aesa;
+#   SLocalAesaFormat localAesa;
+# } UAesa;
+
 # struct with multiple structs, enums, unions

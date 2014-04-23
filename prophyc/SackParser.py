@@ -45,10 +45,13 @@ class Builder(object):
     def _build_field_type_name(self, tp):
         if tp.kind is TypeKind.TYPEDEF:
             return self._build_field_type_name(tp.get_declaration().underlying_typedef_type)
-        elif tp.kind is TypeKind.UNEXPOSED:
+        elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.RECORD):
             decl = tp.get_declaration()
             if decl.kind is CursorKind.STRUCT_DECL:
                 self.add_struct(decl)
+                return get_struct_name(decl)
+            elif decl.kind is CursorKind.UNION_DECL:
+                self.add_union(decl)
                 return get_struct_name(decl)
         elif tp.kind is TypeKind.CONSTANTARRAY:
             return self._build_field_type_name(tp.element_type)
@@ -65,6 +68,11 @@ class Builder(object):
         is_array = None if array_len is None else True
         return model.StructMember(name, type_name, is_array, None, array_len, None)
 
+    def _build_union_member(self, cursor, disc):
+        name = cursor.spelling
+        type_name = self._build_field_type_name(cursor.type)
+        return model.UnionMember(name, type_name, str(disc))
+
     def add_enum(self, cursor):
         members = map(get_enum_member, cursor.get_children())
         node = model.Enum(get_struct_name(cursor), members)
@@ -75,6 +83,13 @@ class Builder(object):
                    for x in cursor.get_children()
                    if x.kind is CursorKind.FIELD_DECL]
         node = model.Struct(get_struct_name(cursor), members)
+        self._add_node(node)
+
+    def add_union(self, cursor):
+        members = [self._build_union_member(x, i)
+                   for i, x in enumerate(cursor.get_children())
+                   if x.kind is CursorKind.FIELD_DECL]
+        node = model.Union(get_struct_name(cursor), members)
         self._add_node(node)
 
 def build_model(tu):
