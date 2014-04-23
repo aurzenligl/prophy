@@ -205,11 +205,13 @@ struct X
                             ("Enum_Three", "3")]),
             ("X", [("a", "m__n__Enum", None, None, None, None)])] == nodes
 
-def test_enum_with_minus_one_value():
+def test_enum_with_negative_one_values():
     hpp = """\
 enum Enum
 {
-    Enum_MinusOne = -1
+    Enum_MinusOne = -1,
+    Enum_MinusTwo = -2,
+    Enum_MinusThree = -3
 };
 struct X
 {
@@ -218,7 +220,9 @@ struct X
 """
     nodes = parse(hpp)
 
-    assert [("Enum", [("Enum_MinusOne", "0xFFFFFFFF")]),
+    assert [("Enum", [("Enum_MinusOne", "0xFFFFFFFF"),
+                      ("Enum_MinusTwo", "0xFFFFFFFE"),
+                      ("Enum_MinusThree", "0xFFFFFFFD")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
 def test_multiple_enums():

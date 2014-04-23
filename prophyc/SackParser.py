@@ -24,9 +24,11 @@ def get_struct_name(cursor):
 
 def get_enum_member(cursor):
     name = cursor.spelling
-    value = str(cursor.enum_value)
-    if value == "-1":
-        value = "0xFFFFFFFF"
+    value = cursor.enum_value
+    if value < 0:
+        value = "0x%X" % (0x100000000 + value)
+    else:
+        value = str(value)
     return model.EnumMember(name, value)
 
 class Builder(object):
@@ -60,6 +62,14 @@ class Builder(object):
                 return name
             elif decl.kind is CursorKind.ENUM_DECL:
                 return self._build_field_type_name(decl.type)
+            elif decl.kind is CursorKind.NO_DECL_FOUND:
+                """ workaround for "'sys/cdefs.h' file not found" error """
+                if tp.spelling == 'int':
+                    return 'i32'
+                else:
+                    raise Exception("Unknown declaration")
+            else:
+                raise Exception("Unknown declaration")
         elif tp.kind is TypeKind.CONSTANTARRAY:
             return self._build_field_type_name(tp.element_type)
         elif tp.kind is TypeKind.ENUM:
