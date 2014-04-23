@@ -17,7 +17,7 @@ builtins = {TypeKind.UCHAR: 'u8',
             TypeKind.DOUBLE: 'r64'}
 
 def get_struct_name(cursor):
-    return cursor.type.spelling.replace('::', '__')
+    return reduce(lambda x, ch: x.replace(ch, '__'), ['<', '>', ',', ' ', '::'], cursor.type.spelling)
 
 def get_enum_member(cursor):
     return model.EnumMember(cursor.spelling, str(cursor.enum_value))
@@ -41,7 +41,7 @@ class Builder(object):
             return self._build_field_type_name(tp.get_declaration().underlying_typedef_type)
         elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.RECORD):
             decl = tp.get_declaration()
-            if decl.kind is CursorKind.STRUCT_DECL:
+            if decl.kind in (CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL):
                 name = get_struct_name(decl)
                 if name not in self.known:
                     self.add_struct(decl)

@@ -256,3 +256,28 @@ struct Z
             ("Y", [("a", "X", None, None, None, None)]),
             ("Z", [("a", "X", None, None, None, None),
                    ("b", "Y", None, None, None, None)])] == nodes
+
+def test_class_template():
+    hpp = """\
+#include <stdint.h>
+#include <stddef.h>
+template<typename T, size_t N>
+class A
+{
+    T a[N];
+};
+struct X
+{
+    A<int, 3> a;
+};
+"""
+    nodes = parse(hpp)
+
+    """ I have no idea how to access class template members [A::a in example],
+        having cursor to structure field typed as template class (instantiation) [X::a in example].
+        Since parsing template class in context of data interchange protocol needs
+        workaround anyway and - in longer run - removal, I'll leave a stub implementation which
+        returns no members """
+
+    assert [("A__int____3__", []),
+            ("X", [("a", "A__int____3__", None, None, None, None)])] == nodes
