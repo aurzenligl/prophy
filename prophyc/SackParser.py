@@ -34,7 +34,9 @@ class Builder(object):
         self.known.add(node.name)
         self.nodes.append(node)
 
-    def _get_field_array_len(self, cursor):
+    def _get_field_array_len(self, tp):
+        if tp.kind is TypeKind.CONSTANTARRAY:
+            return tp.element_count
         return None
 
     def _build_field_type_name(self, tp):
@@ -45,14 +47,16 @@ class Builder(object):
             if decl.kind is CursorKind.STRUCT_DECL:
                 self.add_struct(decl)
                 return get_struct_name(decl)
+        elif tp.kind is TypeKind.CONSTANTARRAY:
+            return self._build_field_type_name(tp.element_type)
         return builtins[tp.kind]
 
     def _build_struct_member(self, cursor):
         name = cursor.spelling
         type_name = self._build_field_type_name(cursor.type)
-        array_len = self._get_field_array_len(cursor)
+        array_len = self._get_field_array_len(cursor.type)
         is_array = None if array_len is None else True
-        return model.StructMember(name, type_name, is_array, array_len, None, None)
+        return model.StructMember(name, type_name, is_array, None, array_len, None)
 
     def add_struct(self, cursor):
         members = [self._build_struct_member(x)

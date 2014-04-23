@@ -119,6 +119,18 @@ struct X
     assert [("m__n__Namespaced", [("a", "u32", None, None, None, None)]),
             ("X", [("a", "m__n__Namespaced", None, None, None, None)])] == nodes
 
+def test_array():
+    hpp = """\
+#include <stdint.h>
+struct X
+{
+    uint32_t a[4];
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("X", [("a", "u32", True, None, 4, None)])] == nodes
+
 # struct with array
 # struct with enum
 # struct with union
