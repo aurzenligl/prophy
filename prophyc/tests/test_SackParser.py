@@ -81,6 +81,7 @@ struct X
 
 def test_typedefed_struct():
     hpp = """\
+#include <stdint.h>
 typedef struct
 {
     uint32_t a;
@@ -92,13 +93,32 @@ struct X
 """
     nodes = parse(hpp)
 
-    assert [("OldStruct", [("a", "i32", None, None, None, None)]),
+    assert [("OldStruct", [("a", "u32", None, None, None, None)]),
             ("X", [("a", "OldStruct", None, None, None, None)])] == nodes
 
-# struct typedefed
-# struct with struct (in namespace, typedefed)
-# struct with nested typedefs
-# struct with all ints
+def test_namespaced_struct():
+    hpp = """\
+#include <stdint.h>
+namespace m
+{
+namespace n
+{
+struct Namespaced
+{
+    uint32_t a;
+};
+}
+}
+struct X
+{
+    m::n::Namespaced a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("m__n__Namespaced", [("a", "u32", None, None, None, None)]),
+            ("X", [("a", "m__n__Namespaced", None, None, None, None)])] == nodes
+
 # struct with array
 # struct with enum
 # struct with union

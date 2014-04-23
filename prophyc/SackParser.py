@@ -22,6 +22,9 @@ builtins = {TypeKind.UCHAR: 'u8',
             TypeKind.FLOAT: 'r32',
             TypeKind.DOUBLE: 'r64'}
 
+def get_struct_name(cursor):
+    return cursor.type.spelling.replace('::', '__')
+
 class Builder(object):
     def __init__(self):
         self.known = set()
@@ -41,7 +44,7 @@ class Builder(object):
             decl = tp.get_declaration()
             if decl.kind is CursorKind.STRUCT_DECL:
                 self.add_struct(decl)
-                return decl.type.spelling
+                return get_struct_name(decl)
         return builtins[tp.kind]
 
     def _build_struct_member(self, cursor):
@@ -55,7 +58,7 @@ class Builder(object):
         members = [self._build_struct_member(x)
                    for x in cursor.get_children()
                    if x.kind is CursorKind.FIELD_DECL]
-        node = model.Struct(cursor.type.spelling, members)
+        node = model.Struct(get_struct_name(cursor), members)
         self._add_node(node)
 
 def build_model(tu):
