@@ -23,12 +23,20 @@ def parse_options():
     group.add_argument('--isar', action = 'store_true')
     group.add_argument('--sack', action = 'store_true')
 
+    parser.add_argument('-I',
+                        dest = 'include_dirs',
+                        type = readable_dir,
+                        action = 'append',
+                        default = [],
+                        help = 'include directories')
+
+    parser.add_argument('--python_out',
+                        type = readable_dir,
+                        help = 'python output directory')
+
     parser.add_argument('input_files',
                         type = readable_file,
                         nargs = '+',
                         help = 'input file')
-    parser.add_argument('--python_out',
-                        type = readable_dir,
-                        help = 'python output directory')
 
     return parser.parse_args()

@@ -15,7 +15,7 @@ def main():
         parser = IsarParser.IsarParser()
     elif opts.sack:
         import SackParser
-        parser = SackParser.SackParser()
+        parser = SackParser.SackParser(opts.include_dirs)
 
     if opts.python_out:
         import PythonSerializer
