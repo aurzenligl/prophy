@@ -7,6 +7,12 @@ def parse(content):
         temp.flush()
         return SackParser.SackParser().parse(temp.name)
 
+class contains_cmp(object):
+    def __init__(self, x):
+        self.x = x
+    def __eq__(self, other):
+        return any((self.x in other, other in self.x))
+
 def test_simple_struct():
     hpp = """\
 #include <stdint.h>
@@ -321,3 +327,20 @@ typedef struct X X;
     nodes = parse(hpp)
 
     assert [("X", [("x", "i32", None, None, None, None)])] == nodes
+
+def test_struct_with_anonymous_struct():
+    hpp = """\
+struct X
+{
+    struct
+    {
+        char b;
+    } a[3];
+};
+"""
+    nodes = parse(hpp)
+
+    Anonymous = contains_cmp("X____anonymous__struct__at__")
+
+    assert [(Anonymous, [("b", "i8", None, None, None, None)]),
+            ("X", [("a", Anonymous, True, None, 3, None)])] == nodes
