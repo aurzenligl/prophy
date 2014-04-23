@@ -17,8 +17,10 @@ builtins = {TypeKind.UCHAR: 'u8',
             TypeKind.DOUBLE: 'r64',
             TypeKind.BOOL: 'u32'}
 
+disallowed_chars = ['<', '>', ',', ' ', '::', '.', ':', '/', '\\']
+
 def get_struct_name(cursor):
-    return reduce(lambda x, ch: x.replace(ch, '__'), ['<', '>', ',', ' ', '::'], cursor.type.spelling)
+    return reduce(lambda x, ch: x.replace(ch, '__'), disallowed_chars, cursor.type.spelling)
 
 def get_enum_member(cursor):
     return model.EnumMember(cursor.spelling, str(cursor.enum_value))
