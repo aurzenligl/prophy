@@ -151,6 +151,26 @@ struct X
                       ("Enum_Three", "3")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
+def test_typedefed_enum():
+    hpp = """\
+typedef enum Enum
+{
+    Enum_One = 1,
+    Enum_Two = 2,
+    Enum_Three = 3
+} Enum;
+struct X
+{
+    Enum a;
+};
+"""
+    nodes = parse(hpp)
+
+    assert [("Enum", [("Enum_One", "1"),
+                      ("Enum_Two", "2"),
+                      ("Enum_Three", "3")]),
+            ("X", [("a", "Enum", None, None, None, None)])] == nodes
+
 def test_union():
     hpp = """\
 #include <stdint.h>

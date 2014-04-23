@@ -51,6 +51,8 @@ class Builder(object):
                 if name not in self.known:
                     self.add_union(decl)
                 return name
+            elif decl.kind is CursorKind.ENUM_DECL:
+                return self._build_field_type_name(decl.type)
         elif tp.kind is TypeKind.CONSTANTARRAY:
             return self._build_field_type_name(tp.element_type)
         elif tp.kind is TypeKind.ENUM:
