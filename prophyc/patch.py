@@ -31,11 +31,27 @@ def _change_field_type(node, patch):
         raise Exception("Change field must have 2 params: %s %s" % (node.name, patch))
     name, tp = patch.params
 
-    i, member = next((x for x in enumerate(node.members) if x[1].name is name), (None, None))
+    i, member = next((x for x in enumerate(node.members) if x[1].name == name), (None, None))
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
     p1, _, p3, p4, p5, p6 = node.members[i]
     node.members[i] = model.StructMember(p1, tp, p3, p4, p5, p6)
 
-_actions = {'change_field_type': _change_field_type}
+def _make_field_dynamic_array(node, patch):
+    if not isinstance(node, model.Struct):
+        raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
+
+    if len(patch.params) != 2:
+        raise Exception("Change field must have 2 params: %s %s" % (node.name, patch))
+    name, len_name = patch.params
+
+    i, member = next((x for x in enumerate(node.members) if x[1].name == name), (None, None))
+    if not member:
+        raise Exception("Member not found: %s %s" % (node.name, patch))
+
+    p1, p2, _, _, _, _ = node.members[i]
+    node.members[i] = model.StructMember(p1, p2, True, len_name, None, None)
+
+_actions = {'change_field_type': _change_field_type,
+            'make_field_dynamic_array': _make_field_dynamic_array}

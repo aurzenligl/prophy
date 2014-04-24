@@ -26,6 +26,10 @@ def main():
     for input_file in opts.input_files:
         basename = get_basename(input_file)
         nodes = parser.parse(input_file)
+        if opts.patch:
+            import patch
+            patches = patch.parse(opts.patch)
+            patch.patch(nodes, patches)
         serializer.serialize(nodes, basename)
 
 if __name__ == "__main__":

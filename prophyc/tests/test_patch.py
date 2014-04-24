@@ -75,3 +75,15 @@ def test_change_field_type_no_2_params():
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Member not found: MyStruct' in e.value.message
+
+def test_make_field_dynamic_array():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': patch.Action('make_field_dynamic_array', ['field3', 'field1'])}
+
+    patch.patch(nodes, patches)
+
+    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
+                          ('field2', 'u32', None, None, None, None),
+                          ('field3', 'u32', True, 'field1', None, None)])] == nodes

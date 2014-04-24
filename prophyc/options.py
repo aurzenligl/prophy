@@ -30,6 +30,10 @@ def parse_options():
                         default = [],
                         help = 'include directories')
 
+    parser.add_argument('--patch',
+                        type = readable_file,
+                        help = 'patch file')
+
     parser.add_argument('--python_out',
                         type = readable_dir,
                         help = 'python output directory')
