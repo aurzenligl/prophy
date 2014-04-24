@@ -90,3 +90,24 @@ def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
     assert out == ""
     assert err == ""
     assert empty_python_output == open("input.py").read()
+
+def test_sack_patch(tmpdir_cwd):
+    open("input.hpp", "w").write("""\
+struct X
+{
+    int x;
+};
+""")
+    open("patch", "w").write("""\
+X change_field_type x r64
+""")
+    ret, out, err = call(["python", prophyc, "--sack", "--patch", "patch", "--python_out", ".", "input.hpp"])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert empty_python_output + """\
+
+class X(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('x', prophy.r64)]
+""" == open("input.py").read()
