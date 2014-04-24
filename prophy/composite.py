@@ -16,8 +16,11 @@ def add_attributes(cls, descriptor):
     cls._BOUND = None
 
 def add_padding(cls, descriptor):
-    if any(tp._DYNAMIC for _, tp in descriptor[:-1]):
-        raise Exception("only last field can be dynamic in padded struct")
+    for i, tp in enumerate((tp for _, tp in descriptor[:-1])):
+        if tp._DYNAMIC:
+            _, next_tp = descriptor[i + 1]
+            if next_tp._ALIGNMENT > tp._ALIGNMENT:
+                raise Exception("field after dynamic field has bigger alignment")
 
     class padder(object):
         def __init__(self):
