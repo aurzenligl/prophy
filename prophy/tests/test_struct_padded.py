@@ -99,3 +99,19 @@ def test_struct_with_multiple_dynamic_fields():
     assert [5] == x.a[:]
     assert [2, 1, 0] == x.b[:]
 
+def test_struct_with_greedy_bytes():
+    class A(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a_len", prophy.u16),
+                       ("a", prophy.array(prophy.u16, bound = "a_len")),
+                       ("b", prophy.bytes())]
+    x = A()
+    x.a[:] = [5, 6, 7]
+    x.b = 'ala ma kota'
+
+    assert '\x00\x03\x00\x05\x00\x06\x00\x07ala ma kota' == x.encode('>')
+    assert '\x03\x00\x05\x00\x06\x00\x07\x00ala ma kota' == x.encode('<')
+
+    x.decode('\x00\x01\x00\x08abecadlo', '>')
+    assert [8] == x.a[:]
+    assert 'abecadlo' == x.b
