@@ -10,10 +10,13 @@ def parse(content):
         temp.flush()
         return patch.parse(temp.name)
 
-def test_parsing():
+def test_parsing_ignoring_empty_lines():
     content = """\
+
 MyStruct change_field_type lastField MyRealMember
+
 YourStruct change_field_type firstField YourRealMember
+
 """
 
     patches = parse(content)
