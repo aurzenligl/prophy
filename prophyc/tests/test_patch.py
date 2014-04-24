@@ -85,7 +85,7 @@ def test_make_field_dynamic_array():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
                                        model.StructMember("field3", "u32", None, None, None, None)])]
-    patches = {'MyStruct': [patch.Action('make_field_dynamic_array', ['field3', 'field1'])]}
+    patches = {'MyStruct': [patch.Action('dynamic', ['field3', 'field1'])]}
 
     patch.patch(nodes, patches)
 
@@ -95,7 +95,7 @@ def test_make_field_dynamic_array():
 
 def test_make_field_dynamic_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
-    patches = {'MyStruct': [patch.Action('make_field_dynamic_array', ['field2', 'field1'])]}
+    patches = {'MyStruct': [patch.Action('dynamic', ['field2', 'field1'])]}
 
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
@@ -106,12 +106,12 @@ def test_make_field_dynamic_array_no_2_params():
                                        model.StructMember("field2", "u32", None, None, None, None),
                                        model.StructMember("field3", "u32", None, None, None, None)])]
 
-    patches = {'MyStruct': [patch.Action('make_field_dynamic_array', ['field2'])]}
+    patches = {'MyStruct': [patch.Action('dynamic', ['field2'])]}
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Change field must have 2 params: MyStruct' in e.value.message
 
-    patches = {'MyStruct': [patch.Action('make_field_dynamic_array', ['field2', 'field1', 'extra'])]}
+    patches = {'MyStruct': [patch.Action('dynamic', ['field2', 'field1', 'extra'])]}
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Change field must have 2 params: MyStruct' in e.value.message
@@ -120,7 +120,7 @@ def test_make_field_dynamic_array_no_2_params():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
                                        model.StructMember("field3", "u32", None, None, None, None)])]
-    patches = {'MyStruct': [patch.Action('make_field_dynamic_array', ['field4', 'field1'])]}
+    patches = {'MyStruct': [patch.Action('dynamic', ['field4', 'field1'])]}
 
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)

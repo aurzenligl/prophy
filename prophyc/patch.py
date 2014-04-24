@@ -41,7 +41,7 @@ def _type(node, patch):
     p1, _, p3, p4, p5, p6 = node.members[i]
     node.members[i] = model.StructMember(p1, tp, p3, p4, p5, p6)
 
-def _make_field_dynamic_array(node, patch):
+def _dynamic(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
 
@@ -57,4 +57,4 @@ def _make_field_dynamic_array(node, patch):
     node.members[i] = model.StructMember(p1, p2, True, len_name, None, None)
 
 _actions = {'type': _type,
-            'make_field_dynamic_array': _make_field_dynamic_array}
+            'dynamic': _dynamic}
