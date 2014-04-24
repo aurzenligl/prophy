@@ -87,3 +87,36 @@ def test_make_field_dynamic_array():
     assert [('MyStruct', [('field1', 'u32', None, None, None, None),
                           ('field2', 'u32', None, None, None, None),
                           ('field3', 'u32', True, 'field1', None, None)])] == nodes
+
+def test_make_field_dynamic_array_not_a_struct():
+    nodes = [model.Typedef("MyStruct", "MyRealStruct")]
+    patches = {'MyStruct': patch.Action('make_field_dynamic_array', ['field2', 'field1'])}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert "Can change field only in struct: MyStruct" in e.value.message
+
+def test_make_field_dynamic_array_no_2_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+
+    patches = {'MyStruct': patch.Action('make_field_dynamic_array', ['field2'])}
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Change field must have 2 params: MyStruct' in e.value.message
+
+    patches = {'MyStruct': patch.Action('make_field_dynamic_array', ['field2', 'field1', 'extra'])}
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Change field must have 2 params: MyStruct' in e.value.message
+
+def test_make_field_dynamic_array_no_2_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': patch.Action('make_field_dynamic_array', ['field4', 'field1'])}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Member not found: MyStruct' in e.value.message
