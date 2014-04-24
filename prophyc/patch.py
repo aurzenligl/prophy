@@ -26,7 +26,7 @@ def _apply(node, patch):
         raise Exception("Unknown action: %s %s" % (node.name, patch))
     action(node, patch)
 
-def _change_field_type(node, patch):
+def _type(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
 
@@ -56,5 +56,5 @@ def _make_field_dynamic_array(node, patch):
     p1, p2, _, _, _, _ = node.members[i]
     node.members[i] = model.StructMember(p1, p2, True, len_name, None, None)
 
-_actions = {'change_field_type': _change_field_type,
+_actions = {'type': _type,
             'make_field_dynamic_array': _make_field_dynamic_array}

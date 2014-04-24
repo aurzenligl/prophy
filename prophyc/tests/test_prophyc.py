@@ -99,7 +99,7 @@ struct X
 };
 """)
     open("patch", "w").write("""\
-X change_field_type x r64
+X type x r64
 """)
     ret, out, err = call(["python", prophyc, "--sack", "--patch", "patch", "--python_out", ".", "input.hpp"])
     assert ret == 0

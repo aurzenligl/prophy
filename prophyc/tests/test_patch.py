@@ -13,18 +13,18 @@ def parse(content):
 def test_parsing_ignoring_empty_lines():
     content = """\
 
-MyStruct change_field_type lastField MyRealMember
+MyStruct type lastField MyRealMember
 
-YourStruct change_field_type firstField YourRealMember
-YourStruct change_field_type lastField AnotherRealMember
+YourStruct type firstField YourRealMember
+YourStruct type lastField AnotherRealMember
 
 """
 
     patches = parse(content)
 
-    assert {'MyStruct': [('change_field_type', ['lastField', 'MyRealMember'])],
-            'YourStruct': [('change_field_type', ['firstField', 'YourRealMember']),
-                           ('change_field_type', ['lastField', 'AnotherRealMember'])]} == patches
+    assert {'MyStruct': [('type', ['lastField', 'MyRealMember'])],
+            'YourStruct': [('type', ['firstField', 'YourRealMember']),
+                           ('type', ['lastField', 'AnotherRealMember'])]} == patches
 
 def test_unknown_action():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
@@ -40,7 +40,7 @@ def test_change_field_type():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
                                        model.StructMember("field3", "u32", None, None, None, None)])]
-    patches = {'MyStruct': [patch.Action('change_field_type', ['field2', 'TheRealType'])]}
+    patches = {'MyStruct': [patch.Action('type', ['field2', 'TheRealType'])]}
 
     patch.patch(nodes, patches)
 
@@ -50,23 +50,23 @@ def test_change_field_type():
 
 def test_change_field_type_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
-    patches = {'MyStruct': [patch.Action('change_field_type', ['field2', 'TheRealType'])]}
+    patches = {'MyStruct': [patch.Action('type', ['field2', 'TheRealType'])]}
 
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
-    assert "Can change field only in struct: MyStruct Action(action='change_field_type', params=['field2', 'TheRealType'])" == e.value.message
+    assert "Can change field only in struct: MyStruct Action(action='type', params=['field2', 'TheRealType'])" == e.value.message
 
 def test_change_field_type_no_2_params():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
                                        model.StructMember("field3", "u32", None, None, None, None)])]
 
-    patches = {'MyStruct': [patch.Action('change_field_type', ['field2'])]}
+    patches = {'MyStruct': [patch.Action('type', ['field2'])]}
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Change field must have 2 params: MyStruct' in e.value.message
 
-    patches = {'MyStruct': [patch.Action('change_field_type', ['field2', 'TheRealType', 'extra'])]}
+    patches = {'MyStruct': [patch.Action('type', ['field2', 'TheRealType', 'extra'])]}
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Change field must have 2 params: MyStruct' in e.value.message
@@ -75,7 +75,7 @@ def test_change_field_type_no_2_params():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
                                        model.StructMember("field3", "u32", None, None, None, None)])]
-    patches = {'MyStruct': [patch.Action('change_field_type', ['field4', 'TheRealType'])]}
+    patches = {'MyStruct': [patch.Action('type', ['field4', 'TheRealType'])]}
 
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
