@@ -9,12 +9,15 @@ def parse(filename):
         name, action = words[:2]
         params = words[2:]
         return name, Action(action, params)
-    return dict(make_item(line) for line in open(filename) if line.strip())
+    patches = {}
+    for name, action in (make_item(line) for line in open(filename) if line.strip()):
+        patches.setdefault(name, []).append(action)
+    return patches
 
 def patch(nodes, patches):
     for node in nodes:
-        patch = patches.get(node.name)
-        if patch:
+        actions = patches.get(node.name, [])
+        for patch in actions:
             _apply(node, patch)
 
 def _apply(node, patch):
