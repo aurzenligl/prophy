@@ -1,3 +1,4 @@
+import model
 from collections import namedtuple
 
 Action = namedtuple("Action", ["action", "params"])
@@ -11,10 +12,30 @@ def parse(filename):
     return dict(make_item(line) for line in open(filename))
 
 def patch(nodes, patches):
-    for i, node in enumerate(nodes):
+    for node in nodes:
         patch = patches.get(node.name)
         if patch:
-            nodes[i] = _apply(node, patch)
+            _apply(node, patch)
 
 def _apply(node, patch):
-    return node
+    action = _actions.get(patch.action)
+    if not action:
+        raise Exception("Unknown action: %s %s", node.name, patch)
+    action(node, patch)
+
+def _change_field_type(node, patch):
+    if not isinstance(node, model.Struct):
+        raise Exception("Can change field only in struct: %s %s", node.name, patch)
+
+    if len(patch.params) != 2:
+        raise Exception("Change field must have 2 params: %s %s", node.name, patch)
+    name, tp = patch.params
+
+    i, member = next((x for x in enumerate(node.members) if x[1].name is name), (None, None))
+    if not member:
+        raise Exception("Member not found: %s %s", node.name, patch)
+
+    p1, _, p3, p4, p5, p6 = node.members[i]
+    node.members[i] = model.StructMember(p1, tp, p3, p4, p5, p6)
+
+_actions = {'change_field_type': _change_field_type}
