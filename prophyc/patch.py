@@ -55,6 +55,20 @@ def _insert(node, patch):
 
     node.members.insert(index, model.StructMember(name, tp, None, None, None, None))
 
+def _remove(node, patch):
+    if not isinstance(node, model.Struct):
+        raise Exception("Can remove field only in struct: %s %s" % (node.name, patch))
+
+    if len(patch.params) != 1:
+        raise Exception("Remove field must have 1 param: %s %s" % (node.name, patch))
+    name, = patch.params
+
+    i, member = next((x for x in enumerate(node.members) if x[1].name == name), (None, None))
+    if not member:
+        raise Exception("Member not found: %s %s" % (node.name, patch))
+
+    del node.members[i]
+
 def _dynamic(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
@@ -72,6 +86,7 @@ def _dynamic(node, patch):
 
 _actions = {'type': _type,
             'insert': _insert,
+            'remove': _remove,
             'dynamic': _dynamic}
 
 def _is_int(s):

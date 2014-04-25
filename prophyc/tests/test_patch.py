@@ -123,6 +123,41 @@ def test_insert_field_index_not_an_int():
         patch.patch(nodes, patches)
     assert 'Index is not a number: MyStruct' in e.value.message
 
+def test_remove_field():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('remove', ['field2'])]}
+
+    patch.patch(nodes, patches)
+
+    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
+                          ('field3', 'u32', None, None, None, None)])] == nodes
+
+def test_remove_field_not_a_struct():
+    nodes = [model.Typedef("MyStruct", "MyRealStruct")]
+    patches = {'MyStruct': [patch.Action('remove', ['field2'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Can remove field only in struct: MyStruct' in e.value.message
+
+def test_remove_field_no_1_param():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('remove', ['field1', 'extra_param'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Remove field must have 1 param: MyStruct' in e.value.message
+
+def test_remove_field_not_found():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('remove', ['not_a_field'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Member not found: MyStruct' in e.value.message
+
 def test_make_field_dynamic_array():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
