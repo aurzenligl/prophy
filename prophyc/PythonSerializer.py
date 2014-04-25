@@ -2,7 +2,8 @@ import os
 import model
 
 libname = "prophy"
-primitive_types = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
+primitive_types = {x + y : "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
+primitive_types['byte'] = '%s.u8' % libname
 
 def _render_header():
     return """\
@@ -43,18 +44,20 @@ def _render_enum(enum):
                             _render_enum_constants(enum.members))
 
 def _render_struct_member(member):
-    prefixed_type = ".".join((libname, member.type)) if member.type in primitive_types else member.type
+    prefixed_type = primitive_types.get(member.type, member.type)
     if member.optional:
         prefixed_type = "%s.optional(%s)" % (libname, prefixed_type)
     if member.array:
-        if member.array_bound and member.array_size:
-            return "('%s', %s.array(%s, bound = '%s', size = %s))" % (member.name, libname, prefixed_type, member.array_bound, member.array_size)
-        elif member.array_bound:
-            return "('%s', %s.array(%s, bound = '%s'))" % (member.name, libname, prefixed_type, member.array_bound)
+        elem_strs = []
+        if member.array_bound:
+            elem_strs.append("bound = '%s'" % member.array_bound)
+        if member.array_size:
+            elem_strs.append("size = %s" % member.array_size)
+        if member.type == 'byte':
+            prefixed_type = '%s.bytes(%s)' % (libname, ', '.join(elem_strs))
         else:
-            return "('%s', %s.array(%s, size = %s))" % (member.name, libname, prefixed_type, member.array_size)
-    else:
-        return "('%s', %s)" % (member.name, prefixed_type)
+            prefixed_type = '%s.array(%s)' % (libname, ', '.join([prefixed_type] + elem_strs))
+    return "('%s', %s)" % (member.name, prefixed_type)
 
 def _render_struct_members(keys):
     return (",\n" + " " * 19).join((_render_struct_member(member) for member in keys))
