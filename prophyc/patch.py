@@ -41,6 +41,20 @@ def _type(node, patch):
     p1, _, p3, p4, p5, p6 = node.members[i]
     node.members[i] = model.StructMember(p1, tp, p3, p4, p5, p6)
 
+def _insert(node, patch):
+    if not isinstance(node, model.Struct):
+        raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
+
+    if len(patch.params) != 3:
+        raise Exception("Change field must have 3 params: %s %s" % (node.name, patch))
+    index, name, tp = patch.params
+
+    if not _is_number(index):
+        raise Exception("Index is not a number: %s %s" % (node.name, patch))
+    index = int(index)
+
+    node.members.insert(index, model.StructMember(name, tp, None, None, None, None))
+
 def _dynamic(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
@@ -57,4 +71,12 @@ def _dynamic(node, patch):
     node.members[i] = model.StructMember(p1, p2, True, len_name, None, None)
 
 _actions = {'type': _type,
+            'insert': _insert,
             'dynamic': _dynamic}
+
+def _is_number(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False

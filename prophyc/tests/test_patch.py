@@ -81,6 +81,24 @@ def test_change_field_type_no_2_params():
         patch.patch(nodes, patches)
     assert 'Member not found: MyStruct' in e.value.message
 
+
+def test_insert_field():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('insert', ['1', 'additional1', 'u8']),
+                            patch.Action('insert', ['-1', 'additional2', 'u16']),
+                            patch.Action('insert', ['128', 'additional3', 'u64'])]}
+
+    patch.patch(nodes, patches)
+
+    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
+                          ('additional1', 'u8', None, None, None, None),
+                          ('field2', 'u32', None, None, None, None),
+                          ('additional2', 'u16', None, None, None, None),
+                          ('field3', 'u32', None, None, None, None),
+                          ('additional3', 'u64', None, None, None, None)])] == nodes
+
 def test_make_field_dynamic_array():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
