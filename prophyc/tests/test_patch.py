@@ -244,3 +244,57 @@ def test_make_field_greedy_array_with_wrong_name_params():
         patch.patch(nodes, patches)
     assert 'Member not found: MyStruct' in e.value.message
 
+def test_make_field_static_array():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('static', ['field3', '3'])]}
+
+    patch.patch(nodes, patches)
+
+    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
+                          ('field2', 'u32', None, None, None, None),
+                          ('field3', 'u32', True, None, '3', None)])] == nodes
+
+def test_make_field_static_array_not_a_struct():
+    nodes = [model.Typedef("MyStruct", "MyRealStruct")]
+    patches = {'MyStruct': [patch.Action('static', ['field2', '3'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert "Can change field only in struct: MyStruct" in e.value.message
+
+def test_make_field_static_array_no_2_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+
+    patches = {'MyStruct': [patch.Action('static', ['field2'])]}
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Change field must have 2 params: MyStruct' in e.value.message
+
+    patches = {'MyStruct': [patch.Action('static', ['field2', '3', 'extra'])]}
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Change field must have 2 params: MyStruct' in e.value.message
+
+def test_make_field_static_array_with_wrong_name_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('static', ['field4', '3'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Member not found: MyStruct' in e.value.message
+
+def test_make_field_static_array_with_wrong_size_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('static', ['field3', 'wrong_size'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Size is not a number: MyStruct' in e.value.message

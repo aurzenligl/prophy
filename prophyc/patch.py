@@ -99,10 +99,29 @@ def _greedy(node, patch):
     p1, p2, _, _, _, _ = node.members[i]
     node.members[i] = model.StructMember(p1, p2, True, None, None, None)
 
+def _static(node, patch):
+    if not isinstance(node, model.Struct):
+        raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
+
+    if len(patch.params) != 2:
+        raise Exception("Change field must have 2 params: %s %s" % (node.name, patch))
+    name, size = patch.params
+
+    if not _is_int(size):
+        raise Exception("Size is not a number: %s %s" % (node.name, patch))
+
+    i, member = next((x for x in enumerate(node.members) if x[1].name == name), (None, None))
+    if not member:
+        raise Exception("Member not found: %s %s" % (node.name, patch))
+
+    p1, p2, _, _, _, _ = node.members[i]
+    node.members[i] = model.StructMember(p1, p2, True, None, size, None)
+
 _actions = {'type': _type,
             'insert': _insert,
             'remove': _remove,
             'greedy': _greedy,
+            'static': _static,
             'dynamic': _dynamic}
 
 def _is_int(s):
