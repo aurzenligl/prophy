@@ -10,21 +10,21 @@ def parse(content):
         temp.flush()
         return patch.parse(temp.name)
 
-# def test_parsing_ignoring_empty_lines():
-#     content = """\
-#
-# MyStruct type lastField MyRealMember
-#
-# YourStruct type firstField YourRealMember
-# YourStruct type lastField AnotherRealMember
-#
-# """
-#
-#     patches = parse(content)
-#
-#     assert {'MyStruct': [('type', ['lastField', 'MyRealMember'])],
-#             'YourStruct': [('type', ['firstField', 'YourRealMember']),
-#                            ('type', ['lastField', 'AnotherRealMember'])]} == patches
+def test_parsing_ignoring_empty_lines():
+    content = """\
+
+MyStruct type lastField MyRealMember
+
+YourStruct type firstField YourRealMember
+YourStruct type lastField AnotherRealMember
+
+"""
+
+    patches = parse(content)
+
+    assert {'MyStruct': [('type', ['lastField', 'MyRealMember'])],
+            'YourStruct': [('type', ['firstField', 'YourRealMember']),
+                           ('type', ['lastField', 'AnotherRealMember'])]} == patches
 
 def test_unknown_action():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
