@@ -202,3 +202,45 @@ def test_make_field_dynamic_array_no_2_params():
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Member not found: MyStruct' in e.value.message
+
+def test_make_field_greedy_array():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('greedy', ['field3'])]}
+
+    patch.patch(nodes, patches)
+
+    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
+                          ('field2', 'u32', None, None, None, None),
+                          ('field3', 'u32', True, None, None, None)])] == nodes
+
+def test_make_field_greedy_array_not_a_struct():
+    nodes = [model.Typedef("MyStruct", "MyRealStruct")]
+    patches = {'MyStruct': [patch.Action('greedy', ['field2'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert "Can change field only in struct: MyStruct" in e.value.message
+
+def test_make_field_greedy_array_no_1_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+
+    patches = {'MyStruct': [patch.Action('greedy', ['field2', 'extra_args'])]}
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Change field must have 1 params: MyStruct' in e.value.message
+
+
+def test_make_field_greedy_array_with_wrong_name_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
+                                       model.StructMember("field2", "u32", None, None, None, None),
+                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('greedy', ['field4'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Member not found: MyStruct' in e.value.message
+
