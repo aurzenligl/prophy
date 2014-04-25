@@ -43,13 +43,13 @@ def _type(node, patch):
 
 def _insert(node, patch):
     if not isinstance(node, model.Struct):
-        raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
+        raise Exception("Can insert field only in struct: %s %s" % (node.name, patch))
 
     if len(patch.params) != 3:
         raise Exception("Change field must have 3 params: %s %s" % (node.name, patch))
     index, name, tp = patch.params
 
-    if not _is_number(index):
+    if not _is_int(index):
         raise Exception("Index is not a number: %s %s" % (node.name, patch))
     index = int(index)
 
@@ -74,7 +74,7 @@ _actions = {'type': _type,
             'insert': _insert,
             'dynamic': _dynamic}
 
-def _is_number(s):
+def _is_int(s):
     try:
         int(s)
         return True

@@ -99,6 +99,30 @@ def test_insert_field():
                           ('field3', 'u32', None, None, None, None),
                           ('additional3', 'u64', None, None, None, None)])] == nodes
 
+def test_insert_field_not_a_struct():
+    nodes = [model.Typedef("MyStruct", "MyRealStruct")]
+    patches = {'MyStruct': [patch.Action('insert', ['1', 'additional1', 'u8'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Can insert field only in struct: MyStruct' in e.value.message
+
+def test_insert_field_no_3_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('insert', ['1', 'additional1', 'u8', 'extra'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Change field must have 3 params: MyStruct' in e.value.message
+
+def test_insert_field_index_not_an_int():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    patches = {'MyStruct': [patch.Action('insert', ['not_a_number', 'additional1', 'u8'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Index is not a number: MyStruct' in e.value.message
+
 def test_make_field_dynamic_array():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
                                        model.StructMember("field2", "u32", None, None, None, None),
