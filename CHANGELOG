@@ -1,0 +1,8 @@
+0.1
+-----------------------------------
+
+- isar input (xml parser from standard library)
+- sack input (C++ parser based on python clang and libclang, version at least 3.4)
+- python output (python descriptors turned into codecs by python prophy library)
+- patch mechanism (allows to modify parsed structures before rendering output)
+
