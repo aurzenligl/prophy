@@ -12,12 +12,15 @@ def add_attributes(cls, descriptor):
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
-    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor)
+    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor) if descriptor else 1
     cls._BOUND = None
 
 def add_padding(cls, descriptor):
-    if any(tp._DYNAMIC for _, tp in descriptor[:-1]):
-        raise Exception("only last field can be dynamic in padded struct")
+    for i, tp in enumerate((tp for _, tp in descriptor[:-1])):
+        if tp._DYNAMIC:
+            _, next_tp = descriptor[i + 1]
+            if next_tp._ALIGNMENT > tp._ALIGNMENT:
+                raise Exception("field after dynamic field has bigger alignment")
 
     class padder(object):
         def __init__(self):
@@ -29,7 +32,9 @@ def add_padding(cls, descriptor):
             return padding
 
     sizes = [tp._SIZE for _, tp in descriptor]
-    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]] + [cls._ALIGNMENT]
+    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]]
+    if descriptor:
+        alignments.append(cls._ALIGNMENT)
     paddings = map(padder(), sizes, alignments)
     descriptor[:] = [field + (padding,) for field, padding in zip(descriptor, paddings)]
     cls._SIZE += sum(paddings)

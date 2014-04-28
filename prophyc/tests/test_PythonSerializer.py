@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import model
 import PythonSerializer
 
@@ -117,6 +115,26 @@ class Struct(prophy.struct):
 """
     assert ref == serialize(nodes)
 
+def test_struct_rendering_with_byte():
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", False, None, None, None)])]
+
+    ref = """\
+class Struct(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a', prophy.u8)]
+"""
+    assert ref == serialize(nodes)
+
+def test_struct_rendering_with_byte_array():
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", True, None, None, None)])]
+
+    ref = """\
+class Struct(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a', prophy.bytes())]
+"""
+    assert ref == serialize(nodes)
+
 def test_union_rendering():
     nodes = [model.Union("U", [model.UnionMember("a", "A", "0"),
                                model.UnionMember("b", "B", "1"),
@@ -128,6 +146,20 @@ class U(prophy.union):
     _descriptor = [('a', A, 0),
                    ('b', B, 1),
                    ('c', C, 2)]
+"""
+    assert ref == serialize(nodes)
+
+def test_union_rendering():
+    nodes = [model.Union("U", [model.UnionMember("a", "i8", "0"),
+                               model.UnionMember("b", "u32", "1"),
+                               model.UnionMember("c", "r64", "2")])]
+
+    ref = """\
+class U(prophy.union):
+    __metaclass__ = prophy.union_generator
+    _descriptor = [('a', prophy.i8, 0),
+                   ('b', prophy.u32, 1),
+                   ('c', prophy.r64, 2)]
 """
     assert ref == serialize(nodes)
 

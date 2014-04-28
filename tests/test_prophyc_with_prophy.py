@@ -42,75 +42,50 @@ simple_isar = """<dom>
      </dom>
 """
 
-complex_isar = """<dom>
-      <typedef name="u32" type="prophy.u32"/>
-      <struct name="S">
-         <member name="l2NodeType" type="S1"/>
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-      <struct name="x">
-         <member name="poolId" type="u32"/>
-         <member name="deploymentInfo" type="S">
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         </member>
-      </struct>
-      
-      <struct name="S1">
-         <member name="l2NodeType" type="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-     </dom>
-"""
-
-to_sort = """<dom>
-      <typedef name="u32" type="prophy.u32"/>
-      <struct name="S">
-         <member name="l2NodeType" type="S1"/>
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-      <struct name="x">
-         <member name="poolId" type="u32"/>
-         <member name="deploymentInfo" type="S">
-            <dimension isVariableSize="true" size="MAX_NUM_OF_L2DEPLOYABLE_NODE" variableSizeFieldName="numOfDeploymentInfo" variableSizeFieldType="u32"/>
-         </member>
-      </struct>
-      
-      <struct name="S1">
-         <member name="l2NodeType" type="u32"/>
-         <member name="blabla" type="u32"/>
-      </struct>
-     </dom>
-"""
-
-def compile(filename):
-    cmd = " ".join(["python", prophyc, "--isar", "--python_out", ".", filename])
+def compile(filename, mode):
+    cmd = " ".join(["python", prophyc, mode, "--python_out", ".", filename])
     subprocess.check_call(cmd, shell = True)
 
+def compile_isar(filename):
+    compile(filename, "--isar")
+
+def compile_sack(filename):
+    compile(filename, "--sack")
+
 def write(filename, content):
-    open(filename, "w").write(simple_isar)
+    open(filename, "w").write(content)
 
 def test_simple_struct(tmpdir_cwd):
     write("simple.xml", simple_isar)
-    compile("simple.xml")
+    compile_isar("simple.xml")
     import simple
 
 def test_simple_struct_construct(tmpdir_cwd):
     write("simple_construct.xml", simple_isar)
-    compile("simple_construct.xml")
+    compile_isar("simple_construct.xml")
     import simple_construct
     s = simple_construct.SL2DeploymentInfo()
     s.l2NodeType = "EL2DeployableNode_Basic2"
     s.nodeAddr = 0x1231
     assert "\x00\x00\x00\x01\x12\x31\x00\x00" == s.encode(">")
 
-def test_complex_struct(tmpdir_cwd):
-    write("complex.xml", complex_isar)
-    compile("complex.xml")
-    import complex
+def test_sack_input(tmpdir_cwd):
+    content = """\
+#include <stdint.h>
+struct X
+{
+    uint32_t a;
+    uint16_t b;
+    uint8_t c;
+};
+"""
+    write("protocol.hpp", content)
+    compile_sack("protocol.hpp")
 
-def test_struct_sort(tmpdir_cwd):
-    write("sort.xml", to_sort)
-    compile("sort.xml")
-    import sort
+    import protocol
+    x = protocol.X()
+    x.a = 1
+    x.b = 2
+    x.c = 3
+
+    assert "\x00\x00\x00\x01\x00\x02\x03\x00" == x.encode(">")
