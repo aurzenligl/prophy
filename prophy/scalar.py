@@ -68,76 +68,91 @@ def float_decorator(size, id):
 
 @int_decorator(size = 1, id = 'b', min = -(1 << 7), max = (1 << 7) - 1)
 class i8(int):
-    pass
+    __slots__ = []
 
 @int_decorator(size = 2, id = 'h', min = -(1 << 15), max = (1 << 15) - 1)
 class i16(int):
-    pass
+    __slots__ = []
 
 @int_decorator(size = 4, id = 'i', min = -(1 << 31), max = (1 << 31) - 1)
 class i32(int):
-    pass
+    __slots__ = []
 
 @int_decorator(size = 8, id = 'q', min = -(1 << 63), max = (1 << 63) - 1)
 class i64(int):
-    pass
+    __slots__ = []
 
 @int_decorator(size = 1, id = 'B', min = 0, max = (1 << 8) - 1)
 class u8(int):
-    pass
+    __slots__ = []
 
 @int_decorator(size = 2, id = 'H', min = 0, max = (1 << 16) - 1)
 class u16(int):
-    pass
+    __slots__ = []
 
 @int_decorator(size = 4, id = 'I', min = 0, max = (1 << 32) - 1)
 class u32(int):
-    pass
+    __slots__ = []
 
 @int_decorator(size = 8, id = 'Q', min = 0, max = (1 << 64) - 1)
 class u64(int):
-    pass
+    __slots__ = []
 
 @float_decorator(size = 4, id = 'f')
 class r32(float):
-    pass
+    __slots__ = []
 
 @float_decorator(size = 8, id = 'd')
 class r64(float):
-    pass
+    __slots__ = []
 
-def enum_generator(name, bases, attrs):
+def add_enum_attributes(cls, enumerators):
 
+    @staticmethod
     def check(value):
         if isinstance(value, str):
             value = name_to_int.get(value)
             if value is None:
                 raise Exception("unknown enumerator name")
-            return value
+            return cls(value)
         elif isinstance(value, (int, long)):
             if not value in int_to_name:
                 raise Exception("unknown enumerator value")
-            return value
+            return cls(value)
         else:
             raise Exception("neither string nor int")
 
-    enumerators = attrs["_enumerators"]
     name_to_int = {name:value for name, value in enumerators}
     int_to_name = {value:name for name, value in enumerators}
     if len(name_to_int) < len(enumerators):
         raise Exception("names overlap")
-    map(bases[0]._check, (value for _, value in enumerators))
-    attrs["_DEFAULT"] = enumerators[0][1]
-    attrs["_name_to_int"] = name_to_int
-    attrs["_int_to_name"] = int_to_name
-    attrs["_check"] = staticmethod(check)
-    return type(name, bases, attrs)
+    map(cls._check, (value for _, value in enumerators))
+    cls._DEFAULT = cls(enumerators[0][1])
+    cls._name_to_int = name_to_int
+    cls._int_to_name = int_to_name
+    cls._check = check
+
+class enum_generator(type):
+    def __new__(cls, name, bases, attrs):
+        attrs["__slots__"] = []
+        return super(enum_generator, cls).__new__(cls, name, bases, attrs)
+    def __init__(cls, name, bases, attrs):
+        if not hasattr(cls, "_generated"):
+            cls._generated = True
+            add_enum_attributes(cls, cls._enumerators)
+        super(enum_generator, cls).__init__(name, bases, attrs)
 
 class enum(u32):
-    pass
+    __slots__ = []
+    @property
+    def name(self):
+        return self._int_to_name[self]
+    @property
+    def number(self):
+        return int(self)
 
 class enum8(u8, enum):
-    pass
+    __slots__ = []
 
 def bytes(**kwargs):
     size = kwargs.pop("size", 0)
