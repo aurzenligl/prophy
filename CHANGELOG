@@ -1,3 +1,9 @@
+0.2
+-----------------------------------
+
+- prophy structs, unions and arrays with enums return enum type instances instead of ints
+  enum instance has access to enumerator name string
+
 0.1
 -----------------------------------
 
