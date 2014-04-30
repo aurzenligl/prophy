@@ -266,3 +266,11 @@ def test_access_to_members():
     y.decode('\x00\x00\x00\x01\x00\x00\x00\x01', '>')
     assert y.a.__class__ == E
     assert y.b[0].__class__ == E
+
+    class U(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a", E, 0)]
+
+    z = U()
+
+    assert z.a.__class__ == E
