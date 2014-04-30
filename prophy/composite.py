@@ -104,7 +104,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
     if tp._OPTIONAL:
         raise Exception("array must not be bound to optional field")
-    if not issubclass(tp, int):
+    if not issubclass(tp, (int, long)):
         raise Exception("array must be bound to an unsigned integer")
 
     class container_len(tp):
@@ -190,7 +190,7 @@ class struct(object):
             elif type._OPTIONAL:
                 out += type._optional_type._encode(True, endianess)
                 out += encode_field(type, value, endianess)
-            elif type._BOUND and issubclass(type, int):
+            elif type._BOUND and issubclass(type, (int, long)):
                 array_value = getattr(self, type._BOUND)
                 out += type._encode(len(array_value), endianess)
             else:
