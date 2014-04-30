@@ -17,7 +17,7 @@ builtins = {TypeKind.UCHAR: 'u8',
             TypeKind.DOUBLE: 'r64',
             TypeKind.BOOL: 'u32'}
 
-disallowed_chars = ['<', '>', ',', ' ', '::', '.', ':', '/', '\\']
+disallowed_chars = ['<', '>', ',', ' ', '::', '.', ':', '/', '\\', '-']
 
 def get_struct_name(cursor):
     return reduce(lambda x, ch: x.replace(ch, '__'), disallowed_chars, cursor.type.spelling)

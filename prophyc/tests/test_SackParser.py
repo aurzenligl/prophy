@@ -1,8 +1,8 @@
 import tempfile
 import SackParser
 
-def parse(content):
-    with tempfile.NamedTemporaryFile(suffix = '.hpp') as temp:
+def parse(content, suffix = '.hpp'):
+    with tempfile.NamedTemporaryFile(suffix = suffix) as temp:
         temp.write(content)
         temp.flush()
         return SackParser.SackParser().parse(temp.name)
@@ -401,3 +401,17 @@ struct X
     nodes = parse(hpp)
 
     assert [('X', [('b', 'i8', None, None, None, None)])] == nodes
+
+def test_struct_with_incomplete_array_in_file_with_hyphen():
+    hpp = """\
+struct X
+{
+    struct
+    {
+        char a;
+    } a;
+};
+"""
+    nodes = parse(hpp, suffix = '-hyphen.hpp')
+
+    assert '__hyphen__hpp__' in nodes[0].name
