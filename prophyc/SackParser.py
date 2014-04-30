@@ -70,7 +70,7 @@ class Builder(object):
                     raise Exception("Unknown declaration")
             else:
                 raise Exception("Unknown declaration")
-        elif tp.kind is TypeKind.CONSTANTARRAY:
+        elif tp.kind in (TypeKind.CONSTANTARRAY, TypeKind.INCOMPLETEARRAY):
             return self._build_field_type_name(tp.element_type)
         elif tp.kind is TypeKind.ENUM:
             decl = tp.get_declaration()

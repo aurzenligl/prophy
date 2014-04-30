@@ -390,3 +390,14 @@ struct X
 
     assert [(Anonymous, [("b", "i8", None, None, None, None)]),
             ("X", [("a", Anonymous, True, None, 3, None)])] == nodes
+
+def test_struct_with_incomplete_array():
+    hpp = """\
+struct X
+{
+    char b[];
+};
+"""
+    nodes = parse(hpp)
+
+    assert [('X', [('b', 'i8', None, None, None, None)])] == nodes
