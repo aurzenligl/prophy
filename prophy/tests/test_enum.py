@@ -263,6 +263,9 @@ def test_access_to_members():
     assert y.b[1].__class__ == E
     assert y.b[2].__class__ == E
 
+    assert y.a.name == "E_1"
+    assert y.a.number == 1
+
     y.decode('\x00\x00\x00\x01\x00\x00\x00\x01', '>')
     assert y.a.__class__ == E
     assert y.b[0].__class__ == E
