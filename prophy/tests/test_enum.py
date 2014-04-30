@@ -234,3 +234,16 @@ def test_enum_with_0xFFFFFFFF_value():
         _descriptor = [("value", Enum)]
 
     assert Enclosing().value == 0xFFFFFFFF
+
+def test_access_to_members():
+    class E(prophy.enum):
+        __metaclass__ = prophy.enum_generator
+        _enumerators = [("E_1", 1),
+                        ("E_2", 2),
+                        ("E_3", 3)]
+
+    x = E()
+
+    with pytest.raises(Exception) as e:
+        x.not_available = 102
+    assert "has no attribute" in e.value.message
