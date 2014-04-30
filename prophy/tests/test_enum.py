@@ -247,3 +247,22 @@ def test_access_to_members():
     with pytest.raises(Exception) as e:
         x.not_available = 102
     assert "has no attribute" in e.value.message
+
+    class S(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", E),
+                       ("b", prophy.array(E))]
+
+    y = S()
+    y.b[:] = [1, 1]
+    y.b[1] = 1
+    y.b.append(1)
+
+    assert y.a.__class__ == E
+    assert y.b[0].__class__ == E
+    assert y.b[1].__class__ == E
+    assert y.b[2].__class__ == E
+
+    y.decode('\x00\x00\x00\x01\x00\x00\x00\x01', '>')
+    assert y.a.__class__ == E
+    assert y.b[0].__class__ == E

@@ -127,7 +127,7 @@ def add_enum_attributes(cls, enumerators):
     if len(name_to_int) < len(enumerators):
         raise Exception("names overlap")
     map(cls._check, (value for _, value in enumerators))
-    cls._DEFAULT = enumerators[0][1]
+    cls._DEFAULT = cls(enumerators[0][1])
     cls._name_to_int = name_to_int
     cls._int_to_name = int_to_name
     cls._check = check
