@@ -67,35 +67,35 @@ def float_decorator(size, id):
     return decorator
 
 @int_decorator(size = 1, id = 'b', min = -(1 << 7), max = (1 << 7) - 1)
-class i8(int):
+class i8(long):
     __slots__ = []
 
 @int_decorator(size = 2, id = 'h', min = -(1 << 15), max = (1 << 15) - 1)
-class i16(int):
+class i16(long):
     __slots__ = []
 
 @int_decorator(size = 4, id = 'i', min = -(1 << 31), max = (1 << 31) - 1)
-class i32(int):
+class i32(long):
     __slots__ = []
 
 @int_decorator(size = 8, id = 'q', min = -(1 << 63), max = (1 << 63) - 1)
-class i64(int):
+class i64(long):
     __slots__ = []
 
 @int_decorator(size = 1, id = 'B', min = 0, max = (1 << 8) - 1)
-class u8(int):
+class u8(long):
     __slots__ = []
 
 @int_decorator(size = 2, id = 'H', min = 0, max = (1 << 16) - 1)
-class u16(int):
+class u16(long):
     __slots__ = []
 
 @int_decorator(size = 4, id = 'I', min = 0, max = (1 << 32) - 1)
-class u32(int):
+class u32(long):
     __slots__ = []
 
 @int_decorator(size = 8, id = 'Q', min = 0, max = (1 << 64) - 1)
-class u64(int):
+class u64(long):
     __slots__ = []
 
 @float_decorator(size = 4, id = 'f')
