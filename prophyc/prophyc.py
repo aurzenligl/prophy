@@ -30,6 +30,7 @@ def main():
             import patch
             patches = patch.parse(opts.patch)
             patch.patch(nodes, patches)
+            parser.post_patch(nodes)
         serializer.serialize(nodes, basename)
 
 if __name__ == "__main__":

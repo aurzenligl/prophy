@@ -143,3 +143,6 @@ class IsarParser(object):
 
     def parse(self, file):
         return self.__get_model(ElementTree.parse(file))
+
+    def post_patch(self, nodes):
+        dependency_sort(nodes)

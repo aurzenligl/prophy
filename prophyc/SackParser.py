@@ -131,3 +131,6 @@ class SackParser(object):
         index = Index.create()
         tu = index.parse(None, args_)
         return build_model(tu)
+
+    def post_patch(self, nodes):
+        pass

@@ -91,6 +91,38 @@ def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
     assert err == ""
     assert empty_python_output == open("input.py").read()
 
+def test_isar_patch(tmpdir_cwd):
+    open("input.xml", "w").write("""\
+<x>
+    <struct name="B">
+        <member name="a" type="u8"/>
+    </struct>
+    <struct name="A">
+        <member name="a" type="u8"/>
+    </struct>
+</x>
+""")
+
+    open("patch", "w").write("""\
+B insert 999 b A
+B dynamic b a
+""")
+    ret, out, err = call(["python", prophyc, "--isar", "--patch", "patch", "--python_out", ".", "input.xml"])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert empty_python_output + """\
+
+class A(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a', prophy.u8)]
+
+class B(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('a', prophy.u8),
+                   ('b', prophy.array(A, bound = 'a'))]
+""" == open("input.py").read()
+
 def test_sack_patch(tmpdir_cwd):
     open("input.hpp", "w").write("""\
 struct X

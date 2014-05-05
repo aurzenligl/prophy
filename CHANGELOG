@@ -1,3 +1,8 @@
+0.2.3
+-----------------------------------
+
+- prophyc dependency-sorts nodes in its model again after patching
+
 0.2.2
 -----------------------------------
 
