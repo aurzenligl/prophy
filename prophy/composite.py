@@ -228,12 +228,28 @@ class struct(object):
                     data = data[type._SIZE:]
                     bytes_read += type._SIZE
                     continue
+
+            if not isinstance(self, struct_packed):
+                padding = len(get_padding(bytes_read, type._ALIGNMENT))
+                data = data[padding:]
+                bytes_read += padding
+
             size = decode_field(self, name, type, data, endianess, len_hints)
-            size += padding
+#             size += padding
             data = data[size:]
             bytes_read += size
+
+        if not isinstance(self, struct_packed):
+            if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+                pass
+            else:
+                padding = len(get_padding(bytes_read, self._ALIGNMENT))
+                data = data[padding:]
+                bytes_read += padding
+
         if terminal and data:
             raise Exception("not all bytes read")
+
         return bytes_read
 
     def copy_from(self, other):
