@@ -128,6 +128,10 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     descriptor[index] = (name, container_len, padding)
     delattr(cls, name)
 
+def get_padding(offset, alignment):
+    remainder = offset % alignment
+    return '\x00' * (alignment - remainder) if remainder else ''
+
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
@@ -144,8 +148,10 @@ def field_to_string(name, type, value):
         return "%s: %s\n" % (name, value)
 
 def encode_field(type, value, endianess):
-    if issubclass(type, (container.base_array, struct, union)):
+    if issubclass(type, container.base_array):
         return value.encode(endianess)
+    elif issubclass(type, (struct, union)):
+        return value.encode(endianess, terminal = False)
     else:
         return type._encode(value, endianess)
 
@@ -180,9 +186,12 @@ class struct(object):
                 out += field_to_string(name, type, value)
         return out
 
-    def encode(self, endianess):
+    def encode(self, endianess, terminal = True):
         out = ""
         for name, type, padding in self._descriptor:
+
+            out += get_padding(len(out), type._ALIGNMENT)
+
             value = getattr(self, name, None)
             if type._OPTIONAL and value is None:
                 out += type._optional_type._encode(False, endianess)
@@ -195,7 +204,13 @@ class struct(object):
                 out += type._encode(len(array_value), endianess)
             else:
                 out += encode_field(type, value, endianess)
-            out += '\x00' * padding
+#             out += '\x00' * padding
+
+        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+            pass
+        else:
+            out += get_padding(len(out), self._ALIGNMENT)
+
         return out
 
     def decode(self, data, endianess, terminal = True):
@@ -343,7 +358,7 @@ class union(object):
         value = getattr(self, name)
         return field_to_string(name, type, value)
 
-    def encode(self, endianess):
+    def encode(self, endianess, terminal = True):
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
         bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(type, value, endianess)
