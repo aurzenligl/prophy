@@ -1,3 +1,10 @@
+0.2.4
+-----------------------------------
+
+- prophyc sack mode doesn't use libclang to cross-compile for 32-bit platform
+- prophyc sack mode removes all non-alphanumeric chars from identifiers in generic way
+- prophy adds padding dynamically, which allows more freedom in using etc. strings
+
 0.2.3
 -----------------------------------
 

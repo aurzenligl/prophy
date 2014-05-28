@@ -6,7 +6,7 @@ setup(name = 'prophy',
         'console_scripts': [
             'prophyc = prophyc.prophyc:main']
         },
-      version = '0.2.3',
+      version = '0.2.4',
       description = 'Binary data interchange format toolchain',
       author = 'Krzysztof Laskowski',
       author_email = 'krzysztof.laskowski@nsn.com',
