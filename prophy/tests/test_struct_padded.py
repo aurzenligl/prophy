@@ -1,14 +1,23 @@
 import prophy
 import pytest
 
-def test_exception_with_dynamic_fields():
-    with pytest.raises(Exception) as e:
-        class X(prophy.struct):
-            __metaclass__ = prophy.struct_generator
-            _descriptor = [("x_len", prophy.u32),
-                           ("x", prophy.array(prophy.u8, bound = "x_len")),
-                           ("y", prophy.u32), ]
-    assert "field after dynamic field has bigger alignment" == e.value.message
+def test_with_dynamic_fields():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u32),
+                       ("x", prophy.array(prophy.u8, bound = "x_len")),
+                       ("y", prophy.u32), ]
+
+    assert X._SIZE == 8
+
+    x = X()
+    x.x[:] = [1, 2, 3]
+    x.y = 4
+    assert '\x03\x00\x00\x00\x01\x02\x03\x00\x04\x00\x00\x00' == x.encode('<')
+
+    x.decode('\x01\x00\x00\x00\x01\x00\x00\x00\x08\x00\x00\x00', '<')
+    assert x.x[:] == [1]
+    assert x.y == 8
 
 def test_exception_with_access_to_nonexistent_field():
     with pytest.raises(AttributeError) as e:
