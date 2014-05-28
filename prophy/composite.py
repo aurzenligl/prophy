@@ -190,7 +190,8 @@ class struct(object):
         out = ""
         for name, type, padding in self._descriptor:
 
-            out += get_padding(len(out), type._ALIGNMENT)
+            if not isinstance(self, struct_packed):
+                out += get_padding(len(out), type._ALIGNMENT)
 
             value = getattr(self, name, None)
             if type._OPTIONAL and value is None:
@@ -206,10 +207,11 @@ class struct(object):
                 out += encode_field(type, value, endianess)
 #             out += '\x00' * padding
 
-        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
-            pass
-        else:
-            out += get_padding(len(out), self._ALIGNMENT)
+        if not isinstance(self, struct_packed):
+            if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+                pass
+            else:
+                out += get_padding(len(out), self._ALIGNMENT)
 
         return out
 

@@ -115,3 +115,43 @@ def test_struct_with_greedy_bytes():
     x.decode('\x00\x01\x00\x08abecadlo', '>')
     assert [8] == x.a[:]
     assert 'abecadlo' == x.b
+
+def test_struct_with_and_without_padding():
+    class A(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.u8),
+                       ("b", prophy.u16),
+                       ("c", prophy.u64),
+                       ("d", prophy.u8)]
+    class B(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.u8),
+                       ("b", prophy.u16),
+                       ("c", prophy.u64),
+                       ("d", prophy.u8)]
+
+    x = A()
+    x.a = 1
+    x.b = 2
+    x.c = 3
+    x.d = 4
+
+    assert '\x01\x00''\x02\x00\x00\x00\x00\x00''\x03\x00\x00\x00\x00\x00\x00\x00''\x04\x00\x00\x00\x00\x00\x00\x00' == x.encode('<')
+    x.decode('\x04\x00''\x05\x00\x00\x00\x00\x00''\x06\x00\x00\x00\x00\x00\x00\x00''\x07\x00\x00\x00\x00\x00\x00\x00', '<')
+    assert x.a == 4
+    assert x.b == 5
+    assert x.c == 6
+    assert x.d == 7
+
+    x = B()
+    x.a = 1
+    x.b = 2
+    x.c = 3
+    x.d = 4
+
+    assert '\x01''\x02\x00''\x03\x00\x00\x00\x00\x00\x00\x00''\x04' == x.encode('<')
+    x.decode('\x04''\x05\x00''\x06\x00\x00\x00\x00\x00\x00\x00''\x07', '<')
+    assert x.a == 4
+    assert x.b == 5
+    assert x.c == 6
+    assert x.d == 7
