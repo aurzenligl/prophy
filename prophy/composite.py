@@ -123,9 +123,13 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     descriptor[index] = (name, container_len, padding)
     delattr(cls, name)
 
-def get_padding(offset, alignment):
+def get_padding(struct_obj, offset, alignment):
+    if isinstance(struct_obj, struct_packed):
+        return 0
     remainder = offset % alignment
-    return '\x00' * (alignment - remainder) if remainder else ''
+    if not remainder:
+        return 0
+    return alignment - remainder
 
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
@@ -185,8 +189,7 @@ class struct(object):
         out = ""
         for name, type, padding in self._descriptor:
 
-            if not isinstance(self, struct_packed):
-                out += get_padding(len(out), type._ALIGNMENT)
+            out += '\x00' * get_padding(self, len(out), type._ALIGNMENT)
 
             value = getattr(self, name, None)
             if type._OPTIONAL and value is None:
@@ -200,13 +203,11 @@ class struct(object):
                 out += type._encode(len(array_value), endianess)
             else:
                 out += encode_field(type, value, endianess)
-#             out += '\x00' * padding
 
-        if not isinstance(self, struct_packed):
-            if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
-                pass
-            else:
-                out += get_padding(len(out), self._ALIGNMENT)
+        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+            pass
+        else:
+            out += '\x00' * get_padding(self, len(out), self._ALIGNMENT)
 
         return out
 
@@ -226,23 +227,20 @@ class struct(object):
                     bytes_read += type._SIZE
                     continue
 
-            if not isinstance(self, struct_packed):
-                padding = len(get_padding(bytes_read, type._ALIGNMENT))
-                data = data[padding:]
-                bytes_read += padding
+            padding = get_padding(self, bytes_read, type._ALIGNMENT)
+            data = data[padding:]
+            bytes_read += padding
 
             size = decode_field(self, name, type, data, endianess, len_hints)
-#             size += padding
             data = data[size:]
             bytes_read += size
 
-        if not isinstance(self, struct_packed):
-            if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
-                pass
-            else:
-                padding = len(get_padding(bytes_read, self._ALIGNMENT))
-                data = data[padding:]
-                bytes_read += padding
+        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+            pass
+        else:
+            padding = get_padding(self, bytes_read, self._ALIGNMENT)
+            data = data[padding:]
+            bytes_read += padding
 
         if terminal and data:
             raise Exception("not all bytes read")
