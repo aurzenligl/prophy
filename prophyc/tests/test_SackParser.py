@@ -45,8 +45,6 @@ struct X
     unsigned char i;
     char j;
     signed char k;
-    unsigned long l;
-    long m;
     void* n;
     float o;
     double p;
@@ -66,8 +64,6 @@ struct X
                    ("i", "u8", None, None, None, None),
                    ("j", "i8", None, None, None, None),
                    ("k", "i8", None, None, None, None),
-                   ("l", "u32", None, None, None, None),
-                   ("m", "i32", None, None, None, None),
                    ("n", "u32", None, None, None, None),
                    ("o", "r32", None, None, None, None),
                    ("p", "r64", None, None, None, None),

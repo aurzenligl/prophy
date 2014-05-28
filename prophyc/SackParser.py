@@ -1,21 +1,15 @@
 from clang.cindex import Index, CursorKind, TypeKind
 import model
 
-builtins = {TypeKind.UCHAR: 'u8',
-            TypeKind.USHORT: 'u16',
-            TypeKind.UINT: 'u32',
-            TypeKind.ULONG: 'u32',
-            TypeKind.ULONGLONG: 'u64',
-            TypeKind.SCHAR: 'i8',
-            TypeKind.CHAR_S: 'i8',
-            TypeKind.SHORT: 'i16',
-            TypeKind.INT: 'i32',
-            TypeKind.LONG: 'i32',
-            TypeKind.LONGLONG: 'i64',
-            TypeKind.POINTER: 'u32',
-            TypeKind.FLOAT: 'r32',
-            TypeKind.DOUBLE: 'r64',
-            TypeKind.BOOL: 'u32'}
+unambiguous_builtins = {
+    TypeKind.UCHAR: 'u8',
+    TypeKind.SCHAR: 'i8',
+    TypeKind.CHAR_S: 'i8',
+    TypeKind.POINTER: 'u32',
+    TypeKind.FLOAT: 'r32',
+    TypeKind.DOUBLE: 'r64',
+    TypeKind.BOOL: 'u32'
+}
 
 disallowed_chars = ['<', '>', ',', ' ', '::', '.', ':', '/', '\\', '-']
 
@@ -62,12 +56,6 @@ class Builder(object):
                 return name
             elif decl.kind is CursorKind.ENUM_DECL:
                 return self._build_field_type_name(decl.type)
-            elif decl.kind is CursorKind.NO_DECL_FOUND:
-                """ workaround for "'sys/cdefs.h' file not found" error """
-                if tp.spelling == 'int':
-                    return 'i32'
-                else:
-                    raise Exception("Unknown declaration")
             else:
                 raise Exception("Unknown declaration")
         elif tp.kind in (TypeKind.CONSTANTARRAY, TypeKind.INCOMPLETEARRAY):
@@ -78,7 +66,13 @@ class Builder(object):
             if name not in self.known:
                 self.add_enum(decl)
             return name
-        return builtins[tp.kind]
+
+        if tp.kind in (TypeKind.USHORT, TypeKind.UINT, TypeKind.ULONG, TypeKind.ULONGLONG):
+            return 'u%d' % (tp.get_size() * 8)
+        elif tp.kind in (TypeKind.SHORT, TypeKind.INT, TypeKind.LONG, TypeKind.LONGLONG):
+            return 'i%d' % (tp.get_size() * 8)
+
+        return unambiguous_builtins[tp.kind]
 
     def _build_struct_member(self, cursor):
         name = cursor.spelling
@@ -127,7 +121,7 @@ class SackParser(object):
         self.include_dirs = include_dirs
 
     def parse(self, filename):
-        args_ = [filename, '-m32'] + ["-I" + x for x in self.include_dirs]
+        args_ = [filename] + ["-I" + x for x in self.include_dirs]
         index = Index.create()
         tu = index.parse(None, args_)
         return build_model(tu)
