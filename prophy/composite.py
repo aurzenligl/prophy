@@ -16,11 +16,6 @@ def add_attributes(cls, descriptor):
     cls._BOUND = None
 
 def add_padding(cls, descriptor):
-    for i, tp in enumerate((tp for _, tp in descriptor[:-1])):
-        if tp._DYNAMIC:
-            _, next_tp = descriptor[i + 1]
-            if next_tp._ALIGNMENT > tp._ALIGNMENT:
-                raise Exception("field after dynamic field has bigger alignment")
 
     class padder(object):
         def __init__(self):
@@ -128,6 +123,14 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     descriptor[index] = (name, container_len, padding)
     delattr(cls, name)
 
+def get_padding(struct_obj, offset, alignment):
+    if isinstance(struct_obj, struct_packed):
+        return 0
+    remainder = offset % alignment
+    if not remainder:
+        return 0
+    return alignment - remainder
+
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
@@ -144,8 +147,10 @@ def field_to_string(name, type, value):
         return "%s: %s\n" % (name, value)
 
 def encode_field(type, value, endianess):
-    if issubclass(type, (container.base_array, struct, union)):
+    if issubclass(type, container.base_array):
         return value.encode(endianess)
+    elif issubclass(type, (struct, union)):
+        return value.encode(endianess, terminal = False)
     else:
         return type._encode(value, endianess)
 
@@ -180,9 +185,12 @@ class struct(object):
                 out += field_to_string(name, type, value)
         return out
 
-    def encode(self, endianess):
+    def encode(self, endianess, terminal = True):
         out = ""
         for name, type, padding in self._descriptor:
+
+            out += '\x00' * get_padding(self, len(out), type._ALIGNMENT)
+
             value = getattr(self, name, None)
             if type._OPTIONAL and value is None:
                 out += type._optional_type._encode(False, endianess)
@@ -195,7 +203,12 @@ class struct(object):
                 out += type._encode(len(array_value), endianess)
             else:
                 out += encode_field(type, value, endianess)
-            out += '\x00' * padding
+
+        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+            pass
+        else:
+            out += '\x00' * get_padding(self, len(out), self._ALIGNMENT)
+
         return out
 
     def decode(self, data, endianess, terminal = True):
@@ -213,12 +226,25 @@ class struct(object):
                     data = data[type._SIZE:]
                     bytes_read += type._SIZE
                     continue
+
+            padding = get_padding(self, bytes_read, type._ALIGNMENT)
+            data = data[padding:]
+            bytes_read += padding
+
             size = decode_field(self, name, type, data, endianess, len_hints)
-            size += padding
             data = data[size:]
             bytes_read += size
+
+        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+            pass
+        else:
+            padding = get_padding(self, bytes_read, self._ALIGNMENT)
+            data = data[padding:]
+            bytes_read += padding
+
         if terminal and data:
             raise Exception("not all bytes read")
+
         return bytes_read
 
     def copy_from(self, other):
@@ -343,7 +369,7 @@ class union(object):
         value = getattr(self, name)
         return field_to_string(name, type, value)
 
-    def encode(self, endianess):
+    def encode(self, endianess, terminal = True):
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
         bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(type, value, endianess)

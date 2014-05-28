@@ -45,8 +45,6 @@ struct X
     unsigned char i;
     char j;
     signed char k;
-    unsigned long l;
-    long m;
     void* n;
     float o;
     double p;
@@ -66,8 +64,6 @@ struct X
                    ("i", "u8", None, None, None, None),
                    ("j", "i8", None, None, None, None),
                    ("k", "i8", None, None, None, None),
-                   ("l", "u32", None, None, None, None),
-                   ("m", "i32", None, None, None, None),
                    ("n", "u32", None, None, None, None),
                    ("o", "r32", None, None, None, None),
                    ("p", "r64", None, None, None, None),
@@ -353,8 +349,8 @@ struct X
         workaround anyway and - in longer run - removal, I'll leave a stub implementation which
         returns no members """
 
-    assert [("A__int____3__", []),
-            ("X", [("a", "A__int____3__", None, None, None, None)])] == nodes
+    assert [("A__int__3__", []),
+            ("X", [("a", "A__int__3__", None, None, None, None)])] == nodes
 
 def test_c_struct():
     hpp = """\
@@ -386,7 +382,7 @@ struct X
 """
     nodes = parse(hpp)
 
-    Anonymous = contains_cmp("X____anonymous__struct__at__")
+    Anonymous = contains_cmp("X__anonymous__struct__at__")
 
     assert [(Anonymous, [("b", "i8", None, None, None, None)]),
             ("X", [("a", Anonymous, True, None, 3, None)])] == nodes

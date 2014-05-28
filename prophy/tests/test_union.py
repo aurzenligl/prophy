@@ -269,7 +269,7 @@ def test_struct_with_union():
         _descriptor = [("a", prophy.u32, 0),
                        ("b", prophy.u8, 1),
                        ("c", prophy.u8, 2)]
-    class StructWithU(prophy.struct_packed):
+    class StructWithU(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8),
                        ("b", UVarLen),
@@ -282,10 +282,10 @@ def test_struct_with_union():
     x.b.c = 3
     x.c = 4
 
-    assert "\x01\x00\x00\x00\x02\x03\x00\x00\x00\x00\x00\x00\x04" == x.encode(">")
-    assert "\x01\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00" == x.encode("<")
+    assert "\x01\x00\x00\x00" "\x00\x00\x00\x02" "\x03\x00\x00\x00" "\x00\x00\x00\x04" == x.encode(">")
+    assert "\x01\x00\x00\x00" "\x02\x00\x00\x00" "\x03\x00\x00\x00" "\x04\x00\x00\x00" == x.encode("<")
 
-    x.decode("\x0a\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x20", ">")
+    x.decode("\x0a\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x20", ">")
 
     assert 10 == x.a
     assert 0 == x.b.discriminator
@@ -306,7 +306,7 @@ def test_array_with_union():
         _descriptor = [("a", prophy.u16, 0),
                        ("b", prophy.u8, 1),
                        ("c", prophy.u8, 2)]
-    class StructWithU(prophy.struct_packed):
+    class StructWithU(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(UVarLen, bound = "a_len"))]
@@ -323,10 +323,10 @@ def test_array_with_union():
     y.discriminator = "c"
     y.c = 3
 
-    assert "\x03\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x02\x00\x00\x00\x00\x02\x03\x00" == x.encode(">")
-    assert "\x03\x00\x00\x00\x00\x01\x00\x01\x00\x00\x00\x02\x00\x02\x00\x00\x00\x03\x00" == x.encode("<")
+    assert "\x03\x00""\x00\x00\x00\x00""\x00\x01""\x00\x00\x00\x01""\x02\x00""\x00\x00\x00\x02""\x03\x00" == x.encode(">")
+    assert "\x03\x00""\x00\x00\x00\x00""\x01\x00""\x01\x00\x00\x00""\x02\x00""\x02\x00\x00\x00""\x03\x00" == x.encode("<")
 
-    x.decode("\x02\x00\x00\x00\x01\x01\x00\x00\x00\x00\x02\x02\x00", ">")
+    x.decode("\x02\x00""\x00\x00\x00\x01""\x01\x00""\x00\x00\x00\x02""\x02\x00", ">")
 
     assert """\
 a {

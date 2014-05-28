@@ -169,7 +169,7 @@ class fixed_composite_array(base_array):
         return self._values == other._values
 
     def encode(self, endianness):
-        return "".join(value.encode(endianness) for value in self)
+        return "".join(value.encode(endianness, terminal = False) for value in self)
 
     def decode(self, data, endianness, _):
         cursor = 0
@@ -221,7 +221,7 @@ class bound_composite_array(base_array):
         return self._values == other._values
 
     def encode(self, endianness):
-        return "".join(value.encode(endianness) for value in self).ljust(self._SIZE, "\x00")
+        return "".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, "\x00")
 
     def decode(self, data, endianness, len_hint):
         if self._SIZE > len(data):
