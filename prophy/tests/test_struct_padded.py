@@ -155,3 +155,29 @@ def test_struct_with_and_without_padding():
     assert x.b == 5
     assert x.c == 6
     assert x.d == 7
+
+def test_struct_with_substruct_with_bytes():
+    class A(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("num_of_x", prophy.u32),
+                       ("x", prophy.array(prophy.u8, bound = "num_of_x"))]
+    class B(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("num_of_x", prophy.u32),
+                       ("x", prophy.array(A, bound = "num_of_x"))]
+
+    x = B()
+    x.x.add().x[:] = [1]
+    x.x.add().x[:] = [1, 2, 3]
+    x.x.add().x[:] = [1, 2, 3, 4, 5, 6, 7]
+
+    assert ('\x03\x00\x00\x00'
+            '\x01\x00\x00\x00\x01\x00\x00\x00'
+            '\x03\x00\x00\x00\x01\x02\x03\x00'
+            '\x07\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x00') == x.encode('<')
+
+    x.decode(('\x02\x00\x00\x00'
+              '\x01\x00\x00\x00\x06\x00\x00\x00'
+              '\x07\x00\x00\x00\x07\x08\x09\x0a\x0b\x0c\x0d\x00'), '<')
+    assert x.x[0].x[:] == [6]
+    assert x.x[1].x[:] == [7, 8, 9, 10, 11, 12, 13]
