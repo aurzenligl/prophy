@@ -1,3 +1,4 @@
+import re
 from clang.cindex import Index, CursorKind, TypeKind
 import model
 
@@ -11,10 +12,8 @@ unambiguous_builtins = {
     TypeKind.BOOL: 'u32'
 }
 
-disallowed_chars = ['<', '>', ',', ' ', '::', '.', ':', '/', '\\', '-']
-
-def get_struct_name(cursor):
-    return reduce(lambda x, ch: x.replace(ch, '__'), disallowed_chars, cursor.type.spelling)
+def alphanumeric_name(cursor):
+    return re.sub('[^0-9a-zA-Z_]+', '__', cursor.type.spelling)
 
 def get_enum_member(cursor):
     name = cursor.spelling
@@ -45,12 +44,12 @@ class Builder(object):
         elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.RECORD):
             decl = tp.get_declaration()
             if decl.kind in (CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL):
-                name = get_struct_name(decl)
+                name = alphanumeric_name(decl)
                 if name not in self.known:
                     self.add_struct(decl)
                 return name
             elif decl.kind is CursorKind.UNION_DECL:
-                name = get_struct_name(decl)
+                name = alphanumeric_name(decl)
                 if name not in self.known:
                     self.add_union(decl)
                 return name
@@ -62,7 +61,7 @@ class Builder(object):
             return self._build_field_type_name(tp.element_type)
         elif tp.kind is TypeKind.ENUM:
             decl = tp.get_declaration()
-            name = get_struct_name(decl)
+            name = alphanumeric_name(decl)
             if name not in self.known:
                 self.add_enum(decl)
             return name
@@ -88,21 +87,21 @@ class Builder(object):
 
     def add_enum(self, cursor):
         members = map(get_enum_member, cursor.get_children())
-        node = model.Enum(get_struct_name(cursor), members)
+        node = model.Enum(alphanumeric_name(cursor), members)
         self._add_node(node)
 
     def add_struct(self, cursor):
         members = [self._build_struct_member(x)
                    for x in cursor.get_children()
                    if x.kind is CursorKind.FIELD_DECL]
-        node = model.Struct(get_struct_name(cursor), members)
+        node = model.Struct(alphanumeric_name(cursor), members)
         self._add_node(node)
 
     def add_union(self, cursor):
         members = [self._build_union_member(x, i)
                    for i, x in enumerate(cursor.get_children())
                    if x.kind is CursorKind.FIELD_DECL]
-        node = model.Union(get_struct_name(cursor), members)
+        node = model.Union(alphanumeric_name(cursor), members)
         self._add_node(node)
 
 def build_model(tu):

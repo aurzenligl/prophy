@@ -349,8 +349,8 @@ struct X
         workaround anyway and - in longer run - removal, I'll leave a stub implementation which
         returns no members """
 
-    assert [("A__int____3__", []),
-            ("X", [("a", "A__int____3__", None, None, None, None)])] == nodes
+    assert [("A__int__3__", []),
+            ("X", [("a", "A__int__3__", None, None, None, None)])] == nodes
 
 def test_c_struct():
     hpp = """\
@@ -382,7 +382,7 @@ struct X
 """
     nodes = parse(hpp)
 
-    Anonymous = contains_cmp("X____anonymous__struct__at__")
+    Anonymous = contains_cmp("X__anonymous__struct__at__")
 
     assert [(Anonymous, [("b", "i8", None, None, None, None)]),
             ("X", [("a", Anonymous, True, None, 3, None)])] == nodes
