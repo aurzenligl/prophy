@@ -99,9 +99,25 @@ class PythonSerializer(object):
         self.output_dir = output_dir
 
     def serialize_string(self, nodes, header = True):
+        """
+        Creates content to python files, uses all object from model
+            :param nodes: list with elements to write
+            :type nodes: list
+
+            :return: one string with all object from model writed in python style
+            :rtype: string
+        """
         return "\n".join(header * [_render_header()] + [_render(node) for node in nodes])
 
     def serialize(self, nodes, basename):
+        """
+        Creates, python file and writes to them out from function serialize_string
+            :param nodes: elements to write
+            :type nodes; list
+
+            :param basename: name of python file to write
+            :type basename: string
+        """
         path = os.path.join(self.output_dir, basename + ".py")
         out = self.serialize_string(nodes)
         open(path, "w").write(out)

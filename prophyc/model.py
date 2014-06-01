@@ -1,7 +1,9 @@
 from collections import namedtuple
 
 Include = namedtuple("Include", ["name"])
-
+"""
+:param Include: named tuple to store include elemnts
+"""
 Constant = namedtuple("Constant", ["name", "value"])
 
 Typedef = namedtuple("Typedef", ["name", "type"])

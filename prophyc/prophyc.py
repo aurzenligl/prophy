@@ -5,6 +5,14 @@ import sys
 import os
 
 def get_basename(filename):
+    """
+    Extract basename from path to file
+        :param filename: path to filename
+        :type fielname: string
+
+        :return: basename without extension
+        :rtype: string
+    """
     return os.path.splitext(os.path.basename(filename))[0]
 
 def main():

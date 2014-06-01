@@ -116,7 +116,6 @@ def dependency_sort(nodes):
         :param nodes: contain all nodes from xml
         :type nodes: list
     """
-    import pdb; pdb.set_trace()
     known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
     available = set(node.name for node in nodes)
 

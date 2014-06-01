@@ -4,6 +4,14 @@ from collections import namedtuple
 Action = namedtuple("Action", ["action", "params"])
 
 def parse(filename):
+    """
+    Parses file and extracts from it all operations which will be perform
+        :param filename: path to parch file
+        :type filename: string
+
+        :return: list with action which will be perform
+        :rtype: list
+    """
     def make_item(line):
         words = line.split()
         name, action = words[:2]
@@ -15,6 +23,14 @@ def parse(filename):
     return patches
 
 def patch(nodes, patches):
+    """
+    Performs operations from patch file
+        :param nodes: all elements from model
+        :type nodes: list
+
+        :param patches: actions from patch file
+        :type patches: dictionary 
+    """
     for node in nodes:
         actions = patches.get(node.name, [])
         for patch in actions:

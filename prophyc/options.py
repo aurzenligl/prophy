@@ -3,16 +3,32 @@ import sys
 import argparse
 
 def readable_dir(string):
+    """
+    Checks path to directory in string whether exist
+        :param string: path to directory
+        :return: the same string if directory exist
+    """
     if not os.path.isdir(string):
         raise argparse.ArgumentTypeError("%s directory not found" % string)
     return string
 
 def readable_file(string):
+    """
+    Checks path to file in string whether exist
+        :param string: path to file
+        :return: the same string if file exist
+    """
     if not os.path.isfile(string):
         raise argparse.ArgumentTypeError("%s file not found" % string)
     return string
 
 def parse_options():
+    """
+    Parse startup options
+        - include_dirs file path to parse
+        --patch path to file with patch rules
+        --python_out directory, where we want save output python file
+    """
     class ArgumentParser(argparse.ArgumentParser):
         def error(self, message):
             self.exit(1, '%s: error: %s\n' % (self.prog, message))
