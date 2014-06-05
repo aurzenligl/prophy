@@ -366,8 +366,8 @@ def add_union_composite(cls, name, type, disc):
     setattr(cls, name, property(getter, setter))
 
 def get_discriminated_field(cls, discriminator):
-    name, type, _ = (x for x in cls._descriptor if x[2] == discriminator).next()
-    return name, type
+    field = next((x for x in cls._descriptor if x[2] == discriminator), None)
+    return field[:2] if field else None
 
 class union(object):
     __slots__ = []
@@ -390,12 +390,11 @@ class union(object):
     # FIXE(kkryspin): data => bytes (or reverse) to be consistent.
     def decode(self, data, endianess, terminal = True):
         disc, bytes_read = self._discriminator_type._decode(data, endianess)
-        #FIXME(kkryspin): Minor code duplication.
-        field = next(ifilter(lambda x: x[2] == disc, self._descriptor), None)
+        field = get_discriminated_field(self, disc)
         if not field:
             raise Exception("unknown discriminator")
+        name, type = field
         self._discriminator = disc
-        name, type, _ = field
         bytes_read += decode_field(self, name, type, data[bytes_read:], endianess, {})
         if len(data) < self._SIZE:
             raise Exception("not enough bytes")
