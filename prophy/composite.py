@@ -153,8 +153,6 @@ def encode_field(type, value, endianess):
     if issubclass(type, container.base_array):
         return value.encode(endianess)
     elif issubclass(type, (struct, union)):
-        # FIXME(kkryspin): defining terminal parameter seems unnecessary 
-        # (or is not covered in UT)
         return value.encode(endianess, terminal = False)
     else:
         return type._encode(value, endianess)

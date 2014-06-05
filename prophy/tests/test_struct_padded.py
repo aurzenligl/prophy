@@ -190,3 +190,11 @@ def test_struct_with_substruct_with_bytes():
               '\x07\x00\x00\x00\x07\x08\x09\x0a\x0b\x0c\x0d\x00'), '<')
     assert x.x[0].x[:] == [6]
     assert x.x[1].x[:] == [7, 8, 9, 10, 11, 12, 13]
+
+    class C(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x", A)]
+
+    x = C()
+    x.x.x[:] = [1]
+    assert '\x01\x00\x00\x00\x01\x00\x00\x00' == x.encode('<')
