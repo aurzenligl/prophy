@@ -129,6 +129,8 @@ def get_padding(struct_obj, offset, alignment):
     remainder = offset % alignment
     if not remainder:
         return 0
+    # FIXME(kkryspin): get_padding might return '\x00' * (alignment - remainder).
+    # Otherwise it should be renamed to "get_padding_size" or something similiar.
     return alignment - remainder
 
 def indent(lines, spaces):
@@ -150,6 +152,8 @@ def encode_field(type, value, endianess):
     if issubclass(type, container.base_array):
         return value.encode(endianess)
     elif issubclass(type, (struct, union)):
+        # FIXME(kkryspin): defining terminal parameter seems unnecessary 
+        # (or is not covered in UT)
         return value.encode(endianess, terminal = False)
     else:
         return type._encode(value, endianess)
@@ -187,6 +191,7 @@ class struct(object):
 
     def encode(self, endianess, terminal = True):
         out = ""
+        # FIXME(kkryspin): Raw loop
         for name, type, padding in self._descriptor:
 
             out += '\x00' * get_padding(self, len(out), type._ALIGNMENT)
@@ -214,6 +219,7 @@ class struct(object):
     def decode(self, data, endianess, terminal = True):
         len_hints = {}
         bytes_read = 0
+        # FIXME(kkryspin): Raw loop
         for name, type, padding in self._descriptor:
             if type._OPTIONAL:
                 value, size = type._optional_type._decode(data, endianess)
@@ -253,13 +259,18 @@ class struct(object):
         if other is self:
             return
 
+        # FIXME(kkryspin): Is this variable defined for convenience only?
+        # (I presume self._fields was used a lot more in this function in the past)
         fields = self._fields
 
+        # FIXME(kkryspin): Raw loop
         for name, value in other._fields.iteritems():
             type = (type for _name, type, _ in self._descriptor if _name == name).next()
             if issubclass(type, container.base_array):
                 field_value = getattr(self, name)
                 if issubclass(type._TYPE, (struct, union)):
+                    # FIXME(kkryspin): That is a very non explicit way of differentiating
+                    # between bound and fixed arrays... or my understanding is incorrect.
                     if len(field_value) != len(value):
                         del field_value[:]
                         field_value.extend(value[:])
@@ -365,18 +376,23 @@ class union(object):
         self._discriminator = self._descriptor[0][2]
 
     def __str__(self):
+        #FIXME(kkryspin): Minor code duplication.
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
         return field_to_string(name, type, value)
 
     def encode(self, endianess, terminal = True):
+        #FIXME(kkryspin): Minor code duplication.
         name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
         value = getattr(self, name)
         bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(type, value, endianess)
+        # FIXME(kkryspin): get_padding could be used here.
         return bytes + "\x00" * (self._SIZE - len(bytes))
 
+    # FIXE(kkryspin): data => bytes (or reverse) to be consistent.
     def decode(self, data, endianess, terminal = True):
         disc, bytes_read = self._discriminator_type._decode(data, endianess)
+        #FIXME(kkryspin): Minor code duplication.
         field = next(ifilter(lambda x: x[2] == disc, self._descriptor), None)
         if not field:
             raise Exception("unknown discriminator")
@@ -390,6 +406,7 @@ class union(object):
         return self._SIZE
 
     def copy_from(self, other):
+        # FIXME(kkryspin): Code duplication (struct.copy_from).
         if not isinstance(other, self.__class__):
             raise TypeError("Parameter to copy_from must be instance of same class.")
         if other is self:
