@@ -123,15 +123,16 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     descriptor[index] = (name, container_len, padding)
     delattr(cls, name)
 
-def get_padding(struct_obj, offset, alignment):
+def get_padding_size(struct_obj, offset, alignment):
     if isinstance(struct_obj, struct_packed):
         return 0
     remainder = offset % alignment
     if not remainder:
         return 0
-    # FIXME(kkryspin): get_padding might return '\x00' * (alignment - remainder).
-    # Otherwise it should be renamed to "get_padding_size" or something similiar.
     return alignment - remainder
+
+def get_padding(struct_obj, offset, alignment):
+    return '\x00' * get_padding_size(struct_obj, offset, alignment)
 
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
@@ -215,7 +216,7 @@ class struct(object):
         # FIXME(kkryspin): Raw loop
         for name, type, padding in self._descriptor:
 
-            out += '\x00' * get_padding(self, len(out), type._ALIGNMENT)
+            out += get_padding(self, len(out), type._ALIGNMENT)
 
             value = getattr(self, name, None)
             if type._OPTIONAL and value is None:
@@ -233,7 +234,7 @@ class struct(object):
         if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
             pass
         else:
-            out += '\x00' * get_padding(self, len(out), self._ALIGNMENT)
+            out += get_padding(self, len(out), self._ALIGNMENT)
 
         return out
 
@@ -254,7 +255,7 @@ class struct(object):
                     bytes_read += type._SIZE
                     continue
 
-            padding = get_padding(self, bytes_read, type._ALIGNMENT)
+            padding = get_padding_size(self, bytes_read, type._ALIGNMENT)
             data = data[padding:]
             bytes_read += padding
 
@@ -265,7 +266,7 @@ class struct(object):
         if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
             pass
         else:
-            padding = get_padding(self, bytes_read, self._ALIGNMENT)
+            padding = get_padding_size(self, bytes_read, self._ALIGNMENT)
             data = data[padding:]
             bytes_read += padding
 
