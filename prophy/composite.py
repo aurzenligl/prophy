@@ -210,31 +210,31 @@ class struct(object):
         return out
 
     def encode(self, endianess, terminal = True):
-        out = ""
+        data = ""
         # FIXME(kkryspin): Raw loop
         for name, type, padding in self._descriptor:
 
-            out += get_padding(self, len(out), type._ALIGNMENT)
+            data += get_padding(self, len(data), type._ALIGNMENT)
 
             value = getattr(self, name, None)
             if type._OPTIONAL and value is None:
-                out += type._optional_type._encode(False, endianess)
-                out += "\x00" * type._SIZE
+                data += type._optional_type._encode(False, endianess)
+                data += "\x00" * type._SIZE
             elif type._OPTIONAL:
-                out += type._optional_type._encode(True, endianess)
-                out += encode_field(type, value, endianess)
+                data += type._optional_type._encode(True, endianess)
+                data += encode_field(type, value, endianess)
             elif type._BOUND and issubclass(type, (int, long)):
                 array_value = getattr(self, type._BOUND)
-                out += type._encode(len(array_value), endianess)
+                data += type._encode(len(array_value), endianess)
             else:
-                out += encode_field(type, value, endianess)
+                data += encode_field(type, value, endianess)
 
         if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
             pass
         else:
-            out += get_padding(self, len(out), self._ALIGNMENT)
+            data += get_padding(self, len(data), self._ALIGNMENT)
 
-        return out
+        return data
 
     def decode(self, data, endianess, terminal = True):
         len_hints = {}
@@ -384,10 +384,9 @@ class union(object):
     def encode(self, endianess, terminal = True):
         name, tp = get_discriminated_field(self, self._discriminator)
         value = getattr(self, name)
-        bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(tp, value, endianess)
-        return bytes.ljust(self._SIZE, '\x00')
+        data = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(tp, value, endianess)
+        return data.ljust(self._SIZE, '\x00')
 
-    # FIXE(kkryspin): data => bytes (or reverse) to be consistent.
     def decode(self, data, endianess, terminal = True):
         disc, bytes_read = self._discriminator_type._decode(data, endianess)
         field = get_discriminated_field(self, disc)
