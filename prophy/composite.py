@@ -363,6 +363,10 @@ def add_union_composite(cls, name, type, disc):
         raise Exception("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
 
+def get_discriminated_field(cls, discriminator):
+    name, type, _ = (x for x in cls._descriptor if x[2] == discriminator).next()
+    return name, type
+
 class union(object):
     __slots__ = []
 
@@ -371,16 +375,14 @@ class union(object):
         self._discriminator = self._descriptor[0][2]
 
     def __str__(self):
-        #FIXME(kkryspin): Minor code duplication.
-        name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
+        name, tp = get_discriminated_field(self, self._discriminator)
         value = getattr(self, name)
-        return field_to_string(name, type, value)
+        return field_to_string(name, tp, value)
 
     def encode(self, endianess, terminal = True):
-        #FIXME(kkryspin): Minor code duplication.
-        name, type, _ = next(ifilter(lambda x: x[2] == self._discriminator, self._descriptor))
+        name, tp = get_discriminated_field(self, self._discriminator)
         value = getattr(self, name)
-        bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(type, value, endianess)
+        bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(tp, value, endianess)
         # FIXME(kkryspin): get_padding could be used here.
         return bytes + "\x00" * (self._SIZE - len(bytes))
 
