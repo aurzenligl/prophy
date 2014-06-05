@@ -175,6 +175,10 @@ def decode_field(parent, name, type, data, endianess, len_hints):
             setattr(parent, name, value)
         return size
 
+def validate_copy_from(lhs, rhs):
+    if not isinstance(rhs, lhs.__class__):
+        raise TypeError("Parameter to copy_from must be instance of same class.")
+
 def set_field(parent, name, rhs):
     lhs = getattr(parent, name)
     if isinstance(rhs, container.base_array):
@@ -271,8 +275,7 @@ class struct(object):
         return bytes_read
 
     def copy_from(self, other):
-        if not isinstance(other, self.__class__):
-            raise TypeError("Parameter to copy_from must be instance of same class.")
+        validate_copy_from(self, other)
         if other is self:
             return
 
@@ -403,21 +406,19 @@ class union(object):
         return self._SIZE
 
     def copy_from(self, other):
-        # FIXME(kkryspin): Code duplication (struct.copy_from).
-        if not isinstance(other, self.__class__):
-            raise TypeError("Parameter to copy_from must be instance of same class.")
+        validate_copy_from(self, other)
         if other is self:
             return
 
-        disc = other._discriminator
-        self._discriminator = disc
-        self._fields = {}
-        name, type, _ = next(ifilter(lambda x: x[2] == disc, self._descriptor))
-        value = getattr(self, name)
+        self._fields.clear()
+        self._discriminator = other._discriminator
+        name, type = get_discriminated_field(self, self._discriminator)
+        rhs = getattr(other, name)
         if issubclass(type, (struct, union)):
-            getattr(self, name).copy_from(getattr(other, name))
+            lhs = getattr(self, name)
+            lhs.copy_from(rhs)
         else:
-            setattr(self, name, getattr(other, name))
+            setattr(self, name, rhs)
 
 class union_generator(type):
     def __new__(cls, name, bases, attrs):
