@@ -167,7 +167,15 @@ def encode_field(parent, type, value, endianess):
         return type._encode(value, endianess)
 
 def decode_field(parent, name, type, data, endianess, len_hints):
-    if issubclass(type, container.base_array):
+    if type._OPTIONAL:
+        value, size = type._optional_type._decode(data, endianess)
+        if value:
+            setattr(parent, name, True)
+            return size + decode_field(parent, name, type.__bases__[0], data[size:], endianess, len_hints)
+        else:
+            setattr(parent, name, None)
+            return size + type._SIZE
+    elif issubclass(type, container.base_array):
         return getattr(parent, name).decode(data, endianess, len_hints.get(name))
     elif issubclass(type, (struct, union)):
         return getattr(parent, name).decode(data, endianess, terminal = False)
@@ -233,40 +241,21 @@ class struct(object):
 
     def decode(self, data, endianess, terminal = True):
         len_hints = {}
-        bytes_read = 0
-        # FIXME(kkryspin): Raw loop
+        orig_data_size = len(data)
+
         for name, type, _ in self._descriptor:
-            if type._OPTIONAL:
-                value, size = type._optional_type._decode(data, endianess)
-                data = data[size:]
-                bytes_read += size
-                if value:
-                    setattr(self, name, True)
-                else:
-                    setattr(self, name, None)
-                    data = data[type._SIZE:]
-                    bytes_read += type._SIZE
-                    continue
-
-            padding = get_padding_size(self, bytes_read, type._ALIGNMENT)
-            data = data[padding:]
-            bytes_read += padding
-
-            size = decode_field(self, name, type, data, endianess, len_hints)
-            data = data[size:]
-            bytes_read += size
+            data = data[get_padding_size(self, orig_data_size - len(data), type._ALIGNMENT):]
+            data = data[decode_field(self, name, type, data, endianess, len_hints):]
 
         if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
             pass
         else:
-            padding = get_padding_size(self, bytes_read, self._ALIGNMENT)
-            data = data[padding:]
-            bytes_read += padding
+            data = data[get_padding_size(self, orig_data_size - len(data), self._ALIGNMENT):]
 
         if terminal and data:
             raise Exception("not all bytes read")
 
-        return bytes_read
+        return orig_data_size - len(data)
 
     def copy_from(self, other):
         validate_copy_from(self, other)
