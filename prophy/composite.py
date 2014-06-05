@@ -387,8 +387,7 @@ class union(object):
         name, tp = get_discriminated_field(self, self._discriminator)
         value = getattr(self, name)
         bytes = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(tp, value, endianess)
-        # FIXME(kkryspin): get_padding could be used here.
-        return bytes + "\x00" * (self._SIZE - len(bytes))
+        return bytes.ljust(self._SIZE, '\x00')
 
     # FIXE(kkryspin): data => bytes (or reverse) to be consistent.
     def decode(self, data, endianess, terminal = True):
