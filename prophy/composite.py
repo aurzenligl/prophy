@@ -149,8 +149,17 @@ def field_to_string(name, type, value):
     else:
         return "%s: %s\n" % (name, value)
 
-def encode_field(type, value, endianess):
-    if issubclass(type, container.base_array):
+def encode_field(parent, type, value, endianess):
+    if type._OPTIONAL:
+        if value is None:
+            return (type._optional_type._encode(False, endianess) +
+                    "\x00" * type._SIZE)
+        else:
+            return (type._optional_type._encode(True, endianess) +
+                    encode_field(parent, type.__bases__[0], value, endianess))
+    if type._BOUND and issubclass(type, (int, long)):
+        return type._encode(len(getattr(parent, type._BOUND)), endianess)
+    elif issubclass(type, container.base_array):
         return value.encode(endianess)
     elif issubclass(type, (struct, union)):
         return value.encode(endianess, terminal = False)
@@ -211,23 +220,9 @@ class struct(object):
 
     def encode(self, endianess, terminal = True):
         data = ""
-        # FIXME(kkryspin): Raw loop
-        for name, type, padding in self._descriptor:
-
-            data += get_padding(self, len(data), type._ALIGNMENT)
-
-            value = getattr(self, name, None)
-            if type._OPTIONAL and value is None:
-                data += type._optional_type._encode(False, endianess)
-                data += "\x00" * type._SIZE
-            elif type._OPTIONAL:
-                data += type._optional_type._encode(True, endianess)
-                data += encode_field(type, value, endianess)
-            elif type._BOUND and issubclass(type, (int, long)):
-                array_value = getattr(self, type._BOUND)
-                data += type._encode(len(array_value), endianess)
-            else:
-                data += encode_field(type, value, endianess)
+        for name, type, _ in self._descriptor:
+            data += (get_padding(self, len(data), type._ALIGNMENT) +
+                     encode_field(self, type, getattr(self, name, None), endianess))
 
         if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
             pass
@@ -240,7 +235,7 @@ class struct(object):
         len_hints = {}
         bytes_read = 0
         # FIXME(kkryspin): Raw loop
-        for name, type, padding in self._descriptor:
+        for name, type, _ in self._descriptor:
             if type._OPTIONAL:
                 value, size = type._optional_type._decode(data, endianess)
                 data = data[size:]
@@ -384,7 +379,8 @@ class union(object):
     def encode(self, endianess, terminal = True):
         name, tp = get_discriminated_field(self, self._discriminator)
         value = getattr(self, name)
-        data = self._discriminator_type._encode(self._discriminator, endianess) + encode_field(tp, value, endianess)
+        data = (self._discriminator_type._encode(self._discriminator, endianess) +
+                encode_field(self, tp, value, endianess))
         return data.ljust(self._SIZE, '\x00')
 
     def decode(self, data, endianess, terminal = True):
