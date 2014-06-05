@@ -259,31 +259,27 @@ class struct(object):
         if other is self:
             return
 
-        # FIXME(kkryspin): Is this variable defined for convenience only?
-        # (I presume self._fields was used a lot more in this function in the past)
-        fields = self._fields
+        self._fields.clear()
 
         # FIXME(kkryspin): Raw loop
-        for name, value in other._fields.iteritems():
-            type = (type for _name, type, _ in self._descriptor if _name == name).next()
-            if issubclass(type, container.base_array):
-                field_value = getattr(self, name)
-                if issubclass(type._TYPE, (struct, union)):
-                    # FIXME(kkryspin): That is a very non explicit way of differentiating
-                    # between bound and fixed arrays... or my understanding is incorrect.
-                    if len(field_value) != len(value):
-                        del field_value[:]
-                        field_value.extend(value[:])
+        for name, rhs in other._fields.iteritems():
+            lhs = getattr(self, name)
+            tp = (tp for _name, tp, _ in self._descriptor if _name == name).next()
+
+            if issubclass(tp, container.base_array):
+                if issubclass(tp._TYPE, (struct, union)):
+                    if tp._DYNAMIC:
+                        del lhs[:]
+                        lhs.extend(rhs[:])
                     else:
-                        for elem, other_elem in zip(field_value, value):
-                            elem.copy_from(other_elem)
+                        for lhs_elem, rhs_elem in zip(lhs, rhs):
+                            lhs_elem.copy_from(rhs_elem)
                 else:
-                    field_value[:] = value[:]
-            elif issubclass(type, (struct, union)):
-                field_value = getattr(self, name)
-                field_value.copy_from(value)
+                    lhs[:] = rhs[:]
+            elif issubclass(tp, (struct, union)):
+                lhs.copy_from(rhs)
             else:
-                fields[name] = value
+                self._fields[name] = rhs
 
 class struct_packed(struct):
     __slots__ = []

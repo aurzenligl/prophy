@@ -37,7 +37,7 @@ class TestBoundScalarArray():
             x.value[:] = [1, 2, "abc"]
 
         y = X()
-        assert y.value[:] == []
+        y.value[:] = [1, 2, 3] # initial value to override
         y.copy_from(x)
         assert y.value[:] == [6]
 
@@ -168,11 +168,16 @@ class TestBoundCompositeArray():
             x.value[0] = 5
 
         y = Y()
-        assert y.value[:] == []
+        y.value.add()
+        y.value.add() # initial value to override
         y.copy_from(x)
         assert len(y.value) == 2
         assert y.value[0].value[:] == [1, 2]
         assert y.value[1].value[:] == [3]
+
+        z = Y() # test assignment
+        y.copy_from(z)
+        assert len(y.value) == 0
 
     def test_print(self):
         x = Y()
