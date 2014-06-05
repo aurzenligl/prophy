@@ -175,6 +175,23 @@ def decode_field(parent, name, type, data, endianess, len_hints):
             setattr(parent, name, value)
         return size
 
+def set_field(parent, name, rhs):
+    lhs = getattr(parent, name)
+    if isinstance(rhs, container.base_array):
+        if issubclass(rhs._TYPE, (struct, union)):
+            if rhs._DYNAMIC:
+                del lhs[:]
+                lhs.extend(rhs[:])
+            else:
+                for lhs_elem, rhs_elem in zip(lhs, rhs):
+                    lhs_elem.copy_from(rhs_elem)
+        else:
+            lhs[:] = rhs[:]
+    elif isinstance(rhs, (struct, union)):
+        lhs.copy_from(rhs)
+    else:
+        parent._fields[name] = rhs
+
 class struct(object):
     __slots__ = []
 
@@ -260,26 +277,8 @@ class struct(object):
             return
 
         self._fields.clear()
-
-        # FIXME(kkryspin): Raw loop
         for name, rhs in other._fields.iteritems():
-            lhs = getattr(self, name)
-            tp = (tp for _name, tp, _ in self._descriptor if _name == name).next()
-
-            if issubclass(tp, container.base_array):
-                if issubclass(tp._TYPE, (struct, union)):
-                    if tp._DYNAMIC:
-                        del lhs[:]
-                        lhs.extend(rhs[:])
-                    else:
-                        for lhs_elem, rhs_elem in zip(lhs, rhs):
-                            lhs_elem.copy_from(rhs_elem)
-                else:
-                    lhs[:] = rhs[:]
-            elif issubclass(tp, (struct, union)):
-                lhs.copy_from(rhs)
-            else:
-                self._fields[name] = rhs
+            set_field(self, name, rhs)
 
 class struct_packed(struct):
     __slots__ = []
