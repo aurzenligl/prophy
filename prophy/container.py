@@ -54,11 +54,7 @@ class fixed_scalar_array(base_array):
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) is not len(values):
             raise ProphyError("setting slice with different length collection")
-        new_values = []
-        for value in values:
-            value = self._TYPE._check(value)
-            new_values.append(value)
-        self._values[start:stop] = new_values
+        self._values[start:stop] = map(self._TYPE._check, values)
 
     def __eq__(self, other):
         if self is other:
@@ -94,16 +90,12 @@ class bound_scalar_array(base_array):
             raise ProphyError("exceeded array limit")
         self._values.insert(idx, value)
 
-    def extend(self, elem_seq):
-        if not elem_seq:
+    def extend(self, values):
+        if not values:
             return
-        if self._max_len and len(self) + len(elem_seq) > self._max_len:
+        if self._max_len and len(self) + len(values) > self._max_len:
             raise ProphyError("exceeded array limit")
-        new_values = []
-        for elem in elem_seq:
-            elem = self._TYPE._check(elem)
-            new_values.append(elem)
-        self._values.extend(new_values)
+        self._values.extend(map(self._TYPE._check, values))
 
     def remove(self, elem):
         self._values.remove(elem)
@@ -115,11 +107,7 @@ class bound_scalar_array(base_array):
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
             raise ProphyError("exceeded array limit")
-        new_values = []
-        for value in values:
-            value = self._TYPE._check(value)
-            new_values.append(value)
-        self._values[start:stop] = new_values
+        self._values[start:stop] = map(self._TYPE._check, values)
 
     def __delitem__(self, idx):
         del self._values[idx]
