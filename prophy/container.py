@@ -13,6 +13,23 @@ def decode_scalar_array(tp, data, endianness, count):
         values.append(value)
     return values, cursor
 
+def scalar_array_eq(self, other):
+    if self is other:
+        return True
+    # Special case for the same type which should be common and fast.
+    if isinstance(other, self.__class__):
+        return other._values == self._values
+    # We are presumably comparing against some other sequence type.
+    return other == self._values
+
+def composite_array_eq(self, other):
+    if self is other:
+        return True
+    if not isinstance(other, self.__class__):
+        raise ProphyError('Can only compare repeated composite fields against '
+                          'other repeated composite fields.')
+    return self._values == other._values
+
 class base_array(object):
     __slots__ = ['_values']
 
@@ -57,13 +74,7 @@ class fixed_scalar_array(base_array):
         self._values[start:stop] = map(self._TYPE._check, values)
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        # Special case for the same type which should be common and fast.
-        if isinstance(other, self.__class__):
-            return other._values == self._values
-        # We are presumably comparing against some other sequence type.
-        return other == self._values
+        return scalar_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self)
@@ -116,13 +127,7 @@ class bound_scalar_array(base_array):
         del self._values[start:stop]
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        # Special case for the same type which should be common and fast.
-        if isinstance(other, self.__class__):
-            return other._values == self._values
-        # We are presumably comparing against some other sequence type.
-        return other == self._values
+        return scalar_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
@@ -142,12 +147,7 @@ class fixed_composite_array(base_array):
         self._values = [self._TYPE() for _ in xrange(self._max_len)]
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only compare repeated composite fields against '
-                            'other repeated composite fields.')
-        return self._values == other._values
+        return composite_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self)
@@ -190,12 +190,7 @@ class bound_composite_array(base_array):
         del self._values[start:stop]
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only compare repeated composite fields against '
-                            'other repeated composite fields.')
-        return self._values == other._values
+        return composite_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, "\x00")
