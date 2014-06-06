@@ -46,18 +46,18 @@ def add_properties(cls, descriptor):
         else:
             add_scalar(cls, name, type)
 
-def add_repeated(cls, field_name, field_type):
+def add_repeated(cls, name, tp):
     def getter(self):
-        field_value = self._fields.get(field_name)
-        if field_value is None:
-            field_value = field_type()
-            field_value = self._fields.setdefault(field_name, field_value)
-        return field_value
+        value = self._fields.get(name)
+        if value is None:
+            value = tp()
+            self._fields[name] = value
+        return value
     def setter(self, new_value):
         raise Exception("assignment to array field not allowed")
-    setattr(cls, field_name, property(getter, setter))
-    if field_type._BOUND:
-        substitute_len_field(cls, cls._descriptor, field_name, field_type)
+    setattr(cls, name, property(getter, setter))
+    if tp._BOUND:
+        substitute_len_field(cls, cls._descriptor, name, tp)
 
 def add_scalar(cls, field_name, field_type):
     def getter(self):
@@ -73,24 +73,24 @@ def add_scalar(cls, field_name, field_type):
     if field_type._BOUND:
         substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
-def add_composite(cls, field_name, field_type):
+def add_composite(cls, name, tp):
     def getter(self):
-        if field_type._OPTIONAL and field_name not in self._fields:
+        if tp._OPTIONAL and name not in self._fields:
             return None
-        if field_name not in self._fields:
-            value = field_type()
-            self._fields[field_name] = value
+        if name not in self._fields:
+            value = tp()
+            self._fields[name] = value
             return value
         else:
-            return self._fields.get(field_name)
+            return self._fields.get(name)
     def setter(self, new_value):
-        if field_type._OPTIONAL and new_value is True:
-            self._fields[field_name] = field_type()
-        elif field_type._OPTIONAL and new_value is None:
-            self._fields.pop(field_name, None)
+        if tp._OPTIONAL and new_value is True:
+            self._fields[name] = tp()
+        elif tp._OPTIONAL and new_value is None:
+            self._fields.pop(name, None)
         else:
             raise Exception("assignment to composite field not allowed")
-    setattr(cls, field_name, property(getter, setter))
+    setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
     index, field = ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)).next()
