@@ -24,10 +24,13 @@ def test_fixed_bytes_assignment(FixedBytes):
     x.value = "bts"
     assert x.value == "bts\x00\x00"
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as e:
         x.value = 3
-    with pytest.raises(Exception):
+    assert e.value.message == 'not a str'
+
+    with pytest.raises(Exception) as e:
         x.value = "123456"
+    assert e.value.message == 'too long'
 
 def test_fixed_bytes_copy_from(FixedBytes):
     x = FixedBytes()
@@ -40,16 +43,9 @@ def test_fixed_bytes_copy_from(FixedBytes):
 
 def test_fixed_bytes_encoding(FixedBytes):
     x = FixedBytes()
-    x.value = "abc"
+    x.value = "abc\x00"
     assert str(x) == "value: \'abc\\x00\\x00\'\n"
 
-    x.value = "\x00\x01"
-    assert str(x) == "value: \'\\x00\\x01\\x00\\x00\\x00\'\n"
-
-    x.value = "ab\x00"
-    assert str(x) == "value: \'ab\\x00\\x00\\x00\'\n"
-
-    x.value = "abc"
     assert x.encode(">") == "abc\x00\x00"
 
     x.value = "\x01"
@@ -57,9 +53,6 @@ def test_fixed_bytes_encoding(FixedBytes):
 
     x.decode("abc\x00\x00", ">")
     assert x.value == "abc\x00\x00"
-
-    x.decode("\x01\x00\x00\x00\x00", ">")
-    assert x.value == "\x01\x00\x00\x00\x00"
 
     with pytest.raises(Exception):
         x.decode("\x01\x00\x00\x00\x00\x00", ">")
@@ -289,13 +282,13 @@ def test_limited_bytes_twice_in_struct():
                        ("y", prophy.bytes(size = 5, bound = "y_len"))]
     x = X()
     x.x = "abc"
-    x.y = "fgh"
+    x.y = "efgh"
     assert str(x) == ("x: \'abc\'\n"
-                      "y: \'fgh\'\n")
-    assert x.encode(">") == "\x00\x00\x00\x03\x00\x00\x00\x03abc\x00\x00fgh\x00\x00"
+                      "y: \'efgh\'\n")
+    assert x.encode(">") == "\x00\x00\x00\x03\x00\x00\x00\x04abc\x00\x00efgh\x00"
 
-    x.decode("\x00\x00\x00\x03\x00\x00\x00\x03abc\x00\x00fgh\x00\x00", ">")
-    assert x.x == "abc"
+    x.decode("\x00\x00\x00\x02\x00\x00\x00\x03ab\x00\x00\x00fgh\x00\x00", ">")
+    assert x.x == "ab"
     assert x.y == "fgh"
 
 @pytest.fixture(scope = 'session')
