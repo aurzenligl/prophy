@@ -1,8 +1,34 @@
 import struct
 from exception import ProphyError
 
+def numeric_decorator(cls, size, id):
+    @staticmethod
+    def encode(value, endianess):
+        return struct.pack(endianess + id, value)
+
+    @staticmethod
+    def decode(data, endianess):
+        if len(data) < size:
+            raise ProphyError("too few bytes to decode integer")
+        value, = struct.unpack(endianess + id, data[:size])
+        return value, size
+
+    cls._encode = encode
+    cls._decode = decode
+
+    cls._SIZE = size
+    cls._ALIGNMENT = size
+    cls._DYNAMIC = False
+    cls._UNLIMITED = False
+    cls._OPTIONAL = False
+    cls._BOUND = None
+
+    return cls
+
 def int_decorator(size, id, min, max):
     def decorator(cls):
+        cls = numeric_decorator(cls, size, id)
+
         @staticmethod
         def check(value):
             if not isinstance(value, (int, long)):
@@ -11,59 +37,27 @@ def int_decorator(size, id, min, max):
                 raise ProphyError("out of bounds")
             return value
 
-        @staticmethod
-        def encode(value, endianess):
-            return struct.pack(endianess + id, value)
-
-        @staticmethod
-        def decode(data, endianess):
-            if len(data) < size:
-                raise ProphyError("too few bytes to decode integer")
-            value, = struct.unpack(endianess + id, data[:size])
-            return value, size
-
         cls._check = check
-        cls._encode = encode
-        cls._decode = decode
+
         cls._DEFAULT = 0
-        cls._SIZE = size
-        cls._ALIGNMENT = size
-        cls._DYNAMIC = False
-        cls._UNLIMITED = False
-        cls._OPTIONAL = False
-        cls._BOUND = None
+
         return cls
     return decorator
 
 def float_decorator(size, id):
     def decorator(cls):
+        cls = numeric_decorator(cls, size, id)
+
         @staticmethod
         def check(value):
             if not isinstance(value, (float, int, long)):
                 raise ProphyError("not a float")
             return value
 
-        @staticmethod
-        def encode(value, endianess):
-            return struct.pack(endianess + id, value)
-
-        @staticmethod
-        def decode(data, endianess):
-            if len(data) < size:
-                raise ProphyError("too few bytes to decode integer")
-            value, = struct.unpack(endianess + id, data[:size])
-            return value, size
-
         cls._check = check
-        cls._encode = encode
-        cls._decode = decode
+
         cls._DEFAULT = 0.0
-        cls._SIZE = size
-        cls._ALIGNMENT = size
-        cls._DYNAMIC = False
-        cls._UNLIMITED = False
-        cls._OPTIONAL = False
-        cls._BOUND = None
+
         return cls
     return decorator
 
