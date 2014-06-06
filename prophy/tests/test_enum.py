@@ -11,7 +11,6 @@ class Enumeration8(prophy.enum8):
     __metaclass__ = prophy.enum_generator
     _enumerators = Enumeration._enumerators
 
-
 class TestEnum():
 
     class Enum(prophy.struct_packed):
