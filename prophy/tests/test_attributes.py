@@ -1,85 +1,37 @@
 import prophy
 import pytest
 
-def test_int_attributes():
-    assert 1 == prophy.i8._SIZE
-    assert False == prophy.i8._DYNAMIC
-    assert False == prophy.i8._UNLIMITED
-    assert 0 == prophy.i8._DEFAULT
-    assert False == prophy.i8._OPTIONAL
-    assert 1 == prophy.i8._ALIGNMENT
-    assert None == prophy.i8._BOUND
+@pytest.mark.parametrize("tp, size", [
+    (prophy.i8, 1),
+    (prophy.i16, 2),
+    (prophy.i32, 4),
+    (prophy.i64, 8),
+    (prophy.u8, 1),
+    (prophy.u16, 2),
+    (prophy.u32, 4),
+    (prophy.u64, 8)
+])
+def test_int_attributes(tp, size):
+    assert tp._SIZE == size
+    assert tp._DYNAMIC == False
+    assert tp._UNLIMITED == False
+    assert tp._DEFAULT == 0
+    assert tp._OPTIONAL == False
+    assert tp._ALIGNMENT == size
+    assert tp._BOUND is None
 
-    assert 2 == prophy.i16._SIZE
-    assert False == prophy.i16._DYNAMIC
-    assert False == prophy.i16._UNLIMITED
-    assert 0 == prophy.i16._DEFAULT
-    assert False == prophy.i16._OPTIONAL
-    assert 2 == prophy.i16._ALIGNMENT
-    assert None == prophy.i16._BOUND
-
-    assert 4 == prophy.i32._SIZE
-    assert False == prophy.i32._DYNAMIC
-    assert False == prophy.i32._UNLIMITED
-    assert 0 == prophy.i32._DEFAULT
-    assert False == prophy.i32._OPTIONAL
-    assert 4 == prophy.i32._ALIGNMENT
-    assert None == prophy.i32._BOUND
-
-    assert 8 == prophy.i64._SIZE
-    assert False == prophy.i64._DYNAMIC
-    assert False == prophy.i64._UNLIMITED
-    assert 0 == prophy.i64._DEFAULT
-    assert False == prophy.i64._OPTIONAL
-    assert 8 == prophy.i64._ALIGNMENT
-    assert None == prophy.i64._BOUND
-
-    assert 1 == prophy.u8._SIZE
-    assert False == prophy.u8._DYNAMIC
-    assert False == prophy.u8._UNLIMITED
-    assert 0 == prophy.u8._DEFAULT
-    assert False == prophy.u8._OPTIONAL
-    assert 1 == prophy.u8._ALIGNMENT
-    assert None == prophy.u8._BOUND
-
-    assert 2 == prophy.u16._SIZE
-    assert False == prophy.u16._DYNAMIC
-    assert False == prophy.u16._UNLIMITED
-    assert 0 == prophy.u16._DEFAULT
-    assert False == prophy.u16._OPTIONAL
-    assert 2 == prophy.u16._ALIGNMENT
-    assert None == prophy.u16._BOUND
-
-    assert 4 == prophy.u32._SIZE
-    assert False == prophy.u32._DYNAMIC
-    assert False == prophy.u32._UNLIMITED
-    assert 0 == prophy.u32._DEFAULT
-    assert False == prophy.u32._OPTIONAL
-    assert 4 == prophy.u32._ALIGNMENT
-    assert None == prophy.u32._BOUND
-
-    assert 8 == prophy.u64._SIZE
-    assert False == prophy.u64._DYNAMIC
-    assert False == prophy.u64._UNLIMITED
-    assert 0 == prophy.u64._DEFAULT
-    assert False == prophy.u64._OPTIONAL
-    assert 8 == prophy.u64._ALIGNMENT
-    assert None == prophy.u64._BOUND
-
-def test_float_attributes():
-    assert 4 == prophy.r32._SIZE
-    assert False == prophy.r32._DYNAMIC
-    assert False == prophy.r32._UNLIMITED
-    assert 0.0 == prophy.r32._DEFAULT
-    assert 4 == prophy.r32._ALIGNMENT
-    assert None == prophy.r32._BOUND
-
-    assert 8 == prophy.r64._SIZE
-    assert False == prophy.r64._DYNAMIC
-    assert False == prophy.r64._UNLIMITED
-    assert 0.0 == prophy.r64._DEFAULT
-    assert 8 == prophy.r64._ALIGNMENT
-    assert None == prophy.r64._BOUND
+@pytest.mark.parametrize("tp, size", [
+    (prophy.r32, 4),
+    (prophy.r64, 8)
+])
+def test_float_attributes(tp, size):
+    assert tp._SIZE == size
+    assert tp._DYNAMIC == False
+    assert tp._UNLIMITED == False
+    assert tp._DEFAULT == 0.0
+    assert tp._OPTIONAL == False
+    assert tp._ALIGNMENT == size
+    assert tp._BOUND is None
 
 def test_enum_attributes():
     class E(prophy.enum):
