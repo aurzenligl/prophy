@@ -358,12 +358,12 @@ def test_greedy_bytes_as_last_field():
     assert x.y == "fgh"
 
 def test_greedy_bytes_not_last_exceptions():
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError):
         class LastGreedyBytes(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.bytes()),
                            ("y", prophy.u32)]
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError):
         class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
@@ -372,7 +372,7 @@ def test_greedy_bytes_not_last_exceptions():
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", X),
                            ("y", prophy.u32)]
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError):
         class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
@@ -381,7 +381,7 @@ def test_greedy_bytes_not_last_exceptions():
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
                            ("y", prophy.array(X, size = 2))]
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError):
         class X(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.u32),
