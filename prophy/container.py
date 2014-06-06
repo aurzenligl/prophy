@@ -21,6 +21,9 @@ class base_array(object):
     def __getitem__(self, idx):
         return self._values[idx]
 
+    def __getslice__(self, start, stop):
+        return self._values[start:stop]
+
     def __len__(self):
         return len(self._values)
 
@@ -46,9 +49,6 @@ class fixed_scalar_array(base_array):
     def __setitem__(self, idx, value):
         value = self._TYPE._check(value)
         self._values[idx] = value
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
 
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) is not len(values):
@@ -111,9 +111,6 @@ class bound_scalar_array(base_array):
         value = self._TYPE._check(value)
         self._values[idx] = value
 
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
-
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
             raise Exception("exceeded array limit")
@@ -154,9 +151,6 @@ class fixed_composite_array(base_array):
     def __init__(self):
         super(fixed_composite_array, self).__init__()
         self._values = [self._TYPE() for _ in xrange(self._max_len)]
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
 
     def __eq__(self, other):
         if self is other:
@@ -199,9 +193,6 @@ class bound_composite_array(base_array):
             new_element = composite_cls()
             new_element.copy_from(message)
             self._values.append(new_element)
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
 
     def __delitem__(self, idx):
         del self._values[idx]
