@@ -2,23 +2,23 @@ import prophy
 import pytest
 
 @pytest.fixture(scope = 'session')
-def X():
-    class X(prophy.struct_packed):
+def BoundScalarArray():
+    class BoundScalarArray(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("len", prophy.u32),
                        ("value", prophy.array(prophy.u32, bound = "len"))]
-    return X
+    return BoundScalarArray
 
 @pytest.fixture(scope = 'session')
-def Y(X):
-    class Y(prophy.struct_packed):
+def BoundCompositeArray(BoundScalarArray):
+    class BoundCompositeArray(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("len", prophy.u32),
-                       ("value", prophy.array(X, bound = "len"))]
-    return Y
+                       ("value", prophy.array(BoundScalarArray, bound = "len"))]
+    return BoundCompositeArray
 
-def test_bound_scalar_array_assignment(X):
-    x = X()
+def test_bound_scalar_array_assignment(BoundScalarArray):
+    x = BoundScalarArray()
     assert x.value == []
     assert x.value[:] == []
 
@@ -45,17 +45,17 @@ def test_bound_scalar_array_assignment(X):
     with pytest.raises(Exception):
         x.value[:] = [1, 2, "abc"]
 
-def test_bound_scalar_array_copy_from(X):
-    x = X()
+def test_bound_scalar_array_copy_from(BoundScalarArray):
+    x = BoundScalarArray()
     x.value[:] = [1, 2]
-    y = X()
+    y = BoundScalarArray()
     y.value[:] = [5, 6, 7] # initial value to override
 
     y.copy_from(x)
     assert y.value[:] == [1, 2]
 
-def test_bound_scalar_array_encoding(X):
-    x = X()
+def test_bound_scalar_array_encoding(BoundScalarArray):
+    x = BoundScalarArray()
     x.value[:] = [1, 2]
 
     assert x.encode(">") == "\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02"
@@ -154,15 +154,15 @@ def test_bound_scalar_array_with_shift_exceptions():
                            ("value", prophy.array(prophy.u8, bound = "value_len", size = 1, shift = 2))]
     assert e.value.message == "only shifting bound array implemented"
 
-def test_bound_composite_array_assignment(X, Y):
-    x = Y()
+def test_bound_composite_array_assignment(BoundScalarArray, BoundCompositeArray):
+    x = BoundCompositeArray()
     assert len(x.value) == 0
 
     x.value.add().value[:] = [1, 2]
     assert len(x.value) == 1
     assert x.value[0].value[:] == [1, 2]
 
-    inner = X()
+    inner = BoundScalarArray()
     inner.value[:] = [3]
     x.value.extend([inner] * 2)
     assert len(x.value) == 3
@@ -198,11 +198,11 @@ def test_bound_composite_array_assignment(X, Y):
     with pytest.raises(Exception):
         x.value[0] = 5
 
-def test_bound_composite_array_copy_from(Y):
-    x = Y()
+def test_bound_composite_array_copy_from(BoundCompositeArray):
+    x = BoundCompositeArray()
     x.value.add().value[:] = [1, 2]
     x.value.add().value[:] = [3]
-    y = Y()
+    y = BoundCompositeArray()
     y.value.add()
     y.value.add()
     y.value.add() # initial value to override
@@ -212,11 +212,11 @@ def test_bound_composite_array_copy_from(Y):
     assert y.value[0].value[:] == [1, 2]
     assert y.value[1].value[:] == [3]
 
-    y.copy_from(Y())
+    y.copy_from(BoundCompositeArray())
     assert len(y.value) == 0
 
-def test_bound_composite_array_encoding(Y):
-    x = Y()
+def test_bound_composite_array_encoding(BoundCompositeArray):
+    x = BoundCompositeArray()
     x.value.add().value[:] = [1, 2]
     x.value.add().value[:] = [3]
 
