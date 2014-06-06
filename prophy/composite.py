@@ -164,6 +164,8 @@ def encode_field(parent, type, value, endianness):
         return value.encode(endianness)
     elif issubclass(type, (struct, union)):
         return value.encode(endianness, terminal = False)
+    elif issubclass(type, str):
+        return type._encode(value)
     else:
         return type._encode(value, endianness)
 
@@ -181,7 +183,7 @@ def decode_field(parent, name, type, data, endianness, len_hints):
     elif issubclass(type, (struct, union)):
         return getattr(parent, name).decode(data, endianness, terminal = False)
     elif issubclass(type, str):
-        value, size = type._decode(data, endianness, len_hints.get(name))
+        value, size = type._decode(data, len_hints.get(name))
         setattr(parent, name, value)
         return size
     else:

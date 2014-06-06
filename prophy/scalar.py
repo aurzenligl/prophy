@@ -178,11 +178,11 @@ def bytes(**kwargs):
             return value
 
         @staticmethod
-        def _encode(value, endianness):
+        def _encode(value):
             return value.ljust(size, '\x00')
 
         @staticmethod
-        def _decode(data, endianness, len_hint):
+        def _decode(data, len_hint):
             if len(data) < size:
                 raise ProphyError("too few bytes to decode string")
             if size and not bound:
