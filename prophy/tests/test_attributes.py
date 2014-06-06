@@ -33,30 +33,30 @@ def test_float_attributes(tp, size):
     assert tp._ALIGNMENT == size
     assert tp._BOUND is None
 
-def test_enum_attributes():
+def make_E():
     class E(prophy.enum):
         __metaclass__ = prophy.enum_generator
         _enumerators = [("E_1", 1)]
+    return E
 
-    assert 4 == E._SIZE
-    assert False == E._DYNAMIC
-    assert False == E._UNLIMITED
-    assert 1 == E._DEFAULT
-    assert False == E._OPTIONAL
-    assert 4 == E._ALIGNMENT
-    assert None == E._BOUND
-
+def make_E8():
     class E8(prophy.enum8):
         __metaclass__ = prophy.enum_generator
         _enumerators = [("E_1", 1)]
+    return E8
 
-    assert 1 == E8._SIZE
-    assert False == E8._DYNAMIC
-    assert False == E8._UNLIMITED
-    assert 1 == E8._DEFAULT
-    assert False == E8._OPTIONAL
-    assert 1 == E8._ALIGNMENT
-    assert None == E8._BOUND
+@pytest.mark.parametrize("tp_factory, size", [
+    (make_E, 4),
+    (make_E8, 1)
+])
+def test_enum_attributes(tp_factory, size):
+    assert tp_factory()._SIZE == size
+    assert tp_factory()._DYNAMIC == False
+    assert tp_factory()._UNLIMITED == False
+    assert tp_factory()._DEFAULT == 1
+    assert tp_factory()._OPTIONAL == False
+    assert tp_factory()._ALIGNMENT == size
+    assert tp_factory()._BOUND is None
 
 def test_optional_attributes():
     assert 1 == prophy.optional(prophy.i8)._SIZE
