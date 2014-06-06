@@ -145,6 +145,24 @@ def test_bound_bytes_encoding(BoundBytes):
     x.decode("\x00\x00\x00\x01\x01", ">")
     assert x.value == "\x01"
 
+def test_bound_bytes_twice_in_struct():
+    class X(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u32),
+                       ("y_len", prophy.u32),
+                       ("x", prophy.bytes(bound = "x_len")),
+                       ("y", prophy.bytes(bound = "y_len"))]
+    x = X()
+    x.x = "abcde"
+    x.y = "fghij"
+    assert str(x) == ("x: \'abcde\'\n"
+                      "y: \'fghij\'\n")
+    assert x.encode(">") == "\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij"
+
+    x.decode("\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij", ">")
+    assert x.x == "abcde"
+    assert x.y == "fghij"
+
 @pytest.fixture(scope = 'session')
 def ShiftBoundBytes():
     class ShiftBoundBytes(prophy.struct_packed):
@@ -205,28 +223,6 @@ def test_shift_bound_bytes_exceptions():
     assert e.value.message == "only shifting bound bytes implemented"
 
 @pytest.fixture(scope = 'session')
-def BoundBytesTwice():
-    class BoundBytesTwice(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("x_len", prophy.u32),
-                       ("y_len", prophy.u32),
-                       ("x", prophy.bytes(bound = "x_len")),
-                       ("y", prophy.bytes(bound = "y_len"))]
-    return BoundBytesTwice
-
-def test_bound_bytes_twice_in_struct(BoundBytesTwice):
-    x = BoundBytesTwice()
-    x.x = "abcde"
-    x.y = "fghij"
-    assert str(x) == ("x: \'abcde\'\n"
-                      "y: \'fghij\'\n")
-    assert x.encode(">") == "\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij"
-
-    x.decode("\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij", ">")
-    assert x.x == "abcde"
-    assert x.y == "fghij"
-
-@pytest.fixture(scope = 'session')
 def LimitedBytes():
     class LimitedBytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
@@ -284,98 +280,89 @@ def test_limited_bytes_encoding(LimitedBytes):
     x.decode("\x00\x00\x00\x01\x01\x00\x00\x00\x00", ">")
     assert x.value == "\x01"
 
-class TestTwoLimitedBytes():
-
-    class Bytes(prophy.struct_packed):
+def test_limited_bytes_twice_in_struct():
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x_len", prophy.u32),
                        ("y_len", prophy.u32),
                        ("x", prophy.bytes(size = 5, bound = "x_len")),
                        ("y", prophy.bytes(size = 5, bound = "y_len"))]
+    x = X()
+    x.x = "abc"
+    x.y = "fgh"
+    assert str(x) == ("x: \'abc\'\n"
+                      "y: \'fgh\'\n")
+    assert x.encode(">") == "\x00\x00\x00\x03\x00\x00\x00\x03abc\x00\x00fgh\x00\x00"
 
-    def test_encode(self):
-        x = self.Bytes()
-        x.x = "abc"
-        x.y = "fgh"
-        assert str(x) == ("x: \'abc\'\n"
-                          "y: \'fgh\'\n")
-        assert x.encode(">") == "\x00\x00\x00\x03\x00\x00\x00\x03abc\x00\x00fgh\x00\x00"
+    x.decode("\x00\x00\x00\x03\x00\x00\x00\x03abc\x00\x00fgh\x00\x00", ">")
+    assert x.x == "abc"
+    assert x.y == "fgh"
 
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("\x00\x00\x00\x03\x00\x00\x00\x03abc\x00\x00fgh\x00\x00", ">")
-        assert x.x == "abc"
-        assert x.y == "fgh"
-
-class TestGreedyBytes():
-
-    class Bytes(prophy.struct_packed):
+@pytest.fixture(scope = 'session')
+def GreedyBytes():
+    class GreedyBytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.bytes())]
+    return GreedyBytes
 
-    def test_assignment(self):
-        x = self.Bytes()
-        assert x.value == ""
-        x.value = "\x00\x00\x01"
-        assert x.value == "\x00\x00\x01"
-        x.value = "\x00\x00"
-        assert x.value == "\x00\x00"
-        x.value = "bytes"
-        assert x.value == "bytes"
-        x.value = "bts"
-        assert x.value == "bts"
+def test_greedy_bytes_assignment(GreedyBytes):
+    x = GreedyBytes()
+    assert x.value == ""
+    x.value = "\x00\x00\x01"
+    assert x.value == "\x00\x00\x01"
+    x.value = "\x00\x00"
+    assert x.value == "\x00\x00"
+    x.value = "bytes"
+    assert x.value == "bytes"
+    x.value = "bts"
+    assert x.value == "bts"
 
-        with pytest.raises(Exception):
-            x.value = 3
+    with pytest.raises(Exception):
+        x.value = 3
 
-        y = self.Bytes()
-        assert y.value == ""
-        y.copy_from(x)
-        assert y.value == "bts"
+def test_greedy_bytes_copy_from(GreedyBytes):
+    x = GreedyBytes()
+    x.value = "bts"
+    y = GreedyBytes()
+    y.value = "rotor"
 
-    def test_print(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert str(x) == "value: \'abc\'\n"
-        x.value = "\x00\x01"
-        assert str(x) == "value: \'\\x00\\x01\'\n"
-        x.value = "ab\x00"
-        assert str(x) == "value: \'ab\\x00\'\n"
+    y.copy_from(x)
+    assert y.value == "bts"
 
-    def test_encode(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert x.encode(">") == "abc"
-        x.value = "\x01"
-        assert x.encode(">") == "\x01"
+def test_greedy_bytes_encoding(GreedyBytes):
+    x = GreedyBytes()
+    x.value = "abc"
+    assert str(x) == "value: \'abc\'\n"
+    x.value = "\x00\x01"
+    assert str(x) == "value: \'\\x00\\x01\'\n"
+    x.value = "ab\x00"
+    assert str(x) == "value: \'ab\\x00\'\n"
 
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("abc", ">")
-        assert x.value == "abc"
-        x.decode("\x01", ">")
-        assert x.value == "\x01"
+    x.value = "abc"
+    assert x.encode(">") == "abc"
+    x.value = "\x01"
+    assert x.encode(">") == "\x01"
 
-class TestLastGreedyBytes():
+    x.decode("abc", ">")
+    assert x.value == "abc"
+    x.decode("\x01", ">")
+    assert x.value == "\x01"
 
-    class Bytes(prophy.struct_packed):
+def test_greedy_bytes_as_last_field():
+    class X(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", prophy.u32),
                        ("y", prophy.bytes())]
+    x = X()
+    x.x = 1
+    x.y = "fgh"
+    assert str(x) == ("x: 1\n"
+                      "y: \'fgh\'\n")
+    assert x.encode(">") == "\x00\x00\x00\x01fgh"
 
-    def test_encode(self):
-        x = self.Bytes()
-        x.x = 1
-        x.y = "fgh"
-        assert str(x) == ("x: 1\n"
-                          "y: \'fgh\'\n")
-        assert x.encode(">") == "\x00\x00\x00\x01fgh"
-
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("\x00\x00\x00\x01fgh", ">")
-        assert x.x == 1
-        assert x.y == "fgh"
+    x.decode("\x00\x00\x00\x01fgh", ">")
+    assert x.x == 1
+    assert x.y == "fgh"
 
 def test_greedy_bytes_not_last_exceptions():
     with pytest.raises(Exception):
@@ -415,17 +402,6 @@ def test_greedy_bytes_not_last_exceptions():
             _descriptor = [("x", Y),
                            ("y", X)]
 
-def test_array_of_bytes_exceptions():
-    with pytest.raises(Exception):
-        class Bytes(prophy.struct_packed):
-            __metaclass__ = prophy.struct_generator
-            _descriptor = [("value", prophy.array(prophy.bytes(size = 5), size = 5))]
-    with pytest.raises(Exception):
-        class Bytes(prophy.struct_packed):
-            __metaclass__ = prophy.struct_generator
-            _descriptor = [("value_len", prophy.u32),
-                           ("value", prophy.array(prophy.bytes(size = 5), bound = "value_len"))]
-
 def test_greedy_bytes_in_array_exceptions():
     with pytest.raises(Exception):
         class X(prophy.struct_packed):
@@ -437,3 +413,14 @@ def test_greedy_bytes_in_array_exceptions():
             _descriptor = [("z", prophy.u32),
                            ("y", prophy.u32),
                            ("x", prophy.array(prophy.bytes(bound = "y"), bound = "z"))]
+
+def test_array_of_bytes_exceptions():
+    with pytest.raises(Exception):
+        class Bytes(prophy.struct_packed):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("value", prophy.array(prophy.bytes(size = 5), size = 5))]
+    with pytest.raises(Exception):
+        class Bytes(prophy.struct_packed):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("value_len", prophy.u32),
+                           ("value", prophy.array(prophy.bytes(size = 5), bound = "value_len"))]
