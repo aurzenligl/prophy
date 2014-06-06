@@ -15,22 +15,22 @@ def add_attributes(cls, descriptor):
     cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor) if descriptor else 1
     cls._BOUND = None
 
-def add_padding(cls, descriptor):
+class Padder(object):
+    def __init__(self):
+        self.offset = 0
+    def __call__(self, size, alignment):
+        self.offset += size
+        padding = (alignment - self.offset % alignment) % alignment
+        self.offset += padding
+        return padding
 
-    class padder(object):
-        def __init__(self):
-            self.offset = 0
-        def __call__(self, size, alignment):
-            self.offset += size
-            padding = (alignment - self.offset % alignment) % alignment
-            self.offset += padding
-            return padding
+def add_padding(cls, descriptor):
+    if not descriptor:
+        return
 
     sizes = [tp._SIZE for _, tp in descriptor]
-    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]]
-    if descriptor:
-        alignments.append(cls._ALIGNMENT)
-    paddings = map(padder(), sizes, alignments)
+    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]] + [cls._ALIGNMENT]
+    paddings = map(Padder(), sizes, alignments)
     cls._SIZE += sum(paddings)
 
 def add_null_padding(descriptor):
