@@ -3,14 +3,14 @@ from exception import ProphyError
 
 def numeric_decorator(cls, size, id):
     @staticmethod
-    def encode(value, endianess):
-        return struct.pack(endianess + id, value)
+    def encode(value, endianness):
+        return struct.pack(endianness + id, value)
 
     @staticmethod
-    def decode(data, endianess):
+    def decode(data, endianness):
         if len(data) < size:
             raise ProphyError("too few bytes to decode integer")
-        value, = struct.unpack(endianess + id, data[:size])
+        value, = struct.unpack(endianness + id, data[:size])
         return value, size
 
     cls._encode = encode
@@ -178,11 +178,11 @@ def bytes(**kwargs):
             return value
 
         @staticmethod
-        def _encode(value, endianess):
+        def _encode(value, endianness):
             return value.ljust(size, '\x00')
 
         @staticmethod
-        def _decode(data, endianess, len_hint):
+        def _decode(data, endianness, len_hint):
             if len(data) < size:
                 raise ProphyError("too few bytes to decode string")
             if size and not bound:
