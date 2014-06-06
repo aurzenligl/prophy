@@ -395,25 +395,19 @@ def test_greedy_bytes_not_last_exceptions():
             _descriptor = [("x", Y),
                            ("y", X)]
 
-def test_greedy_bytes_in_array_exceptions():
-    with pytest.raises(Exception):
-        class X(prophy.struct_packed):
-            __metaclass__ = prophy.struct_generator
-            _descriptor = [("x", prophy.array(prophy.bytes(size = 2), size = 2))]
-    with pytest.raises(Exception):
-        class X(prophy.struct_packed):
-            __metaclass__ = prophy.struct_generator
-            _descriptor = [("z", prophy.u32),
-                           ("y", prophy.u32),
-                           ("x", prophy.array(prophy.bytes(bound = "y"), bound = "z"))]
-
 def test_array_of_bytes_not_allowed():
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError):
         class Bytes(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("value", prophy.array(prophy.bytes(size = 5), size = 5))]
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError):
         class Bytes(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("value_len", prophy.u32),
                            ("value", prophy.array(prophy.bytes(size = 5), bound = "value_len"))]
+    with pytest.raises(prophy.ProphyError):
+        class Bytes(prophy.struct_packed):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("z", prophy.u32),
+                           ("y", prophy.u32),
+                           ("x", prophy.array(prophy.bytes(bound = "y"), bound = "z"))]
