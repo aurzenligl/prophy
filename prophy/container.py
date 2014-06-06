@@ -18,8 +18,8 @@ class base_array(object):
     def __init__(self):
         self._values = []
 
-    def __getitem__(self, key):
-        return self._values[key]
+    def __getitem__(self, idx):
+        return self._values[idx]
 
     def __len__(self):
         return len(self._values)
@@ -44,9 +44,9 @@ class fixed_scalar_array(base_array):
         super(fixed_scalar_array, self).__init__()
         self._values = [self._TYPE._DEFAULT] * self._max_len
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, idx, value):
         value = self._TYPE._check(value)
-        self._values[key] = value
+        self._values[idx] = value
 
     def __getslice__(self, start, stop):
         return self._values[start:stop]
@@ -89,11 +89,11 @@ class bound_scalar_array(base_array):
             raise Exception("exceeded array limit")
         self._values.append(value)
 
-    def insert(self, key, value):
+    def insert(self, idx, value):
         value = self._TYPE._check(value)
         if self._max_len and len(self) == self._max_len:
             raise Exception("exceeded array limit")
-        self._values.insert(key, value)
+        self._values.insert(idx, value)
 
     def extend(self, elem_seq):
         if not elem_seq:
@@ -109,9 +109,9 @@ class bound_scalar_array(base_array):
     def remove(self, elem):
         self._values.remove(elem)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, idx, value):
         value = self._TYPE._check(value)
-        self._values[key] = value
+        self._values[idx] = value
 
     def __getslice__(self, start, stop):
         return self._values[start:stop]
@@ -125,8 +125,8 @@ class bound_scalar_array(base_array):
             new_values.append(value)
         self._values[start:stop] = new_values
 
-    def __delitem__(self, key):
-        del self._values[key]
+    def __delitem__(self, idx):
+        del self._values[idx]
 
     def __delslice__(self, start, stop):
         del self._values[start:stop]
@@ -206,8 +206,8 @@ class bound_composite_array(base_array):
     def __getslice__(self, start, stop):
         return self._values[start:stop]
 
-    def __delitem__(self, key):
-        del self._values[key]
+    def __delitem__(self, idx):
+        del self._values[idx]
 
     def __delslice__(self, start, stop):
         del self._values[start:stop]
