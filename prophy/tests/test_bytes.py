@@ -407,7 +407,7 @@ def test_greedy_bytes_in_array_exceptions():
                            ("y", prophy.u32),
                            ("x", prophy.array(prophy.bytes(bound = "y"), bound = "z"))]
 
-def test_array_of_bytes_exceptions():
+def test_array_of_bytes_not_allowed():
     with pytest.raises(Exception):
         class Bytes(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
