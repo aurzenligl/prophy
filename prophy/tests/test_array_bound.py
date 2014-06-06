@@ -66,10 +66,13 @@ def test_bound_scalar_array_encoding(X):
     x.decode("\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02", ">")
     assert x.value[:] == [1, 2]
 
-    with pytest.raises(prophy.ProphyError):
+    with pytest.raises(prophy.ProphyError) as e:
         x.decode("\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00", ">")
-    with pytest.raises(prophy.ProphyError):
+    assert 'too few bytes to decode integer' in e.value.message
+
+    with pytest.raises(prophy.ProphyError) as e:
         x.decode("\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
+    assert 'not all bytes read' in e.value.message
 
 def test_bound_scalar_array_exceptions():
     with pytest.raises(Exception):
@@ -84,7 +87,7 @@ def test_bound_scalar_array_exceptions():
     with pytest.raises(Exception):
         class LengthFieldIsNotAnInteger(prophy.struct_packed):
             __metaclass__ = prophy.struct_generator
-            _descriptor = [("not_an_int", A),
+            _descriptor = [("not_an_int", "not_an_int"),
                            ("a", prophy.array(prophy.i32, bound = "not_an_int"))]
 
 def test_bound_scalar_array_twice_in_struct():
