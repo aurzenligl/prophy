@@ -37,7 +37,6 @@ class base_array(object):
         self._values.sort(sort_function)
 
 class fixed_scalar_array(base_array):
-
     __slots__ = []
 
     def __init__(self):
@@ -77,7 +76,6 @@ class fixed_scalar_array(base_array):
         return size
 
 class bound_scalar_array(base_array):
-
     __slots__ = []
 
     def __init__(self):
@@ -178,7 +176,6 @@ class fixed_composite_array(base_array):
         return cursor
 
 class bound_composite_array(base_array):
-
     __slots__ = []
 
     def __init__(self):
