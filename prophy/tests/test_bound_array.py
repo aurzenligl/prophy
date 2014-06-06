@@ -57,9 +57,9 @@ class TestBoundScalarArray():
         x.decode("\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02", ">")
         assert x.value[:] == [1, 2]
 
-        with pytest.raises(Exception):
+        with pytest.raises(prophy.ProphyError):
             x.decode("\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00", ">")
-        with pytest.raises(Exception):
+        with pytest.raises(prophy.ProphyError):
             x.decode("\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
 
     def test_exceptions(self):

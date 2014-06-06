@@ -1,4 +1,5 @@
 import composite
+from exception import ProphyError
 
 def decode_scalar_array(tp, data, endianness, count):
     if count is None:
@@ -52,7 +53,7 @@ class fixed_scalar_array(base_array):
 
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) is not len(values):
-            raise Exception("setting slice with different length collection")
+            raise ProphyError("setting slice with different length collection")
         new_values = []
         for value in values:
             value = self._TYPE._check(value)
@@ -84,20 +85,20 @@ class bound_scalar_array(base_array):
     def append(self, value):
         value = self._TYPE._check(value)
         if self._max_len and len(self) == self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
         self._values.append(value)
 
     def insert(self, idx, value):
         value = self._TYPE._check(value)
         if self._max_len and len(self) == self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
         self._values.insert(idx, value)
 
     def extend(self, elem_seq):
         if not elem_seq:
             return
         if self._max_len and len(self) + len(elem_seq) > self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
         new_values = []
         for elem in elem_seq:
             elem = self._TYPE._check(elem)
@@ -113,7 +114,7 @@ class bound_scalar_array(base_array):
 
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
         new_values = []
         for value in values:
             value = self._TYPE._check(value)
@@ -140,7 +141,7 @@ class bound_scalar_array(base_array):
 
     def decode(self, data, endianness, len_hint):
         if self._SIZE > len(data):
-            raise Exception("too few bytes to decode array")
+            raise ProphyError("too few bytes to decode array")
         self[:], size = decode_scalar_array(self._TYPE, data, endianness, len_hint)
         return max(size, self._SIZE)
 
@@ -178,7 +179,7 @@ class bound_composite_array(base_array):
     """ TODO kl. implement **kwargs to fill structure with data at addition time already """
     def add(self):
         if self._max_len and len(self) == self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
 
         new_element = self._TYPE()
         self._values.append(new_element)
@@ -186,7 +187,7 @@ class bound_composite_array(base_array):
 
     def extend(self, elem_seq):
         if self._max_len and len(self) + len(elem_seq) > self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
 
         composite_cls = self._TYPE
         for message in elem_seq:
@@ -213,7 +214,7 @@ class bound_composite_array(base_array):
 
     def decode(self, data, endianness, len_hint):
         if self._SIZE > len(data):
-            raise Exception("too few bytes to decode array")
+            raise ProphyError("too few bytes to decode array")
         del self[:]
         cursor = 0
         if not self._SIZE and not self._BOUND:
@@ -229,20 +230,20 @@ def array(type, **kwargs):
     bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if kwargs:
-        raise Exception("unknown arguments to array field")
+        raise ProphyError("unknown arguments to array field")
 
     if issubclass(type, base_array):
-        raise Exception("array of arrays not allowed")
+        raise ProphyError("array of arrays not allowed")
     if issubclass(type, str):
-        raise Exception("array of strings not allowed")
+        raise ProphyError("array of strings not allowed")
     if size and type._DYNAMIC:
-        raise Exception("static/limited array of dynamic type not allowed")
+        raise ProphyError("static/limited array of dynamic type not allowed")
     if shift and (not bound or size):
-        raise Exception("only shifting bound array implemented")
+        raise ProphyError("only shifting bound array implemented")
     if type._UNLIMITED:
-        raise Exception("array with unlimited field disallowed")
+        raise ProphyError("array with unlimited field disallowed")
     if type._OPTIONAL:
-        raise Exception("array of optional type not allowed")
+        raise ProphyError("array of optional type not allowed")
 
     is_static = size and not bound
     is_composite = issubclass(type, (composite.struct, composite.union))

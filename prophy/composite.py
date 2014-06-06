@@ -1,10 +1,12 @@
+from itertools import ifilter
+
 import scalar
 import container
-from itertools import ifilter
+from exception import ProphyError
 
 def validate(descriptor):
     if any(type._UNLIMITED for _, type in descriptor[:-1]):
-        raise Exception("unlimited field is not the last one")
+        raise ProphyError("unlimited field is not the last one")
 
 def add_attributes(cls, descriptor):
     cls._SIZE = sum(type._SIZE for _, type in descriptor)
@@ -53,7 +55,7 @@ def add_repeated(cls, name, tp):
             self._fields[name] = value
         return value
     def setter(self, new_value):
-        raise Exception("assignment to array field not allowed")
+        raise ProphyError("assignment to array field not allowed")
     setattr(cls, name, property(getter, setter))
     if tp._BOUND:
         substitute_len_field(cls, cls._descriptor, name, tp)
@@ -88,7 +90,7 @@ def add_composite(cls, name, tp):
         elif tp._OPTIONAL and new_value is None:
             self._fields.pop(name, None)
         else:
-            raise Exception("assignment to composite field not allowed")
+            raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
@@ -97,9 +99,9 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
-        raise Exception("array must not be bound to optional field")
+        raise ProphyError("array must not be bound to optional field")
     if not issubclass(tp, (int, long)):
-        raise Exception("array must be bound to an unsigned integer")
+        raise ProphyError("array must be bound to an unsigned integer")
 
     class container_len(tp):
         _BOUND = container_name
@@ -113,10 +115,10 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
             value, size = tp._decode(data, endianness)
             array_guard = 65536
             if value > array_guard:
-                raise Exception("decoded array length over %s" % array_guard)
+                raise ProphyError("decoded array length over %s" % array_guard)
             value -= bound_shift
             if value < 0:
-                raise Exception("decoded array length smaller than shift")
+                raise ProphyError("decoded array length smaller than shift")
             return value, size
 
     descriptor[index] = (name, container_len)
@@ -252,7 +254,7 @@ class struct(object):
             data = data[get_padding_size(self, orig_data_size - len(data), self._ALIGNMENT):]
 
         if terminal and data:
-            raise Exception("not all bytes read")
+            raise ProphyError("not all bytes read")
 
         return orig_data_size - len(data)
 
@@ -285,13 +287,13 @@ class struct_generator(type):
 
 def validate_union(descriptor):
     if any(type._DYNAMIC for _, type, _ in descriptor):
-        raise Exception("dynamic types not allowed in union")
+        raise ProphyError("dynamic types not allowed in union")
     if any(type._BOUND for _, type, _ in descriptor):
-        raise Exception("bound array/bytes not allowed in union")
+        raise ProphyError("bound array/bytes not allowed in union")
     if any(issubclass(type, container.base_array) for _, type, _ in descriptor):
-        raise Exception("static array not implemented in union")
+        raise ProphyError("static array not implemented in union")
     if any(type._OPTIONAL for _, type, _ in descriptor):
-        raise Exception("union with optional field disallowed")
+        raise ProphyError("union with optional field disallowed")
 
 def add_union_attributes(cls, descriptor):
     cls._discriminator_type = scalar.u32
@@ -321,17 +323,17 @@ def add_union_discriminator(cls):
                 self._discriminator = disc
                 self._fields = {}
         else:
-            raise Exception("unknown discriminator")
+            raise ProphyError("unknown discriminator")
     setattr(cls, "discriminator", property(getter, setter))
 
 def add_union_scalar(cls, name, type, disc):
     def getter(self):
         if self._discriminator is not disc:
-            raise Exception("currently field %s is discriminated" % self._discriminator)
+            raise ProphyError("currently field %s is discriminated" % self._discriminator)
         return self._fields.get(name, type._DEFAULT)
     def setter(self, new_value):
         if self._discriminator is not disc:
-            raise Exception("currently field %s is discriminated" % self._discriminator)
+            raise ProphyError("currently field %s is discriminated" % self._discriminator)
         new_value = type._check(new_value)
         self._fields[name] = new_value
     setattr(cls, name, property(getter, setter))
@@ -339,14 +341,14 @@ def add_union_scalar(cls, name, type, disc):
 def add_union_composite(cls, name, type, disc):
     def getter(self):
         if self._discriminator is not disc:
-            raise Exception("currently field %s is discriminated" % self._discriminator)
+            raise ProphyError("currently field %s is discriminated" % self._discriminator)
         value = self._fields.get(name)
         if value is None:
             value = type()
             value = self._fields.setdefault(name, value)
         return value
     def setter(self, new_value):
-        raise Exception("assignment to composite field not allowed")
+        raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
 
 def get_discriminated_field(cls, discriminator):
@@ -376,14 +378,14 @@ class union(object):
         disc, bytes_read = self._discriminator_type._decode(data, endianess)
         field = get_discriminated_field(self, disc)
         if not field:
-            raise Exception("unknown discriminator")
+            raise ProphyError("unknown discriminator")
         name, type = field
         self._discriminator = disc
         bytes_read += decode_field(self, name, type, data[bytes_read:], endianess, {})
         if len(data) < self._SIZE:
-            raise Exception("not enough bytes")
+            raise ProphyError("not enough bytes")
         if terminal and len(data) > self._SIZE:
-            raise Exception("not all bytes read")
+            raise ProphyError("not all bytes read")
         return self._SIZE
 
     def copy_from(self, other):
