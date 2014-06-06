@@ -31,20 +31,19 @@ def add_padding(cls, descriptor):
     if descriptor:
         alignments.append(cls._ALIGNMENT)
     paddings = map(padder(), sizes, alignments)
-    descriptor[:] = [field + (padding,) for field, padding in zip(descriptor, paddings)]
     cls._SIZE += sum(paddings)
 
 def add_null_padding(descriptor):
-    descriptor[:] = [field + (0,) for field in descriptor]
+    pass
 
 def add_properties(cls, descriptor):
-    for name, type, _ in descriptor:
-        if issubclass(type, container.base_array):
-            add_repeated(cls, name, type)
-        elif issubclass(type, (struct, union)):
-            add_composite(cls, name, type)
+    for name, tp in descriptor:
+        if issubclass(tp, container.base_array):
+            add_repeated(cls, name, tp)
+        elif issubclass(tp, (struct, union)):
+            add_composite(cls, name, tp)
         else:
-            add_scalar(cls, name, type)
+            add_scalar(cls, name, tp)
 
 def add_repeated(cls, name, tp):
     def getter(self):
@@ -94,7 +93,7 @@ def add_composite(cls, name, tp):
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
     index, field = ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)).next()
-    name, tp, padding = field
+    name, tp = field
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
@@ -120,7 +119,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
                 raise Exception("decoded array length smaller than shift")
             return value, size
 
-    descriptor[index] = (name, container_len, padding)
+    descriptor[index] = (name, container_len)
     delattr(cls, name)
 
 def get_padding_size(struct_obj, offset, alignment):
@@ -220,19 +219,19 @@ class struct(object):
 
     def __str__(self):
         out = ""
-        for name, type, _ in self._descriptor:
+        for name, tp in self._descriptor:
             value = getattr(self, name, None)
             if value is not None:
-                out += field_to_string(name, type, value)
+                out += field_to_string(name, tp, value)
         return out
 
     def encode(self, endianess, terminal = True):
         data = ""
-        for name, type, _ in self._descriptor:
-            data += (get_padding(self, len(data), type._ALIGNMENT) +
-                     encode_field(self, type, getattr(self, name, None), endianess))
+        for name, tp in self._descriptor:
+            data += (get_padding(self, len(data), tp._ALIGNMENT) +
+                     encode_field(self, tp, getattr(self, name, None), endianess))
 
-        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+        if self._descriptor and terminal and issubclass(tp, (container.base_array, str)):
             pass
         else:
             data += get_padding(self, len(data), self._ALIGNMENT)
@@ -243,11 +242,11 @@ class struct(object):
         len_hints = {}
         orig_data_size = len(data)
 
-        for name, type, _ in self._descriptor:
-            data = data[get_padding_size(self, orig_data_size - len(data), type._ALIGNMENT):]
-            data = data[decode_field(self, name, type, data, endianess, len_hints):]
+        for name, tp in self._descriptor:
+            data = data[get_padding_size(self, orig_data_size - len(data), tp._ALIGNMENT):]
+            data = data[decode_field(self, name, tp, data, endianess, len_hints):]
 
-        if self._descriptor and terminal and issubclass(type, (container.base_array, str)):
+        if self._descriptor and terminal and issubclass(tp, (container.base_array, str)):
             pass
         else:
             data = data[get_padding_size(self, orig_data_size - len(data), self._ALIGNMENT):]
@@ -279,7 +278,8 @@ class struct_generator(type):
             descriptor = cls._descriptor
             validate(descriptor)
             add_attributes(cls, descriptor)
-            add_null_padding(descriptor) if issubclass(cls, struct_packed) else add_padding(cls, descriptor)
+            if not issubclass(cls, struct_packed):
+                add_padding(cls, descriptor)
             add_properties(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 

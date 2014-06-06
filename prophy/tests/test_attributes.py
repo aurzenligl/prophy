@@ -207,7 +207,7 @@ def test_container_len_attributes():
                        ("b_len", prophy.u8),
                        ("b", prophy.array(prophy.u8, bound = "b_len"))]
 
-    assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp, _ in S._descriptor]
+    assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp in S._descriptor]
 
 def test_struct_static_attributes():
     class S(prophy.struct_packed):
@@ -237,7 +237,6 @@ def test_struct_static_attributes():
     assert False == S1._UNLIMITED
     assert False == S1._OPTIONAL
     assert 1 == S1._ALIGNMENT
-    assert [0, 0, 0] == [padding for _, _, padding in S1._descriptor]
     assert None == S1._BOUND
 
 def test_struct_with_optional_attributes():
@@ -260,7 +259,6 @@ def test_struct_with_optional_attributes():
     assert False == O._UNLIMITED
     assert False == O._OPTIONAL
     assert 4 == O._ALIGNMENT
-    assert [0, 0, 0] == [padding for _, _, padding in O._descriptor]
     assert None == O._BOUND
 
 def test_struct_dynamic_attributes():
@@ -345,7 +343,6 @@ def test_struct_padded():
 
     assert 8 == S._ALIGNMENT
     assert 16 == S._SIZE
-    assert [3, 0, 0] == [padding for _, _, padding in S._descriptor]
 
     class S2(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -354,7 +351,6 @@ def test_struct_padded():
 
     assert 8 == S2._ALIGNMENT
     assert 24 == S2._SIZE
-    assert [4, 0] == [padding for _, _, padding in S2._descriptor]
 
     class S3(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -363,7 +359,6 @@ def test_struct_padded():
 
     assert 4 == S3._ALIGNMENT
     assert 8 == S3._SIZE
-    assert [0, 3] == [padding for _, _, padding in S3._descriptor]
 
     class S4(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -372,7 +367,6 @@ def test_struct_padded():
 
     assert 4 == S4._ALIGNMENT
     assert 12 == S4._SIZE
-    assert [1, 0] == [padding for _, _, padding in S4._descriptor]
 
     class U(prophy.union):
         __metaclass__ = prophy.union_generator
@@ -388,7 +382,6 @@ def test_struct_padded():
 
     assert 4 == S5._ALIGNMENT
     assert 16 == S5._SIZE
-    assert [3, 0, 3] == [padding for _, _, padding in S5._descriptor]
 
 def test_empty_struct():
     class E(prophy.struct):
