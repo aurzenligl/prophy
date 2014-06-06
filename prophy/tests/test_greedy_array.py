@@ -311,3 +311,30 @@ def test_exceptions():
             __metaclass__ = prophy.struct_generator
             _descriptor = [("x", prophy.array(GreedyComposite))]
     assert "array with unlimited field disallowed" == e.value.message
+
+def test_comparisons():
+    class X(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x", prophy.u32)]
+    class Y(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x", prophy.u32)]
+    class Z(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x", prophy.array(Y))]
+
+    x1 = Z()
+    x2 = Z()
+
+    x1.x.add()
+
+    with pytest.raises(prophy.ProphyError) as e:
+        assert x1.x == [X()]
+    assert 'Can only compare repeated composite fields against other repeated composite fields' in e.value.message
+
+    with pytest.raises(prophy.ProphyError) as e:
+        assert x1.x == [Y()]
+    assert 'Can only compare repeated composite fields against other repeated composite fields' in e.value.message
+
+    assert x1.x == x1.x
+    assert x1.x != x2.x
