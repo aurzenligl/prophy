@@ -8,14 +8,6 @@ def FixedBytes():
         _descriptor = [("value", prophy.bytes(size = 5))]
     return FixedBytes
 
-@pytest.fixture(scope = 'session')
-def BoundBytes():
-    class BoundBytes(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value_len", prophy.u32),
-                       ("value", prophy.bytes(bound = "value_len"))]
-    return BoundBytes
-
 def test_fixed_bytes_assignment(FixedBytes):
     x = FixedBytes()
     assert x.value == "\x00\x00\x00\x00\x00"
@@ -94,6 +86,14 @@ y: 'fghij'
     assert x.x == "abcde"
     assert x.y == "fghij"
 
+@pytest.fixture(scope = 'session')
+def BoundBytes():
+    class BoundBytes(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("value_len", prophy.u32),
+                       ("value", prophy.bytes(bound = "value_len"))]
+    return BoundBytes
+
 def test_bound_bytes_assignment(BoundBytes):
     x = BoundBytes()
     assert x.value == ""
@@ -145,131 +145,144 @@ def test_bound_bytes_encoding(BoundBytes):
     x.decode("\x00\x00\x00\x01\x01", ">")
     assert x.value == "\x01"
 
-class TestShiftBoundBytes():
-
-    class Bytes(prophy.struct_packed):
+@pytest.fixture(scope = 'session')
+def ShiftBoundBytes():
+    class ShiftBoundBytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value_len", prophy.u8),
                        ("value", prophy.bytes(bound = "value_len", shift = 2))]
+    return ShiftBoundBytes
 
-    def test_encode(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert x.encode(">") == "\x05abc"
-        x.value = "\x01"
-        assert x.encode(">") == "\x03\x01"
+def test_shift_bound_bytes_encoding(ShiftBoundBytes):
+    x = ShiftBoundBytes()
+    x.value = "abc"
+    assert x.encode(">") == "\x05abc"
 
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("\x05abc", ">")
-        assert x.value == "abc"
-        x.decode("\x03\x01", ">")
-        assert x.value == "\x01"
+    x.value = "\x01"
+    assert x.encode(">") == "\x03\x01"
 
-        with pytest.raises(Exception) as e:
-            x.decode("\x01", ">")
-        assert e.value.message == "decoded array length smaller than shift"
-        with pytest.raises(Exception) as e:
-            x.decode("\x05", ">")
-        assert e.value.message == "too few bytes to decode string"
-        with pytest.raises(Exception) as e:
-            x.decode("\x02\x00", ">")
-        assert e.value.message == "not all bytes read"
+    x.decode("\x05abc", ">")
+    assert x.value == "abc"
 
-    def test_exceptions(self):
-        with pytest.raises(Exception) as e:
-            class Bytes(prophy.struct_packed):
-                __metaclass__ = prophy.struct_generator
-                _descriptor = [("value_len", prophy.u8),
-                               ("value", prophy.bytes(shift = 2))]
-        assert e.value.message == "only shifting bound bytes implemented"
-        with pytest.raises(Exception) as e:
-            class Bytes(prophy.struct_packed):
-                __metaclass__ = prophy.struct_generator
-                _descriptor = [("value_len", prophy.u8),
-                               ("value", prophy.bytes(size = 1, shift = 2))]
-        assert e.value.message == "only shifting bound bytes implemented"
-        with pytest.raises(Exception) as e:
-            class Bytes(prophy.struct_packed):
-                __metaclass__ = prophy.struct_generator
-                _descriptor = [("value_len", prophy.u8),
-                               ("value", prophy.bytes(bound = "value_len", size = 1, shift = 2))]
-        assert e.value.message == "only shifting bound bytes implemented"
+    x.decode("\x03\x01", ">")
+    assert x.value == "\x01"
 
-class TestTwoBoundBytes():
+def test_shift_bound_bytes_encoding_exceptions(ShiftBoundBytes):
+    x = ShiftBoundBytes()
 
-    class Bytes(prophy.struct_packed):
+    with pytest.raises(Exception) as e:
+        x.decode("\x01", ">")
+    assert e.value.message == "decoded array length smaller than shift"
+
+    with pytest.raises(Exception) as e:
+        x.decode("\x05", ">")
+    assert e.value.message == "too few bytes to decode string"
+
+    with pytest.raises(Exception) as e:
+        x.decode("\x02\x00", ">")
+    assert e.value.message == "not all bytes read"
+
+def test_shift_bound_bytes_exceptions():
+    with pytest.raises(Exception) as e:
+        class Bytes(prophy.struct_packed):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("value_len", prophy.u8),
+                           ("value", prophy.bytes(shift = 2))]
+    assert e.value.message == "only shifting bound bytes implemented"
+
+    with pytest.raises(Exception) as e:
+        class Bytes(prophy.struct_packed):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("value_len", prophy.u8),
+                           ("value", prophy.bytes(size = 1, shift = 2))]
+    assert e.value.message == "only shifting bound bytes implemented"
+
+    with pytest.raises(Exception) as e:
+        class Bytes(prophy.struct_packed):
+            __metaclass__ = prophy.struct_generator
+            _descriptor = [("value_len", prophy.u8),
+                           ("value", prophy.bytes(bound = "value_len", size = 1, shift = 2))]
+    assert e.value.message == "only shifting bound bytes implemented"
+
+@pytest.fixture(scope = 'session')
+def BoundBytesTwice():
+    class BoundBytesTwice(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x_len", prophy.u32),
                        ("y_len", prophy.u32),
                        ("x", prophy.bytes(bound = "x_len")),
                        ("y", prophy.bytes(bound = "y_len"))]
+    return BoundBytesTwice
 
-    def test_encode(self):
-        x = self.Bytes()
-        x.x = "abcde"
-        x.y = "fghij"
-        assert str(x) == ("x: \'abcde\'\n"
-                          "y: \'fghij\'\n")
-        assert x.encode(">") == "\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij"
+def test_bound_bytes_twice_in_struct(BoundBytesTwice):
+    x = BoundBytesTwice()
+    x.x = "abcde"
+    x.y = "fghij"
+    assert str(x) == ("x: \'abcde\'\n"
+                      "y: \'fghij\'\n")
+    assert x.encode(">") == "\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij"
 
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij", ">")
-        assert x.x == "abcde"
-        assert x.y == "fghij"
+    x.decode("\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij", ">")
+    assert x.x == "abcde"
+    assert x.y == "fghij"
 
-class TestLimitedBytes():
-
-    class Bytes(prophy.struct_packed):
+@pytest.fixture(scope = 'session')
+def LimitedBytes():
+    class LimitedBytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.bytes(size = 5, bound = "value_len"))]
+    return LimitedBytes
 
-    def test_assignment(self):
-        x = self.Bytes()
-        assert x.value == ""
-        x.value = "\x00\x00\x01"
-        assert x.value == "\x00\x00\x01"
-        x.value = "\x00\x00"
-        assert x.value == "\x00\x00"
-        x.value = "bytes"
-        assert x.value == "bytes"
-        x.value = "bts"
-        assert x.value == "bts"
+def test_limited_bytes_assignment(LimitedBytes):
+    x = LimitedBytes()
+    assert x.value == ""
 
-        with pytest.raises(Exception):
-            x.value = 3
-        with pytest.raises(Exception):
-            x.value = "123456"
+    x.value = "\x00\x00\x01"
+    assert x.value == "\x00\x00\x01"
 
-        y = self.Bytes()
-        assert y.value == ""
-        y.copy_from(x)
-        assert y.value == "bts"
+    x.value = "\x00\x00"
+    assert x.value == "\x00\x00"
 
-    def test_print(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert str(x) == "value: \'abc\'\n"
-        x.value = "\x00\x01"
-        assert str(x) == "value: \'\\x00\\x01\'\n"
-        x.value = "ab\x00"
-        assert str(x) == "value: \'ab\\x00\'\n"
+    x.value = "bytes"
+    assert x.value == "bytes"
 
-    def test_encode(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert x.encode(">") == "\x00\x00\x00\x03abc\x00\x00"
-        x.value = "\x01"
-        assert x.encode(">") == "\x00\x00\x00\x01\x01\x00\x00\x00\x00"
+    x.value = "bts"
+    assert x.value == "bts"
 
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("\x00\x00\x00\x03abc\x00\x00", ">")
-        assert x.value == "abc"
-        x.decode("\x00\x00\x00\x01\x01\x00\x00\x00\x00", ">")
-        assert x.value == "\x01"
+    with pytest.raises(Exception):
+        x.value = 3
+    with pytest.raises(Exception):
+        x.value = "123456"
+
+def test_limited_bytes_copy_from(LimitedBytes):
+    x = LimitedBytes()
+    x.value = "bts"
+    y = LimitedBytes()
+    y.value = "rotor"
+
+    y.copy_from(x)
+    assert y.value == "bts"
+
+def test_limited_bytes_encoding(LimitedBytes):
+    x = LimitedBytes()
+    x.value = "abc"
+    assert str(x) == "value: \'abc\'\n"
+    x.value = "\x00\x01"
+    assert str(x) == "value: \'\\x00\\x01\'\n"
+    x.value = "ab\x00"
+    assert str(x) == "value: \'ab\\x00\'\n"
+
+    x.value = "abc"
+    assert x.encode(">") == "\x00\x00\x00\x03abc\x00\x00"
+    x.value = "\x01"
+    assert x.encode(">") == "\x00\x00\x00\x01\x01\x00\x00\x00\x00"
+
+    x.decode("\x00\x00\x00\x03abc\x00\x00", ">")
+    assert x.value == "abc"
+
+    x.decode("\x00\x00\x00\x01\x01\x00\x00\x00\x00", ">")
+    assert x.value == "\x01"
 
 class TestTwoLimitedBytes():
 
