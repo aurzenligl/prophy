@@ -1,132 +1,149 @@
 import prophy
 import pytest
 
-class TestFixedBytes():
-
-    class Bytes(prophy.struct_packed):
+@pytest.fixture(scope = 'session')
+def FixedBytes():
+    class FixedBytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.bytes(size = 5))]
+    return FixedBytes
 
-    def test_assignment(self):
-        x = self.Bytes()
-        assert x.value == "\x00\x00\x00\x00\x00"
-        x.value = "\x00\x00\x01"
-        assert x.value == "\x00\x00\x01\x00\x00"
-        x.value = "\x00\x00"
-        assert x.value == "\x00\x00\x00\x00\x00"
-        x.value = "bytes"
-        assert x.value == "bytes"
-        x.value = "bts"
-        assert x.value == "bts\x00\x00"
-
-        with pytest.raises(Exception):
-            x.value = 3
-        with pytest.raises(Exception):
-            x.value = "123456"
-
-        y = self.Bytes()
-        assert y.value == "\x00\x00\x00\x00\x00"
-        y.copy_from(x)
-        assert y.value == "bts\x00\x00"
-
-    def test_print(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert str(x) == "value: \'abc\\x00\\x00\'\n"
-        x.value = "\x00\x01"
-        assert str(x) == "value: \'\\x00\\x01\\x00\\x00\\x00\'\n"
-        x.value = "ab\x00"
-        assert str(x) == "value: \'ab\\x00\\x00\\x00\'\n"
-
-    def test_encode(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert x.encode(">") == "abc\x00\x00"
-        x.value = "\x01"
-        assert x.encode(">") == "\x01\x00\x00\x00\x00"
-
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("abc\x00\x00", ">")
-        assert x.value == "abc\x00\x00"
-        x.decode("\x01\x00\x00\x00\x00", ">")
-        assert x.value == "\x01\x00\x00\x00\x00"
-
-        with pytest.raises(Exception):
-            x.decode("\x01\x00\x00\x00\x00\x00", ">")
-        with pytest.raises(Exception):
-            x.decode("\x01\x00\x00\x00", ">")
-
-class TestTwoFixedBytes():
-
-    class Bytes(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("x", prophy.bytes(size = 5)),
-                       ("y", prophy.bytes(size = 5))]
-
-    def test_encode(self):
-        x = self.Bytes()
-        x.x = "abcde"
-        x.y = "fghij"
-        assert str(x) == ("x: \'abcde\'\n"
-                          "y: \'fghij\'\n")
-        assert x.encode(">") == "abcdefghij"
-
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("abcdefghij", ">")
-        assert x.x == "abcde"
-        assert x.y == "fghij"
-
-class TestBoundBytes():
-
-    class Bytes(prophy.struct_packed):
+@pytest.fixture(scope = 'session')
+def BoundBytes():
+    class BoundBytes(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.bytes(bound = "value_len"))]
+    return BoundBytes
 
-    def test_assignment(self):
-        x = self.Bytes()
-        assert x.value == ""
-        x.value = "\x00\x00\x01"
-        assert x.value == "\x00\x00\x01"
-        x.value = "\x00\x00"
-        assert x.value == "\x00\x00"
-        x.value = "bytes"
-        assert x.value == "bytes"
-        x.value = "bts"
-        assert x.value == "bts"
+def test_fixed_bytes_assignment(FixedBytes):
+    x = FixedBytes()
+    assert x.value == "\x00\x00\x00\x00\x00"
 
-        with pytest.raises(Exception):
-            x.value = 3
+    x.value = "\x00\x00\x01"
+    assert x.value == "\x00\x00\x01\x00\x00"
 
-        y = self.Bytes()
-        assert y.value == ""
-        y.copy_from(x)
-        assert y.value == "bts"
+    x.value = "\x00\x00"
+    assert x.value == "\x00\x00\x00\x00\x00"
 
-    def test_print(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert str(x) == "value: \'abc\'\n"
-        x.value = "\x00\x01"
-        assert str(x) == "value: \'\\x00\\x01\'\n"
-        x.value = "ab\x00"
-        assert str(x) == "value: \'ab\\x00\'\n"
+    x.value = "bytes"
+    assert x.value == "bytes"
 
-    def test_encode(self):
-        x = self.Bytes()
-        x.value = "abc"
-        assert x.encode(">") == "\x00\x00\x00\x03abc"
-        x.value = "\x01"
-        assert x.encode(">") == "\x00\x00\x00\x01\x01"
+    x.value = "bts"
+    assert x.value == "bts\x00\x00"
 
-    def test_decode(self):
-        x = self.Bytes()
-        x.decode("\x00\x00\x00\x03abc", ">")
-        assert x.value == "abc"
-        x.decode("\x00\x00\x00\x01\x01", ">")
-        assert x.value == "\x01"
+    with pytest.raises(Exception):
+        x.value = 3
+    with pytest.raises(Exception):
+        x.value = "123456"
+
+def test_fixed_bytes_copy_from(FixedBytes):
+    x = FixedBytes()
+    x.value = 'bts'
+    y = FixedBytes()
+    y.value = 'rotor'
+
+    y.copy_from(x)
+    assert y.value == "bts\x00\x00"
+
+def test_fixed_bytes_encoding(FixedBytes):
+    x = FixedBytes()
+    x.value = "abc"
+    assert str(x) == "value: \'abc\\x00\\x00\'\n"
+
+    x.value = "\x00\x01"
+    assert str(x) == "value: \'\\x00\\x01\\x00\\x00\\x00\'\n"
+
+    x.value = "ab\x00"
+    assert str(x) == "value: \'ab\\x00\\x00\\x00\'\n"
+
+    x.value = "abc"
+    assert x.encode(">") == "abc\x00\x00"
+
+    x.value = "\x01"
+    assert x.encode(">") == "\x01\x00\x00\x00\x00"
+
+    x.decode("abc\x00\x00", ">")
+    assert x.value == "abc\x00\x00"
+
+    x.decode("\x01\x00\x00\x00\x00", ">")
+    assert x.value == "\x01\x00\x00\x00\x00"
+
+    with pytest.raises(Exception):
+        x.decode("\x01\x00\x00\x00\x00\x00", ">")
+
+    with pytest.raises(Exception):
+        x.decode("\x01\x00\x00\x00", ">")
+
+def test_fixed_bytes_twice_in_struct():
+    class X(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x", prophy.bytes(size = 5)),
+                       ("y", prophy.bytes(size = 5))]
+    x = X()
+    x.x = "abcde"
+    x.y = "fghij"
+    assert str(x) == """\
+x: 'abcde'
+y: 'fghij'
+"""
+
+    assert x.encode(">") == "abcdefghij"
+
+    x.decode("abcdefghij", ">")
+    assert x.x == "abcde"
+    assert x.y == "fghij"
+
+def test_bound_bytes_assignment(BoundBytes):
+    x = BoundBytes()
+    assert x.value == ""
+
+    x.value = "\x00\x00\x01"
+    assert x.value == "\x00\x00\x01"
+
+    x.value = "\x00\x00"
+    assert x.value == "\x00\x00"
+
+    x.value = "bytes"
+    assert x.value == "bytes"
+
+    x.value = "bts"
+    assert x.value == "bts"
+
+    with pytest.raises(Exception):
+        x.value = 3
+
+def test_bound_bytes_copy_from(BoundBytes):
+    x = BoundBytes()
+    x.value = 'bts'
+    y = BoundBytes()
+    y.value = 'rotor'
+
+    y.copy_from(x)
+    assert y.value == "bts"
+
+def test_bound_bytes_encoding(BoundBytes):
+    x = BoundBytes()
+    x.value = "abc"
+    assert str(x) == "value: \'abc\'\n"
+
+    x.value = "\x00\x01"
+    assert str(x) == "value: \'\\x00\\x01\'\n"
+
+    x.value = "ab\x00"
+    assert str(x) == "value: \'ab\\x00\'\n"
+
+    x.value = "abc"
+    assert x.encode(">") == "\x00\x00\x00\x03abc"
+
+    x.value = "\x01"
+    assert x.encode(">") == "\x00\x00\x00\x01\x01"
+
+    x.decode("\x00\x00\x00\x03abc", ">")
+    assert x.value == "abc"
+
+    x.decode("\x00\x00\x00\x01\x01", ">")
+    assert x.value == "\x01"
 
 class TestShiftBoundBytes():
 
