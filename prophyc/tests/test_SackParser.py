@@ -1,11 +1,16 @@
+import os
 import tempfile
+
 import SackParser
 
 def parse(content, suffix = '.hpp'):
-    with tempfile.NamedTemporaryFile(suffix = suffix) as temp:
-        temp.write(content)
-        temp.flush()
-        return SackParser.SackParser().parse(temp.name)
+    try:
+        with tempfile.NamedTemporaryFile(suffix = suffix, delete = False) as temp:
+            temp.write(content)
+            temp.flush()
+            return SackParser.SackParser().parse(temp.name)
+    finally:
+        os.unlink(temp.name)
 
 class contains_cmp(object):
     def __init__(self, x):
