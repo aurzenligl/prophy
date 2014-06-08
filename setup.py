@@ -1,13 +1,17 @@
 from setuptools import setup
 
+long_description = open('README.rst').read()
+
 setup(name = 'prophy',
       packages = ['prophy', 'prophyc'],
       entry_points = {
-        'console_scripts': [
-            'prophyc = prophyc.prophyc:main']
-        },
+          'console_scripts': [
+              'prophyc = prophyc.prophyc:main'
+          ]
+      },
       version = '0.2.4',
-      description = 'Binary data interchange format toolchain',
+      description = 'prophy: fast data interchange format toolchain',
+      long_description = long_description,
       author = 'Krzysztof Laskowski',
       author_email = 'krzysztof.laskowski@nsn.com',
       url = "https://pypi.python.org/pypi",
