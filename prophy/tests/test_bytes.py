@@ -8,6 +8,37 @@ def FixedBytes():
         _descriptor = [("value", prophy.bytes(size = 5))]
     return FixedBytes
 
+@pytest.fixture(scope = 'session')
+def BoundBytes():
+    class BoundBytes(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("value_len", prophy.u32),
+                       ("value", prophy.bytes(bound = "value_len"))]
+    return BoundBytes
+
+@pytest.fixture(scope = 'session')
+def ShiftBoundBytes():
+    class ShiftBoundBytes(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("value_len", prophy.u8),
+                       ("value", prophy.bytes(bound = "value_len", shift = 2))]
+    return ShiftBoundBytes
+
+@pytest.fixture(scope = 'session')
+def LimitedBytes():
+    class LimitedBytes(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("value_len", prophy.u32),
+                       ("value", prophy.bytes(size = 5, bound = "value_len"))]
+    return LimitedBytes
+
+@pytest.fixture(scope = 'session')
+def GreedyBytes():
+    class GreedyBytes(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("value", prophy.bytes())]
+    return GreedyBytes
+
 def test_fixed_bytes_assignment(FixedBytes):
     x = FixedBytes()
     assert x.value == "\x00\x00\x00\x00\x00"
@@ -79,14 +110,6 @@ y: 'fghij'
     assert x.x == "abcde"
     assert x.y == "fghij"
 
-@pytest.fixture(scope = 'session')
-def BoundBytes():
-    class BoundBytes(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value_len", prophy.u32),
-                       ("value", prophy.bytes(bound = "value_len"))]
-    return BoundBytes
-
 def test_bound_bytes_assignment(BoundBytes):
     x = BoundBytes()
     assert x.value == ""
@@ -156,14 +179,6 @@ def test_bound_bytes_twice_in_struct():
     assert x.x == "abcde"
     assert x.y == "fghij"
 
-@pytest.fixture(scope = 'session')
-def ShiftBoundBytes():
-    class ShiftBoundBytes(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value_len", prophy.u8),
-                       ("value", prophy.bytes(bound = "value_len", shift = 2))]
-    return ShiftBoundBytes
-
 def test_shift_bound_bytes_encoding(ShiftBoundBytes):
     x = ShiftBoundBytes()
     x.value = "abc"
@@ -214,14 +229,6 @@ def test_shift_bound_bytes_exceptions():
             _descriptor = [("value_len", prophy.u8),
                            ("value", prophy.bytes(bound = "value_len", size = 1, shift = 2))]
     assert e.value.message == "only shifting bound bytes implemented"
-
-@pytest.fixture(scope = 'session')
-def LimitedBytes():
-    class LimitedBytes(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value_len", prophy.u32),
-                       ("value", prophy.bytes(size = 5, bound = "value_len"))]
-    return LimitedBytes
 
 def test_limited_bytes_assignment(LimitedBytes):
     x = LimitedBytes()
@@ -290,13 +297,6 @@ def test_limited_bytes_twice_in_struct():
     x.decode("\x00\x00\x00\x02\x00\x00\x00\x03ab\x00\x00\x00fgh\x00\x00", ">")
     assert x.x == "ab"
     assert x.y == "fgh"
-
-@pytest.fixture(scope = 'session')
-def GreedyBytes():
-    class GreedyBytes(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.bytes())]
-    return GreedyBytes
 
 def test_greedy_bytes_assignment(GreedyBytes):
     x = GreedyBytes()
