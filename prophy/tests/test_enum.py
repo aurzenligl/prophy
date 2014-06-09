@@ -204,7 +204,7 @@ def test_enum_with_0xFFFFFFFF_value():
 
     assert Enclosing().value == 0xFFFFFFFF
 
-def test_access_to_members():
+def test_enum_access_to_members():
     class E(prophy.enum):
         __metaclass__ = prophy.enum_generator
         _enumerators = [("E_1", 1),
