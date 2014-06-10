@@ -1,85 +1,71 @@
 import prophy
 import pytest
 
-class Testr32():
-
-    class X(prophy.struct_packed):
+def Float():
+    class Float(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.r32)]
+    return Float
 
-    def test(self):
-        x = self.X()
-        assert x.value == 0.0
-
-        with pytest.raises(Exception):
-            x.value = "45.486"
-
-        y = self.X()
-        assert y.value == 0.0
-
-        x.value = 1.455
-        y.copy_from(x)
-        assert y.value == 1.455
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 8
-        assert str(x) == "value: 8\n"
-
-
-        x.decode("\x3f\x80\x00\x00", ">")
-        assert x.value == 1.0
-
-        x.decode("\xbf\x80\x00\x00", ">")
-        assert x.value == -1.0
-
-        x.value = -1.0
-        assert x.encode(">") == "\xbf\x80\x00\x00"
-
-        x.value = 1.0
-        assert x.encode(">") == "\x3f\x80\x00\x00"
-
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff\xff\xff", ">")
-
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff", ">")
-
-class Testr64():
-
-    class X(prophy.struct_packed):
+def Double():
+    class Double(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("value", prophy.r64)]
+    return Double
 
-    def test(self):
-        x = self.X()
-        assert x.value == 0.0
+@pytest.mark.parametrize("FloatType", [
+    Float(),
+    Double()
+])
+def test_float(FloatType):
+    x = FloatType()
+    assert x.value == 0.0
 
-        with pytest.raises(Exception):
-            x.value = "45.486"
+    x.value = 1.455
+    assert x.value == 1.455
 
-        y = self.X()
-        assert y.value == 0.0
+    with pytest.raises(Exception):
+        x.value = "45.486"
 
-        x.value = 1.455
-        y.copy_from(x)
-        assert y.value == 1.455
+    y = FloatType()
+    y.value = 4.1
+    y.copy_from(x)
+    assert y.value == 1.455
 
-    def test_codec(self):
-        x = self.X()
+@pytest.mark.parametrize("FloatType, one, minus_one, too_long, too_short", [
+    (Float(),
+        "\x3f\x80\x00\x00",
+        "\xbf\x80\x00\x00",
+        "\xff\xff\xff\xff\xff",
+        "\xff\xff\xff"),
+    (Double(),
+        "?\xf0\x00\x00\x00\x00\x00\x00",
+        "\xbf\xf0\x00\x00\x00\x00\x00\x00",
+        "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",
+        "\xff\xff\xff\xff\xff")
+])
+def test_float_codec(FloatType, one, minus_one, too_long, too_short):
+    x = FloatType()
 
-        x.value = 8
-        assert str(x) == "value: 8\n"
+    x.value = 8
+    assert str(x) == "value: 8\n"
 
-        x.decode("\xbf\xf0\x00\x00\x00\x00\x00\x00", ">")
-        assert x.value == -1.0
+    x.decode(one, ">")
+    assert x.value == 1.0
 
-        x.value = -1.0
-        assert x.encode(">") == "\xbf\xf0\x00\x00\x00\x00\x00\x00"
+    x.decode(minus_one, ">")
+    assert x.value == -1.0
 
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff\xff\xff", ">")
+    x.value = 1.0
+    assert x.encode(">") == one
 
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff", ">")
+    x.value = -1.0
+    assert x.encode(">") == minus_one
+
+    with pytest.raises(prophy.ProphyError) as e:
+        x.decode(too_long, ">")
+    assert "not all bytes read" in e.value.message
+
+    with pytest.raises(prophy.ProphyError) as e:
+        x.decode(too_short, ">")
+    assert "too few bytes to decode integer" in e.value.message
