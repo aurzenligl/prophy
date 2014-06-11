@@ -30,7 +30,7 @@ deps_visitor = {model.Include: get_include_deps,
                 model.Struct: get_struct_deps,
                 model.Union: get_union_deps}
 
-def dependency_sort_rotate(nodes, known, available, index):
+def model_sort_rotate(nodes, known, available, index):
     node = nodes[index]
     for dep in get_deps(node):
         if dep not in known and dep in available:
@@ -41,7 +41,7 @@ def dependency_sort_rotate(nodes, known, available, index):
     known.add(node.name)
     return False
 
-def dependency_sort(nodes):
+def model_sort(nodes):
     known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
     available = set(node.name for node in nodes)
 
@@ -49,5 +49,5 @@ def dependency_sort(nodes):
     max_index = len(nodes)
 
     while index < max_index:
-        if not dependency_sort_rotate(nodes, known, available, index):
+        if not model_sort_rotate(nodes, known, available, index):
             index = index + 1
