@@ -135,7 +135,8 @@ class IsarParser(object):
         nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
         nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
         nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic = True) for elem in root.iterfind('.//message')))
-        dependency_sort(nodes)
+        import model_dependency
+        model_dependency.dependency_sort(nodes)
         return nodes
 
     def parse_string(self, string):
@@ -145,4 +146,4 @@ class IsarParser(object):
         return self.__get_model(ElementTree.parse(file))
 
     def post_patch(self, nodes):
-        dependency_sort(nodes)
+        pass
