@@ -31,6 +31,9 @@ def main():
             patches = patch.parse(opts.patch)
             patch.patch(nodes, patches)
             parser.post_patch(nodes)
+
+        import model_dependency
+        model_dependency.dependency_sort(nodes)
         serializer.serialize(nodes, basename)
 
 if __name__ == "__main__":
