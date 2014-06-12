@@ -135,6 +135,20 @@ def test_fixed_composite_array_decode(FixedCompositeArray):
     assert x.value[0].x == 1
     assert x.value[1].x == 2
 
+def test_fixed_array_with_enum():
+    class E(prophy.enum):
+        __metaclass__ = prophy.enum_generator
+        _enumerators = [("E_1", 1),
+                        ("E_2", 2),
+                        ("E_3", 3)]
+    class A(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("a", prophy.array(E, size = 3))]
+
+    x = A()
+
+    x.encode(">")
+
 def test_fixed_array_decode_exception():
     class A(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
