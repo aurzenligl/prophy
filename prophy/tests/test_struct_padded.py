@@ -191,7 +191,7 @@ def test_struct_with_substruct_with_bytes():
     assert x.x[0].x[:] == [6]
     assert x.x[1].x[:] == [7, 8, 9, 10, 11, 12, 13]
 
-    class C(prophy.struct_packed):
+    class C(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", A)]
 
