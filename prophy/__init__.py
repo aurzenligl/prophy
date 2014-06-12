@@ -19,3 +19,5 @@ from composite import struct_packed
 from composite import struct_generator
 from composite import union
 from composite import union_generator
+
+from exception import ProphyError

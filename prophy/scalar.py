@@ -1,68 +1,63 @@
 import struct
+from exception import ProphyError
+
+def numeric_decorator(cls, size, id):
+    @staticmethod
+    def encode(value, endianness):
+        return struct.pack(endianness + id, value)
+
+    @staticmethod
+    def decode(data, endianness):
+        if len(data) < size:
+            raise ProphyError("too few bytes to decode integer")
+        value, = struct.unpack(endianness + id, data[:size])
+        return value, size
+
+    cls._encode = encode
+    cls._decode = decode
+
+    cls._SIZE = size
+    cls._ALIGNMENT = size
+    cls._DYNAMIC = False
+    cls._UNLIMITED = False
+    cls._OPTIONAL = False
+    cls._BOUND = None
+
+    return cls
 
 def int_decorator(size, id, min, max):
     def decorator(cls):
+        cls = numeric_decorator(cls, size, id)
+
         @staticmethod
         def check(value):
             if not isinstance(value, (int, long)):
-                raise Exception("not an int")
+                raise ProphyError("not an int")
             if not min <= value <= max:
-                raise Exception("out of bounds")
+                raise ProphyError("out of bounds")
             return value
 
-        @staticmethod
-        def encode(value, endianess):
-            return struct.pack(endianess + id, value)
-
-        @staticmethod
-        def decode(data, endianess):
-            if len(data) < size:
-                raise Exception("too few bytes to decode integer")
-            value, = struct.unpack(endianess + id, data[:size])
-            return value, size
-
         cls._check = check
-        cls._encode = encode
-        cls._decode = decode
+
         cls._DEFAULT = 0
-        cls._SIZE = size
-        cls._ALIGNMENT = size
-        cls._DYNAMIC = False
-        cls._UNLIMITED = False
-        cls._OPTIONAL = False
-        cls._BOUND = None
+
         return cls
     return decorator
 
 def float_decorator(size, id):
     def decorator(cls):
+        cls = numeric_decorator(cls, size, id)
+
         @staticmethod
         def check(value):
             if not isinstance(value, (float, int, long)):
-                raise Exception("not a float")
+                raise ProphyError("not a float")
             return value
 
-        @staticmethod
-        def encode(value, endianess):
-            return struct.pack(endianess + id, value)
-
-        @staticmethod
-        def decode(data, endianess):
-            if len(data) < size:
-                raise Exception("too few bytes to decode integer")
-            value, = struct.unpack(endianess + id, data[:size])
-            return value, size
-
         cls._check = check
-        cls._encode = encode
-        cls._decode = decode
+
         cls._DEFAULT = 0.0
-        cls._SIZE = size
-        cls._ALIGNMENT = size
-        cls._DYNAMIC = False
-        cls._UNLIMITED = False
-        cls._OPTIONAL = False
-        cls._BOUND = None
+
         return cls
     return decorator
 
@@ -113,19 +108,19 @@ def add_enum_attributes(cls, enumerators):
         if isinstance(value, str):
             value = name_to_int.get(value)
             if value is None:
-                raise Exception("unknown enumerator name")
+                raise ProphyError("unknown enumerator name")
             return cls(value)
         elif isinstance(value, (int, long)):
             if not value in int_to_name:
-                raise Exception("unknown enumerator value")
+                raise ProphyError("unknown enumerator value")
             return cls(value)
         else:
-            raise Exception("neither string nor int")
+            raise ProphyError("neither string nor int")
 
     name_to_int = {name:value for name, value in enumerators}
     int_to_name = {value:name for name, value in enumerators}
     if len(name_to_int) < len(enumerators):
-        raise Exception("names overlap")
+        raise ProphyError("names overlap")
     map(cls._check, (value for _, value in enumerators))
     cls._DEFAULT = cls(enumerators[0][1])
     cls._name_to_int = name_to_int
@@ -159,9 +154,9 @@ def bytes(**kwargs):
     bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if shift and (not bound or size):
-        raise Exception("only shifting bound bytes implemented")
+        raise ProphyError("only shifting bound bytes implemented")
     if kwargs:
-        raise Exception("unknown arguments to bytes field")
+        raise ProphyError("unknown arguments to bytes field")
 
     class _bytes(str):
         _SIZE = size
@@ -176,28 +171,28 @@ def bytes(**kwargs):
         @staticmethod
         def _check(value):
             if not isinstance(value, str):
-                raise Exception("not a str")
+                raise ProphyError("not a str")
             if size and len(value) > size:
-                raise Exception("too long")
+                raise ProphyError("too long")
             if size and not bound:
                 return value.ljust(size, '\x00')
             return value
 
         @staticmethod
-        def _encode(value, endianess):
+        def _encode(value):
             return value.ljust(size, '\x00')
 
         @staticmethod
-        def _decode(data, endianess, len_hint):
+        def _decode(data, len_hint):
             if len(data) < size:
-                raise Exception("too few bytes to decode string")
+                raise ProphyError("too few bytes to decode string")
             if size and not bound:
                 return data[:size], size
             elif size and bound:
                 return data[:len_hint], size
             elif bound:
                 if len(data) < len_hint:
-                    raise Exception("too few bytes to decode string")
+                    raise ProphyError("too few bytes to decode string")
                 return data[:len_hint], len_hint
             else:  # greedy
                 return data, len(data)

@@ -15,6 +15,10 @@ def shiftLeft(x, y):
     return x << y
 """
 
+def tr(str_):
+    """ Facilitates testing strings output from windows cmd-line programs. """
+    return str_.translate(None, '\r')
+
 def call(args):
     popen = subprocess.Popen(args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
     out, err = popen.communicate()
@@ -24,35 +28,35 @@ def test_missing_input():
     ret, out, err = call(["python", prophyc])
     assert ret == 1
     assert out == ""
-    assert err == "prophyc.py: error: too few arguments\n"
+    assert tr(err) == "prophyc.py: error: too few arguments\n"
 
 def test_no_output_directory(tmpdir_cwd):
     open("input.xml", "w").write("")
     ret, out, err = call(["python", prophyc, "--python_out", "no_dir", "input.xml"])
     assert ret == 1
     assert out == ""
-    assert err == "prophyc.py: error: argument --python_out: no_dir directory not found\n"
+    assert tr(err) == "prophyc.py: error: argument --python_out: no_dir directory not found\n"
 
 def test_missing_output(tmpdir_cwd):
     open("input.xml", "w").write("")
     ret, out, err = call(["python", prophyc, "--isar", "input.xml"])
     assert ret == 1
     assert out == ""
-    assert err == "Missing output directives\n"
+    assert tr(err) == "Missing output directives\n"
 
 def test_passing_neither_isar_nor_sack(tmpdir_cwd):
     open("input", "w").write("")
     ret, out, err = call(["python", prophyc, "--python_out", ".", "input"])
     assert ret == 1
     assert out == ""
-    assert err == "prophyc.py: error: one of the arguments --isar --sack is required\n"
+    assert tr(err) == "prophyc.py: error: one of the arguments --isar --sack is required\n"
 
 def test_passing_isar_and_sack(tmpdir_cwd):
     open("input", "w").write("")
     ret, out, err = call(["python", prophyc, "--isar", "--sack", "--python_out", ".", "input"])
     assert ret == 1
     assert out == ""
-    assert err == "prophyc.py: error: argument --sack: not allowed with argument --isar\n"
+    assert tr(err) == "prophyc.py: error: argument --sack: not allowed with argument --isar\n"
 
 def test_isar_compiles_single_empty_xml(tmpdir_cwd):
     open("input.xml", "w").write("<struct/>")

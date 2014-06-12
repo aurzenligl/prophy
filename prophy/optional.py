@@ -1,11 +1,12 @@
 import scalar
 import container
+from exception import ProphyError
 
 def optional(cls):
     if issubclass(cls, str):
-        raise Exception("optional bytes not implemented")
+        raise ProphyError("optional bytes not implemented")
     if issubclass(cls, container.base_array):
-        raise Exception("optional array not implemented")
+        raise ProphyError("optional array not implemented")
 
     class _optional(cls):
         pass
