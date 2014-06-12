@@ -14,16 +14,20 @@ setup(name = 'prophy',
       long_description = long_description,
       author = 'Krzysztof Laskowski',
       author_email = 'krzysztof.laskowski@nsn.com',
-      url = "https://pypi.python.org/pypi",
-      keywords = ["IDL", "codec", "binary data"],
+      url = "https://github.com/aurzenligl/prophy",
+      license = 'MIT license',
+      keywords = "IDL codec binary data",
       classifiers = [
+            "Development Status :: 3 - Alpha",
             "Intended Audience :: Developers",
             "Intended Audience :: Telecommunications Industry",
-            "Programming Language :: Python",
-            "Development Status :: 3 - Alpha",
             "License :: OSI Approved :: MIT License",
             "Operating System :: Unix",
+            "Operating System :: Microsoft :: Windows",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Utilities",
+            "Topic :: Software Development :: Libraries",
             "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
-            "Topic :: Software Development :: Libraries :: Python Modules",
-            ]
-      )
+      ],
+      zip_safe = False
+)
