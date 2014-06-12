@@ -3,6 +3,7 @@
 import options
 import sys
 import os
+import model_sort
 
 def get_basename(filename):
     return os.path.splitext(os.path.basename(filename))[0]
@@ -30,7 +31,8 @@ def main():
             import patch
             patches = patch.parse(opts.patch)
             patch.patch(nodes, patches)
-            parser.post_patch(nodes)
+
+        model_sort.model_sort(nodes)
         serializer.serialize(nodes, basename)
 
 if __name__ == "__main__":

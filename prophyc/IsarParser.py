@@ -7,57 +7,6 @@ TODO:
 - arrays of u8 type should be string or bytes fields
 """
 
-def get_include_deps(include):
-    return []
-
-def get_constant_deps(constant):
-    return filter(lambda x: not x.isdigit(),
-                  reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
-
-def get_typedef_deps(typedef):
-    return [typedef.type]
-
-def get_enum_deps(enum):
-    return []
-
-def get_struct_deps(struct):
-    return [member.type for member in struct.members]
-
-def get_union_deps(union):
-    return [member.type for member in union.members]
-
-def get_deps(node):
-    return deps_visitor[type(node)](node)
-
-deps_visitor = {model.Include: get_include_deps,
-                model.Constant: get_constant_deps,
-                model.Typedef: get_typedef_deps,
-                model.Enum: get_enum_deps,
-                model.Struct: get_struct_deps,
-                model.Union: get_union_deps}
-
-def dependency_sort_rotate(nodes, known, available, index):
-    node = nodes[index]
-    for dep in get_deps(node):
-        if dep not in known and dep in available:
-            found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)))
-            found_index = nodes.index(found)
-            nodes.insert(index, nodes.pop(found_index))
-            return True
-    known.add(node.name)
-    return False
-
-def dependency_sort(nodes):
-    known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
-    available = set(node.name for node in nodes)
-
-    index = 0
-    max_index = len(nodes)
-
-    while index < max_index:
-        if not dependency_sort_rotate(nodes, known, available, index):
-            index = index + 1
-
 primitive_types = {"8 bit integer unsigned": "u8",
                    "16 bit integer unsigned": "u16",
                    "32 bit integer unsigned": "u32",
@@ -135,7 +84,6 @@ class IsarParser(object):
         nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
         nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
         nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic = True) for elem in root.iterfind('.//message')))
-        dependency_sort(nodes)
         return nodes
 
     def parse_string(self, string):
@@ -144,5 +92,3 @@ class IsarParser(object):
     def parse(self, file):
         return self.__get_model(ElementTree.parse(file))
 
-    def post_patch(self, nodes):
-        dependency_sort(nodes)
