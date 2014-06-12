@@ -1,40 +1,41 @@
 import prophy
-from enumerations import *
 
-TTraceHandle = prophy.u32
-TENodeBId = prophy.u32
-TAaSysComSicad = prophy.u32
-TTraceSessionProtocol = prophy.u32
-TNumberOfItems = prophy.u32
-TTracePort = prophy.u32
-TEci = prophy.u32
+def test_tracing_ctrl_init_resp():
+    import enumerations
 
-class STransportLayerAddress(prophy.struct_packed):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [("addressLength", TTraceHandle),
-                   ("address", prophy.bytes(size = 16, bound = "addressLength"))]
+    TTraceHandle = prophy.u32
+    TENodeBId = prophy.u32
+    TAaSysComSicad = prophy.u32
+    TTraceSessionProtocol = prophy.u32
+    TNumberOfItems = prophy.u32
+    TTracePort = prophy.u32
+    TEci = prophy.u32
 
-class SUdpAddress(prophy.struct_packed):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [("ipAddress", STransportLayerAddress),
-                   ("port", TTracePort)]
+    class STransportLayerAddress(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("addressLength", TTraceHandle),
+                       ("address", prophy.bytes(size = 16, bound = "addressLength"))]
 
-class LOM_TracingCtrlInitResp(prophy.struct_packed):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [("handle", TTraceHandle),
-                   ("eutranTraceId", prophy.bytes(size = 8)),
-                   ("eNodeBId", TENodeBId),
-                   ("eci", TEci),
-                   ("omsTcpSessionSicad", TAaSysComSicad),
-                   ("thirdPartyTcpSessionSicad", TAaSysComSicad),
-                   ("extIpAddress", STransportLayerAddress),
-                   ("mode", ETraceReportingMode),
-                   ("depth", ETraceDepth),
-                   ("protocols", TTraceSessionProtocol),
-                   ("status", ELomStatus),
-                   ("udpAddress", SUdpAddress)]
+    class SUdpAddress(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("ipAddress", STransportLayerAddress),
+                       ("port", TTracePort)]
 
-def test_it():
+    class LOM_TracingCtrlInitResp(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("handle", TTraceHandle),
+                       ("eutranTraceId", prophy.bytes(size = 8)),
+                       ("eNodeBId", TENodeBId),
+                       ("eci", TEci),
+                       ("omsTcpSessionSicad", TAaSysComSicad),
+                       ("thirdPartyTcpSessionSicad", TAaSysComSicad),
+                       ("extIpAddress", STransportLayerAddress),
+                       ("mode", enumerations.ETraceReportingMode),
+                       ("depth", enumerations.ETraceDepth),
+                       ("protocols", TTraceSessionProtocol),
+                       ("status", enumerations.ELomStatus),
+                       ("udpAddress", SUdpAddress)]
+
     resp = LOM_TracingCtrlInitResp()
     resp.eutranTraceId = "abcd"
     resp.extIpAddress.address = "\xff\xfe\xff\xfe\xff\xfe"

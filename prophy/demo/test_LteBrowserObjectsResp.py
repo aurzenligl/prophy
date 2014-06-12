@@ -1,31 +1,32 @@
 import prophy
-from enumerations import *
 
-TBrowserObjectId = prophy.u32
-TLomHandle = prophy.u32
-TBrowserContextId = prophy.u32
-TBrowserProcedureId = prophy.u32
-TLomSessionId = prophy.u32
-TNumberOfItems = prophy.u32
-TDataCount = prophy.u32
+def test_lte_browser_objects_resp():
+    import enumerations
 
-class SBrowserObjectInfo(prophy.struct_packed):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [("objectName", EBrowserObjectName),
-                   ("objectId", TBrowserObjectId),
-                   ("objectHandle", TLomHandle)]
+    TBrowserObjectId = prophy.u32
+    TLomHandle = prophy.u32
+    TBrowserContextId = prophy.u32
+    TBrowserProcedureId = prophy.u32
+    TLomSessionId = prophy.u32
+    TNumberOfItems = prophy.u32
+    TDataCount = prophy.u32
 
-class LteBrowserObjectsResp(prophy.struct_packed):
-    __metaclass__ = prophy.struct_generator
-    _descriptor = [("status", EBrowserStatus),
-                   ("contextId", TBrowserContextId),
-                   ("procedureId", TBrowserProcedureId),
-                   ("sessionId", TLomSessionId),
-                   ("numOfAssociatedObjects", TNumberOfItems),
-                   ("itemSize", TDataCount),
-                   ("dynamicData", prophy.array(SBrowserObjectInfo, bound = "numOfAssociatedObjects"))]
+    class SBrowserObjectInfo(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("objectName", enumerations.EBrowserObjectName),
+                       ("objectId", TBrowserObjectId),
+                       ("objectHandle", TLomHandle)]
 
-def test_it():
+    class LteBrowserObjectsResp(prophy.struct_packed):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("status", enumerations.EBrowserStatus),
+                       ("contextId", TBrowserContextId),
+                       ("procedureId", TBrowserProcedureId),
+                       ("sessionId", TLomSessionId),
+                       ("numOfAssociatedObjects", TNumberOfItems),
+                       ("itemSize", TDataCount),
+                       ("dynamicData", prophy.array(SBrowserObjectInfo, bound = "numOfAssociatedObjects"))]
+
     info = SBrowserObjectInfo()
     info.objectName = "EBrowserObjectName_LteUserMacTm"
     info.objectId = 2
