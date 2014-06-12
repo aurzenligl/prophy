@@ -13,12 +13,9 @@ def Double():
         _descriptor = [("value", prophy.r64)]
     return Double
 
-@pytest.mark.parametrize("FloatType", [
-    Float(),
-    Double()
-])
-def test_float(FloatType):
-    x = FloatType()
+@pytest.mark.parametrize("FloatTypeFactory", [Float, Double])
+def test_float(FloatTypeFactory):
+    x = FloatTypeFactory()()
     assert x.value == 0.0
 
     x.value = 1.455
@@ -32,20 +29,20 @@ def test_float(FloatType):
     y.copy_from(x)
     assert y.value == 1.455
 
-@pytest.mark.parametrize("FloatType, one, minus_one, too_long, too_short", [
-    (Float(),
+@pytest.mark.parametrize("FloatTypeFactory, one, minus_one, too_long, too_short", [
+    (Float,
         "\x3f\x80\x00\x00",
         "\xbf\x80\x00\x00",
         "\xff\xff\xff\xff\xff",
         "\xff\xff\xff"),
-    (Double(),
+    (Double,
         "?\xf0\x00\x00\x00\x00\x00\x00",
         "\xbf\xf0\x00\x00\x00\x00\x00\x00",
         "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff",
         "\xff\xff\xff\xff\xff")
 ])
-def test_float_codec(FloatType, one, minus_one, too_long, too_short):
-    x = FloatType()
+def test_float_codec(FloatTypeFactory, one, minus_one, too_long, too_short):
+    x = FloatTypeFactory()()
 
     x.value = 8
     assert str(x) == "value: 8\n"
