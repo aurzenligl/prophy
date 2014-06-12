@@ -29,18 +29,6 @@ def test_constants_parsing():
 
     assert [("CONST_A", "0"), ("CONST_B", "31")] == nodes
 
-def test_constants_parsing_and_sorting():
-    xml = """\
-<x>
-    <constant name="C_C" value="C_A + C_B"/>
-    <constant name="C_A" value="1"/>
-    <constant name="C_B" value="2"/>
-</x>
-"""
-    nodes = parse(xml)
-
-    assert [("C_A", "1"), ("C_B", "2"), ("C_C", "C_A + C_B")] == nodes
-
 def test_typedefs_primitive_type_parsing():
     xml = """\
 <x>

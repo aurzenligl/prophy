@@ -1,6 +1,5 @@
 import model
 import model_sort
-from collections import namedtuple
 
 def test_model_sort_enums():
     nodes = [model.Typedef("B", "A"),
@@ -68,3 +67,12 @@ def test_model_sort_union():
     model_sort.model_sort(nodes)
 
     assert ["A", "B", "C"] == [node.name for node in nodes]
+
+def test_model_sort_constants():
+    nodes = [model.Constant("C_C", "C_A + C_B"),
+             model.Constant("C_A", "1"),
+             model.Constant("C_B", "2")]
+
+    model_sort.model_sort(nodes)
+
+    assert [("C_A", "1"), ("C_B", "2"), ("C_C", "C_A + C_B")] == nodes
