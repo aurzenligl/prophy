@@ -1,7 +1,7 @@
 import prophy
 import pytest
 
-def test_with_dynamic_fields():
+def test_struct_with_dynamic_fields():
     class X(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x_len", prophy.u32),
@@ -19,14 +19,14 @@ def test_with_dynamic_fields():
     assert x.x[:] == [1]
     assert x.y == 8
 
-def test_exception_with_access_to_nonexistent_field():
+def test_struct_exception_with_access_to_nonexistent_field():
     with pytest.raises(AttributeError):
         class X(prophy.struct):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a", prophy.u32)]
         X().im_not_there
 
-def test_encoding_with_scalars():
+def test_struct_encoding_with_scalars():
     class S(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.u8),
@@ -45,7 +45,7 @@ def test_encoding_with_scalars():
     assert 7 == x.b
     assert 8 == x.c
 
-def test_encoding_with_inner_struct():
+def test_struct_encoding_with_inner_struct():
 
     class A(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -69,7 +69,7 @@ def test_encoding_with_inner_struct():
     assert 0xb == x.a.b
     assert 0xc == x.b
 
-def test_encoding_with_arrays():
+def test_struct_encoding_with_arrays():
     class A(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("a", prophy.array(prophy.u8, size = 3)),
