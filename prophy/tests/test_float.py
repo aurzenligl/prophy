@@ -15,7 +15,8 @@ def Double():
 
 @pytest.mark.parametrize("FloatTypeFactory", [Float, Double])
 def test_float(FloatTypeFactory):
-    x = FloatTypeFactory()()
+    FloatType = FloatTypeFactory()
+    x = FloatType()
     assert x.value == 0.0
 
     x.value = 1.455
