@@ -1,358 +1,110 @@
 import prophy
 import pytest
 
-class TestI8():
-
-    class X(prophy.struct_packed):
+@pytest.mark.parametrize('IntType, min, max', [
+    (prophy.i8, -(0x80), 0x7F),
+    (prophy.i16, -(0x8000), 0x7FFF),
+    (prophy.i32, -(0x80000000), 0x7FFFFFFF),
+    (prophy.i64, -(0x8000000000000000), 0x7FFFFFFFFFFFFFFF),
+    (prophy.u8, 0, 0xFF),
+    (prophy.u16, 0, 0xFFFF),
+    (prophy.u32, 0, 0xFFFFFFFF),
+    (prophy.u64, 0, 0xFFFFFFFFFFFFFFFF)
+])
+def test_integer(IntType, min, max):
+    class X(prophy.struct):
         __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.i8)]
+        _descriptor = [("value", IntType)]
 
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0x7F
-        assert x.value == 0x7F
-        x.value = -(0x80)
-        assert x.value == -(0x80)
+    x = X()
+    assert x.value == 0
+    x.value = max
+    assert x.value == max
+    x.value = min
+    assert x.value == min
 
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = 0x7F + 1
-        with pytest.raises(Exception):
-            x.value = -(0x80) - 1
+    with pytest.raises(prophy.ProphyError) as e:
+        x.value = "123"
+    assert "not an int" in e.value.message
 
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == -(0x80)
+    with pytest.raises(prophy.ProphyError) as e:
+        x.value = max + 1
+    assert "out of bounds" in e.value.message
 
-    def test_codec(self):
-        x = self.X()
+    with pytest.raises(prophy.ProphyError) as e:
+        x.value = min - 1
+    assert "out of bounds" in e.value.message
 
-        x.value = 8
-        assert str(x) == "value: 8\n"
+    y = X()
+    y.value == 42
+    y.copy_from(x)
+    assert y.value == min
 
-        x.value = 1
-        assert x.encode(">") == "\x01"
-        x.value = -1
-        assert x.encode(">") == "\xff"
-
-        x.decode("\x01", ">")
-        assert x.value == 1
-        x.decode("\xff", ">")
-        assert x.value == -1
-
-        with pytest.raises(Exception):
-            x.decode("", ">")
-        with pytest.raises(Exception):
-            x.decode("\xff\xff", ">")
-
-class TestI16():
-
-    class X(prophy.struct_packed):
+@pytest.mark.parametrize('IntType, a, encoded_a, b, encoded_b, too_short, too_long', [
+    (prophy.i8,
+        1, "\x01",
+        (-1), "\xff",
+        "",
+        "\xff\xff"),
+    (prophy.i16,
+        1, "\x00\x01",
+        (-1), "\xff\xff",
+        "\xff",
+        "\xff\xff\xff"),
+    (prophy.i32,
+        1, "\x00\x00\x00\x01",
+        (-1), "\xff\xff\xff\xff",
+        "\xff\xff\xff",
+        "\xff\xff\xff\xff\xff"),
+    (prophy.i64,
+        1, "\x00\x00\x00\x00\x00\x00\x00\x01",
+        (-1), "\xff\xff\xff\xff\xff\xff\xff\xff",
+        "\xff\xff\xff\xff\xff\xff\xff",
+        "\xff\xff\xff\xff\xff\xff\xff\xff\xff"),
+    (prophy.u8,
+        1, "\x01",
+        0, "\x00",
+        "",
+        "\xff\xff"),
+    (prophy.u16,
+        1, "\x00\x01",
+        0, "\x00\x00",
+        "\xff",
+        "\xff\xff\xff"),
+    (prophy.u32,
+        1, "\x00\x00\x00\x01",
+        0, "\x00\x00\x00\x00",
+        "\xff\xff\xff",
+        "\xff\xff\xff\xff\xff"),
+    (prophy.u64,
+        1, "\x00\x00\x00\x00\x00\x00\x00\x01",
+        0, "\x00\x00\x00\x00\x00\x00\x00\x00",
+        "\xff\xff\xff\xff\xff\xff\xff",
+        "\xff\xff\xff\xff\xff\xff\xff\xff\xff")
+])
+def test_integer_codec(IntType, a, encoded_a, b, encoded_b, too_short, too_long):
+    class X(prophy.struct):
         __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.i16)]
-
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0x7FFF
-        assert x.value == 0x7FFF
-        x.value = -(0x8000)
-        assert x.value == -(0x8000)
-
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = 0x7FFF + 1
-        with pytest.raises(Exception):
-            x.value = -(0x8000) - 1
-
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == -(0x8000)
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 8
-        assert str(x) == "value: 8\n"
-
-        x.value = 1
-        assert x.encode(">") == "\x00\x01"
-        x.value = -1
-        assert x.encode(">") == "\xff\xff"
-
-        x.decode("\x00\x01", ">")
-        assert x.value == 1
-        x.decode("\xff\xff", ">")
-        assert x.value == -1
-
-        with pytest.raises(Exception):
-            x.decode("\xff", ">")
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff", ">")
-
-class TestI32():
-
-    class X(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.i32)]
-
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0x7FFFFFFF
-        assert x.value == 0x7FFFFFFF
-        x.value = -(0x80000000)
-        assert x.value == -(0x80000000)
-
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = 0x7FFFFFFF + 1
-        with pytest.raises(Exception):
-            x.value = -(0x80000000) - 1
-
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == -(0x80000000)
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 8
-        assert str(x) == "value: 8\n"
-
-        x.value = 1
-        assert x.encode(">") == "\x00\x00\x00\x01"
-        x.value = -1
-        assert x.encode(">") == "\xff\xff\xff\xff"
-
-        x.decode("\x00\x00\x00\x01", ">")
-        assert x.value == 1
-        x.decode("\xff\xff\xff\xff", ">")
-        assert x.value == -1
-
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff", ">")
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff\xff\xff", ">")
-
-class TestI64():
-
-    class X(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.i64)]
-
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0x7FFFFFFFFFFFFFFF
-        assert x.value == 0x7FFFFFFFFFFFFFFF
-        x.value = -(0x8000000000000000)
-        assert x.value == -(0x8000000000000000)
-
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = 0x7FFFFFFFFFFFFFFF + 1
-        with pytest.raises(Exception):
-            x.value = -(0x8000000000000000) - 1
-
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == -(0x8000000000000000)
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 8
-        assert str(x) == "value: 8\n"
-
-        x.value = 1
-        assert x.encode(">") == "\x00\x00\x00\x00\x00\x00\x00\x01"
-        x.value = -1
-        assert x.encode(">") == "\xff\xff\xff\xff\xff\xff\xff\xff"
-
-        x.decode("\x00\x00\x00\x00\x00\x00\x00\x01", ">")
-        assert x.value == 1
-        x.decode("\xff\xff\xff\xff\xff\xff\xff\xff", ">")
-        assert x.value == -1
-
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff\xff\xff\xff\xff", ">")
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\xff\xff\xff\xff\xff\xff\xff", ">")
-
-class TestU8():
-
-    class X(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.u8)]
-
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0
-        assert x.value == 0
-        x.value = 0xFF
-        assert x.value == 0xFF
-
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = -1
-        with pytest.raises(Exception):
-            x.value = 0xFF + 1
-
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == 0xFF
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 5
-        assert str(x) == "value: 5\n"
-
-        assert x.encode(">") == "\x05"
-
-        x.decode("\x05", ">")
-        assert x.value == 5
-
-        with pytest.raises(Exception):
-            x.decode("", ">")
-        with pytest.raises(Exception):
-            x.decode("\xff\xff", ">")
-
-class TestU16():
-
-    class X(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.u16)]
-
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0
-        assert x.value == 0
-        x.value = 0xFFFF
-        assert x.value == 0xFFFF
-
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = -1
-        with pytest.raises(Exception):
-            x.value = 0xFFFF + 1
-
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == 0xFFFF
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 5
-        assert str(x) == "value: 5\n"
-
-        assert x.encode(">") == "\x00\x05"
-
-        x.decode("\x00\x05", ">")
-        assert x.value == 5
-
-        with pytest.raises(Exception):
-            x.decode("\x00", ">")
-        with pytest.raises(Exception):
-            x.decode("\x00\xff\xff", ">")
-
-class TestU32():
-
-    class X(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.u32)]
-
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0
-        assert x.value == 0
-        x.value = 0xFFFFFFFF
-        assert x.value == 0xFFFFFFFF
-
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = -1
-        with pytest.raises(Exception):
-            x.value = 0xFFFFFFFF + 1
-
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == 0xFFFFFFFF
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 5
-        assert str(x) == "value: 5\n"
-
-        assert x.encode(">") == "\x00\x00\x00\x05"
-
-        x.decode("\x00\x00\x00\x05", ">")
-        assert x.value == 5
-
-        with pytest.raises(Exception):
-            x.decode("\x00\x00\x00", ">")
-        with pytest.raises(Exception):
-            x.decode("\xff\xff\x00\x00\x00", ">")
-
-class TestU64():
-
-    class X(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
-        _descriptor = [("value", prophy.u64)]
-
-    def test(self):
-        x = self.X()
-        assert x.value == 0
-        x.value = 0
-        assert x.value == 0
-        x.value = 0xFFFFFFFFFFFFFFFF
-        assert x.value == 0xFFFFFFFFFFFFFFFF
-
-        with pytest.raises(Exception):
-            x.value = "123"
-        with pytest.raises(Exception):
-            x.value = -1
-        with pytest.raises(Exception):
-            x.value = 0xFFFFFFFFFFFFFFFF + 1
-
-        y = self.X()
-        assert y.value == 0
-        y.copy_from(x)
-        assert y.value == 0xFFFFFFFFFFFFFFFF
-
-    def test_codec(self):
-        x = self.X()
-
-        x.value = 5
-        assert str(x) == "value: 5\n"
-
-        assert x.encode(">") == "\x00\x00\x00\x00\x00\x00\x00\x05"
-
-        x.decode("\x00\x00\x00\x00\x00\x00\x00\x05", ">")
-        assert x.value == 5
-
-        with pytest.raises(Exception):
-            x.decode("\x00\x00\x00\x00\x00\x00\x05", ">")
-        with pytest.raises(Exception):
-            x.decode("\x00\x00\x00\x00\x00\x00\x00\x00\x05", ">")
+        _descriptor = [("value", IntType)]
+
+    x = X()
+    x.value = 8
+    assert str(x) == "value: 8\n"
+
+    x.value = a
+    assert x.encode(">") == encoded_a
+    x.value = b
+    assert x.encode(">") == encoded_b
+
+    x.decode(encoded_a, ">")
+    assert x.value == a
+    x.decode(encoded_b, ">")
+    assert x.value == b
+
+    with pytest.raises(prophy.ProphyError) as e:
+        x.decode(too_short, ">")
+    assert "too few bytes to decode integer" in e.value.message
+
+    with pytest.raises(prophy.ProphyError) as e:
+        x.decode(too_long, ">")
+    assert "not all bytes read" in e.value.message
