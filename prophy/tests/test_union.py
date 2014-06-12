@@ -559,3 +559,12 @@ def test_union_with_static_bytes():
     assert """\
 a: '\\x01\\x02\\x03'
 """ == str(x)
+
+def test_union_with_optional_exception():
+    with pytest.raises(Exception) as e:
+        class U(prophy.union):
+            __metaclass__ = prophy.union_generator
+            _descriptor = [("a", prophy.u32, 0),
+                           ("b", prophy.optional(prophy.u32), 1),
+                           ("c", prophy.u32, 2)]
+    assert "union with optional field disallowed" == e.value.message
