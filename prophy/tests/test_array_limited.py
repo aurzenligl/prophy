@@ -52,39 +52,32 @@ def test_limited_scalar_array_print(LimitedScalarArray):
     a.value[:] = [1, 2]
     assert str(a) == ("value: 1\n"
                       "value: 2\n")
-    a.value.append(3)
-    assert str(a) == ("value: 1\n"
-                      "value: 2\n"
-                      "value: 3\n")
 
 def test_limited_scalar_array_encode(LimitedScalarArray):
     a = LimitedScalarArray()
     a.value[:] = [1, 2]
     assert a.encode(">") == "\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00"
-    a.value[0] = 10
-    assert a.encode(">") == "\x00\x00\x00\x02\x00\x00\x00\x0a\x00\x00\x00\x02\x00\x00\x00\x00"
-    del a.value[1]
-    assert a.encode(">") == "\x00\x00\x00\x01\x00\x00\x00\x0a\x00\x00\x00\x00\x00\x00\x00\x00"
 
 def test_limited_scalar_array_decode(LimitedScalarArray):
     a = LimitedScalarArray()
     a.decode("\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00", ">")
     assert a.value[:] == [1, 2]
-    a.decode("\x00\x00\x00\x02\x00\x00\x00\x0a\x00\x00\x00\x02\x00\x00\x00\x00", ">")
-    assert a.value[:] == [10, 2]
-    a.decode("\x00\x00\x00\x01\x00\x00\x00\x0a\x00\x00\x00\x00\x00\x00\x00\x00", ">")
-    assert a.value[:] == [10]
-    a.decode("\x00\x00\x00\x00\x0f\x00\x00\x0a\x00\x02\x04\x05\x06\x07\x09\x00", ">")
-    assert a.value[:] == []
 
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError) as e:
         a.decode("\x00\x00\x00\x04\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01", ">")
-    with pytest.raises(Exception):
+    assert 'exceeded array limit' in e.value.message
+
+    with pytest.raises(prophy.ProphyError) as e:
         a.decode("\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00", ">")
-    with pytest.raises(Exception):
+    assert 'too few bytes to decode array' in e.value.message
+
+    with pytest.raises(prophy.ProphyError) as e:
         a.decode("\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00", ">")
-    with pytest.raises(Exception):
+    assert 'not all bytes read' in e.value.message
+
+    with pytest.raises(prophy.ProphyError) as e:
         a.decode("\x00\x00\x00\x00", ">")
+    assert 'too few bytes to decode array' in e.value.message
 
 def test_limited_composite_array_assigment(LimitedCompositeArray, Composite):
     a = LimitedCompositeArray()
