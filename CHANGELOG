@@ -1,3 +1,9 @@
+0.2.5
+-----------------------------------
+
+- prophyc sorts symbols accorting to dependencies also in patched sack case
+- prophy copy_from bug fixed
+
 0.2.4
 -----------------------------------
 
