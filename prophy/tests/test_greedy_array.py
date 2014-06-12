@@ -12,62 +12,47 @@ class ComplexComposite(prophy.struct_packed):
                    ("x", Composite),
                    ("y", prophy.array(Composite, bound = "y_len"))]
 
-class TestGreedyScalarArray():
-
-    class Array(prophy.struct_packed):
+@pytest.fixture(scope = 'session')
+def GreedyScalarArray():
+    class GreedyScalarArray(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x", prophy.array(prophy.u32))]
+    return GreedyScalarArray
 
-    def test_assignment(self):
-        a = self.Array()
-        a.x[:] = [1, 2, 3, 4]
-        assert a.x == [1, 2, 3, 4]
-        a.x[0] = 10
-        assert a.x == [10, 2, 3, 4]
-        a.x[1:-1] = []
-        assert a.x == [10, 4]
+def test_greedy_scalar_array_assignment(GreedyScalarArray):
+    a = GreedyScalarArray()
+    a.x[:] = [1, 2, 3, 4]
+    assert a.x == [1, 2, 3, 4]
+    a.x[0] = 10
+    assert a.x == [10, 2, 3, 4]
+    a.x[1:-1] = []
+    assert a.x == [10, 4]
 
-        b = self.Array()
-        assert b.x[:] == []
-        b.copy_from(a)
-        assert b.x[:] == [10, 4]
+    b = GreedyScalarArray()
+    b.x[:] = [1, 2, 3]
+    b.copy_from(a)
+    assert b.x[:] == [10, 4]
 
-    def test_print(self):
-        a = self.Array()
-        a.x[:] = [1, 2, 3, 4]
-        assert str(a) == ("x: 1\n"
-                          "x: 2\n"
-                          "x: 3\n"
-                          "x: 4\n")
-        a.x[0] = 10
-        assert str(a) == ("x: 10\n"
-                          "x: 2\n"
-                          "x: 3\n"
-                          "x: 4\n")
-        a.x[1:-1] = []
-        assert str(a) == ("x: 10\n"
-                          "x: 4\n")
+def test_greedy_scalar_array_print(GreedyScalarArray):
+    a = GreedyScalarArray()
+    a.x[:] = [1, 2, 3, 4]
+    assert str(a) == ("x: 1\n"
+                      "x: 2\n"
+                      "x: 3\n"
+                      "x: 4\n")
 
-    def test_encode(self):
-        a = self.Array()
-        a.x[:] = [1, 2, 3, 4]
-        assert a.encode(">") == "\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04"
-        a.x[0] = 10
-        assert a.encode(">") == "\x00\x00\x00\x0a\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04"
-        a.x[1:-1] = []
-        assert a.encode(">") == "\x00\x00\x00\x0a\x00\x00\x00\x04"
+def test_greedy_scalar_array_encode(GreedyScalarArray):
+    a = GreedyScalarArray()
+    a.x[:] = [1, 2, 3, 4]
+    assert a.encode(">") == "\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04"
 
-    def test_decode(self):
-        a = self.Array()
-        a.decode("\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04", ">")
-        assert a.x[:] == [1, 2, 3, 4]
-        a.decode("\x00\x00\x00\x0a\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04", ">")
-        assert a.x[:] == [10, 2, 3, 4]
-        a.decode("\x00\x00\x00\x0a\x00\x00\x00\x04", ">")
-        assert a.x[:] == [10, 4]
+def test_greedy_scalar_array_decode(GreedyScalarArray):
+    a = GreedyScalarArray()
+    a.decode("\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04", ">")
+    assert a.x[:] == [1, 2, 3, 4]
 
-        with pytest.raises(Exception):
-            a.decode("\x00\x00\x00\x0a\x00\x00\x00\x04\x00", ">")
+    with pytest.raises(prophy.ProphyError):
+        a.decode("\x00\x00\x00\x0a\x00\x00\x00\x04\x00", ">")
 
 class TestGreedyCompositeArray():
 
