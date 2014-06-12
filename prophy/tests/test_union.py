@@ -109,10 +109,6 @@ def test_union_nonsequential_discriminators():
     assert 55 == x.discriminator
     assert 0 == x.c
 
-def test_union_size(SimpleUnion, VariableLengthFieldsUnion):
-    assert 8 == SimpleUnion()._SIZE
-    assert 12 == VariableLengthFieldsUnion()._SIZE
-
 def test_union_encode_according_to_largest_field(VariableLengthFieldsUnion):
     x = VariableLengthFieldsUnion()
 
