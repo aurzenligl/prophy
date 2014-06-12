@@ -20,7 +20,7 @@ def test_with_dynamic_fields():
     assert x.y == 8
 
 def test_exception_with_access_to_nonexistent_field():
-    with pytest.raises(AttributeError) as e:
+    with pytest.raises(AttributeError):
         class X(prophy.struct):
             __metaclass__ = prophy.struct_generator
             _descriptor = [("a", prophy.u32)]
