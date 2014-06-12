@@ -48,6 +48,10 @@ def EnumBoundArray(Enumeration):
                        ("value", prophy.array(Enumeration, bound = "value_len"))]
     return EnumBoundArray
 
+def test_enum_dictionaties(Enumeration):
+    assert Enumeration._name_to_int == {'Enumeration_One': 1, 'Enumeration_Two': 2, 'Enumeration_Three': 3}
+    assert Enumeration._int_to_name == {1: 'Enumeration_One', 2: 'Enumeration_Two', 3: 'Enumeration_Three'}
+
 def test_enum_assignment(Enum):
     x = Enum()
     assert x.value == 1
