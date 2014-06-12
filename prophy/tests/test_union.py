@@ -1,16 +1,27 @@
 import prophy
 import pytest
 
-def make_U():
-    class U(prophy.union):
+@pytest.fixture(scope = 'session')
+def SimpleUnion():
+    class SimpleUnion(prophy.union):
         __metaclass__ = prophy.union_generator
         _descriptor = [("a", prophy.u32, 0),
                        ("b", prophy.u32, 1),
                        ("c", prophy.u32, 2)]
-    return U()
+    return SimpleUnion
 
-def test_simple_union():
-    x = make_U()
+@pytest.fixture(scope = 'session')
+def VariableLengthFieldsUnion():
+    class VariableLengthFieldsUnion(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a", prophy.u8, 0),
+                       ("b", prophy.u16, 1),
+                       ("c", prophy.u32, 2),
+                       ("d", prophy.u64, 3)]
+    return VariableLengthFieldsUnion
+
+def test_simple_union(SimpleUnion):
+    x = SimpleUnion()
 
     assert 0 == x.discriminator
     assert 0 == x.a
@@ -24,8 +35,8 @@ def test_simple_union():
     assert 'c: 16\n' == str(x)
     assert '\x00\x00\x00\x02\x00\x00\x00\x10' == x.encode(">")
 
-def test_simple_union_discriminator_accepts_ints_or_field_name_and_clears():
-    x = make_U()
+def test_simple_union_discriminator_accepts_ints_or_field_name_and_clears(SimpleUnion):
+    x = SimpleUnion()
 
     x.a = 42
     x.discriminator = 1
@@ -40,26 +51,20 @@ def test_simple_union_discriminator_accepts_ints_or_field_name_and_clears():
     assert 'c: 0\n' == str(x)
     assert '\x00\x00\x00\x02\x00\x00\x00\x00' == x.encode(">")
 
-def test_union_copy_from():
-    class U(prophy.union):
-        __metaclass__ = prophy.union_generator
-        _descriptor = [("a", prophy.u32, 0),
-                       ("b", prophy.u32, 1)]
-
-    x = U()
-    x.discriminator = "b"
+def test_union_copy_from(SimpleUnion):
+    x = SimpleUnion()
+    x.discriminator = 'b'
     x.b = 3
 
-    y = U()
-    assert 0 == y.discriminator
-    assert 0 == y.a
-
+    y = SimpleUnion()
+    y.discriminator = 'c'
+    y.c = 10
     y.copy_from(x)
     assert 1 == y.discriminator
     assert 3 == y.b
 
-def test_simple_union_discriminator_does_not_clear_fields_if_set_to_same_value():
-    x = make_U()
+def test_simple_union_discriminator_does_not_clear_fields_if_set_to_same_value(SimpleUnion):
+    x = SimpleUnion()
 
     x.a = 42
 
@@ -104,21 +109,12 @@ def test_union_nonsequential_discriminators():
     assert 55 == x.discriminator
     assert 0 == x.c
 
-def make_UVarLen():
-    class UVarLen(prophy.union):
-        __metaclass__ = prophy.union_generator
-        _descriptor = [("a", prophy.u8, 0),
-                       ("b", prophy.u16, 1),
-                       ("c", prophy.u32, 2),
-                       ("d", prophy.u64, 3)]
-    return UVarLen()
+def test_union_size(SimpleUnion, VariableLengthFieldsUnion):
+    assert 8 == SimpleUnion()._SIZE
+    assert 12 == VariableLengthFieldsUnion()._SIZE
 
-def test_union_size():
-    assert 8 == make_U()._SIZE
-    assert 12 == make_UVarLen()._SIZE
-
-def test_union_encode_according_to_largest_field():
-    x = make_UVarLen()
+def test_union_encode_according_to_largest_field(VariableLengthFieldsUnion):
+    x = VariableLengthFieldsUnion()
 
     x.discriminator = "a"
     x.a = 0x12
@@ -140,8 +136,8 @@ def test_union_encode_according_to_largest_field():
     assert "\x00\x00\x00\x03\x12\x34\x56\x78\x9a\xbc\xde\xf1" == x.encode(">")
     assert "\x03\x00\x00\x00\xf1\xde\xbc\x9a\x78\x56\x34\x12" == x.encode("<")
 
-def test_union_decode_according_to_largest_field():
-    x = make_UVarLen()
+def test_union_decode_according_to_largest_field(VariableLengthFieldsUnion):
+    x = VariableLengthFieldsUnion()
 
     assert 12 == x.decode("\x00\x00\x00\x00\x12\x00\x00\x00\x00\x00\x00\x00", ">")
     assert 0 == x.discriminator
@@ -219,8 +215,8 @@ def test_union_with_struct():
     assert x.b.a == 0x25
     assert x.b.b == 0x35
 
-def test_union_discriminator_exceptions():
-    x = make_UVarLen()
+def test_union_discriminator_exceptions(VariableLengthFieldsUnion):
+    x = VariableLengthFieldsUnion()
 
     with pytest.raises(Exception) as e:
         x.b
@@ -248,8 +244,8 @@ def test_union_discriminator_exceptions():
     assert 1 == x.discriminator
     assert 42 == x.b
 
-def test_union_decode_exceptions():
-    x = make_UVarLen()
+def test_union_decode_exceptions(VariableLengthFieldsUnion):
+    x = VariableLengthFieldsUnion()
 
     with pytest.raises(Exception) as e:
         x.decode("\x00\x00\x00\xff", ">")
