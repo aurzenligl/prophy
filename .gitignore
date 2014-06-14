@@ -19,7 +19,6 @@ var/
 *.egg
 
 # Waf build tool
-waf
 waf-*
 .lock-*
 
