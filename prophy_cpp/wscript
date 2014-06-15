@@ -7,6 +7,7 @@ def configure(ctx):
 def build(ctx):
     ctx(features = 'cxx cxxprogram test',
         target = 'test_prophy',
+        includes = 'include',
         source = ctx.path.ant_glob('test/*.cpp'),
         lib = ['gtest', 'gmock'])
     from waflib.Tools import waf_unit_test
