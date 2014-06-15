@@ -81,3 +81,34 @@ TEST(prophy, swaps_double)
     prophy::swap(x.x);
     EXPECT_EQ(0x0807060504030201ULL, x.data);
 }
+
+struct X
+{
+    uint32_t x;
+    uint64_t y;
+};
+
+struct Y
+{
+    uint16_t x[2];
+    uint8_t y;
+};
+
+TEST(prophy, calculates_alignment)
+{
+    EXPECT_EQ(8, prophy::alignment<X>::value);
+    EXPECT_EQ(2, prophy::alignment<Y>::value);
+}
+
+TEST(prophy, aligns_pointers)
+{
+    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<X*>(uintptr_t(0)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<X*>(uintptr_t(1)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<X*>(uintptr_t(3)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<X*>(uintptr_t(7)))));
+    EXPECT_EQ(16, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<X*>(uintptr_t(9)))));
+
+    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<Y*>(uintptr_t(0)))));
+    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<Y*>(uintptr_t(1)))));
+    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<Y*>(uintptr_t(2)))));
+}
