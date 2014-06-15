@@ -269,7 +269,7 @@ def test_struct_with_dynamic_fields():
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x_len", prophy.u32),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
-                       ("y", prophy.u32), ]
+                       ("y", prophy.u32)]
 
     assert X._SIZE == 8
 
@@ -281,6 +281,77 @@ def test_struct_with_dynamic_fields():
     x.decode('\x01\x00\x00\x00\x01\x00\x00\x00\x08\x00\x00\x00', '<')
     assert x.x[:] == [1]
     assert x.y == 8
+
+def test_struct_with_dynamic_fields_and_partial_padding():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u8),
+                       ("x", prophy.array(prophy.u8, bound = "x_len")),
+                       ("y", prophy.u32),
+                       ("z", prophy.u64)]
+
+    x = X()
+    x.x[:] = [2, 3]
+    x.y = 4
+    x.z = 5
+
+    assert x.encode('>') == ('\x02\x02\x03\x00'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x04'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x05')
+
+    x.decode(('\x04\x06\x07\x08'
+              '\x09\x00\x00\x00'
+              '\x00\x00\x00\x05'
+              '\x00\x00\x00\x00'
+              '\x00\x00\x00\x00'
+              '\x00\x00\x00\x06'), '>')
+    assert x.x == [6, 7, 8, 9]
+    assert x.y == 5
+    assert x.z == 6
+
+def test_struct_with_dynamic_fields_and_multiple_partial_padding():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u8),
+                       ("x", prophy.array(prophy.u8, bound = "x_len")),
+                       ("y_len", prophy.u32),
+                       ("y", prophy.array(prophy.u8, bound = "y_len")),
+                       ("z", prophy.u64)]
+    class Y(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x", prophy.u8),
+                       ("y", X)]
+
+    x = Y()
+    x.x = 1
+    x.y.x[:] = [2, 3]
+    x.y.y[:] = [4, 5]
+    x.y.z = 6
+
+    assert x.encode('>') == ('\x01\x00\x00\x00'
+                             '\x00\x00\x00\x00'
+                             '\x02\x02\x03\x00'
+                             '\x00\x00\x00\x02'
+                             '\x04\x05\x00\x00'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x06')
+
+    x.decode('\x05\x00\x00\x00'
+             '\x00\x00\x00\x00'
+             '\x04\x02\x03\x04'
+             '\x05\x00\x00\x00'
+             '\x00\x00\x00\x03'
+             '\x04\x05\x06\x00'
+             '\x00\x00\x00\x00'
+             '\x00\x00\x00\x06', '>')
+    assert x.x == 5
+    assert x.y.x == [2, 3, 4, 5]
+    assert x.y.y == [4, 5, 6]
+    assert x.y.z == 6
 
 def test_struct_exception_with_access_to_nonexistent_field():
     with pytest.raises(AttributeError):

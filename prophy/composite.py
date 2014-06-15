@@ -14,8 +14,16 @@ def add_attributes(cls, descriptor):
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
-    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor) if descriptor else 1
     cls._BOUND = None
+    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor) if descriptor else 1
+    cls._PARTIAL_ALIGNMENT = None
+
+    alignment = 1
+    for _, tp in reversed(descriptor):
+        if issubclass(tp, container.base_array) and tp._DYNAMIC:
+            tp._PARTIAL_ALIGNMENT = alignment
+            alignment = 1
+        alignment = max(tp._ALIGNMENT, alignment)
 
 class Padder(object):
     def __init__(self):
@@ -234,10 +242,10 @@ class struct(object):
         for name, tp in self._descriptor:
             data += (get_padding(self, len(data), tp._ALIGNMENT) +
                      encode_field(self, tp, getattr(self, name, None), endianness))
+            if tp._PARTIAL_ALIGNMENT:
+                data += get_padding(self, len(data), tp._PARTIAL_ALIGNMENT)
 
-        if self._descriptor and terminal and issubclass(tp, (container.base_array, str)):
-            pass
-        else:
+        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
             data += get_padding(self, len(data), self._ALIGNMENT)
 
         return data
@@ -249,10 +257,10 @@ class struct(object):
         for name, tp in self._descriptor:
             data = data[get_padding_size(self, orig_data_size - len(data), tp._ALIGNMENT):]
             data = data[decode_field(self, name, tp, data, endianness, len_hints):]
+            if tp._PARTIAL_ALIGNMENT:
+                data = data[get_padding_size(self, orig_data_size - len(data), tp._PARTIAL_ALIGNMENT):]
 
-        if self._descriptor and terminal and issubclass(tp, (container.base_array, str)):
-            pass
-        else:
+        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
             data = data[get_padding_size(self, orig_data_size - len(data), self._ALIGNMENT):]
 
         if terminal and data:
@@ -305,6 +313,7 @@ def add_union_attributes(cls, descriptor):
     cls._OPTIONAL = False
     cls._ALIGNMENT = max(type._ALIGNMENT for _, type, _ in descriptor)
     cls._BOUND = None
+    cls._PARTIAL_ALIGNMENT = None
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
