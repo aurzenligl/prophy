@@ -112,3 +112,10 @@ TEST(prophy, aligns_pointers)
     EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<Y*>(uintptr_t(1)))));
     EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::align(reinterpret_cast<Y*>(uintptr_t(2)))));
 }
+
+TEST(prophy, casts_pointers_ensuring_alignment)
+{
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::cast<X*>(reinterpret_cast<uint16_t*>(uintptr_t(2)))));
+
+    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::cast<Y*>(reinterpret_cast<uint8_t*>(uintptr_t(1)))));
+}

@@ -67,10 +67,16 @@ struct alignment
 };
 
 template <typename Tp>
-Tp* align(Tp* ptr)
+inline Tp* align(Tp* ptr)
 {
     enum { mask = alignment<Tp>::value - 1 };
     return reinterpret_cast<Tp*>((reinterpret_cast<uintptr_t>(ptr) + mask) & ~uintptr_t(mask));
+}
+
+template <typename To, typename From>
+inline To cast(From from)
+{
+    return align(static_cast<To>(static_cast<void*>(from)));
 }
 
 } // namespace prophy
