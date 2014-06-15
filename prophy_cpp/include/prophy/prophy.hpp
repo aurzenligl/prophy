@@ -79,6 +79,27 @@ inline To cast(From from)
     return align(static_cast<To>(static_cast<void*>(from)));
 }
 
+template <typename Tp>
+inline Tp* swap_n_fixed(Tp* first, size_t n)
+{
+    while (n--)
+    {
+        swap(*first);
+        ++first;
+    }
+    return first;
+}
+
+template <typename Tp>
+inline Tp* swap_n_dynamic(Tp* first, size_t n)
+{
+    while (n--)
+    {
+        first = swap(*first);
+    }
+    return first;
+}
+
 } // namespace prophy
 
 #endif  /* _PROPHY_PROPHY_HPP */

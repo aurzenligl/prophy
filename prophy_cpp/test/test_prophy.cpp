@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <prophy/prophy.hpp>
 
@@ -118,4 +119,100 @@ TEST(prophy, casts_pointers_ensuring_alignment)
     EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::cast<X*>(reinterpret_cast<uint16_t*>(uintptr_t(2)))));
 
     EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::cast<Y*>(reinterpret_cast<uint8_t*>(uintptr_t(1)))));
+}
+
+struct DynamicFixedArray
+{
+    uint8_t num_of_x;
+    uint16_t x[1];
+};
+
+inline DynamicFixedArray* swap(DynamicFixedArray& in)
+{
+    prophy::swap(in.num_of_x);
+    return prophy::cast<DynamicFixedArray*>(prophy::swap_n_fixed(in.x, in.num_of_x));
+}
+
+TEST(prophy, swaps_fixed_array)
+{
+    const uint8_t input_data[] =
+        "\x05\x00"
+        "\x00\x01"
+        "\x00\x02"
+        "\x00\x03"
+        "\x00\x04"
+        "\x00\x05";
+    std::vector<uint8_t> input(input_data, input_data + (sizeof(input_data) - 1));
+    const uint8_t output_data[] =
+        "\x05\x00"
+        "\x01\x00"
+        "\x02\x00"
+        "\x03\x00"
+        "\x04\x00"
+        "\x05\x00";
+    std::vector<uint8_t> output(output_data, output_data + (sizeof(output_data) - 1));
+
+    DynamicFixedArray* x = reinterpret_cast<DynamicFixedArray*>(input.data());
+
+    swap(*x);
+
+    EXPECT_THAT(input, ::testing::ContainerEq(output));
+}
+
+struct DynamicDynamicArray
+{
+    uint8_t num_of_x;
+    DynamicFixedArray x[1];
+};
+
+inline DynamicDynamicArray* swap(DynamicDynamicArray& in)
+{
+    prophy::swap(in.num_of_x);
+    return prophy::cast<DynamicDynamicArray*>(prophy::swap_n_dynamic(in.x, in.num_of_x));
+}
+
+TEST(prophy, swaps_dynamic_array)
+{
+    const uint8_t input_data[] =
+        "\x03\x00"
+
+        "\x01\x00"
+        "\x00\x01"
+
+        "\x05\x00"
+        "\x00\x02"
+        "\x00\x03"
+        "\x00\x04"
+        "\x00\x05"
+        "\x00\x06"
+
+        "\x03\x00"
+        "\x00\x07"
+        "\x00\x08"
+        "\x00\x09";
+    std::vector<uint8_t> input(input_data, input_data + (sizeof(input_data) - 1));
+    const uint8_t output_data[] =
+        "\x03\x00"
+
+        "\x01\x00"
+        "\x01\x00"
+
+        "\x05\x00"
+        "\x02\x00"
+        "\x03\x00"
+        "\x04\x00"
+        "\x05\x00"
+        "\x06\x00"
+
+        "\x03\x00"
+        "\x07\x00"
+        "\x08\x00"
+        "\x09\x00";
+    std::vector<uint8_t> output(output_data, output_data + (sizeof(output_data) - 1));
+
+    DynamicDynamicArray* x = reinterpret_cast<DynamicDynamicArray*>(input.data());
+
+    swap(*x);
+
+    EXPECT_THAT(input, ::testing::ContainerEq(output));
 }
