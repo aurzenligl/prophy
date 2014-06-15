@@ -22,6 +22,7 @@ def numeric_decorator(cls, size, id):
     cls._UNLIMITED = False
     cls._OPTIONAL = False
     cls._BOUND = None
+    cls._PARTIAL_ALIGNMENT = None
 
     return cls
 
@@ -167,6 +168,7 @@ def bytes(**kwargs):
         _ALIGNMENT = 1
         _BOUND = bound
         _BOUND_SHIFT = shift
+        _PARTIAL_ALIGNMENT = None
 
         @staticmethod
         def _check(value):

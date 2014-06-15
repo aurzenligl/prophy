@@ -247,5 +247,6 @@ def array(type, **kwargs):
         _ALIGNMENT = type._ALIGNMENT
         _BOUND = bound
         _BOUND_SHIFT = shift
+        _PARTIAL_ALIGNMENT = None
 
     return _array
