@@ -32,27 +32,27 @@ inline void swap(int8_t&)
 
 inline void swap(int16_t& in)
 {
-    swap(*static_cast<uint16_t*>(static_cast<void*>(&in)));
+    swap(reinterpret_cast<uint16_t&>(in));
 }
 
 inline void swap(int32_t& in)
 {
-    swap(*static_cast<uint32_t*>(static_cast<void*>(&in)));
+    swap(reinterpret_cast<uint32_t&>(in));
 }
 
 inline void swap(int64_t& in)
 {
-    swap(*static_cast<uint64_t*>(static_cast<void*>(&in)));
+    swap(reinterpret_cast<uint64_t&>(in));
 }
 
 inline void swap(float& in)
 {
-    swap(*static_cast<uint32_t*>(static_cast<void*>(&in)));
+    swap(reinterpret_cast<uint32_t&>(in));
 }
 
 inline void swap(double& in)
 {
-    swap(*static_cast<uint64_t*>(static_cast<void*>(&in)));
+    swap(reinterpret_cast<uint64_t&>(in));
 }
 
 template <typename Tp>
