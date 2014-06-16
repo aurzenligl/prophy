@@ -12,8 +12,7 @@ struct Scalar
 namespace prophy
 {
 
-template <>
-inline Scalar* swap<Scalar>(Scalar& payload)
+inline Scalar* swap(Scalar& payload)
 {
     swap(payload.a);
     swap(payload.b);

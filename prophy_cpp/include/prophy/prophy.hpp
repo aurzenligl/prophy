@@ -7,7 +7,49 @@ namespace prophy
 {
 
 template <typename Tp>
-inline Tp* swap(Tp&);
+struct alignment
+{
+    struct finder
+    {
+        char align;
+        Tp t;
+    };
+    enum { value = sizeof(finder) - sizeof(Tp) };
+};
+
+template <typename Tp>
+inline Tp* align(Tp* ptr)
+{
+    enum { mask = alignment<Tp>::value - 1 };
+    return reinterpret_cast<Tp*>((reinterpret_cast<uintptr_t>(ptr) + mask) & ~uintptr_t(mask));
+}
+
+template <typename To, typename From>
+inline To cast(From from)
+{
+    return align(static_cast<To>(static_cast<void*>(from)));
+}
+
+template <typename Tp>
+inline Tp* swap_n_fixed(Tp* first, size_t n)
+{
+    while (n--)
+    {
+        swap(*first);
+        ++first;
+    }
+    return first;
+}
+
+template <typename Tp>
+inline Tp* swap_n_dynamic(Tp* first, size_t n)
+{
+    while (n--)
+    {
+        first = swap(*first);
+    }
+    return first;
+}
 
 inline void swap(uint8_t&)
 { }
@@ -56,51 +98,6 @@ inline void swap(float& in)
 inline void swap(double& in)
 {
     swap(reinterpret_cast<uint64_t&>(in));
-}
-
-template <typename Tp>
-struct alignment
-{
-    struct finder
-    {
-        char align;
-        Tp t;
-    };
-    enum { value = sizeof(finder) - sizeof(Tp) };
-};
-
-template <typename Tp>
-inline Tp* align(Tp* ptr)
-{
-    enum { mask = alignment<Tp>::value - 1 };
-    return reinterpret_cast<Tp*>((reinterpret_cast<uintptr_t>(ptr) + mask) & ~uintptr_t(mask));
-}
-
-template <typename To, typename From>
-inline To cast(From from)
-{
-    return align(static_cast<To>(static_cast<void*>(from)));
-}
-
-template <typename Tp>
-inline Tp* swap_n_fixed(Tp* first, size_t n)
-{
-    while (n--)
-    {
-        swap(*first);
-        ++first;
-    }
-    return first;
-}
-
-template <typename Tp>
-inline Tp* swap_n_dynamic(Tp* first, size_t n)
-{
-    while (n--)
-    {
-        first = swap(*first);
-    }
-    return first;
 }
 
 } // namespace prophy

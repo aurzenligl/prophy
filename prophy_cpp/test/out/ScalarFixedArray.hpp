@@ -13,8 +13,7 @@ struct ScalarFixedArray
 namespace prophy
 {
 
-template <>
-inline ScalarFixedArray* swap<ScalarFixedArray>(ScalarFixedArray& payload)
+inline ScalarFixedArray* swap(ScalarFixedArray& payload)
 {
     swap_n_fixed(payload.a, 3);
     return &payload + 1;
