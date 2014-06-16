@@ -9,14 +9,10 @@ using namespace testing;
 TEST(generated, Scalar)
 {
     std::vector<uint8_t> big = to_vector(
-        "\x01\x00\x00\x00"
-        "\x00\x00\x00\x02"
-        "\x03\x00\x00\x04"
+        "\x01\x00\x00\x02"
     );
     std::vector<uint8_t> little = to_vector(
-        "\x01\x00\x00\x00"
-        "\x02\x00\x00\x00"
-        "\x03\x00\x04\x00"
+        "\x01\x00\x02\x00"
     );
 
     std::vector<uint8_t> input(am_i_little ? big : little);
@@ -24,6 +20,6 @@ TEST(generated, Scalar)
 
     Scalar* next = prophy::swap(*reinterpret_cast<Scalar*>(input.data()));
 
-    EXPECT_EQ(byte_distance(input.data(), next), 12);
+    EXPECT_EQ(byte_distance(input.data(), next), 4);
     EXPECT_THAT(input, ContainerEq(expected));
 }

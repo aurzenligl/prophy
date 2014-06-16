@@ -6,9 +6,7 @@
 struct Scalar
 {
     uint8_t a;
-    uint32_t b;
-    uint8_t c;
-    uint16_t d;
+    uint16_t b;
 };
 
 namespace prophy
@@ -18,8 +16,6 @@ inline Scalar* swap(Scalar& payload)
 {
     swap(payload.a);
     swap(payload.b);
-    swap(payload.c);
-    swap(payload.d);
     return &payload + 1;
 }
 
