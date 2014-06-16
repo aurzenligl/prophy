@@ -5,6 +5,8 @@
 
 #include "util.hpp"
 
+using namespace testing;
+
 TEST(prophy, swaps_u8)
 {
     uint8_t x = 0x01;
@@ -158,7 +160,7 @@ TEST(prophy, swaps_fixed_array)
 
     swap(*x);
 
-    EXPECT_THAT(input, ::testing::ContainerEq(output));
+    EXPECT_THAT(input, ContainerEq(output));
 }
 
 struct DynamicDynamicArray
@@ -216,5 +218,5 @@ TEST(prophy, swaps_dynamic_array)
 
     swap(*x);
 
-    EXPECT_THAT(input, ::testing::ContainerEq(output));
+    EXPECT_THAT(input, ContainerEq(output));
 }
