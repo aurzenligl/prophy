@@ -7,7 +7,7 @@
 
 struct ScalarFixedArray
 {
-    Scalar a[3];
+    uint16_t a[3];
 };
 
 namespace prophy
