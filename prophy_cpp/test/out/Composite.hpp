@@ -14,7 +14,8 @@ struct Composite
 namespace prophy
 {
 
-inline Composite* swap(Composite& payload)
+template <>
+inline Composite* swap<Composite>(Composite& payload)
 {
     swap(payload.a);
     swap(payload.b);

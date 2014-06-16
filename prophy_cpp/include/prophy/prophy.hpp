@@ -6,6 +6,9 @@
 namespace prophy
 {
 
+template <typename Tp>
+inline Tp* swap(Tp&);
+
 inline void swap(uint8_t&)
 { }
 
