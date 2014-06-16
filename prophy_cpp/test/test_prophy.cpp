@@ -3,6 +3,8 @@
 
 #include <prophy/prophy.hpp>
 
+#include "util.hpp"
+
 TEST(prophy, swaps_u8)
 {
     uint8_t x = 0x01;
@@ -135,22 +137,22 @@ inline DynamicFixedArray* swap(DynamicFixedArray& in)
 
 TEST(prophy, swaps_fixed_array)
 {
-    const uint8_t input_data[] =
+    std::vector<uint8_t> input = to_vector(
         "\x05\x00"
         "\x00\x01"
         "\x00\x02"
         "\x00\x03"
         "\x00\x04"
-        "\x00\x05";
-    std::vector<uint8_t> input(input_data, input_data + (sizeof(input_data) - 1));
-    const uint8_t output_data[] =
+        "\x00\x05"
+    );
+    std::vector<uint8_t> output = to_vector(
         "\x05\x00"
         "\x01\x00"
         "\x02\x00"
         "\x03\x00"
         "\x04\x00"
-        "\x05\x00";
-    std::vector<uint8_t> output(output_data, output_data + (sizeof(output_data) - 1));
+        "\x05\x00"
+    );
 
     DynamicFixedArray* x = reinterpret_cast<DynamicFixedArray*>(input.data());
 
@@ -173,7 +175,7 @@ inline DynamicDynamicArray* swap(DynamicDynamicArray& in)
 
 TEST(prophy, swaps_dynamic_array)
 {
-    const uint8_t input_data[] =
+    std::vector<uint8_t> input = to_vector(
         "\x03\x00"
 
         "\x01\x00"
@@ -189,9 +191,9 @@ TEST(prophy, swaps_dynamic_array)
         "\x03\x00"
         "\x00\x07"
         "\x00\x08"
-        "\x00\x09";
-    std::vector<uint8_t> input(input_data, input_data + (sizeof(input_data) - 1));
-    const uint8_t output_data[] =
+        "\x00\x09"
+    );
+    std::vector<uint8_t> output = to_vector(
         "\x03\x00"
 
         "\x01\x00"
@@ -207,8 +209,8 @@ TEST(prophy, swaps_dynamic_array)
         "\x03\x00"
         "\x07\x00"
         "\x08\x00"
-        "\x09\x00";
-    std::vector<uint8_t> output(output_data, output_data + (sizeof(output_data) - 1));
+        "\x09\x00"
+    );
 
     DynamicDynamicArray* x = reinterpret_cast<DynamicDynamicArray*>(input.data());
 
