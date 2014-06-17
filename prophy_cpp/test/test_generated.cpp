@@ -3,6 +3,7 @@
 
 #include "util.hpp"
 #include "out/Scalar.hpp"
+#include "out/ScalarDynamicArray.hpp"
 #include "out/ScalarFixedArray.hpp"
 #include "out/Composite.hpp"
 #include "out/CompositeFixedArray.hpp"
@@ -19,6 +20,24 @@ TEST(generated, Scalar)
     Scalar* next = prophy::swap(*reinterpret_cast<Scalar*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 4);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, ScalarDynamicArray)
+{
+    data x(
+        "\x00\x00\x00\x03"
+        "\x00\x05\x00\x06"
+        "\x00\x07\x00\x00",
+
+        "\x03\x00\x00\x00"
+        "\x05\x00\x06\x00"
+        "\x07\x00\x00\x00"
+    );
+
+    ScalarDynamicArray* next = prophy::swap(*reinterpret_cast<ScalarDynamicArray*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
