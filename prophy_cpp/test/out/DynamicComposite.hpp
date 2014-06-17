@@ -3,20 +3,31 @@
 
 #include <prophy/prophy.hpp>
 
-struct DynamicComposite
+struct DynamicCompositeInner
 {
     uint32_t num_of_x;
     uint16_t x[1];
 };
 
+struct DynamicComposite
+{
+    DynamicCompositeInner x;
+};
+
 namespace prophy
 {
 
-inline DynamicComposite* swap(DynamicComposite& payload)
+inline DynamicCompositeInner* swap(DynamicCompositeInner& payload)
 {
     swap(payload.num_of_x);
-    return cast<DynamicComposite*>(
+    return cast<DynamicCompositeInner*>(
         swap_n_fixed(payload.x, payload.num_of_x));
+}
+
+inline DynamicComposite* swap(DynamicComposite& payload)
+{
+    return cast<DynamicComposite*>(
+        swap(payload.x));
 }
 
 } // namespace prophy
