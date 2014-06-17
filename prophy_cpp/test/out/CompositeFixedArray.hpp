@@ -1,5 +1,5 @@
-#ifndef _PROPHY_GENERATED_ScalarFixedArray_HPP
-#define _PROPHY_GENERATED_ScalarFixedArray_HPP
+#ifndef _PROPHY_GENERATED_CompositeFixedArray_HPP
+#define _PROPHY_GENERATED_CompositeFixedArray_HPP
 
 #include <prophy/prophy.hpp>
 
@@ -21,4 +21,4 @@ inline CompositeFixedArray* swap(CompositeFixedArray& payload)
 
 } // namespace prophy
 
-#endif  /* _PROPHY_GENERATED_ScalarFixedArray_HPP */
+#endif  /* _PROPHY_GENERATED_CompositeFixedArray_HPP */
