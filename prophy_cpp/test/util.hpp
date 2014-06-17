@@ -12,11 +12,21 @@ static union endianness_finder_t
 
 const bool am_i_little = endianness_finder.c[0] == 1;
 
-template <size_t N>
-std::vector<uint8_t> to_vector(const char (&data) [N])
+struct data
 {
-    return std::vector<uint8_t>(data, data + N - 1);
-}
+    template <size_t N>
+    data(const char (&big_) [N], const char (&little_) [N])
+        : big(big_, big_ + N - 1),
+          little(little_, little_ + N - 1),
+          input(am_i_little ? big : little),
+          expected(am_i_little ? little : big)
+    { }
+
+    std::vector<uint8_t> big;
+    std::vector<uint8_t> little;
+    std::vector<uint8_t> input;
+    std::vector<uint8_t> expected;
+};
 
 inline size_t byte_distance(void* first, void* last)
 {

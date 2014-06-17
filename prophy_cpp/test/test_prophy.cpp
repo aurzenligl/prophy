@@ -139,15 +139,14 @@ inline DynamicFixedArray* swap(DynamicFixedArray& in)
 
 TEST(prophy, swaps_fixed_array)
 {
-    std::vector<uint8_t> input = to_vector(
+    data x(
         "\x05\x00"
         "\x00\x01"
         "\x00\x02"
         "\x00\x03"
         "\x00\x04"
-        "\x00\x05"
-    );
-    std::vector<uint8_t> output = to_vector(
+        "\x00\x05",
+
         "\x05\x00"
         "\x01\x00"
         "\x02\x00"
@@ -156,11 +155,11 @@ TEST(prophy, swaps_fixed_array)
         "\x05\x00"
     );
 
-    DynamicFixedArray* x = reinterpret_cast<DynamicFixedArray*>(input.data());
+    DynamicFixedArray* array = reinterpret_cast<DynamicFixedArray*>(x.input.data());
 
-    swap(*x);
+    swap(*array);
 
-    EXPECT_THAT(input, ContainerEq(output));
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
 struct DynamicDynamicArray
@@ -177,7 +176,7 @@ inline DynamicDynamicArray* swap(DynamicDynamicArray& in)
 
 TEST(prophy, swaps_dynamic_array)
 {
-    std::vector<uint8_t> input = to_vector(
+    data x(
         "\x03\x00"
 
         "\x01\x00"
@@ -193,9 +192,8 @@ TEST(prophy, swaps_dynamic_array)
         "\x03\x00"
         "\x00\x07"
         "\x00\x08"
-        "\x00\x09"
-    );
-    std::vector<uint8_t> output = to_vector(
+        "\x00\x09",
+
         "\x03\x00"
 
         "\x01\x00"
@@ -214,9 +212,9 @@ TEST(prophy, swaps_dynamic_array)
         "\x09\x00"
     );
 
-    DynamicDynamicArray* x = reinterpret_cast<DynamicDynamicArray*>(input.data());
+    DynamicDynamicArray* array = reinterpret_cast<DynamicDynamicArray*>(x.input.data());
 
-    swap(*x);
+    swap(*array);
 
-    EXPECT_THAT(input, ContainerEq(output));
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }

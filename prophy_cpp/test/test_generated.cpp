@@ -11,82 +11,62 @@ using namespace testing;
 
 TEST(generated, Scalar)
 {
-    std::vector<uint8_t> big = to_vector(
-        "\x01\x00\x00\x02"
-    );
-    std::vector<uint8_t> little = to_vector(
+    data x(
+        "\x01\x00\x00\x02",
         "\x01\x00\x02\x00"
     );
 
-    std::vector<uint8_t> input(am_i_little ? big : little);
-    std::vector<uint8_t> expected(am_i_little ? little : big);
+    Scalar* next = prophy::swap(*reinterpret_cast<Scalar*>(x.input.data()));
 
-    Scalar* next = prophy::swap(*reinterpret_cast<Scalar*>(input.data()));
-
-    EXPECT_EQ(byte_distance(input.data(), next), 4);
-    EXPECT_THAT(input, ContainerEq(expected));
+    EXPECT_EQ(byte_distance(x.input.data(), next), 4);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
 TEST(generated, ScalarFixedArray)
 {
-    std::vector<uint8_t> big = to_vector(
+    data x(
         "\x00\x02"
         "\x00\x02"
-        "\x00\x02"
-    );
-    std::vector<uint8_t> little = to_vector(
+        "\x00\x02",
         "\x02\x00"
         "\x02\x00"
         "\x02\x00"
     );
 
-    std::vector<uint8_t> input(am_i_little ? big : little);
-    std::vector<uint8_t> expected(am_i_little ? little : big);
+    ScalarFixedArray* next = prophy::swap(*reinterpret_cast<ScalarFixedArray*>(x.input.data()));
 
-    ScalarFixedArray* next = prophy::swap(*reinterpret_cast<ScalarFixedArray*>(input.data()));
-
-    EXPECT_EQ(byte_distance(input.data(), next), 6);
-    EXPECT_THAT(input, ContainerEq(expected));
+    EXPECT_EQ(byte_distance(x.input.data(), next), 6);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
 TEST(generated, Composite)
 {
-    std::vector<uint8_t> big = to_vector(
+    data x(
         "\x01\x00\x00\x02"
-        "\x01\x00\x00\x02"
-    );
-    std::vector<uint8_t> little = to_vector(
+        "\x01\x00\x00\x02",
         "\x01\x00\x02\x00"
         "\x01\x00\x02\x00"
     );
 
-    std::vector<uint8_t> input(am_i_little ? big : little);
-    std::vector<uint8_t> expected(am_i_little ? little : big);
+    Composite* next = prophy::swap(*reinterpret_cast<Composite*>(x.input.data()));
 
-    Composite* next = prophy::swap(*reinterpret_cast<Composite*>(input.data()));
-
-    EXPECT_EQ(byte_distance(input.data(), next), 8);
-    EXPECT_THAT(input, ContainerEq(expected));
+    EXPECT_EQ(byte_distance(x.input.data(), next), 8);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
 TEST(generated, CompositeFixedArray)
 {
-    std::vector<uint8_t> big = to_vector(
+    data x(
         "\x01\x00\x00\x02"
         "\x01\x00\x00\x02"
-        "\x01\x00\x00\x02"
-    );
-    std::vector<uint8_t> little = to_vector(
+        "\x01\x00\x00\x02",
         "\x01\x00\x02\x00"
         "\x01\x00\x02\x00"
         "\x01\x00\x02\x00"
     );
 
-    std::vector<uint8_t> input(am_i_little ? big : little);
-    std::vector<uint8_t> expected(am_i_little ? little : big);
+    CompositeFixedArray* next = prophy::swap(*reinterpret_cast<CompositeFixedArray*>(x.input.data()));
 
-    CompositeFixedArray* next = prophy::swap(*reinterpret_cast<CompositeFixedArray*>(input.data()));
-
-    EXPECT_EQ(byte_distance(input.data(), next), 12);
-    EXPECT_THAT(input, ContainerEq(expected));
+    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
