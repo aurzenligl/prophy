@@ -3,8 +3,6 @@
 
 #include <prophy/prophy.hpp>
 
-#include "Scalar.hpp"
-
 struct ScalarDynamicArray
 {
     uint32_t num_of_x;

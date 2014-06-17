@@ -3,8 +3,6 @@
 
 #include <prophy/prophy.hpp>
 
-#include "Scalar.hpp"
-
 struct ScalarGreedyArray
 {
     uint16_t x;

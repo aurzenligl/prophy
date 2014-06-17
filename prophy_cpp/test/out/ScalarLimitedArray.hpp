@@ -3,8 +3,6 @@
 
 #include <prophy/prophy.hpp>
 
-#include "Scalar.hpp"
-
 struct ScalarLimitedArray
 {
     uint32_t num_of_x;

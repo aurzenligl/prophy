@@ -3,8 +3,6 @@
 
 #include <prophy/prophy.hpp>
 
-#include "Scalar.hpp"
-
 struct ScalarFixedArray
 {
     uint16_t a[3];

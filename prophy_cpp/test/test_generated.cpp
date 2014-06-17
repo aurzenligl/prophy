@@ -8,6 +8,7 @@
 #include "out/ScalarGreedyArray.hpp"
 #include "out/ScalarLimitedArray.hpp"
 #include "out/Composite.hpp"
+#include "out/CompositeDynamicArray.hpp"
 #include "out/CompositeFixedArray.hpp"
 
 using namespace testing;
@@ -16,6 +17,7 @@ TEST(generated, Scalar)
 {
     data x(
         "\x01\x00\x00\x02",
+
         "\x01\x00\x02\x00"
     );
 
@@ -49,6 +51,7 @@ TEST(generated, ScalarFixedArray)
         "\x00\x02"
         "\x00\x02"
         "\x00\x02",
+
         "\x02\x00"
         "\x02\x00"
         "\x02\x00"
@@ -99,6 +102,7 @@ TEST(generated, Composite)
     data x(
         "\x01\x00\x00\x02"
         "\x01\x00\x00\x02",
+
         "\x01\x00\x02\x00"
         "\x01\x00\x02\x00"
     );
@@ -109,12 +113,33 @@ TEST(generated, Composite)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
+TEST(generated, CompositeDynamicArray)
+{
+    data x(
+        "\x00\x00\x00\x03"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02"
+        "\x03\x00\x00\x03",
+
+        "\x03\x00\x00\x00"
+        "\x01\x00\x01\x00"
+        "\x02\x00\x02\x00"
+        "\x03\x00\x03\x00"
+    );
+
+    CompositeDynamicArray* next = prophy::swap(*reinterpret_cast<CompositeDynamicArray*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
 TEST(generated, CompositeFixedArray)
 {
     data x(
         "\x01\x00\x00\x02"
         "\x01\x00\x00\x02"
         "\x01\x00\x00\x02",
+
         "\x01\x00\x02\x00"
         "\x01\x00\x02\x00"
         "\x01\x00\x02\x00"
