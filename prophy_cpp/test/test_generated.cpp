@@ -5,6 +5,7 @@
 #include "out/Scalar.hpp"
 #include "out/ScalarDynamicArray.hpp"
 #include "out/ScalarFixedArray.hpp"
+#include "out/ScalarLimitedArray.hpp"
 #include "out/Composite.hpp"
 #include "out/CompositeFixedArray.hpp"
 
@@ -28,11 +29,11 @@ TEST(generated, ScalarDynamicArray)
     data x(
         "\x00\x00\x00\x03"
         "\x00\x05\x00\x06"
-        "\x00\x07\x00\x00",
+        "\x00\x07\xab\xcd",
 
         "\x03\x00\x00\x00"
         "\x05\x00\x06\x00"
-        "\x07\x00\x00\x00"
+        "\x07\x00\xab\xcd"
     );
 
     ScalarDynamicArray* next = prophy::swap(*reinterpret_cast<ScalarDynamicArray*>(x.input.data()));
@@ -55,6 +56,24 @@ TEST(generated, ScalarFixedArray)
     ScalarFixedArray* next = prophy::swap(*reinterpret_cast<ScalarFixedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 6);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, ScalarLimitedArray)
+{
+    data x(
+        "\x00\x00\x00\x02"
+        "\x00\x05\x00\x06"
+        "\xab\xcd\xef\xba",
+
+        "\x02\x00\x00\x00"
+        "\x05\x00\x06\x00"
+        "\xab\xcd\xef\xba"
+    );
+
+    ScalarLimitedArray* next = prophy::swap(*reinterpret_cast<ScalarLimitedArray*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
