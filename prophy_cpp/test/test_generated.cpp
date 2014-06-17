@@ -7,6 +7,7 @@
 #include "out/ScalarFixedArray.hpp"
 #include "out/ScalarGreedyArray.hpp"
 #include "out/ScalarLimitedArray.hpp"
+#include "out/DynamicComposite.hpp"
 #include "out/Composite.hpp"
 #include "out/CompositeDynamicArray.hpp"
 #include "out/CompositeFixedArray.hpp"
@@ -94,6 +95,24 @@ TEST(generated, ScalarLimitedArray)
     );
 
     ScalarLimitedArray* next = prophy::swap(*reinterpret_cast<ScalarLimitedArray*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, DynamicComposite)
+{
+    data x(
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd",
+
+        "\x03\x00\x00\x00"
+        "\x01\x00\x02\x00"
+        "\x03\x00\xab\xcd"
+    );
+
+    DynamicComposite* next = prophy::swap(*reinterpret_cast<DynamicComposite*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
