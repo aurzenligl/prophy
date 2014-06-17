@@ -10,6 +10,8 @@
 #include "out/Composite.hpp"
 #include "out/CompositeDynamicArray.hpp"
 #include "out/CompositeFixedArray.hpp"
+#include "out/CompositeGreedyArray.hpp"
+#include "out/CompositeLimitedArray.hpp"
 
 using namespace testing;
 
@@ -148,5 +150,41 @@ TEST(generated, CompositeFixedArray)
     CompositeFixedArray* next = prophy::swap(*reinterpret_cast<CompositeFixedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, CompositeGreedyArray)
+{
+    data x(
+        "\x00\x01"
+        "\xab\xcd\xef\xba",
+
+        "\x01\x00"
+        "\xab\xcd\xef\xba"
+    );
+
+    CompositeGreedyArray* next = prophy::swap(*reinterpret_cast<CompositeGreedyArray*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 2);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, CompositeLimitedArray)
+{
+    data x(
+        "\x00\x02"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02"
+        "\xab\xcd\xef\xba",
+
+        "\x02\x00"
+        "\x01\x00\x01\x00"
+        "\x02\x00\x02\x00"
+        "\xab\xcd\xef\xba"
+    );
+
+    CompositeLimitedArray* next = prophy::swap(*reinterpret_cast<CompositeLimitedArray*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 14);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
