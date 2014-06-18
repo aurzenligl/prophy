@@ -21,13 +21,15 @@ inline DynamicCompositeInner* swap(DynamicCompositeInner& payload)
 {
     swap(payload.num_of_x);
     return cast<DynamicCompositeInner*>(
-        swap_n_fixed(payload.x, payload.num_of_x));
+        swap_n_fixed(payload.x, payload.num_of_x)
+    );
 }
 
 inline DynamicComposite* swap(DynamicComposite& payload)
 {
     return cast<DynamicComposite*>(
-        swap(payload.x));
+        swap(payload.x)
+    );
 }
 
 } // namespace prophy

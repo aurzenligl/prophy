@@ -15,7 +15,9 @@ namespace prophy
 inline ScalarGreedyArray* swap(ScalarGreedyArray& payload)
 {
     swap(payload.x);
-    return cast<ScalarGreedyArray*>(payload.y);
+    return cast<ScalarGreedyArray*>(
+        payload.y
+    );
 }
 
 } // namespace prophy
