@@ -8,6 +8,7 @@
 #include "out/ScalarGreedyArray.hpp"
 #include "out/ScalarLimitedArray.hpp"
 #include "out/DynamicComposite.hpp"
+#include "out/DynamicCompositeGreedyArray.hpp"
 #include "out/Composite.hpp"
 #include "out/CompositeDynamicArray.hpp"
 #include "out/CompositeFixedArray.hpp"
@@ -69,16 +70,21 @@ TEST(generated, ScalarFixedArray)
 TEST(generated, ScalarGreedyArray)
 {
     data x(
-        "\x00\x08\x00\x00"
-        "\xab\xcd\xef\xba",
+        "\x00\x08\xab\xcd"
+        "\x00\x00\x00\x01"
+        "\x00\x00\x00\x02",
 
-        "\x08\x00\x00\x00"
-        "\xab\xcd\xef\xba"
+        "\x08\x00\xab\xcd"
+        "\x01\x00\x00\x00"
+        "\x02\x00\x00\x00"
     );
 
     ScalarGreedyArray* next = prophy::swap(*reinterpret_cast<ScalarGreedyArray*>(x.input.data()));
+    uint32_t* past_end = prophy::swap_n_fixed(
+        prophy::cast<uint32_t*>(next), 2);
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 4);
+    EXPECT_EQ(byte_distance(x.input.data(), past_end), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
@@ -115,6 +121,33 @@ TEST(generated, DynamicComposite)
     DynamicComposite* next = prophy::swap(*reinterpret_cast<DynamicComposite*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, DynamicCompositeGreedyArray)
+{
+    data x(
+        "\x00\x01\xab\xcd"
+        "\x00\x00\x00\x01"
+        "\x00\x01\xef\xab"
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd",
+
+        "\x01\x00\xab\xcd"
+        "\x01\x00\x00\x00"
+        "\x01\x00\xef\xab"
+        "\x03\x00\x00\x00"
+        "\x01\x00\x02\x00"
+        "\x03\x00\xab\xcd"
+    );
+
+    DynamicCompositeGreedyArray* next = prophy::swap(*reinterpret_cast<DynamicCompositeGreedyArray*>(x.input.data()));
+    DynamicComposite* past_end = prophy::swap_n_dynamic(
+        prophy::cast<DynamicComposite*>(next), 2);
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 4);
+    EXPECT_EQ(byte_distance(x.input.data(), past_end), 24);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
@@ -176,15 +209,24 @@ TEST(generated, CompositeGreedyArray)
 {
     data x(
         "\x00\x01"
-        "\xab\xcd\xef\xba",
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02",
 
         "\x01\x00"
-        "\xab\xcd\xef\xba"
+        "\x01\x00\x01\x00"
+        "\x02\x00\x02\x00"
+        "\x01\x00\x01\x00"
+        "\x02\x00\x02\x00"
     );
 
     CompositeGreedyArray* next = prophy::swap(*reinterpret_cast<CompositeGreedyArray*>(x.input.data()));
+    Composite* past_end = prophy::swap_n_fixed(
+        prophy::cast<Composite*>(next), 2);
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 2);
+    EXPECT_EQ(byte_distance(x.input.data(), past_end), 18);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
