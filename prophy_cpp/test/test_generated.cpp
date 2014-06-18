@@ -8,6 +8,7 @@
 #include "out/ScalarGreedyArray.hpp"
 #include "out/ScalarLimitedArray.hpp"
 #include "out/DynamicComposite.hpp"
+#include "out/DynamicCompositeDynamicArray.hpp"
 #include "out/DynamicCompositeGreedyArray.hpp"
 #include "out/Composite.hpp"
 #include "out/CompositeDynamicArray.hpp"
@@ -121,6 +122,30 @@ TEST(generated, DynamicComposite)
     DynamicComposite* next = prophy::swap(*reinterpret_cast<DynamicComposite*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, DynamicCompositeDynamicArray)
+{
+    data x(
+        "\x00\x02\xab\xcd"
+        "\x00\x00\x00\x01"
+        "\x00\x01\xef\xab"
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd",
+
+        "\x02\x00\xab\xcd"
+        "\x01\x00\x00\x00"
+        "\x01\x00\xef\xab"
+        "\x03\x00\x00\x00"
+        "\x01\x00\x02\x00"
+        "\x03\x00\xab\xcd"
+    );
+
+    DynamicCompositeDynamicArray* next = prophy::swap(*reinterpret_cast<DynamicCompositeDynamicArray*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 24);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
