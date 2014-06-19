@@ -19,6 +19,7 @@
 #include "out/CompositeFixedArray.hpp"
 #include "out/CompositeGreedyArray.hpp"
 #include "out/CompositeLimitedArray.hpp"
+#include "out/ConstantTypedefEnum.hpp"
 
 using namespace testing;
 
@@ -380,5 +381,27 @@ TEST(generated, CompositeLimitedArray)
     CompositeLimitedArray* next = prophy::swap(*reinterpret_cast<CompositeLimitedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 14);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, ConstantTypedefEnum)
+{
+    data x(
+        "\x00\x01"
+        "\x00\x02"
+        "\x00\x03"
+        "\x00\x04"
+        "\x00\x00\x00\x01",
+
+        "\x01\x00"
+        "\x02\x00"
+        "\x03\x00"
+        "\x04\x00"
+        "\x01\x00\x00\x00"
+    );
+
+    ConstantTypedefEnum* next = prophy::swap(*reinterpret_cast<ConstantTypedefEnum*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
