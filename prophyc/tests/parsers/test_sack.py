@@ -1,14 +1,14 @@
 import os
 import tempfile
 
-import SackParser
+from prophyc.parsers.sack import SackParser
 
 def parse(content, suffix = '.hpp'):
     try:
         with tempfile.NamedTemporaryFile(suffix = suffix, delete = False) as temp:
             temp.write(content)
             temp.flush()
-            return SackParser.SackParser().parse(temp.name)
+            return SackParser().parse(temp.name)
     finally:
         os.unlink(temp.name)
 

@@ -2,7 +2,8 @@ import sys
 import os
 import pytest
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+sys.path.insert(0, main_dir)
 
 @pytest.yield_fixture
 def tmpdir_cwd(tmpdir):

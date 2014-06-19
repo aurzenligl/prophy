@@ -2,8 +2,7 @@ import os
 import sys
 import subprocess
 
-prophyc_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-prophyc = os.path.join(prophyc_dir, "prophyc.py")
+main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 empty_python_output = """\
 import prophy
@@ -20,47 +19,54 @@ def tr(str_):
     return str_.translate(None, '\r')
 
 def call(args):
-    popen = subprocess.Popen(args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    popen = subprocess.Popen(["python", "-m", "prophyc"] + args,
+                             cwd = main_dir,
+                             stdout = subprocess.PIPE,
+                             stderr = subprocess.PIPE)
     out, err = popen.communicate()
     return popen.returncode, out, err
 
 def test_missing_input():
-    ret, out, err = call(["python", prophyc])
+    ret, out, err = call([])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "prophyc.py: error: too few arguments\n"
+    assert tr(err) == "prophyc: error: too few arguments\n"
 
 def test_no_output_directory(tmpdir_cwd):
     open("input.xml", "w").write("")
-    ret, out, err = call(["python", prophyc, "--python_out", "no_dir", "input.xml"])
+    ret, out, err = call(["--python_out", "no_dir",
+                          os.path.join(str(tmpdir_cwd), "input_xml")])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "prophyc.py: error: argument --python_out: no_dir directory not found\n"
+    assert tr(err) == "prophyc: error: argument --python_out: no_dir directory not found\n"
 
 def test_missing_output(tmpdir_cwd):
-    open("input.xml", "w").write("")
-    ret, out, err = call(["python", prophyc, "--isar", "input.xml"])
+    open("input.xml", "w")
+    ret, out, err = call(["--isar", os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
     assert out == ""
     assert tr(err) == "Missing output directives\n"
 
 def test_passing_neither_isar_nor_sack(tmpdir_cwd):
-    open("input", "w").write("")
-    ret, out, err = call(["python", prophyc, "--python_out", ".", "input"])
+    open("input", "w")
+    ret, out, err = call(["--python_out", ".",
+                          os.path.join(str(tmpdir_cwd), "input")])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "prophyc.py: error: one of the arguments --isar --sack is required\n"
+    assert tr(err) == "prophyc: error: one of the arguments --isar --sack is required\n"
 
 def test_passing_isar_and_sack(tmpdir_cwd):
-    open("input", "w").write("")
-    ret, out, err = call(["python", prophyc, "--isar", "--sack", "--python_out", ".", "input"])
+    open("input", "w")
+    ret, out, err = call(["--isar", "--sack", "--python_out", ".",
+                          os.path.join(str(tmpdir_cwd), "input")])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "prophyc.py: error: argument --sack: not allowed with argument --isar\n"
+    assert tr(err) == "prophyc: error: argument --sack: not allowed with argument --isar\n"
 
 def test_isar_compiles_single_empty_xml(tmpdir_cwd):
     open("input.xml", "w").write("<struct/>")
-    ret, out, err = call(["python", prophyc, "--isar", "--python_out", ".", "input.xml"])
+    ret, out, err = call(["--isar", "--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
     assert out == ""
     assert err == ""
@@ -70,7 +76,12 @@ def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
     open("input1.xml", "w").write("<struct/>")
     open("input2.xml", "w").write("<struct/>")
     open("input3.xml", "w").write("<struct/>")
-    ret, out, err = call(["python", prophyc, "--isar", "--python_out", ".", "input1.xml", "input2.xml", "input3.xml"])
+    ret, out, err = call(["--isar",
+                          "--python_out",
+                          str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input1.xml"),
+                          os.path.join(str(tmpdir_cwd), "input2.xml"),
+                          os.path.join(str(tmpdir_cwd), "input3.xml")])
     assert ret == 0
     assert out == ""
     assert err == ""
@@ -81,7 +92,9 @@ def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
 def test_outputs_to_correct_directory(tmpdir_cwd):
     open("input.xml", "w").write("<struct/>")
     os.mkdir("output")
-    ret, out, err = call(["python", prophyc, "--isar", "--python_out", "output", "input.xml"])
+    ret, out, err = call(["--isar", "--python_out",
+                          os.path.join(str(tmpdir_cwd), "output"),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
     assert out == ""
     assert err == ""
@@ -89,7 +102,9 @@ def test_outputs_to_correct_directory(tmpdir_cwd):
 
 def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
     open("input.hpp", "w").write("")
-    ret, out, err = call(["python", prophyc, "--sack", "--python_out", ".", "input.hpp"])
+    ret, out, err = call(["--sack", "--python_out",
+                          str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.hpp")])
     assert ret == 0
     assert out == ""
     assert err == ""
@@ -111,7 +126,11 @@ def test_isar_patch(tmpdir_cwd):
 B insert 999 b A
 B dynamic b a
 """)
-    ret, out, err = call(["python", prophyc, "--isar", "--patch", "patch", "--python_out", ".", "input.xml"])
+    ret, out, err = call(["--isar", "--patch",
+                          os.path.join(str(tmpdir_cwd), "patch"),
+                          "--python_out",
+                          str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
     assert out == ""
     assert err == ""
@@ -137,7 +156,10 @@ struct X
     open("patch", "w").write("""\
 X type x r64
 """)
-    ret, out, err = call(["python", prophyc, "--sack", "--patch", "patch", "--python_out", ".", "input.hpp"])
+    ret, out, err = call(["--sack", "--patch",
+                          os.path.join(str(tmpdir_cwd), "patch"),
+                          "--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.hpp")])
     assert ret == 0
     assert out == ""
     assert err == ""

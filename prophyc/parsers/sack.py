@@ -1,6 +1,7 @@
 import re
 from clang.cindex import Index, CursorKind, TypeKind
-import model
+
+from prophyc import model
 
 unambiguous_builtins = {
     TypeKind.UCHAR: 'u8',

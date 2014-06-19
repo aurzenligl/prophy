@@ -1,5 +1,6 @@
 import os
-import model
+
+from prophyc import model
 
 libname = "prophy"
 primitive_types = {x + y : "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
@@ -93,7 +94,7 @@ render_visitor = {model.Include: _render_include,
 def _render(node):
     return render_visitor[type(node)](node)
 
-class PythonSerializer(object):
+class PythonGenerator(object):
 
     def __init__(self, output_dir = "."):
         self.output_dir = output_dir

@@ -1,10 +1,10 @@
-import model
-import IsarParser
-import PythonSerializer
 from collections import namedtuple
 
+from prophyc import model
+from prophyc.parsers.isar import IsarParser
+
 def parse(xml_string):
-    return IsarParser.IsarParser().parse_string(xml_string)
+    return IsarParser().parse_string(xml_string)
 
 def test_includes_parsing():
     xml = """\

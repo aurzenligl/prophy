@@ -1,17 +1,15 @@
-import pytest
 import os
 import subprocess
 
 main_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-prophyc_dir = os.path.join(main_dir, "prophyc")
-prophyc = os.path.join(prophyc_dir, "prophyc.py")
 
 def write(filename, content):
     open(filename, "w").write(content)
 
-def compile(filename, mode):
-    cmd = " ".join(["python", prophyc, mode, "--python_out", ".", filename])
-    subprocess.check_call(cmd, shell = True)
+def compile(filename, mode, tmpdir):
+    cmd = " ".join(["python", "-m", "prophyc", mode, "--python_out",
+                    tmpdir, os.path.join(tmpdir, filename)])
+    subprocess.check_call(cmd, cwd = main_dir, shell = True)
 
 def test_isar_input(tmpdir_cwd):
     content = """\
@@ -40,7 +38,7 @@ def test_isar_input(tmpdir_cwd):
 """
 
     write("isar.xml", content)
-    compile("isar.xml", mode = '--isar')
+    compile("isar.xml", mode = '--isar', tmpdir = str(tmpdir_cwd))
 
     import isar
     s = isar.SL2DeploymentInfo()
@@ -61,7 +59,7 @@ struct X
 """
 
     write("sack.hpp", content)
-    compile("sack.hpp", mode = '--sack')
+    compile("sack.hpp", mode = '--sack', tmpdir = str(tmpdir_cwd))
 
     import sack
     x = sack.X()

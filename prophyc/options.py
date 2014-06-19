@@ -17,7 +17,7 @@ def parse_options():
         def error(self, message):
             self.exit(1, '%s: error: %s\n' % (self.prog, message))
 
-    parser = ArgumentParser(description = 'Isar/sack compiler.')
+    parser = ArgumentParser('prophyc', description = 'Isar/sack compiler.')
 
     group = parser.add_mutually_exclusive_group(required = True)
     group.add_argument('--isar', action = 'store_true')

@@ -1,12 +1,12 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 long_description = open('README.rst').read()
 
 setup(name = 'prophy',
-      packages = ['prophy', 'prophyc'],
+      packages = find_packages(),
       entry_points = {
           'console_scripts': [
-              'prophyc = prophyc.prophyc:main'
+              'prophyc = prophyc:main'
           ]
       },
       version = '0.2.5',

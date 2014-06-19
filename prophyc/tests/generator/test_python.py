@@ -1,8 +1,8 @@
-import model
-import PythonSerializer
+from prophyc import model
+from prophyc.generators.python import PythonGenerator
 
 def serialize(nodes):
-    return PythonSerializer.PythonSerializer().serialize_string(nodes, header = False)
+    return PythonGenerator().serialize_string(nodes, header = False)
 
 def test_includes_rendering():
     nodes = [model.Include("szydlo"),
@@ -163,7 +163,7 @@ class U(prophy.union):
 """
     assert ref == serialize(nodes)
 
-def test_of_PythonSerializer():
+def test_of_PythonGenerator():
     ih = []
     th = []
     for x in range(20, 200, 60):
@@ -187,7 +187,7 @@ def test_of_PythonSerializer():
     nodes += [model.Enum("test", enum)]
     nodes += [msg_h]
 
-    ps = PythonSerializer.PythonSerializer()
+    ps = PythonGenerator()
     output = ps.serialize_string(nodes)
 
     ref = """\
