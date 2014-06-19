@@ -11,6 +11,7 @@
 #include "out/DynamicCompositeDynamicArray.hpp"
 #include "out/DynamicCompositeGreedyArray.hpp"
 #include "out/ManyArrays.hpp"
+#include "out/ManyArraysMixed.hpp"
 #include "out/Composite.hpp"
 #include "out/CompositeDynamicArray.hpp"
 #include "out/CompositeFixedArray.hpp"
@@ -204,6 +205,28 @@ TEST(generated, ManyArrays)
     ManyArrays* next = prophy::swap(*reinterpret_cast<ManyArrays*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 48);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, ManyArraysMixed)
+{
+    data x(
+        "\x00\x00\x00\x05"
+        "\x00\x02"
+        "\x01\x02\x03\x04"
+        "\x05\x00"
+        "\x00\x01\x00\x02",
+
+        "\x05\x00\x00\x00"
+        "\x02\x00"
+        "\x01\x02\x03\x04"
+        "\x05\x00"
+        "\x01\x00\x02\x00"
+    );
+
+    ManyArraysMixed* next = prophy::swap(*reinterpret_cast<ManyArraysMixed*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
