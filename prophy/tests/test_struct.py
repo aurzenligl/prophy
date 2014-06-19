@@ -282,37 +282,48 @@ def test_struct_with_dynamic_fields():
     assert x.x[:] == [1]
     assert x.y == 8
 
-def test_struct_with_dynamic_fields_and_partial_padding():
+def test_struct_with_many_arrays():
     class X(prophy.struct):
         __metaclass__ = prophy.struct_generator
-        _descriptor = [("x_len", prophy.u8),
+        _descriptor = [("x_len", prophy.u32),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
-                       ("y", prophy.u32),
-                       ("z", prophy.u64)]
-
+                       ("y_len", prophy.u16),
+                       ("y", prophy.array(prophy.u16, bound = "y_len")),
+                       ("z_len", prophy.u8),
+                       ("z", prophy.array(prophy.u64, bound = "z_len"))]
     x = X()
-    x.x[:] = [2, 3]
-    x.y = 4
-    x.z = 5
+    x.x[:] = [1, 2, 3, 4, 5]
+    x.y[:] = [1, 2]
+    x.z[:] = [1, 2, 3]
 
-    assert x.encode('>') == ('\x02\x02\x03\x00'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x04'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x05')
+    assert ("\x00\x00\x00\x05"
+            "\x01\x02\x03\x04"
+            "\x05\x00"
+            "\x00\x02\x00\x01"
+            "\x00\x02"
+            "\x03\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x01"
+            "\x00\x00\x00\x00\x00\x00\x00\x02"
+            "\x00\x00\x00\x00\x00\x00\x00\x03") == x.encode('>')
 
-    x.decode(('\x04\x06\x07\x08'
-              '\x09\x00\x00\x00'
-              '\x00\x00\x00\x05'
-              '\x00\x00\x00\x00'
-              '\x00\x00\x00\x00'
-              '\x00\x00\x00\x06'), '>')
-    assert x.x == [6, 7, 8, 9]
-    assert x.y == 5
-    assert x.z == 6
+def test_struct_with_many_arrays_mixed():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u32),
+                       ("y_len", prophy.u16),
+                       ("x", prophy.array(prophy.u8, bound = "x_len")),
+                       ("y", prophy.array(prophy.u16, bound = "y_len"))]
+    x = X()
+    x.x[:] = [1, 2, 3, 4, 5]
+    x.y[:] = [1, 2]
 
-def test_struct_with_dynamic_fields_and_multiple_partial_padding():
+    assert ("\x00\x00\x00\x05"
+            "\x00\x02"
+            "\x01\x02\x03\x04"
+            "\x05\x00"
+            "\x00\x01\x00\x02") == x.encode('>')
+
+def test_struct_with_many_arrays_padding():
     class X(prophy.struct):
         __metaclass__ = prophy.struct_generator
         _descriptor = [("x_len", prophy.u8),
@@ -352,6 +363,36 @@ def test_struct_with_dynamic_fields_and_multiple_partial_padding():
     assert x.y.x == [2, 3, 4, 5]
     assert x.y.y == [4, 5, 6]
     assert x.y.z == 6
+
+def test_struct_with_many_arrays_fixed_tail():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u8),
+                       ("x", prophy.array(prophy.u8, bound = "x_len")),
+                       ("y", prophy.u32),
+                       ("z", prophy.u64)]
+
+    x = X()
+    x.x[:] = [2, 3]
+    x.y = 4
+    x.z = 5
+
+    assert x.encode('>') == ('\x02\x02\x03\x00'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x04'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x00'
+                             '\x00\x00\x00\x05')
+
+    x.decode(('\x04\x06\x07\x08'
+              '\x09\x00\x00\x00'
+              '\x00\x00\x00\x05'
+              '\x00\x00\x00\x00'
+              '\x00\x00\x00\x00'
+              '\x00\x00\x00\x06'), '>')
+    assert x.x == [6, 7, 8, 9]
+    assert x.y == 5
+    assert x.z == 6
 
 def test_struct_exception_with_access_to_nonexistent_field():
     with pytest.raises(AttributeError):
