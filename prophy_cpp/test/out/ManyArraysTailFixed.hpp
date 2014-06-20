@@ -19,20 +19,20 @@ namespace prophy
 {
 
 template <>
-inline ManyArraysTailFixed::part2* swap<ManyArraysTailFixed::part2>(ManyArraysTailFixed::part2& payload)
+inline ManyArraysTailFixed::part2* swap<ManyArraysTailFixed::part2>(ManyArraysTailFixed::part2* payload)
 {
-    swap(payload.y);
-    swap(payload.z);
-    return &payload + 1;
+    swap(&payload->y);
+    swap(&payload->z);
+    return payload + 1;
 }
 
 template <>
-inline ManyArraysTailFixed* swap<ManyArraysTailFixed>(ManyArraysTailFixed& payload)
+inline ManyArraysTailFixed* swap<ManyArraysTailFixed>(ManyArraysTailFixed* payload)
 {
-    swap(payload.num_of_x);
+    swap(&payload->num_of_x);
     return cast<ManyArraysTailFixed*>(
-        swap(*cast<ManyArraysTailFixed::part2*>(
-            swap_n_fixed(payload.x, payload.num_of_x)
+        swap(cast<ManyArraysTailFixed::part2*>(
+            swap_n_fixed(payload->x, payload->num_of_x)
         ))
     );
 }

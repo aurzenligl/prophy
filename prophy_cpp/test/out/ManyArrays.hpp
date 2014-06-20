@@ -25,29 +25,29 @@ namespace prophy
 {
 
 template <>
-inline ManyArrays::part2* swap<ManyArrays::part2>(ManyArrays::part2& payload)
+inline ManyArrays::part2* swap<ManyArrays::part2>(ManyArrays::part2* payload)
 {
-    swap(payload.num_of_y);
+    swap(&payload->num_of_y);
     return cast<ManyArrays::part2*>(
-        swap_n_fixed(payload.y, payload.num_of_y));
+        swap_n_fixed(payload->y, payload->num_of_y));
 }
 
 template <>
-inline ManyArrays::part3* swap<ManyArrays::part3>(ManyArrays::part3& payload)
+inline ManyArrays::part3* swap<ManyArrays::part3>(ManyArrays::part3* payload)
 {
-    swap(payload.num_of_z);
+    swap(&payload->num_of_z);
     return cast<ManyArrays::part3*>(
-        swap_n_fixed(payload.z, payload.num_of_z));
+        swap_n_fixed(payload->z, payload->num_of_z));
 }
 
 template <>
-inline ManyArrays* swap<ManyArrays>(ManyArrays& payload)
+inline ManyArrays* swap<ManyArrays>(ManyArrays* payload)
 {
-    swap(payload.num_of_x);
+    swap(&payload->num_of_x);
     return cast<ManyArrays*>(
-        swap(*cast<ManyArrays::part3*>(
-            swap(*cast<ManyArrays::part2*>(
-                swap_n_fixed(payload.x, payload.num_of_x)
+        swap(cast<ManyArrays::part3*>(
+            swap(cast<ManyArrays::part2*>(
+                swap_n_fixed(payload->x, payload->num_of_x)
             ))
         ))
     );

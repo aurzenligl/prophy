@@ -15,11 +15,11 @@ namespace prophy
 {
 
 template <>
-inline Composite* swap<Composite>(Composite& payload)
+inline Composite* swap<Composite>(Composite* payload)
 {
-    swap(payload.a);
-    swap(payload.b);
-    return &payload + 1;
+    swap(&payload->a);
+    swap(&payload->b);
+    return payload + 1;
 }
 
 } // namespace prophy

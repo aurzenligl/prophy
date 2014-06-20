@@ -29,38 +29,38 @@ struct ManyArraysPadding
 namespace prophy
 {
 
-inline ManyArraysPaddingInner::part2* swap(ManyArraysPaddingInner::part2& payload)
+inline ManyArraysPaddingInner::part2* swap(ManyArraysPaddingInner::part2* payload)
 {
-    swap(payload.num_of_y);
+    swap(&payload->num_of_y);
     return cast<ManyArraysPaddingInner::part2*>(
-        swap_n_fixed(payload.y, payload.num_of_y));
+        swap_n_fixed(payload->y, payload->num_of_y));
 }
 
-inline ManyArraysPaddingInner::part3* swap(ManyArraysPaddingInner::part3& payload)
+inline ManyArraysPaddingInner::part3* swap(ManyArraysPaddingInner::part3* payload)
 {
-    swap(payload.z);
-    return &payload + 1;
+    swap(&payload->z);
+    return payload + 1;
 }
 
 template <>
-inline ManyArraysPaddingInner* swap<ManyArraysPaddingInner>(ManyArraysPaddingInner& payload)
+inline ManyArraysPaddingInner* swap<ManyArraysPaddingInner>(ManyArraysPaddingInner* payload)
 {
-    swap(payload.num_of_x);
+    swap(&payload->num_of_x);
     return cast<ManyArraysPaddingInner*>(
-        swap(*cast<ManyArraysPaddingInner::part3*>(
-            swap(*cast<ManyArraysPaddingInner::part2*>(
-                swap_n_fixed(payload.x, payload.num_of_x)
+        swap(cast<ManyArraysPaddingInner::part3*>(
+            swap(cast<ManyArraysPaddingInner::part2*>(
+                swap_n_fixed(payload->x, payload->num_of_x)
             ))
         ))
     );
 }
 
 template <>
-inline ManyArraysPadding* swap<ManyArraysPadding>(ManyArraysPadding& payload)
+inline ManyArraysPadding* swap<ManyArraysPadding>(ManyArraysPadding* payload)
 {
-    swap(payload.x);
+    swap(&payload->x);
     return cast<ManyArraysPadding*>(
-        swap(payload.y)
+        swap(&payload->y)
     );
 }
 

@@ -15,11 +15,11 @@ namespace prophy
 {
 
 template <>
-inline CompositeDynamicArray* swap<CompositeDynamicArray>(CompositeDynamicArray& payload)
+inline CompositeDynamicArray* swap<CompositeDynamicArray>(CompositeDynamicArray* payload)
 {
-    swap(payload.num_of_x);
+    swap(&payload->num_of_x);
     return cast<CompositeDynamicArray*>(
-        swap_n_fixed(payload.x, payload.num_of_x)
+        swap_n_fixed(payload->x, payload->num_of_x)
     );
 }
 

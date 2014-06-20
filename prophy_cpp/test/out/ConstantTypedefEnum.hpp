@@ -23,12 +23,12 @@ namespace prophy
 {
 
 template <>
-inline ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum& payload)
+inline ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum* payload)
 {
-    swap_n_fixed(payload.a, CONSTANT);
-    swap(payload.b);
-    swap(reinterpret_cast<int32_t&>(payload.c));
-    return &payload + 1;
+    swap_n_fixed(payload->a, CONSTANT);
+    swap(&payload->b);
+    swap(reinterpret_cast<int*>(&payload->c));
+    return payload + 1;
 }
 
 } // namespace prophy

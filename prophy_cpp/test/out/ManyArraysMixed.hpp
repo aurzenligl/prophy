@@ -18,21 +18,21 @@ struct ManyArraysMixed
 namespace prophy
 {
 
-inline ManyArraysMixed::part2* swap(ManyArraysMixed::part2& payload, size_t num_of_y)
+inline ManyArraysMixed::part2* swap(ManyArraysMixed::part2* payload, size_t num_of_y)
 {
     return cast<ManyArraysMixed::part2*>(
-        swap_n_fixed(payload.y, num_of_y));
+        swap_n_fixed(payload->y, num_of_y));
 }
 
 template <>
-inline ManyArraysMixed* swap<ManyArraysMixed>(ManyArraysMixed& payload)
+inline ManyArraysMixed* swap<ManyArraysMixed>(ManyArraysMixed* payload)
 {
-    swap(payload.num_of_x);
-    swap(payload.num_of_y);
+    swap(&payload->num_of_x);
+    swap(&payload->num_of_y);
     return cast<ManyArraysMixed*>(
-        swap(*cast<ManyArraysMixed::part2*>(
-            swap_n_fixed(payload.x, payload.num_of_x)
-        ), payload.num_of_y)
+        swap(cast<ManyArraysMixed::part2*>(
+            swap_n_fixed(payload->x, payload->num_of_x)
+        ), payload->num_of_y)
     );
 }
 

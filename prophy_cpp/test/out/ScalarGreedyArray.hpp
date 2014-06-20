@@ -13,11 +13,11 @@ namespace prophy
 {
 
 template <>
-inline ScalarGreedyArray* swap<ScalarGreedyArray>(ScalarGreedyArray& payload)
+inline ScalarGreedyArray* swap<ScalarGreedyArray>(ScalarGreedyArray* payload)
 {
-    swap(payload.x);
+    swap(&payload->x);
     return cast<ScalarGreedyArray*>(
-        payload.y
+        payload->y
     );
 }
 

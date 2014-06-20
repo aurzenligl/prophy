@@ -18,19 +18,19 @@ namespace prophy
 {
 
 template <>
-inline DynamicCompositeInner* swap<DynamicCompositeInner>(DynamicCompositeInner& payload)
+inline DynamicCompositeInner* swap<DynamicCompositeInner>(DynamicCompositeInner* payload)
 {
-    swap(payload.num_of_x);
+    swap(&payload->num_of_x);
     return cast<DynamicCompositeInner*>(
-        swap_n_fixed(payload.x, payload.num_of_x)
+        swap_n_fixed(payload->x, payload->num_of_x)
     );
 }
 
 template <>
-inline DynamicComposite* swap<DynamicComposite>(DynamicComposite& payload)
+inline DynamicComposite* swap<DynamicComposite>(DynamicComposite* payload)
 {
     return cast<DynamicComposite*>(
-        swap(payload.x)
+        swap(&payload->x)
     );
 }
 
