@@ -3,14 +3,17 @@ import os
 from prophyc import model
 
 def _generate_include(include):
-    return '#include "{0}.hpp"'.format(include.name)
+    return '#include "{}.hpp"'.format(include.name)
+
+def _generate_constant(constant):
+    return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
 
 def _generate_typedef(typedef):
-    return 'typedef {0} {1};'.format(typedef.type, typedef.name)
+    return 'typedef {} {};'.format(typedef.type, typedef.name)
 
 _generate_visitor = {
     model.Include: _generate_include,
-#    model.Constant: _generate_constant,
+    model.Constant: _generate_constant,
     model.Typedef: _generate_typedef,
 #    model.Enum: _generate_enum,
 #    model.Struct: _generate_struct,

@@ -18,6 +18,17 @@ from powidlo import *
 """
     assert ref == serialize(nodes)
 
+def test_constants_rendering():
+    nodes = [model.Constant("CONST_A", "0"),
+             model.Constant("CONST_B", "31")]
+
+    ref = """\
+CONST_A = 0
+
+CONST_B = 31
+"""
+    assert ref == serialize(nodes)
+
 def test_typedefs_rendering():
     nodes = [model.Typedef("a", "b")]
 
@@ -41,17 +52,6 @@ class EEnum(prophy.enum):
 EEnum_A = 0
 EEnum_B = 1
 EEnum_C = 2
-"""
-    assert ref == serialize(nodes)
-
-def test_constants_rendering():
-    nodes = [model.Constant("CONST_A", "0"),
-             model.Constant("CONST_B", "31")]
-
-    ref = """\
-CONST_A = 0
-
-CONST_B = 31
 """
     assert ref == serialize(nodes)
 

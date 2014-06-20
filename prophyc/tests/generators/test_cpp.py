@@ -15,7 +15,16 @@ def test_generate_includes():
 #include "powidlo.hpp"
 """
 
-def test_typedefs_rendering():
+def test_generate_constants():
+    nodes = [model.Constant("CONST_A", "0"),
+             model.Constant("CONST_B", "31")]
+
+    assert generate(nodes) == """\
+enum { CONST_A = 0 };
+enum { CONST_B = 31 };
+"""
+
+def test_generate_typedefs():
     nodes = [model.Typedef("a", "b")]
 
     assert generate(nodes) == """\
