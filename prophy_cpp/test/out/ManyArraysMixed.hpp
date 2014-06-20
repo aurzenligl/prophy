@@ -24,7 +24,8 @@ inline ManyArraysMixed::part2* swap(ManyArraysMixed::part2& payload, size_t num_
         swap_n_fixed(payload.y, num_of_y));
 }
 
-inline ManyArraysMixed* swap(ManyArraysMixed& payload)
+template <>
+inline ManyArraysMixed* swap<ManyArraysMixed>(ManyArraysMixed& payload)
 {
     swap(payload.num_of_x);
     swap(payload.num_of_y);

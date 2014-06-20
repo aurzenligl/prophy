@@ -17,7 +17,8 @@ struct DynamicComposite
 namespace prophy
 {
 
-inline DynamicCompositeInner* swap(DynamicCompositeInner& payload)
+template <>
+inline DynamicCompositeInner* swap<DynamicCompositeInner>(DynamicCompositeInner& payload)
 {
     swap(payload.num_of_x);
     return cast<DynamicCompositeInner*>(
@@ -25,7 +26,8 @@ inline DynamicCompositeInner* swap(DynamicCompositeInner& payload)
     );
 }
 
-inline DynamicComposite* swap(DynamicComposite& payload)
+template <>
+inline DynamicComposite* swap<DynamicComposite>(DynamicComposite& payload)
 {
     return cast<DynamicComposite*>(
         swap(payload.x)

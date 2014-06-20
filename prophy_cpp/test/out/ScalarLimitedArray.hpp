@@ -12,7 +12,8 @@ struct ScalarLimitedArray
 namespace prophy
 {
 
-inline ScalarLimitedArray* swap(ScalarLimitedArray& payload)
+template <>
+inline ScalarLimitedArray* swap<ScalarLimitedArray>(ScalarLimitedArray& payload)
 {
     swap(payload.num_of_x);
     swap_n_fixed(payload.x, payload.num_of_x);

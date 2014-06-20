@@ -22,7 +22,8 @@ struct ConstantTypedefEnum
 namespace prophy
 {
 
-inline ConstantTypedefEnum* swap(ConstantTypedefEnum& payload)
+template <>
+inline ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum& payload)
 {
     swap_n_fixed(payload.a, CONSTANT);
     swap(payload.b);

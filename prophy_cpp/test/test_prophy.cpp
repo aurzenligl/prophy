@@ -131,10 +131,14 @@ struct DynamicFixedArray
     uint16_t x[1];
 };
 
-inline DynamicFixedArray* swap(DynamicFixedArray& in)
+namespace prophy
+{
+template <>
+inline DynamicFixedArray* swap<DynamicFixedArray>(DynamicFixedArray& in)
 {
     prophy::swap(in.num_of_x);
     return prophy::cast<DynamicFixedArray*>(prophy::swap_n_fixed(in.x, in.num_of_x));
+}
 }
 
 TEST(prophy, swaps_fixed_array)
@@ -157,7 +161,7 @@ TEST(prophy, swaps_fixed_array)
 
     DynamicFixedArray* array = reinterpret_cast<DynamicFixedArray*>(x.input.data());
 
-    swap(*array);
+    prophy::swap(*array);
 
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
@@ -168,10 +172,14 @@ struct DynamicDynamicArray
     DynamicFixedArray x[1];
 };
 
-inline DynamicDynamicArray* swap(DynamicDynamicArray& in)
+namespace prophy
+{
+template <>
+inline DynamicDynamicArray* swap<DynamicDynamicArray>(DynamicDynamicArray& in)
 {
     prophy::swap(in.num_of_x);
     return prophy::cast<DynamicDynamicArray*>(prophy::swap_n_dynamic(in.x, in.num_of_x));
+}
 }
 
 TEST(prophy, swaps_dynamic_array)
@@ -214,7 +222,7 @@ TEST(prophy, swaps_dynamic_array)
 
     DynamicDynamicArray* array = reinterpret_cast<DynamicDynamicArray*>(x.input.data());
 
-    swap(*array);
+    prophy::swap(*array);
 
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }

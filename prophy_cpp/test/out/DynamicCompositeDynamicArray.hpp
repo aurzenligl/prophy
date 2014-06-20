@@ -14,7 +14,8 @@ struct DynamicCompositeDynamicArray
 namespace prophy
 {
 
-inline DynamicCompositeDynamicArray* swap(DynamicCompositeDynamicArray& payload)
+template <>
+inline DynamicCompositeDynamicArray* swap<DynamicCompositeDynamicArray>(DynamicCompositeDynamicArray& payload)
 {
     swap(payload.num_of_x);
     return cast<DynamicCompositeDynamicArray*>(

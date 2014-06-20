@@ -42,7 +42,8 @@ inline ManyArraysPaddingInner::part3* swap(ManyArraysPaddingInner::part3& payloa
     return &payload + 1;
 }
 
-inline ManyArraysPaddingInner* swap(ManyArraysPaddingInner& payload)
+template <>
+inline ManyArraysPaddingInner* swap<ManyArraysPaddingInner>(ManyArraysPaddingInner& payload)
 {
     swap(payload.num_of_x);
     return cast<ManyArraysPaddingInner*>(
@@ -54,7 +55,8 @@ inline ManyArraysPaddingInner* swap(ManyArraysPaddingInner& payload)
     );
 }
 
-inline ManyArraysPadding* swap(ManyArraysPadding& payload)
+template <>
+inline ManyArraysPadding* swap<ManyArraysPadding>(ManyArraysPadding& payload)
 {
     swap(payload.x);
     return cast<ManyArraysPadding*>(

@@ -18,14 +18,16 @@ struct ManyArraysTailFixed
 namespace prophy
 {
 
-inline ManyArraysTailFixed::part2* swap(ManyArraysTailFixed::part2& payload)
+template <>
+inline ManyArraysTailFixed::part2* swap<ManyArraysTailFixed::part2>(ManyArraysTailFixed::part2& payload)
 {
     swap(payload.y);
     swap(payload.z);
     return &payload + 1;
 }
 
-inline ManyArraysTailFixed* swap(ManyArraysTailFixed& payload)
+template <>
+inline ManyArraysTailFixed* swap<ManyArraysTailFixed>(ManyArraysTailFixed& payload)
 {
     swap(payload.num_of_x);
     return cast<ManyArraysTailFixed*>(

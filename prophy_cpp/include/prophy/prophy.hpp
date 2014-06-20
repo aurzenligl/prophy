@@ -31,25 +31,7 @@ inline To cast(From from)
 }
 
 template <typename Tp>
-inline Tp* swap_n_fixed(Tp* first, size_t n)
-{
-    while (n--)
-    {
-        swap(*first);
-        ++first;
-    }
-    return first;
-}
-
-template <typename Tp>
-inline Tp* swap_n_dynamic(Tp* first, size_t n)
-{
-    while (n--)
-    {
-        first = swap(*first);
-    }
-    return first;
-}
+inline Tp* swap(Tp&);
 
 inline void swap(uint8_t&)
 { }
@@ -98,6 +80,27 @@ inline void swap(float& in)
 inline void swap(double& in)
 {
     swap(reinterpret_cast<uint64_t&>(in));
+}
+
+template <typename Tp>
+inline Tp* swap_n_fixed(Tp* first, size_t n)
+{
+    while (n--)
+    {
+        swap(*first);
+        ++first;
+    }
+    return first;
+}
+
+template <typename Tp>
+inline Tp* swap_n_dynamic(Tp* first, size_t n)
+{
+    while (n--)
+    {
+        first = swap(*first);
+    }
+    return first;
 }
 
 } // namespace prophy

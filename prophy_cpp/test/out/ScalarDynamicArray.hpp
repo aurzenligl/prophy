@@ -12,7 +12,8 @@ struct ScalarDynamicArray
 namespace prophy
 {
 
-inline ScalarDynamicArray* swap(ScalarDynamicArray& payload)
+template <>
+inline ScalarDynamicArray* swap<ScalarDynamicArray>(ScalarDynamicArray& payload)
 {
     swap(payload.num_of_x);
     return cast<ScalarDynamicArray*>(

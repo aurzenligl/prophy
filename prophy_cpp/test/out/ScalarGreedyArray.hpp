@@ -12,7 +12,8 @@ struct ScalarGreedyArray
 namespace prophy
 {
 
-inline ScalarGreedyArray* swap(ScalarGreedyArray& payload)
+template <>
+inline ScalarGreedyArray* swap<ScalarGreedyArray>(ScalarGreedyArray& payload)
 {
     swap(payload.x);
     return cast<ScalarGreedyArray*>(

@@ -14,7 +14,8 @@ struct DynamicCompositeGreedyArray
 namespace prophy
 {
 
-inline DynamicCompositeGreedyArray* swap(DynamicCompositeGreedyArray& payload)
+template <>
+inline DynamicCompositeGreedyArray* swap<DynamicCompositeGreedyArray>(DynamicCompositeGreedyArray& payload)
 {
     swap(payload.x);
     return cast<DynamicCompositeGreedyArray*>(

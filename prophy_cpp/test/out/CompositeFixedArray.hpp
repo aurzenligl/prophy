@@ -13,7 +13,8 @@ struct CompositeFixedArray
 namespace prophy
 {
 
-inline CompositeFixedArray* swap(CompositeFixedArray& payload)
+template <>
+inline CompositeFixedArray* swap<CompositeFixedArray>(CompositeFixedArray& payload)
 {
     swap_n_fixed(payload.a, 3);
     return &payload + 1;
