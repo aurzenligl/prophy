@@ -30,3 +30,17 @@ def test_generate_typedefs():
     assert generate(nodes) == """\
 typedef b a;
 """
+
+def test_generate_enums():
+    nodes = [model.Enum("EEnum", [model.EnumMember("EEnum_A", "0"),
+                                  model.EnumMember("EEnum_B", "1"),
+                                  model.EnumMember("EEnum_C", "2")])]
+
+    assert generate(nodes) == """\
+enum EEnum
+{
+    EEnum_A = 0,
+    EEnum_B = 1,
+    EEnum_C = 2
+};
+"""

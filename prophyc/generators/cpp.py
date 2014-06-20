@@ -11,11 +11,16 @@ def _generate_constant(constant):
 def _generate_typedef(typedef):
     return 'typedef {} {};'.format(typedef.type, typedef.name)
 
+def _generate_enum(enum):
+    members = ',\n'.join('    {} = {}'.format(name, value)
+                         for name, value in enum.members)
+    return 'enum {}\n{{\n{}\n}};'.format(enum.name, members)
+
 _generate_visitor = {
     model.Include: _generate_include,
     model.Constant: _generate_constant,
     model.Typedef: _generate_typedef,
-#    model.Enum: _generate_enum,
+    model.Enum: _generate_enum,
 #    model.Struct: _generate_struct,
 #    model.Union: _generate_union
 }
