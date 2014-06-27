@@ -72,3 +72,45 @@ struct Struct
     uint8_t a[1]; /// dynamic array, size in tmpName
 };
 """
+
+def test_generate_struct_with_fixed_array():
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS", False)])]
+
+    assert generate(nodes) == """\
+struct Struct
+{
+    uint8_t a[NUM_OF_ARRAY_ELEMS];
+};
+"""
+
+def test_generate_struct_with_limited_array():
+    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8", None, None, None, False),
+                                     model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS", False)])]
+
+    assert generate(nodes) == """\
+struct Struct
+{
+    uint8_t a_len;
+    uint8_t a[NUM_OF_ARRAY_ELEMS]; /// limited array, size in a_len
+};
+"""
+
+def test_generate_struct_with_byte():
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", False, None, None, None)])]
+
+    assert generate(nodes) == """\
+struct Struct
+{
+    uint8_t a;
+};
+"""
+
+def test_generate_struct_with_byte_array():
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", True, None, None, None)])]
+
+    assert generate(nodes) == """\
+struct Struct
+{
+    uint8_t a[1]; /// greedy array
+};
+"""
