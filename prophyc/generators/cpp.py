@@ -31,8 +31,31 @@ def _generate_enum(enum):
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, members)
 
 def _generate_struct(struct):
-    members = ''.join('    {} {};\n'.format(primitive_types.get(mem.type, mem.type), mem.name)
-                      for mem in struct.members)
+    def gen_member(member):
+        def build_annotation(member):
+            if member.array_size:
+                if member.array_bound:
+                    annotation = 'limited array, size in {}'.format(member.array_bound)
+                else:
+                    annotation = ''
+            else:
+                if member.array_bound:
+                    annotation = 'dynamic array, size in {}'.format(member.array_bound)
+                else:
+                    annotation = 'greedy array'
+            return annotation
+
+        typename = primitive_types.get(member.type, member.type)
+        if member.array:
+            annotation = build_annotation(member)
+            size = member.array_size or 1
+            if annotation:
+                return '    {} {}[{}]; /// {}\n'.format(typename, member.name, size, annotation)
+            else:
+                return '    {} {}[{}];\n'.format(typename, member.name, size)
+        return '    {} {};\n'.format(typename, member.name)
+
+    members = ''.join(map(gen_member, struct.members))
     return 'struct {}\n{{\n{}}};'.format(struct.name, members)
 
 _generate_visitor = {

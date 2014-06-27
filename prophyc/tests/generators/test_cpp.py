@@ -60,3 +60,15 @@ struct Struct
     TTypeX d;
 };
 """
+
+def test_generate_struct_with_dynamic_array():
+    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems", None, None, None, False),
+                                     model.StructMember("a", "u8", True, "tmpName", None, False)])]
+
+    assert generate(nodes) == """\
+struct Struct
+{
+    TNumberOfItems tmpName;
+    uint8_t a[1]; /// dynamic array, size in tmpName
+};
+"""
