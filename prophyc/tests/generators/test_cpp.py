@@ -44,3 +44,19 @@ enum EEnum
     EEnum_C = 2
 };
 """
+
+def test_generate_struct():
+    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8", None, None, None, False)),
+                                     (model.StructMember("b", "i64", None, None, None, False)),
+                                     (model.StructMember("c", "r32", None, None, None, False)),
+                                     (model.StructMember("d", "TTypeX", None, None, None, False))])]
+
+    assert generate(nodes) == """\
+struct Struct
+{
+    uint8_t a;
+    int64_t b;
+    float c;
+    TTypeX d;
+};
+"""
