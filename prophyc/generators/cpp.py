@@ -73,7 +73,9 @@ def _generate(node):
 def _generator(nodes):
     last_node = None
     for node in nodes:
-        prepend_newline = bool(last_node and type(node) is not type(last_node))
+        prepend_newline = bool(last_node
+                               and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
+                                    or type(last_node) is not type(node)))
         yield prepend_newline * '\n' + _generate(node) + '\n'
         last_node = node
 

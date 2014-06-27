@@ -114,3 +114,47 @@ struct Struct
     uint8_t a[1]; /// greedy array
 };
 """
+
+def test_generate_struct_with_byte_array():
+    nodes = [model.Typedef("a", "b"),
+             model.Typedef("c", "d"),
+             model.Enum("E1", [model.EnumMember("E1_A", "0")]),
+             model.Enum("E2", [model.EnumMember("E2_A", "0")]),
+             model.Constant("CONST_A", "0"),
+             model.Typedef("e", "f"),
+             model.Constant("CONST_B", "0"),
+             model.Constant("CONST_C", "0"),
+             model.Struct("A", [model.StructMember("a", "u32", False, None, None, None)]),
+             model.Struct("B", [model.StructMember("b", "u32", False, None, None, None)])]
+
+    assert generate(nodes) == """\
+typedef b a;
+typedef d c;
+
+enum E1
+{
+    E1_A = 0
+};
+
+enum E2
+{
+    E2_A = 0
+};
+
+enum { CONST_A = 0 };
+
+typedef f e;
+
+enum { CONST_B = 0 };
+enum { CONST_C = 0 };
+
+struct A
+{
+    uint32_t a;
+};
+
+struct B
+{
+    uint32_t b;
+};
+"""
