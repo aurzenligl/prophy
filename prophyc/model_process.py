@@ -1,0 +1,57 @@
+import model
+
+class StructKind:
+    FIXED = 0
+    DYNAMIC = 1
+    UNLIMITED = 2
+
+def build_types(nodes):
+    return {node.name: node for node in nodes}
+
+def build_kinds(types, nodes):
+    kinds = {}
+
+    def is_unlimited_array(member):
+        return (member.array and
+                not member.array_bound and
+                not member.array_size)
+
+    def is_dynamic_array(member):
+        return (member.array and
+                member.array_bound and
+                not member.array_size)
+
+    def is_unlimited_struct(member):
+        tp = types.get(member.type)
+        while type(tp) is model.Typedef:
+            tp = types.get(tp.type)
+        if type(tp) is model.Struct:
+            return kinds.get(tp.name) == StructKind.UNLIMITED
+        return False
+
+    def is_dynamic_struct(member):
+        tp = types.get(member.type)
+        while type(tp) is model.Typedef:
+            tp = types.get(tp.type)
+        if type(tp) is model.Struct:
+            return kinds.get(tp.name) == StructKind.DYNAMIC
+        return False
+
+    for node in nodes:
+        if type(node) is model.Struct:
+            if node.members:
+                if (is_unlimited_array(node.members[-1]) or
+                        is_unlimited_struct(node.members[-1])):
+                    kinds[node.name] = StructKind.UNLIMITED
+                    continue
+                if any((is_dynamic_array(member) or
+                            is_dynamic_struct(member))
+                       for member in node.members):
+                    kinds[node.name] = StructKind.DYNAMIC
+                    continue
+            kinds[node.name] = StructKind.FIXED
+
+    return kinds
+
+def partition(types, kinds, members):
+    return members, []
