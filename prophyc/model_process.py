@@ -21,19 +21,22 @@ def build_kinds(types, nodes):
                 member.array_bound and
                 not member.array_size)
 
-    def is_unlimited_struct(member):
+    def _get_struct_from_member(member):
         tp = types.get(member.type)
         while type(tp) is model.Typedef:
             tp = types.get(tp.type)
         if type(tp) is model.Struct:
+            return tp
+
+    def is_unlimited_struct(member):
+        tp = _get_struct_from_member(member)
+        if tp:
             return kinds.get(tp.name) == StructKind.UNLIMITED
         return False
 
     def is_dynamic_struct(member):
-        tp = types.get(member.type)
-        while type(tp) is model.Typedef:
-            tp = types.get(tp.type)
-        if type(tp) is model.Struct:
+        tp = _get_struct_from_member(member)
+        if tp:
             return kinds.get(tp.name) == StructKind.DYNAMIC
         return False
 
