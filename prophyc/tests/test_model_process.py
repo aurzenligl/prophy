@@ -1,6 +1,11 @@
 from prophyc import model
 from prophyc import model_process
 
+def partition(nodes, name):
+    types = model_process.build_types(nodes)
+    kinds = model_process.build_kinds(types, nodes)
+    return model_process.partition(types, kinds, types[name].members)
+
 def test_types():
     nodes = [model.Include("szydlo"),
              model.Constant("CONST_A", "0"),
@@ -86,9 +91,7 @@ def test_partition_fixed():
         ])
     ]
 
-    types = model_process.build_types(nodes)
-    kinds = model_process.build_kinds(types, nodes)
-    main, parts = model_process.partition(types, kinds, types["Fixed"].members)
+    main, parts = partition(nodes, "Fixed")
 
     assert main == [
         model.StructMember("a", "u8", None, None, None, False),
@@ -109,9 +112,7 @@ def test_partition_many_arrays():
         ]),
     ]
 
-    types = model_process.build_types(nodes)
-    kinds = model_process.build_kinds(types, nodes)
-    main, parts = model_process.partition(types, kinds, types["ManyArrays"].members)
+    main, parts = partition(nodes, "ManyArrays")
 
     assert main == [
         model.StructMember("num_of_a", "u8", None, None, None, False),
@@ -138,9 +139,7 @@ def test_partition_many_arrays_mixed():
         ]),
     ]
 
-    types = model_process.build_types(nodes)
-    kinds = model_process.build_kinds(types, nodes)
-    main, parts = model_process.partition(types, kinds, types["ManyArraysMixed"].members)
+    main, parts = partition(nodes, "ManyArraysMixed")
 
     assert main == [
         model.StructMember("num_of_a", "u8", None, None, None, False),
@@ -166,9 +165,7 @@ def test_partition_dynamic_struct():
         ])
     ]
 
-    types = model_process.build_types(nodes)
-    kinds = model_process.build_kinds(types, nodes)
-    main, parts = model_process.partition(types, kinds, types["X"].members)
+    main, parts = partition(nodes, "X")
 
     assert main == [
         model.StructMember("a", "u8", None, None, None, False),
@@ -193,9 +190,7 @@ def test_partition_many_dynamic_structs():
         ])
     ]
 
-    types = model_process.build_types(nodes)
-    kinds = model_process.build_kinds(types, nodes)
-    main, parts = model_process.partition(types, kinds, types["X"].members)
+    main, parts = partition(nodes, "X")
 
     assert main == [
         model.StructMember("a", "Dynamic", None, None, None, False)
