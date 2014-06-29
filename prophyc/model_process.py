@@ -57,4 +57,37 @@ def build_kinds(types, nodes):
     return kinds
 
 def partition(types, kinds, members):
-    return members, []
+
+    def is_dynamic_array(member):
+        return (member.array and
+                member.array_bound and
+                not member.array_size)
+
+    def _get_struct_from_member(member):
+        tp = types.get(member.type)
+        while type(tp) is model.Typedef:
+            tp = types.get(tp.type)
+        if type(tp) is model.Struct:
+            return tp
+
+    def is_dynamic_struct(member):
+        tp = _get_struct_from_member(member)
+        if tp:
+            return kinds.get(tp.name) == StructKind.DYNAMIC
+        return False
+
+    def is_dynamic(member):
+        return is_dynamic_array(member) or is_dynamic_struct(member)
+
+    main = []
+    parts = []
+    current = main
+    for member in members[:-1]:
+        current.append(member)
+        if is_dynamic(member):
+            current = []
+            parts.append(current)
+    if members:
+        current.append(members[-1])
+
+    return main, parts
