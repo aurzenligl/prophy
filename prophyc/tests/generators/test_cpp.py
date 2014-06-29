@@ -171,6 +171,38 @@ struct ManyArraysMixed
 };
 """
 
+def test_generate_struct_with_dynamic_fields():
+    nodes = [
+        model.Struct("Dynamic", [
+            model.StructMember("num_of_a", "u8", None, None, None, False),
+            model.StructMember("a", "u8", True, "num_of_a", None, False)
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "u8", None, None, None, False),
+            model.StructMember("b", "Dynamic", None, None, None, False),
+            model.StructMember("c", "u8", None, None, None, False)
+        ])
+    ]
+
+    assert generate(nodes) == """\
+struct Dynamic
+{
+    uint8_t num_of_a;
+    uint8_t a[1]; /// dynamic array, size in num_of_a
+};
+
+struct X
+{
+    uint8_t a;
+    Dynamic b;
+
+    struct part2
+    {
+        uint8_t c;
+    } _2;
+};
+"""
+
 def test_generate_newlines():
     nodes = [model.Typedef("a", "b"),
              model.Typedef("c", "d"),
