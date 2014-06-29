@@ -5,7 +5,7 @@ class StructKind:
     DYNAMIC = 1
     UNLIMITED = 2
 
-class ProcessedModel(object):
+class ProcessedNodes(object):
 
     def __init__(self, nodes):
         self.nodes = nodes
