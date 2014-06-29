@@ -4,6 +4,9 @@ from prophyc.generators.cpp import CppGenerator
 def generate(nodes):
     return CppGenerator().generate_definitions(nodes)
 
+def generate_full(nodes, basename):
+    return CppGenerator().serialize_string(nodes, basename)
+
 def test_generate_includes():
     nodes = [model.Include("szydlo"),
              model.Include("mydlo"),
@@ -245,4 +248,25 @@ struct B
 {
     uint32_t b;
 };
+"""
+
+def test_generate_struct():
+    nodes = [
+        model.Struct("Struct", [
+            (model.StructMember("a", "u8", None, None, None, False))
+        ])
+    ]
+
+    assert generate_full(nodes, "TestFile") == """\
+#ifndef _PROPHY_GENERATED_TestFile_HPP
+#define _PROPHY_GENERATED_TestFile_HPP
+
+#include <prophy/prophy.hpp>
+
+struct Struct
+{
+    uint8_t a;
+};
+
+#endif  /* _PROPHY_GENERATED_TestFile_HPP */
 """

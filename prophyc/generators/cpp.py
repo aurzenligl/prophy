@@ -95,7 +95,33 @@ def _generator(nodes):
         yield prepend_newline * '\n' + _generate(pnodes, node) + '\n'
         last_node = node
 
+header = """\
+#ifndef _PROPHY_GENERATED_{0}_HPP
+#define _PROPHY_GENERATED_{0}_HPP
+
+#include <prophy/prophy.hpp>
+"""
+
+footer = """\
+#endif  /* _PROPHY_GENERATED_{0}_HPP */
+"""
+
 class CppGenerator(object):
+
+    def __init__(self, output_dir = "."):
+        self.output_dir = output_dir
 
     def generate_definitions(self, nodes):
         return ''.join(_generator(nodes))
+
+    def serialize_string(self, nodes, basename):
+        return '\n'.join((
+            header.format(basename),
+            self.generate_definitions(nodes),
+            footer.format(basename)
+        ))
+
+    def serialize(self, nodes, basename):
+        path = os.path.join(self.output_dir, basename + ".py")
+        out = self.serialize_string(nodes, basename)
+        open(path, "w").write(out)
