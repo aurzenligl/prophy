@@ -1,6 +1,7 @@
 import os
 
 from prophyc import model
+from prophyc import model_process
 
 primitive_types = {
     'u8': 'uint8_t',
@@ -16,21 +17,25 @@ primitive_types = {
     'byte': 'uint8_t',
 }
 
-def _generate_include(include):
+def _indent(string_, spaces):
+    indentation = spaces * ' '
+    return indentation + ('\n' + indentation).join(string_.split('\n'))
+
+def _generate_include(pnodes, include):
     return '#include "{}.hpp"'.format(include.name)
 
-def _generate_constant(constant):
+def _generate_constant(pnodes, constant):
     return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
 
-def _generate_typedef(typedef):
+def _generate_typedef(pnodes, typedef):
     return 'typedef {} {};'.format(typedef.type, typedef.name)
 
-def _generate_enum(enum):
+def _generate_enum(pnodes, enum):
     members = ',\n'.join('    {} = {}'.format(name, value)
                          for name, value in enum.members)
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, members)
 
-def _generate_struct(struct):
+def _generate_struct(pnodes, struct):
     def gen_member(member):
         def build_annotation(member):
             if member.array_size:
@@ -54,9 +59,19 @@ def _generate_struct(struct):
             else:
                 return '    {} {}[{}];\n'.format(typename, member.name, size)
         return '    {} {};\n'.format(typename, member.name)
+    def gen_part(i, part):
+        generated = 'struct part{0}\n{{\n{1}}} _{0};'.format(
+            i + 2,
+            ''.join(map(gen_member, part))
+        )
+        return _indent(generated, 4)
 
-    members = ''.join(map(gen_member, struct.members))
-    return 'struct {}\n{{\n{}}};'.format(struct.name, members)
+    main, parts = pnodes.partition(struct.members)
+    generated = ''.join(map(gen_member, main))
+    if parts:
+        generated += '\n' + '\n\n'.join(map(gen_part, range(len(parts)), parts)) + '\n'
+
+    return 'struct {}\n{{\n{}}};'.format(struct.name, generated)
 
 _generate_visitor = {
     model.Include: _generate_include,
@@ -67,16 +82,17 @@ _generate_visitor = {
 #    model.Union: _generate_union
 }
 
-def _generate(node):
-    return _generate_visitor[type(node)](node)
+def _generate(pnodes, node):
+    return _generate_visitor[type(node)](pnodes, node)
 
 def _generator(nodes):
+    pnodes = model_process.ProcessedNodes(nodes)
     last_node = None
     for node in nodes:
         prepend_newline = bool(last_node
                                and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
                                     or type(last_node) is not type(node)))
-        yield prepend_newline * '\n' + _generate(node) + '\n'
+        yield prepend_newline * '\n' + _generate(pnodes, node) + '\n'
         last_node = node
 
 class CppGenerator(object):

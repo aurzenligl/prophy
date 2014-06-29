@@ -115,7 +115,63 @@ struct Struct
 };
 """
 
-def test_generate_struct_with_byte_array():
+def test_generate_struct_many_arrays():
+    nodes = [
+        model.Struct("ManyArrays", [
+            model.StructMember("num_of_a", "u8", None, None, None, False),
+            model.StructMember("a", "u8", True, "num_of_a", None, False),
+            model.StructMember("num_of_b", "u8", None, None, None, False),
+            model.StructMember("b", "u8", True, "num_of_b", None, False),
+            model.StructMember("num_of_c", "u8", None, None, None, False),
+            model.StructMember("c", "u8", True, "num_of_c", None, False)
+        ])
+    ]
+
+    assert generate(nodes) == """\
+struct ManyArrays
+{
+    uint8_t num_of_a;
+    uint8_t a[1]; /// dynamic array, size in num_of_a
+
+    struct part2
+    {
+        uint8_t num_of_b;
+        uint8_t b[1]; /// dynamic array, size in num_of_b
+    } _2;
+
+    struct part3
+    {
+        uint8_t num_of_c;
+        uint8_t c[1]; /// dynamic array, size in num_of_c
+    } _3;
+};
+"""
+
+def test_generate_struct_many_arrays_mixed():
+    nodes = [
+        model.Struct("ManyArraysMixed", [
+            model.StructMember("num_of_a", "u8", None, None, None, False),
+            model.StructMember("num_of_b", "u8", None, None, None, False),
+            model.StructMember("a", "u8", True, "num_of_a", None, False),
+            model.StructMember("b", "u8", True, "num_of_b", None, False)
+        ])
+    ]
+
+    assert generate(nodes) == """\
+struct ManyArraysMixed
+{
+    uint8_t num_of_a;
+    uint8_t num_of_b;
+    uint8_t a[1]; /// dynamic array, size in num_of_a
+
+    struct part2
+    {
+        uint8_t b[1]; /// dynamic array, size in num_of_b
+    } _2;
+};
+"""
+
+def test_generate_newlines():
     nodes = [model.Typedef("a", "b"),
              model.Typedef("c", "d"),
              model.Enum("E1", [model.EnumMember("E1_A", "0")]),
