@@ -169,3 +169,78 @@ class X(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('x', prophy.r64)]
 """ == open("input.py").read()
+
+def test_isar_cpp(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <struct name="Test">
+        <member name="x" type="u32">
+            <dimension isVariableSize="true"/>
+        </member>
+    </struct>
+</xml>
+""")
+
+    ret, out, err = call(["--isar",
+                          "--cpp_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert open("input.hpp").read() == """\
+#ifndef _PROPHY_GENERATED_input_HPP
+#define _PROPHY_GENERATED_input_HPP
+
+#include <prophy/prophy.hpp>
+
+struct Test
+{
+    uint32_t x_len;
+    uint32_t x[1]; /// dynamic array, size in x_len
+};
+
+#endif  /* _PROPHY_GENERATED_input_HPP */
+"""
+
+def test_multiple_outputs(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <struct name="Test">
+        <member name="x" type="u32"/>
+    </struct>
+</xml>
+""")
+
+    ret, out, err = call(["--isar",
+                          "--python_out", str(tmpdir_cwd),
+                          "--cpp_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert open("input.py").read() == """\
+import prophy
+
+def bitMaskOr(x, y):
+    return x | y
+
+def shiftLeft(x, y):
+    return x << y
+
+class Test(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('x', prophy.u32)]
+"""
+    assert open("input.hpp").read() == """\
+#ifndef _PROPHY_GENERATED_input_HPP
+#define _PROPHY_GENERATED_input_HPP
+
+#include <prophy/prophy.hpp>
+
+struct Test
+{
+    uint32_t x;
+};
+
+#endif  /* _PROPHY_GENERATED_input_HPP */
+"""

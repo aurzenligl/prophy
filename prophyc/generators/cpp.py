@@ -122,6 +122,6 @@ class CppGenerator(object):
         ))
 
     def serialize(self, nodes, basename):
-        path = os.path.join(self.output_dir, basename + ".py")
+        path = os.path.join(self.output_dir, basename + ".hpp")
         out = self.serialize_string(nodes, basename)
         open(path, "w").write(out)

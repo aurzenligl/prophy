@@ -19,10 +19,15 @@ def main():
         from prophyc.parsers.sack import SackParser
         parser = SackParser(opts.include_dirs)
 
+    serializers = []
     if opts.python_out:
         from prophyc.generators.python import PythonGenerator
-        serializer = PythonGenerator(opts.python_out)
-    else:
+        serializers.append(PythonGenerator(opts.python_out))
+    if opts.cpp_out:
+        from prophyc.generators.cpp import CppGenerator
+        serializers.append(CppGenerator(opts.cpp_out))
+
+    if not serializers:
         sys.exit("Missing output directives")
 
     for input_file in opts.input_files:
@@ -34,7 +39,8 @@ def main():
             patch.patch(nodes, patches)
 
         model_sort.model_sort(nodes)
-        serializer.serialize(nodes, basename)
+        for serializer in serializers:
+            serializer.serialize(nodes, basename)
 
 if __name__ == "__main__":
     main()

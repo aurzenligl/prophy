@@ -38,6 +38,10 @@ def parse_options():
                         type = readable_dir,
                         help = 'python output directory')
 
+    parser.add_argument('--cpp_out',
+                        type = readable_dir,
+                        help = 'cpp output directory')
+
     parser.add_argument('input_files',
                         type = readable_file,
                         nargs = '+',
