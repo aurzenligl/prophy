@@ -2,18 +2,18 @@ from prophyc import model
 from prophyc import model_process
 
 def partition(nodes, name):
-    types = model_process.build_types(nodes)
-    kinds = model_process.build_kinds(types, nodes)
-    return model_process.partition(types, kinds, types[name].members)
+    processed = model_process.ProcessedModel(nodes)
+    members = processed.types[name].members
+    return processed.partition(members)
 
 def test_types():
     nodes = [model.Include("szydlo"),
              model.Constant("CONST_A", "0"),
              model.Typedef("a", "b")]
 
-    types = model_process.build_types(nodes)
+    processed = model_process.ProcessedModel(nodes)
 
-    assert types == {
+    assert processed.types == {
         "szydlo": model.Include("szydlo"),
         "CONST_A": model.Constant("CONST_A", "0"),
         "a": model.Typedef("a", "b")
@@ -64,10 +64,9 @@ def test_kinds():
         ]),
     ]
 
-    types = model_process.build_types(nodes)
-    kinds = model_process.build_kinds(types, nodes)
+    processed = model_process.ProcessedModel(nodes)
 
-    assert kinds == {
+    assert processed.kinds == {
         "Empty": model_process.StructKind.FIXED,
         "Dynamic": model_process.StructKind.DYNAMIC,
         "Fixed": model_process.StructKind.FIXED,

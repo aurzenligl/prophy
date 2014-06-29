@@ -56,7 +56,7 @@ def build_kinds(types, nodes):
 
     return kinds
 
-def partition(types, kinds, members):
+def _partition(types, kinds, members):
 
     def is_dynamic_array(member):
         return (member.array and
@@ -91,3 +91,13 @@ def partition(types, kinds, members):
         current.append(members[-1])
 
     return main, parts
+
+class ProcessedModel(object):
+
+    def __init__(self, nodes):
+        self.nodes = nodes
+        self.types = build_types(nodes)
+        self.kinds = build_kinds(self.types, nodes)
+
+    def partition(self, members):
+        return _partition(self.types, self.kinds, members)
