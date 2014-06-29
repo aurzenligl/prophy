@@ -23,13 +23,6 @@ class ProcessedModel(object):
                         continue
                 self.kinds[node.name] = StructKind.FIXED
 
-    def _get_struct_from_member(self, member):
-        tp = self.types.get(member.type)
-        while type(tp) is model.Typedef:
-            tp = self.types.get(tp.type)
-        if type(tp) is model.Struct:
-            return tp
-
     def _is_unlimited_array(self, member):
         return (member.array and
                 not member.array_bound and
@@ -40,23 +33,22 @@ class ProcessedModel(object):
                 member.array_bound and
                 not member.array_size)
 
-    def _is_unlimited_struct(self, member):
-        tp = self._get_struct_from_member(member)
-        if tp:
-            return self.kinds.get(tp.name) == StructKind.UNLIMITED
-        return False
-
-    def _is_dynamic_struct(self, member):
-        tp = self._get_struct_from_member(member)
-        if tp:
-            return self.kinds.get(tp.name) == StructKind.DYNAMIC
-        return False
+    def _get_kind(self, member):
+        tp = self.types.get(member.type)
+        while type(tp) is model.Typedef:
+            tp = self.types.get(tp.type)
+        if type(tp) is model.Struct:
+            return self.kinds.get(tp.name, StructKind.FIXED)
+        else:
+            return StructKind.FIXED
 
     def _is_dynamic(self, member):
-        return self._is_dynamic_array(member) or self._is_dynamic_struct(member)
+        return (self._is_dynamic_array(member) or
+                self._get_kind(member) == StructKind.DYNAMIC)
 
     def _is_unlimited(self, member):
-        return self._is_unlimited_array(member) or self._is_unlimited_struct(member)
+        return (self._is_unlimited_array(member) or
+                self._get_kind(member) == StructKind.UNLIMITED)
 
     def partition(self, members):
         main = []
