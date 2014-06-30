@@ -28,7 +28,7 @@ def make_constant(elem):
 def make_typedef(elem):
     if "type" in elem.attrib:
         return model.Typedef(elem.get("name"), elem.get("type"))
-    elif "primitiveType" in elem.attrib:
+    elif "primitiveType" in elem.attrib and elem.get("name") not in primitive_types.values():
         return model.Typedef(elem.get("name"), primitive_types[elem.get("primitiveType")])
 
 def make_enum_member(elem):
