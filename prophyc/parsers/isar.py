@@ -3,10 +3,42 @@ from itertools import ifilter, islice
 
 from prophyc import model
 
-"""
-TODO:
-- arrays of u8 type should be string or bytes fields
-"""
+def extract_operator_args(string_, pos):
+    brackets = 0
+    open_pos = pos
+    comma_pos = pos
+    close_pos = pos
+    for i, char in enumerate(string_[pos:]):
+        if char == '(':
+            brackets += 1
+            if brackets == 1:
+                open_pos += i
+        elif char == ',':
+            if brackets == 1:
+                comma_pos += i
+        elif char == ')':
+            brackets -= 1
+            if not brackets:
+                close_pos += i
+                break
+    first = string_[open_pos + 1 : comma_pos].strip()
+    second = string_[comma_pos + 1 : close_pos].strip()
+    return pos, close_pos + 1, first, second
+
+operators = (
+    ('shiftLeft(', '<<'),
+    ('bitMaskOr(', '|')
+)
+
+def expand_operators(string_):
+    for operator in operators:
+        while True:
+            pos = string_.find(operator[0])
+            if pos == -1:
+                break
+            open_pos, close_pos, arg1, arg2 = extract_operator_args(string_, pos)
+            string_ = string_[:open_pos] + '(({}) {} ({}))'.format(arg1, operator[1], arg2) + string_[close_pos:]
+    return string_
 
 primitive_types = {"8 bit integer unsigned": "u8",
                    "16 bit integer unsigned": "u16",
@@ -23,7 +55,7 @@ def make_include(elem):
     return model.Include(elem.get("href").split('.')[0])
 
 def make_constant(elem):
-    return model.Constant(elem.get("name"), elem.get("value"))
+    return model.Constant(elem.get("name"), expand_operators(elem.get("value")))
 
 def make_typedef(elem):
     if "type" in elem.attrib:
@@ -34,7 +66,7 @@ def make_typedef(elem):
 def make_enum_member(elem):
     value = elem.get('value')
     value = value if value != "-1" else "0xFFFFFFFF"
-    return model.EnumMember(elem.get("name"), value)
+    return model.EnumMember(elem.get("name"), expand_operators(value))
 
 def make_enum(elem):
     if len(elem):

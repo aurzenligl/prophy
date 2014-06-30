@@ -2,6 +2,7 @@ from collections import namedtuple
 
 from prophyc import model
 from prophyc.parsers.isar import IsarParser
+from prophyc.parsers.isar import expand_operators
 
 def parse(xml_string):
     return IsarParser().parse_string(xml_string)
@@ -325,3 +326,31 @@ def test_primitive_types():
 
     assert nodes == [("ImNotAPrimitiveType", "u32")]
 
+def test_operator_expansion():
+    assert expand_operators('bitMaskOr(1, 2)') == '((1) | (2))'
+    assert expand_operators('shiftLeft(1, 2)') == '((1) << (2))'
+
+    assert expand_operators('bitMaskOr(1 ,2)') == '((1) | (2))'
+    assert expand_operators('bitMaskOr(1 , 2)') == '((1) | (2))'
+
+    assert (expand_operators('shiftLeft(bitMaskOr(1, 2), bitMaskOr(3, 4))') ==
+                '((((1) | (2))) << (((3) | (4))))')
+
+def test_operator_expansion_in_enum_and_constant():
+    xml = """\
+<x>
+    <constant name="Constant" value="bitMaskOr(value_one, value_two)"/>
+    <enum name="Enum">
+        <enum-member name="Enum_A" value="shiftLeft(Constant, 16)"/>
+    </enum>
+</x>
+"""
+
+    nodes = parse(xml)
+
+    assert nodes == [
+        ("Constant", "((value_one) | (value_two))"),
+        ("Enum", [
+            ("Enum_A", "((Constant) << (16))")
+        ])
+    ]
