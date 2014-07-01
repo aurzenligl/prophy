@@ -19,7 +19,7 @@ primitive_types = {
 
 def _indent(string_, spaces):
     indentation = spaces * ' '
-    return indentation + ('\n' + indentation).join(string_.split('\n'))
+    return '\n'.join(indentation + x if x else x for x in string_.split('\n'))
 
 def _generate_include(pnodes, include):
     return '#include "{}.hpp"'.format(include.name)
@@ -32,9 +32,9 @@ def _generate_typedef(pnodes, typedef):
     return 'typedef {} {};'.format(tp, typedef.name)
 
 def _generate_enum(pnodes, enum):
-    members = ',\n'.join('    {} = {}'.format(name, value)
+    members = ',\n'.join('{} = {}'.format(name, value)
                          for name, value in enum.members)
-    return 'enum {}\n{{\n{}\n}};'.format(enum.name, members)
+    return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
 def _generate_struct(pnodes, struct):
     def gen_member(member):
@@ -56,24 +56,24 @@ def _generate_struct(pnodes, struct):
             annotation = build_annotation(member)
             size = member.array_size or 1
             if annotation:
-                field = '    {} {}[{}]; /// {}\n'.format(typename, member.name, size, annotation)
+                field = '{0} {1}[{2}]; /// {3}\n'.format(typename, member.name, size, annotation)
             else:
-                field = '    {} {}[{}];\n'.format(typename, member.name, size)
+                field = '{0} {1}[{2}];\n'.format(typename, member.name, size)
         else:
-            field = '    {} {};\n'.format(typename, member.name)
+            field = '{0} {1};\n'.format(typename, member.name)
         if member.optional:
-            return '    prophy::bool_t has_{0};\n'.format(member.name) + field
+            return 'prophy::bool_t has_{0};\n'.format(member.name) + field
         return field
 
     def gen_part(i, part):
         generated = 'struct part{0}\n{{\n{1}}} _{0};'.format(
             i + 2,
-            ''.join(map(gen_member, part))
+            _indent(''.join(map(gen_member, part)), 4)
         )
         return _indent(generated, 4)
 
     main, parts = pnodes.partition(struct.members)
-    generated = ''.join(map(gen_member, main))
+    generated = _indent(''.join(map(gen_member, main)), 4)
     if parts:
         generated += '\n' + '\n\n'.join(map(gen_part, range(len(parts)), parts)) + '\n'
 
