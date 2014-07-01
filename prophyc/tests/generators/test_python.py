@@ -2,7 +2,7 @@ from prophyc import model
 from prophyc.generators.python import PythonGenerator
 
 def serialize(nodes):
-    return PythonGenerator().serialize_string(nodes, header = False)
+    return PythonGenerator().generate_definitions(nodes)
 
 def test_includes_rendering():
     nodes = [model.Include("szydlo"),

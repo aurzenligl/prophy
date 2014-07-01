@@ -6,39 +6,34 @@ libname = "prophy"
 primitive_types = {x + y : "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
 primitive_types['byte'] = '%s.u8' % libname
 
-def _render_header():
-    return """\
-import %s
-""" % libname
-
-def _render_include(include):
+def _generate_include(include):
     return "from %s import *\n" % include
 
-def _render_constant(constant):
+def _generate_constant(constant):
     return "%s = %s\n" % constant
 
-def _render_typedef(typedef):
+def _generate_typedef(typedef):
     return "%s = %s\n" % (typedef.name, ".".join((libname, typedef.type))
                                         if typedef.type in primitive_types
                                         else typedef.type)
 
-def _render_enum_members(members):
+def _generate_enum_members(members):
     return (",\n" + " " * 21).join(("('%s', %s)" % (name, value) for name, value in members))
 
-def _render_enum_constants(members):
+def _generate_enum_constants(members):
     return "\n".join(("%s = %s" % (name, value) for name, value in members))
 
-def _render_enum(enum):
+def _generate_enum(enum):
     return ("class {1}({0}.enum):\n"
             "    __metaclass__ = {0}.enum_generator\n"
             "    _enumerators  = [{2}]\n"
             "\n"
             "{3}\n").format(libname,
                             enum.name,
-                            _render_enum_members(enum.members),
-                            _render_enum_constants(enum.members))
+                            _generate_enum_members(enum.members),
+                            _generate_enum_constants(enum.members))
 
-def _render_struct_member(member):
+def _generate_struct_member(member):
     prefixed_type = primitive_types.get(member.type, member.type)
     if member.optional:
         prefixed_type = "%s.optional(%s)" % (libname, prefixed_type)
@@ -54,47 +49,56 @@ def _render_struct_member(member):
             prefixed_type = '%s.array(%s)' % (libname, ', '.join([prefixed_type] + elem_strs))
     return "('%s', %s)" % (member.name, prefixed_type)
 
-def _render_struct_members(keys):
-    return (",\n" + " " * 19).join((_render_struct_member(member) for member in keys))
+def _generate_struct_members(keys):
+    return (",\n" + " " * 19).join((_generate_struct_member(member) for member in keys))
 
-def _render_struct(struct):
+def _generate_struct(struct):
     return ("class {1}({0}.struct):\n"
             "    __metaclass__ = {0}.struct_generator\n"
             "    _descriptor = [{2}]\n").format(libname,
                                                 struct.name,
-                                                _render_struct_members(struct.members))
+                                                _generate_struct_members(struct.members))
 
-def _render_union_member(member):
+def _generate_union_member(member):
     prefixed_type = ".".join((libname, member.type)) if member.type in primitive_types else member.type
     return "('%s', %s, %s)" % (member.name, prefixed_type, member.discriminator)
 
-def _render_union_members(members):
-    return (",\n" + " "*19).join(_render_union_member(member) for member in members)
+def _generate_union_members(members):
+    return (",\n" + " "*19).join(_generate_union_member(member) for member in members)
 
-def _render_union(union):
+def _generate_union(union):
     return ("class {1}({0}.union):\n"
             "    __metaclass__ = {0}.union_generator\n"
             "    _descriptor = [{2}]\n").format(libname,
                                                 union.name,
-                                                _render_union_members(union.members))
+                                                _generate_union_members(union.members))
 
-render_visitor = {model.Include: _render_include,
-                  model.Constant: _render_constant,
-                  model.Typedef: _render_typedef,
-                  model.Enum: _render_enum,
-                  model.Struct: _render_struct,
-                  model.Union: _render_union}
+generate_visitor = {
+    model.Include: _generate_include,
+    model.Constant: _generate_constant,
+    model.Typedef: _generate_typedef,
+    model.Enum: _generate_enum,
+    model.Struct: _generate_struct,
+    model.Union: _generate_union
+}
 
-def _render(node):
-    return render_visitor[type(node)](node)
+def _generate(node):
+    return generate_visitor[type(node)](node)
 
 class PythonGenerator(object):
 
     def __init__(self, output_dir = "."):
         self.output_dir = output_dir
 
-    def serialize_string(self, nodes, header = True):
-        return "\n".join(header * [_render_header()] + [_render(node) for node in nodes])
+    def generate_definitions(self, nodes):
+        return "\n".join(_generate(node) for node in nodes)
+
+    def serialize_string(self, nodes):
+        header = "import {}\n".format(libname)
+        definitions = self.generate_definitions(nodes)
+        if not definitions:
+            return header
+        return header + "\n" + definitions
 
     def serialize(self, nodes, basename):
         path = os.path.join(self.output_dir, basename + ".py")
