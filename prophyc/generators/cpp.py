@@ -28,7 +28,8 @@ def _generate_constant(pnodes, constant):
     return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
 
 def _generate_typedef(pnodes, typedef):
-    return 'typedef {} {};'.format(typedef.type, typedef.name)
+    tp = primitive_types.get(typedef.type, typedef.type)
+    return 'typedef {} {};'.format(tp, typedef.name)
 
 def _generate_enum(pnodes, enum):
     members = ',\n'.join('    {} = {}'.format(name, value)

@@ -28,10 +28,12 @@ enum { CONST_B = 31 };
 """
 
 def test_generate_typedefs():
-    nodes = [model.Typedef("a", "b")]
+    nodes = [model.Typedef("a", "b"),
+             model.Typedef("c", "u8"),]
 
     assert generate(nodes) == """\
 typedef b a;
+typedef uint8_t c;
 """
 
 def test_generate_enums():
