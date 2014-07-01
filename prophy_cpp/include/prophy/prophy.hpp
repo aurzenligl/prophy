@@ -7,6 +7,8 @@
 namespace prophy
 {
 
+typedef uint32_t bool_t;
+
 template <typename Tp>
 struct alignment
 {

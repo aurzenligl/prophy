@@ -16,6 +16,7 @@
 #include "out/ManyArraysMixed.hpp"
 #include "out/ManyArraysPadding.hpp"
 #include "out/ManyArraysTailFixed.hpp"
+#include "out/Optional.hpp"
 #include "out/Scalar.hpp"
 #include "out/ScalarDynamicArray.hpp"
 #include "out/ScalarFixedArray.hpp"
@@ -343,6 +344,50 @@ TEST(generated, ManyArraysTailFixed)
     ManyArraysTailFixed* next = prophy::swap(reinterpret_cast<ManyArraysTailFixed*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 24);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, Optional)
+{
+    data x(
+        "\x00\x00\x00\x01"
+        "\x00\x00\x00\x01"
+        "\x00\x00\x00\x01"
+        "\x02\x00\x00\x03"
+        "\x04\x00\x00\x05",
+
+        "\x01\x00\x00\x00"
+        "\x01\x00\x00\x00"
+        "\x01\x00\x00\x00"
+        "\x02\x00\x03\x00"
+        "\x04\x00\x05\x00"
+    );
+
+    Optional* next = prophy::swap(reinterpret_cast<Optional*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 20);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, Optional_not_set)
+{
+    data x(
+        "\x00\x00\x00\x00"
+        "\xab\xcd\xef\xab"
+        "\x00\x00\x00\x00"
+        "\xab\xcd\xef\xab"
+        "\xab\xcd\xef\xab",
+
+        "\x00\x00\x00\x00"
+        "\xab\xcd\xef\xab"
+        "\x00\x00\x00\x00"
+        "\xab\xcd\xef\xab"
+        "\xab\xcd\xef\xab"
+    );
+
+    Optional* next = prophy::swap(reinterpret_cast<Optional*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 20);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
