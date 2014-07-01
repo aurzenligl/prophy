@@ -1,6 +1,7 @@
 #ifndef _PROPHY_PROPHY_HPP
 #define _PROPHY_PROPHY_HPP
 
+#include <stddef.h>
 #include <stdint.h>
 
 namespace prophy
