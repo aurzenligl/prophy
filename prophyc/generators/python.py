@@ -7,15 +7,16 @@ primitive_types = {x + y : "%s.%s" % (libname, x + y) for x in "uir" for y in ["
 primitive_types['byte'] = '%s.u8' % libname
 
 def _generate_include(include):
-    return "from %s import *\n" % include
+    return "from %s import *" % include
 
 def _generate_constant(constant):
-    return "%s = %s\n" % constant
+    return "%s = %s" % constant
 
 def _generate_typedef(typedef):
-    return "%s = %s\n" % (typedef.name, ".".join((libname, typedef.type))
-                                        if typedef.type in primitive_types
-                                        else typedef.type)
+    return "%s = %s" % (typedef.name,
+        ".".join((libname, typedef.type))
+        if typedef.type in primitive_types
+        else typedef.type)
 
 def _generate_enum_members(members):
     return (",\n" + " " * 21).join(("('%s', %s)" % (name, value) for name, value in members))
@@ -28,10 +29,10 @@ def _generate_enum(enum):
             "    __metaclass__ = {0}.enum_generator\n"
             "    _enumerators  = [{2}]\n"
             "\n"
-            "{3}\n").format(libname,
-                            enum.name,
-                            _generate_enum_members(enum.members),
-                            _generate_enum_constants(enum.members))
+            "{3}").format(libname,
+                          enum.name,
+                          _generate_enum_members(enum.members),
+                          _generate_enum_constants(enum.members))
 
 def _generate_struct_member(member):
     prefixed_type = primitive_types.get(member.type, member.type)
@@ -55,9 +56,9 @@ def _generate_struct_members(keys):
 def _generate_struct(struct):
     return ("class {1}({0}.struct):\n"
             "    __metaclass__ = {0}.struct_generator\n"
-            "    _descriptor = [{2}]\n").format(libname,
-                                                struct.name,
-                                                _generate_struct_members(struct.members))
+            "    _descriptor = [{2}]").format(libname,
+                                              struct.name,
+                                              _generate_struct_members(struct.members))
 
 def _generate_union_member(member):
     prefixed_type = ".".join((libname, member.type)) if member.type in primitive_types else member.type
@@ -69,9 +70,9 @@ def _generate_union_members(members):
 def _generate_union(union):
     return ("class {1}({0}.union):\n"
             "    __metaclass__ = {0}.union_generator\n"
-            "    _descriptor = [{2}]\n").format(libname,
-                                                union.name,
-                                                _generate_union_members(union.members))
+            "    _descriptor = [{2}]").format(libname,
+                                              union.name,
+                                              _generate_union_members(union.members))
 
 generate_visitor = {
     model.Include: _generate_include,
@@ -85,13 +86,22 @@ generate_visitor = {
 def _generate(node):
     return generate_visitor[type(node)](node)
 
+def _generator(nodes):
+    last_node = None
+    for node in nodes:
+        prepend_newline = bool(last_node
+                               and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
+                                    or type(last_node) is not type(node)))
+        yield prepend_newline * '\n' + _generate(node) + '\n'
+        last_node = node
+
 class PythonGenerator(object):
 
     def __init__(self, output_dir = "."):
         self.output_dir = output_dir
 
     def generate_definitions(self, nodes):
-        return "\n".join(_generate(node) for node in nodes)
+        return ''.join(_generator(nodes))
 
     def serialize_string(self, nodes):
         header = "import {}\n".format(libname)

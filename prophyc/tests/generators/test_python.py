@@ -11,9 +11,7 @@ def test_includes_rendering():
 
     ref = """\
 from szydlo import *
-
 from mydlo import *
-
 from powidlo import *
 """
     assert ref == serialize(nodes)
@@ -24,7 +22,6 @@ def test_constants_rendering():
 
     ref = """\
 CONST_A = 0
-
 CONST_B = 31
 """
     assert ref == serialize(nodes)
@@ -194,33 +191,21 @@ def test_of_PythonGenerator():
 import prophy
 
 from test_include_20 import *
-
 from test_include_80 import *
-
 from test_include_140 import *
 
 C_A = 5
-
 C_B = 5
-
 C_C = C_B + C_A
 
 td_elem_name_20 = td_elem_val_20
-
 td_elem_name_20 = i_td_elem_val_20
-
 td_elem_name_20 = u_td_elem_val_20
-
 td_elem_name_80 = td_elem_val_80
-
 td_elem_name_80 = i_td_elem_val_80
-
 td_elem_name_80 = u_td_elem_val_80
-
 td_elem_name_140 = td_elem_val_140
-
 td_elem_name_140 = i_td_elem_val_140
-
 td_elem_name_140 = u_td_elem_val_140
 
 class test(prophy.enum):
