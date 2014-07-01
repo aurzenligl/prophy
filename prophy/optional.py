@@ -7,6 +7,8 @@ def optional(cls):
         raise ProphyError("optional bytes not implemented")
     if issubclass(cls, container.base_array):
         raise ProphyError("optional array not implemented")
+    if cls._DYNAMIC:
+        raise ProphyError("optional dynamic fields not implemented")
 
     class _optional(cls):
         pass
