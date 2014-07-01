@@ -143,6 +143,6 @@ class CppGenerator(object):
         ))
 
     def serialize(self, nodes, basename):
-        path = os.path.join(self.output_dir, basename + ".hpp")
+        path = os.path.join(self.output_dir, basename + ".pp.hpp")
         out = self.serialize_string(nodes, basename)
         open(path, "w").write(out)

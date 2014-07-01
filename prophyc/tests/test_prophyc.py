@@ -181,7 +181,7 @@ def test_isar_cpp(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert open("input.hpp").read() == """\
+    assert open("input.pp.hpp").read() == """\
 #ifndef _PROPHY_GENERATED_input_HPP
 #define _PROPHY_GENERATED_input_HPP
 
@@ -219,7 +219,7 @@ class Test(prophy.struct):
     __metaclass__ = prophy.struct_generator
     _descriptor = [('x', prophy.u32)]
 """
-    assert open("input.hpp").read() == """\
+    assert open("input.pp.hpp").read() == """\
 #ifndef _PROPHY_GENERATED_input_HPP
 #define _PROPHY_GENERATED_input_HPP
 
