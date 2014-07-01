@@ -22,6 +22,7 @@
 #include "out/ScalarFixedArray.hpp"
 #include "out/ScalarGreedyArray.hpp"
 #include "out/ScalarLimitedArray.hpp"
+#include "out/Union.hpp"
 
 using namespace testing;
 
@@ -477,5 +478,65 @@ TEST(generated, ScalarLimitedArray)
     ScalarLimitedArray* next = prophy::swap(reinterpret_cast<ScalarLimitedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, Union_a)
+{
+    data x(
+        "\x00\x00\x00\x01"
+        "\xab\xcd\xef\xab"
+        "\x01\x00\x00\x00"
+        "\x00\x00\x00\x00",
+
+        "\x01\x00\x00\x00"
+        "\xab\xcd\xef\xab"
+        "\x01\x00\x00\x00"
+        "\x00\x00\x00\x00"
+    );
+
+    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, Union_b)
+{
+    data x(
+        "\x00\x00\x00\x02"
+        "\xab\xcd\xef\xab"
+        "\x00\x00\x00\x00"
+        "\x00\x00\x00\x01",
+
+        "\x02\x00\x00\x00"
+        "\xab\xcd\xef\xab"
+        "\x01\x00\x00\x00"
+        "\x00\x00\x00\x00"
+    );
+
+    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, Union_c)
+{
+    data x(
+        "\x00\x00\x00\x03"
+        "\xab\xcd\xef\xab"
+        "\x01\x00\x00\x02"
+        "\x03\x00\x00\x04",
+
+        "\x03\x00\x00\x00"
+        "\xab\xcd\xef\xab"
+        "\x01\x00\x02\x00"
+        "\x03\x00\x04\x00"
+    );
+
+    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }

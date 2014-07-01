@@ -34,4 +34,4 @@ inline Optional* swap<Optional>(Optional* payload)
 
 } // namespace prophy
 
-#endif  /* _PROPHY_GENERATED_ManyArrays_HPP */
+#endif  /* _PROPHY_GENERATED_Optional_HPP */
