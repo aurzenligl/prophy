@@ -6,12 +6,6 @@ main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__fi
 
 empty_python_output = """\
 import prophy
-
-def bitMaskOr(x, y):
-    return x | y
-
-def shiftLeft(x, y):
-    return x << y
 """
 
 def tr(str_):
@@ -220,12 +214,6 @@ def test_multiple_outputs(tmpdir_cwd):
     assert err == ""
     assert open("input.py").read() == """\
 import prophy
-
-def bitMaskOr(x, y):
-    return x | y
-
-def shiftLeft(x, y):
-    return x << y
 
 class Test(prophy.struct):
     __metaclass__ = prophy.struct_generator

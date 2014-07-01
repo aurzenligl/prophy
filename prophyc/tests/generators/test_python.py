@@ -193,12 +193,6 @@ def test_of_PythonGenerator():
     ref = """\
 import prophy
 
-def bitMaskOr(x, y):
-    return x | y
-
-def shiftLeft(x, y):
-    return x << y
-
 from test_include_20 import *
 
 from test_include_80 import *

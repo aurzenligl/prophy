@@ -9,12 +9,6 @@ primitive_types['byte'] = '%s.u8' % libname
 def _render_header():
     return """\
 import %s
-
-def bitMaskOr(x, y):
-    return x | y
-
-def shiftLeft(x, y):
-    return x << y
 """ % libname
 
 def _render_include(include):
