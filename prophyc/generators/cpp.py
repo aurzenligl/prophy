@@ -79,13 +79,28 @@ def _generate_struct(pnodes, struct):
 
     return 'struct {}\n{{\n{}}};'.format(struct.name, generated)
 
+def _generate_union(pnodes, union):
+    def gen_member(member):
+        typename = primitive_types.get(member.type, member.type)
+        return '{0} {1};\n'.format(typename, member.name)
+
+    enum_fields = ',\n'.join('discriminator_{0} = {1}'.format(mem.name,
+                                                              mem.discriminator)
+                             for mem in union.members)
+    union_fields = ''.join(map(gen_member, union.members))
+    enum_def = 'enum _discriminator\n{{\n{0}\n}} discriminator;'.format(_indent(enum_fields, 4))
+    union_def = 'union\n{{\n{0}}};'.format(_indent(union_fields, 4))
+    return 'struct {0}\n{{\n{1}\n\n{2}\n}};'.format(union.name,
+                                                    _indent(enum_def, 4),
+                                                    _indent(union_def, 4))
+
 _generate_visitor = {
     model.Include: _generate_include,
     model.Constant: _generate_constant,
     model.Typedef: _generate_typedef,
     model.Enum: _generate_enum,
     model.Struct: _generate_struct,
-#    model.Union: _generate_union
+    model.Union: _generate_union
 }
 
 def _generate(pnodes, node):

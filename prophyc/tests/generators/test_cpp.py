@@ -223,6 +223,34 @@ struct Struct
 };
 """
 
+def test_generate_union():
+    nodes = [
+        model.Union("Union", [
+            (model.UnionMember("a", "u8", 1)),
+            (model.UnionMember("b", "u64", 2)),
+            (model.UnionMember("c", "Composite", 3))
+        ])
+    ]
+
+    assert generate(nodes) == """\
+struct Union
+{
+    enum _discriminator
+    {
+        discriminator_a = 1,
+        discriminator_b = 2,
+        discriminator_c = 3
+    } discriminator;
+
+    union
+    {
+        uint8_t a;
+        uint64_t b;
+        Composite c;
+    };
+};
+"""
+
 def test_generate_newlines():
     nodes = [model.Typedef("a", "b"),
              model.Typedef("c", "d"),
