@@ -56,10 +56,15 @@ def _generate_struct(pnodes, struct):
             annotation = build_annotation(member)
             size = member.array_size or 1
             if annotation:
-                return '    {} {}[{}]; /// {}\n'.format(typename, member.name, size, annotation)
+                field = '    {} {}[{}]; /// {}\n'.format(typename, member.name, size, annotation)
             else:
-                return '    {} {}[{}];\n'.format(typename, member.name, size)
-        return '    {} {};\n'.format(typename, member.name)
+                field = '    {} {}[{}];\n'.format(typename, member.name, size)
+        else:
+            field = '    {} {};\n'.format(typename, member.name)
+        if member.optional:
+            return '    prophy::bool_t has_{0};\n'.format(member.name) + field
+        return field
+
     def gen_part(i, part):
         generated = 'struct part{0}\n{{\n{1}}} _{0};'.format(
             i + 2,

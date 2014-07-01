@@ -208,6 +208,21 @@ struct X
 };
 """
 
+def test_generate_struct_with_optional_field():
+    nodes = [
+        model.Struct("Struct", [
+            (model.StructMember("a", "u8", None, None, None, True))
+        ])
+    ]
+
+    assert generate(nodes) == """\
+struct Struct
+{
+    prophy::bool_t has_a;
+    uint8_t a;
+};
+"""
+
 def test_generate_newlines():
     nodes = [model.Typedef("a", "b"),
              model.Typedef("c", "d"),
@@ -252,7 +267,7 @@ struct B
 };
 """
 
-def test_generate_struct():
+def test_generate_full_file():
     nodes = [
         model.Struct("Struct", [
             (model.StructMember("a", "u8", None, None, None, False))
