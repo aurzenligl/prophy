@@ -339,6 +339,22 @@ inline X* swap<X>(X* payload)
 }
 """
 
+def test_swap_struct_with_fixed_array_of_fixed_elements():
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("x", "u16", True, None, 5, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap_n_fixed(payload->x, 5);
+    return payload + 1;
+}
+"""
+
 def test_swap_struct_with_dynamic_array_of_fixed_elements():
     nodes = [
         model.Struct("X", [
