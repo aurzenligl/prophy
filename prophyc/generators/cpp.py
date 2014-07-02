@@ -116,6 +116,33 @@ def _generator(nodes):
         yield prepend_newline * '\n' + _generate(pnodes, node) + '\n'
         last_node = node
 
+def _generate_swap_struct(pnodes, struct):
+    def gen_member(member):
+        return 'swap(&payload->{0});\n'.format(member.name)
+    fmt = ('template <>\n'
+           'inline {0}* swap<{0}>({0}* payload)\n'
+           '{{\n'
+           '{1}'
+           '}}')
+    members = ''.join(gen_member(mem) for mem in struct.members)
+    members += 'return payload + 1;\n'
+    return fmt.format(struct.name, _indent(members, 4))
+
+def _generate_swap_union(pnodes, union):
+    return 'not implemented'
+
+_generate_swap_visitor = {
+    model.Struct: _generate_swap_struct,
+    model.Union: _generate_swap_union
+}
+
+def _generator_swap(nodes):
+    pnodes = model_process.ProcessedNodes(nodes)
+    for node in nodes:
+        fun = _generate_swap_visitor.get(type(node))
+        if fun:
+            yield fun(pnodes, node)
+
 header = """\
 #ifndef _PROPHY_GENERATED_{0}_HPP
 #define _PROPHY_GENERATED_{0}_HPP
@@ -134,6 +161,12 @@ class CppGenerator(object):
 
     def generate_definitions(self, nodes):
         return ''.join(_generator(nodes))
+
+    def generate_swap(self, nodes):
+        content = '\n'.join(_generator_swap(nodes))
+        if content:
+            content += '\n'
+        return content
 
     def serialize_string(self, nodes, basename):
         return '\n'.join((

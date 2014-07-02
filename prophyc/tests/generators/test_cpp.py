@@ -4,6 +4,9 @@ from prophyc.generators.cpp import CppGenerator
 def generate(nodes):
     return CppGenerator().generate_definitions(nodes)
 
+def generate_swap(nodes):
+    return CppGenerator().generate_swap(nodes)
+
 def generate_full(nodes, basename):
     return CppGenerator().serialize_string(nodes, basename)
 
@@ -314,4 +317,24 @@ struct Struct
 };
 
 #endif  /* _PROPHY_GENERATED_TestFile_HPP */
+"""
+
+def test_swap_simple_struct():
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("a", "u8", None, None, None, False)),
+            (model.StructMember("b", "u32", None, None, None, False)),
+            (model.StructMember("c", "u64", None, None, None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->a);
+    swap(&payload->b);
+    swap(&payload->c);
+    return payload + 1;
+}
 """
