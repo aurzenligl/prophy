@@ -416,3 +416,11 @@ struct X
     nodes = parse(hpp, suffix = '-hyphen.hpp')
 
     assert '__hyphen__hpp__' in nodes[0].name
+
+def test_forward_declared_struct():
+    hpp = """\
+struct X;
+"""
+    nodes = parse(hpp)
+
+    assert nodes == []
