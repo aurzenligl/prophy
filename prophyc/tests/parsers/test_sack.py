@@ -427,15 +427,15 @@ struct X;
 
 def test_omit_bitfields():
     hpp = """\
-typedef struct SBcpModuleStatus
+typedef struct X
 {
     unsigned a: 1;
     unsigned b: 1;
     unsigned c: 1;
     unsigned  : 5;
-} SBcpModuleStatus;
+};
 """
 
     nodes = parse(hpp)
 
-    assert nodes == []
+    assert nodes == [('X', [])]
