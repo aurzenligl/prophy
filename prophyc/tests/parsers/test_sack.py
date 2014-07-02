@@ -1,9 +1,10 @@
 import os
 import tempfile
 
-from prophyc.parsers.sack import SackParser
+import pytest
 
 def parse(content, suffix = '.hpp'):
+    from prophyc.parsers.sack import SackParser
     try:
         with tempfile.NamedTemporaryFile(suffix = suffix, delete = False) as temp:
             temp.write(content)
@@ -18,6 +19,7 @@ class contains_cmp(object):
     def __eq__(self, other):
         return any((self.x in other, other in self.x))
 
+@pytest.clang_installed
 def test_simple_struct():
     hpp = """\
 #include <stdint.h>
@@ -34,6 +36,7 @@ struct X
                    ("b", "u32", None, None, None, None),
                    ("c", "u32", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_ints():
     hpp = """\
 #include <stdint.h>
@@ -74,6 +77,7 @@ struct X
                    ("p", "r64", None, None, None, None),
                    ("r", "u32", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_nested_typedefs():
     hpp = """\
 typedef int my_int;
@@ -88,6 +92,7 @@ struct X
 
     assert [("X", [("a", "i32", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_typedefed_struct():
     hpp = """\
 #include <stdint.h>
@@ -105,6 +110,7 @@ struct X
     assert [("OldStruct", [("a", "u32", None, None, None, None)]),
             ("X", [("a", "OldStruct", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_namespaced_struct():
     hpp = """\
 #include <stdint.h>
@@ -128,6 +134,7 @@ struct X
     assert [("m__n__Namespaced", [("a", "u32", None, None, None, None)]),
             ("X", [("a", "m__n__Namespaced", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_array():
     hpp = """\
 #include <stdint.h>
@@ -140,6 +147,7 @@ struct X
 
     assert [("X", [("a", "u32", True, None, 4, None)])] == nodes
 
+@pytest.clang_installed
 def test_enum():
     hpp = """\
 enum Enum
@@ -160,6 +168,7 @@ struct X
                       ("Enum_Three", "3")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_typedefed_enum():
     hpp = """\
 typedef enum Enum
@@ -180,6 +189,7 @@ struct X
                       ("Enum_Three", "3")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_namespaced_enum():
     hpp = """\
 namespace m
@@ -206,6 +216,7 @@ struct X
                             ("Enum_Three", "3")]),
             ("X", [("a", "m__n__Enum", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_enum_with_negative_one_values():
     hpp = """\
 enum Enum
@@ -226,6 +237,7 @@ struct X
                       ("Enum_MinusThree", "0xFFFFFFFD")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_multiple_enums():
     hpp = """\
 typedef enum Enum
@@ -250,6 +262,7 @@ struct X
                    ("b", "Enum", None, None, None, None),
                    ("c", "Enum", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_c_enum():
     hpp = """\
 typedef enum
@@ -270,6 +283,7 @@ struct X
                       ("Enum_Three", "3")]),
             ("X", [("a", "Enum", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_union():
     hpp = """\
 #include <stdint.h>
@@ -291,6 +305,7 @@ struct X
                        ("c", "u32", "2")]),
             ("X", [("a", "Union", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_typedefed_union():
     hpp = """\
 #include <stdint.h>
@@ -308,6 +323,7 @@ struct X
     assert [("Union", [("a", "u8", "0")]),
             ("X", [("a", "Union", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_multiple_structs():
     hpp = """\
 #include <stdint.h>
@@ -332,6 +348,7 @@ struct Z
             ("Z", [("a", "X", None, None, None, None),
                    ("b", "Y", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_class_template():
     hpp = """\
 #include <stdint.h>
@@ -357,6 +374,7 @@ struct X
     assert [("A__int__3__", []),
             ("X", [("a", "A__int__3__", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_c_struct():
     hpp = """\
 #ifdef __cplusplus
@@ -375,6 +393,7 @@ typedef struct X X;
 
     assert [("X", [("x", "i32", None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_struct_with_anonymous_struct():
     hpp = """\
 struct X
@@ -392,6 +411,7 @@ struct X
     assert [(Anonymous, [("b", "i8", None, None, None, None)]),
             ("X", [("a", Anonymous, True, None, 3, None)])] == nodes
 
+@pytest.clang_installed
 def test_struct_with_incomplete_array():
     hpp = """\
 struct X
@@ -403,6 +423,7 @@ struct X
 
     assert [('X', [('b', 'i8', None, None, None, None)])] == nodes
 
+@pytest.clang_installed
 def test_struct_with_incomplete_array_in_file_with_hyphen():
     hpp = """\
 struct X
@@ -417,6 +438,7 @@ struct X
 
     assert '__hyphen__hpp__' in nodes[0].name
 
+@pytest.clang_installed
 def test_forward_declared_struct():
     hpp = """\
 struct X;
@@ -425,6 +447,7 @@ struct X;
 
     assert nodes == []
 
+@pytest.clang_installed
 def test_omit_bitfields():
     hpp = """\
 typedef struct X

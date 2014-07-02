@@ -9,6 +9,14 @@ from prophyc import model_sort
 def get_basename(filename):
     return os.path.splitext(os.path.basename(filename))[0]
 
+def module_exists(module_name):
+    try:
+        __import__(module_name)
+    except ImportError:
+        return False
+    else:
+        return True
+
 def main():
     opts = options.parse_options()
 
@@ -16,6 +24,8 @@ def main():
         from prophyc.parsers.isar import IsarParser
         parser = IsarParser()
     elif opts.sack:
+        if not module_exists("clang"):
+            sys.exit("Sack input requires clang and it's not installed")
         from prophyc.parsers.sack import SackParser
         parser = SackParser(opts.include_dirs)
 

@@ -2,6 +2,8 @@ import os
 import sys
 import subprocess
 
+import pytest
+
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 empty_python_output = """\
@@ -94,6 +96,7 @@ def test_outputs_to_correct_directory(tmpdir_cwd):
     assert err == ""
     assert empty_python_output == open(os.path.join("output", "input.py")).read()
 
+@pytest.clang_installed
 def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
     open("input.hpp", "w").write("")
     ret, out, err = call(["--sack", "--python_out",
@@ -140,6 +143,7 @@ class B(prophy.struct):
                    ('b', prophy.array(A, bound = 'a'))]
 """ == open("input.py").read()
 
+@pytest.clang_installed
 def test_sack_patch(tmpdir_cwd):
     open("input.hpp", "w").write("""\
 struct X
@@ -196,6 +200,7 @@ struct Test
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
 
+@pytest.clang_installed
 def test_multiple_outputs(tmpdir_cwd):
     open("input.xml", "w").write("""
 <xml>
@@ -232,3 +237,14 @@ struct Test
 
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
+
+@pytest.clang_not_installed
+def test_clang_not_installed(tmpdir_cwd):
+    open("input.hpp", "w").write("")
+    ret, out, err = call(["--sack",
+                          "--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.hpp")])
+
+    assert ret == 1
+    assert out == ""
+    assert tr(err) == "Sack input requires clang and it's not installed\n"
