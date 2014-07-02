@@ -15,10 +15,10 @@ class ProcessedNodes(object):
         for node in nodes:
             if type(node) is model.Struct:
                 if node.members:
-                    if self._is_unlimited(node.members[-1]):
+                    if self.is_unlimited(node.members[-1]):
                         self.kinds[node.name] = StructKind.UNLIMITED
                         continue
-                    if any(self._is_dynamic(member) for member in node.members):
+                    if any(self.is_dynamic(member) for member in node.members):
                         self.kinds[node.name] = StructKind.DYNAMIC
                         continue
                 self.kinds[node.name] = StructKind.FIXED
@@ -42,11 +42,11 @@ class ProcessedNodes(object):
         else:
             return StructKind.FIXED
 
-    def _is_dynamic(self, member):
+    def is_dynamic(self, member):
         return (self._is_dynamic_array(member) or
                 self._get_kind(member) == StructKind.DYNAMIC)
 
-    def _is_unlimited(self, member):
+    def is_unlimited(self, member):
         return (self._is_unlimited_array(member) or
                 self._get_kind(member) == StructKind.UNLIMITED)
 
@@ -56,7 +56,7 @@ class ProcessedNodes(object):
         current = main
         for member in members[:-1]:
             current.append(member)
-            if self._is_dynamic(member):
+            if self.is_dynamic(member):
                 current = []
                 parts.append(current)
         if members:

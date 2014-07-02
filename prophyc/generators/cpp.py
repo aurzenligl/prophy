@@ -117,15 +117,28 @@ def _generator(nodes):
         last_node = node
 
 def _generate_swap_struct(pnodes, struct):
-    def gen_member(member):
+    def gen_member(member, semicolon = True):
+        if member.array:
+            if member.array_bound and not member.array_size:
+                fmt = 'swap_n_fixed(payload->{0}, payload->{1}){2}\n'
+                return fmt.format(member.name, member.array_bound, ';' if semicolon else '')
         return 'swap(&payload->{0});\n'.format(member.name)
+    members = ''.join(gen_member(mem) for mem in struct.members[:-1])
+    if struct.members:
+        last_mem = struct.members[-1]
+        if pnodes.is_dynamic(last_mem):
+            members += ('return cast<{0}*>(\n'
+                        '{1}'
+                        ');\n').format(struct.name,
+                                       _indent(gen_member(last_mem, semicolon = False), 4))
+        else:
+            members += gen_member(last_mem)
+            members += 'return payload + 1;\n'
     fmt = ('template <>\n'
            'inline {0}* swap<{0}>({0}* payload)\n'
            '{{\n'
            '{1}'
            '}}')
-    members = ''.join(gen_member(mem) for mem in struct.members)
-    members += 'return payload + 1;\n'
     return fmt.format(struct.name, _indent(members, 4))
 
 def _generate_swap_union(pnodes, union):
