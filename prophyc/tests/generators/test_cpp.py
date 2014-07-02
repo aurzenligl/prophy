@@ -13,9 +13,9 @@ def test_generate_includes():
              model.Include("powidlo")]
 
     assert generate(nodes) == """\
-#include "szydlo.hpp"
-#include "mydlo.hpp"
-#include "powidlo.hpp"
+#include "szydlo.pp.hpp"
+#include "mydlo.pp.hpp"
+#include "powidlo.pp.hpp"
 """
 
 def test_generate_constants():

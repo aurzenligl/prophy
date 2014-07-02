@@ -22,7 +22,7 @@ def _indent(string_, spaces):
     return '\n'.join(indentation + x if x else x for x in string_.split('\n'))
 
 def _generate_include(pnodes, include):
-    return '#include "{}.hpp"'.format(include.name)
+    return '#include "{}.pp.hpp"'.format(include.name)
 
 def _generate_constant(pnodes, constant):
     return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
