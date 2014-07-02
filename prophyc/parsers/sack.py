@@ -92,6 +92,8 @@ class Builder(object):
         self._add_node(node)
 
     def add_struct(self, cursor):
+        if any(x.is_bitfield() for x in cursor.get_children()):
+            return
         members = [self._build_struct_member(x)
                    for x in cursor.get_children()
                    if x.kind is CursorKind.FIELD_DECL]

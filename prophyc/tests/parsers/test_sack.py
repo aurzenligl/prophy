@@ -424,3 +424,18 @@ struct X;
     nodes = parse(hpp)
 
     assert nodes == []
+
+def test_omit_bitfields():
+    hpp = """\
+typedef struct SBcpModuleStatus
+{
+    unsigned a: 1;
+    unsigned b: 1;
+    unsigned c: 1;
+    unsigned  : 5;
+} SBcpModuleStatus;
+"""
+
+    nodes = parse(hpp)
+
+    assert nodes == []
