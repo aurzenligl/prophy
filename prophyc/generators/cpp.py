@@ -21,22 +21,22 @@ def _indent(string_, spaces):
     indentation = spaces * ' '
     return '\n'.join(indentation + x if x else x for x in string_.split('\n'))
 
-def _generate_include(pnodes, include):
+def _generate_def_include(pnodes, include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
-def _generate_constant(pnodes, constant):
+def _generate_def_constant(pnodes, constant):
     return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
 
-def _generate_typedef(pnodes, typedef):
+def _generate_def_typedef(pnodes, typedef):
     tp = primitive_types.get(typedef.type, typedef.type)
     return 'typedef {} {};'.format(tp, typedef.name)
 
-def _generate_enum(pnodes, enum):
+def _generate_def_enum(pnodes, enum):
     members = ',\n'.join('{} = {}'.format(name, value)
                          for name, value in enum.members)
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
-def _generate_struct(pnodes, struct):
+def _generate_def_struct(pnodes, struct):
     def gen_member(member):
         def build_annotation(member):
             if member.array_size:
@@ -79,7 +79,7 @@ def _generate_struct(pnodes, struct):
 
     return 'struct {}\n{{\n{}}};'.format(struct.name, generated)
 
-def _generate_union(pnodes, union):
+def _generate_def_union(pnodes, union):
     def gen_member(member):
         typename = primitive_types.get(member.type, member.type)
         return '{0} {1};\n'.format(typename, member.name)
@@ -94,26 +94,23 @@ def _generate_union(pnodes, union):
                                                     _indent(enum_def, 4),
                                                     _indent(union_def, 4))
 
-_generate_visitor = {
-    model.Include: _generate_include,
-    model.Constant: _generate_constant,
-    model.Typedef: _generate_typedef,
-    model.Enum: _generate_enum,
-    model.Struct: _generate_struct,
-    model.Union: _generate_union
+_generate_def_visitor = {
+    model.Include: _generate_def_include,
+    model.Constant: _generate_def_constant,
+    model.Typedef: _generate_def_typedef,
+    model.Enum: _generate_def_enum,
+    model.Struct: _generate_def_struct,
+    model.Union: _generate_def_union
 }
 
-def _generate(pnodes, node):
-    return _generate_visitor[type(node)](pnodes, node)
-
-def _generator(nodes):
+def _generator_def(nodes):
     pnodes = model_process.ProcessedNodes(nodes)
     last_node = None
     for node in nodes:
         prepend_newline = bool(last_node
                                and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
                                     or type(last_node) is not type(node)))
-        yield prepend_newline * '\n' + _generate(pnodes, node) + '\n'
+        yield prepend_newline * '\n' + _generate_def_visitor[type(node)](pnodes, node) + '\n'
         last_node = node
 
 def _generate_swap_struct(pnodes, struct):
@@ -184,7 +181,7 @@ class CppGenerator(object):
         self.output_dir = output_dir
 
     def generate_definitions(self, nodes):
-        return ''.join(_generator(nodes))
+        return ''.join(_generator_def(nodes))
 
     def generate_swap(self, nodes):
         return '\n'.join(_generator_swap(nodes))
