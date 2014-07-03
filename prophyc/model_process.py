@@ -33,7 +33,7 @@ class ProcessedNodes(object):
                 member.array_bound and
                 not member.array_size)
 
-    def _get_kind(self, member):
+    def get_kind(self, member):
         tp = self.types.get(member.type)
         while type(tp) is model.Typedef:
             tp = self.types.get(tp.type)
@@ -44,11 +44,11 @@ class ProcessedNodes(object):
 
     def is_dynamic(self, member):
         return (self._is_dynamic_array(member) or
-                self._get_kind(member) == StructKind.DYNAMIC)
+                self.get_kind(member) == StructKind.DYNAMIC)
 
     def is_unlimited(self, member):
         return (self._is_unlimited_array(member) or
-                self._get_kind(member) == StructKind.UNLIMITED)
+                self.get_kind(member) == StructKind.UNLIMITED)
 
     def partition(self, members):
         main = []

@@ -116,7 +116,7 @@ def _generator_def(nodes):
 def _generate_swap_struct(pnodes, struct):
     def gen_member(member):
         if member.array:
-            is_dynamic = pnodes._get_kind(member) == StructKind.DYNAMIC
+            is_dynamic = pnodes.get_kind(member) == StructKind.DYNAMIC
             swap_mode = 'dynamic' if is_dynamic else 'fixed'
             if member.array_bound:
                 return 'swap_n_{0}(payload->{1}, payload->{2})'.format(
