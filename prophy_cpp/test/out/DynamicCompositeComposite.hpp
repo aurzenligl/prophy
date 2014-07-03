@@ -22,19 +22,14 @@ namespace prophy
 inline DynamicCompositeComposite::part2* swap(DynamicCompositeComposite::part2* payload)
 {
     swap(&payload->y);
-    return cast<DynamicCompositeComposite::part2*>(
-        swap_n_dynamic(payload->z, 2)
-    );
+    return cast<DynamicCompositeComposite::part2*>(swap_n_dynamic(payload->z, 2));
 }
 
 template <>
 inline DynamicCompositeComposite* swap<DynamicCompositeComposite>(DynamicCompositeComposite* payload)
 {
-    return cast<DynamicCompositeComposite*>(
-        swap(cast<DynamicCompositeComposite::part2*>(
-            swap(&payload->x)
-        ))
-    );
+    DynamicCompositeComposite::part2* part2 = cast<DynamicCompositeComposite::part2*>(swap(&payload->x));
+    return cast<DynamicCompositeComposite*>(swap(part2));
 }
 
 } // namespace prophy

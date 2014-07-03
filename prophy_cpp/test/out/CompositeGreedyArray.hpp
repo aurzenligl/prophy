@@ -18,9 +18,7 @@ template <>
 inline CompositeGreedyArray* swap<CompositeGreedyArray>(CompositeGreedyArray* payload)
 {
     swap(&payload->x);
-    return cast<CompositeGreedyArray*>(
-        payload->y
-    );
+    return cast<CompositeGreedyArray*>(payload->y);
 }
 
 } // namespace prophy

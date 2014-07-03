@@ -28,29 +28,23 @@ template <>
 inline ManyArrays::part2* swap<ManyArrays::part2>(ManyArrays::part2* payload)
 {
     swap(&payload->num_of_y);
-    return cast<ManyArrays::part2*>(
-        swap_n_fixed(payload->y, payload->num_of_y));
+    return cast<ManyArrays::part2*>(swap_n_fixed(payload->y, payload->num_of_y));
 }
 
 template <>
 inline ManyArrays::part3* swap<ManyArrays::part3>(ManyArrays::part3* payload)
 {
     swap(&payload->num_of_z);
-    return cast<ManyArrays::part3*>(
-        swap_n_fixed(payload->z, payload->num_of_z));
+    return cast<ManyArrays::part3*>(swap_n_fixed(payload->z, payload->num_of_z));
 }
 
 template <>
 inline ManyArrays* swap<ManyArrays>(ManyArrays* payload)
 {
     swap(&payload->num_of_x);
-    return cast<ManyArrays*>(
-        swap(cast<ManyArrays::part3*>(
-            swap(cast<ManyArrays::part2*>(
-                swap_n_fixed(payload->x, payload->num_of_x)
-            ))
-        ))
-    );
+    ManyArrays::part2* part2 = cast<ManyArrays::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
+    ManyArrays::part3* part3 = cast<ManyArrays::part3*>(swap(part2));
+    return cast<ManyArrays*>(swap(part3));
 }
 
 } // namespace prophy

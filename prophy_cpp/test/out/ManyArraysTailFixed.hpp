@@ -30,11 +30,8 @@ template <>
 inline ManyArraysTailFixed* swap<ManyArraysTailFixed>(ManyArraysTailFixed* payload)
 {
     swap(&payload->num_of_x);
-    return cast<ManyArraysTailFixed*>(
-        swap(cast<ManyArraysTailFixed::part2*>(
-            swap_n_fixed(payload->x, payload->num_of_x)
-        ))
-    );
+    ManyArraysTailFixed::part2* part2 = cast<ManyArraysTailFixed::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
+    return cast<ManyArraysTailFixed*>(swap(part2));
 }
 
 } // namespace prophy
