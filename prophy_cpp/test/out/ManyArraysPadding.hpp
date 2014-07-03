@@ -59,4 +59,4 @@ inline ManyArraysPadding* swap<ManyArraysPadding>(ManyArraysPadding* payload)
 
 } // namespace prophy
 
-#endif  /* _PROPHY_GENERATED_ManyArrays_HPP */
+#endif  /* _PROPHY_GENERATED_ManyArraysPadding_HPP */

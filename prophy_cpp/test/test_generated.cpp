@@ -14,6 +14,7 @@
 #include "out/DynamicCompositeGreedyArray.hpp"
 #include "out/ManyArrays.hpp"
 #include "out/ManyArraysMixed.hpp"
+#include "out/ManyArraysMixedHeavily.hpp"
 #include "out/ManyArraysPadding.hpp"
 #include "out/ManyArraysTailFixed.hpp"
 #include "out/Optional.hpp"
@@ -293,6 +294,36 @@ TEST(generated, ManyArraysMixed)
     ManyArraysMixed* next = prophy::swap(reinterpret_cast<ManyArraysMixed*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 16);
+    EXPECT_THAT(x.input, ContainerEq(x.expected));
+}
+
+TEST(generated, ManyArraysMixedHeavily)
+{
+    data x(
+        "\x00\x00\x00\x01"
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd"
+        "\x00\x00\x00\x05"
+        "\x00\x04\x00\x05"
+        "\x00\x06\x00\x07"
+        "\x00\x08\xab\xcd"
+        "\x00\x09\xab\xcd",
+
+        "\x01\x00\x00\x00"
+        "\x03\x00\x00\x00"
+        "\x01\x00\x02\x00"
+        "\x03\x00\xab\xcd"
+        "\x05\x00\x00\x00"
+        "\x04\x00\x05\x00"
+        "\x06\x00\x07\x00"
+        "\x08\x00\xab\xcd"
+        "\x09\x00\xab\xcd"
+    );
+
+    ManyArraysMixedHeavily* next = prophy::swap(reinterpret_cast<ManyArraysMixedHeavily*>(x.input.data()));
+
+    EXPECT_EQ(byte_distance(x.input.data(), next), 36);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 

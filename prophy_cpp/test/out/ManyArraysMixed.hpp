@@ -34,4 +34,4 @@ inline ManyArraysMixed* swap<ManyArraysMixed>(ManyArraysMixed* payload)
 
 } // namespace prophy
 
-#endif  /* _PROPHY_GENERATED_ManyArrays_HPP */
+#endif  /* _PROPHY_GENERATED_ManyArraysMixed_HPP */
