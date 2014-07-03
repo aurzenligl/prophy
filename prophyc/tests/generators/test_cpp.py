@@ -551,7 +551,32 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_dynamic_field_and_tail_fixed():
-    pass
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("num_of_x", "u8", None, None, None, False)),
+            (model.StructMember("x", "u8", True, "num_of_x", None, False)),
+            (model.StructMember("y", "u32", None, None, None, False)),
+            (model.StructMember("z", "u64", None, None, None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X::part2* swap<X::part2>(X::part2* payload)
+{
+    swap(&payload->y);
+    swap(&payload->z);
+    return payload + 1;
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->num_of_x);
+    X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
+    return cast<X*>(swap(part2));
+}
+"""
 
 def test_swap_struct_with_many_dynamic_fields():
     nodes = [
