@@ -319,12 +319,10 @@ struct Struct
 #endif  /* _PROPHY_GENERATED_TestFile_HPP */
 """
 
-def test_swap_simple_struct():
+def test_swap_struct_with_fixed_element():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("a", "u8", None, None, None, False)),
-            (model.StructMember("b", "u32", None, None, None, False)),
-            (model.StructMember("c", "u64", None, None, None, False))
+            (model.StructMember("a", "u8", None, None, None, False))
         ])
     ]
 
@@ -333,8 +331,6 @@ template <>
 inline X* swap<X>(X* payload)
 {
     swap(&payload->a);
-    swap(&payload->b);
-    swap(&payload->c);
     return payload + 1;
 }
 """
@@ -370,6 +366,36 @@ inline X* swap<X>(X* payload)
     swap(&payload->num_of_x);
     return cast<X*>(
         swap_n_fixed(payload->x, payload->num_of_x)
+    );
+}
+"""
+
+def test_swap_struct_with_dynamic_element():
+    nodes = [
+        model.Struct("Dynamic", [
+            (model.StructMember("num_of_x", "u32", None, None, None, False)),
+            (model.StructMember("x", "u16", True, "num_of_x", None, False))
+        ]),
+        model.Struct("X", [
+            (model.StructMember("a", "Dynamic", None, None, None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline Dynamic* swap<Dynamic>(Dynamic* payload)
+{
+    swap(&payload->num_of_x);
+    return cast<Dynamic*>(
+        swap_n_fixed(payload->x, payload->num_of_x)
+    );
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    return cast<X*>(
+        swap(&payload->a)
     );
 }
 """

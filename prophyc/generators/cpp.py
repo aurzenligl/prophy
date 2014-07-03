@@ -149,7 +149,7 @@ def _generate_swap_struct(pnodes, struct):
            'inline {0}* swap<{0}>({0}* payload)\n'
            '{{\n'
            '{1}'
-           '}}')
+           '}}\n')
     return fmt.format(struct.name, _indent(members, 4))
 
 def _generate_swap_union(pnodes, union):
@@ -187,10 +187,7 @@ class CppGenerator(object):
         return ''.join(_generator(nodes))
 
     def generate_swap(self, nodes):
-        content = '\n'.join(_generator_swap(nodes))
-        if content:
-            content += '\n'
-        return content
+        return '\n'.join(_generator_swap(nodes))
 
     def serialize_string(self, nodes, basename):
         return '\n'.join((
