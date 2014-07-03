@@ -492,12 +492,38 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_arrays_passing_numbering_fields():
-    pass
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("num_of_x", "u32", None, None, None, False)),
+            (model.StructMember("num_of_y", "u32", None, None, None, False)),
+            (model.StructMember("x", "u32", True, "num_of_x", None, False)),
+            (model.StructMember("y", "u32", True, "num_of_y", None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+inline X::part2* swap(X::part2* payload, size_t num_of_y)
+{
+    return cast<X::part2*>(swap_n_fixed(payload->y, num_of_y));
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->num_of_x);
+    swap(&payload->num_of_y);
+    X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
+    return cast<X*>(swap(part2, payload->num_of_y));
+}
+"""
 
 def test_swap_struct_with_many_arrays_passing_numbering_fields_heavily():
     pass
 
 def test_swap_struct_with_many_dynamic_fields():
+    pass
+
+def test_swap_struct_with_dynamic_field_and_tail_fixed():
     pass
 
 def test_generate_file():

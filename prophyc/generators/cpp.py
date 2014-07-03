@@ -114,20 +114,23 @@ def _generator_def(nodes):
         last_node = node
 
 def _generate_swap_struct(pnodes, struct):
-    def gen_member(member):
+    def gen_member(member, delimiters = []):
         if member.array:
             is_dynamic = pnodes.get_kind(member) == StructKind.DYNAMIC
             swap_mode = 'dynamic' if is_dynamic else 'fixed'
             if member.array_bound:
-                return 'swap_n_{0}(payload->{1}, payload->{2})'.format(
-                    swap_mode, member.name, member.array_bound)
+                bound = member.array_bound
+                if member.array_bound not in delimiters:
+                    bound = 'payload->' + bound
+                return 'swap_n_{0}(payload->{1}, {2})'.format(
+                    swap_mode, member.name, bound)
             elif not member.array_bound and member.array_size:
                 return 'swap_n_{0}(payload->{1}, {2})'.format(
                     swap_mode, member.name, member.array_size)
         else:
             return 'swap(&payload->{0})'.format(member.name)
 
-    def gen_last_member(name, last_mem):
+    def gen_last_member(name, last_mem, delimiters = []):
         if pnodes.is_unlimited(last_mem):
             return 'return cast<{0}*>({1}payload->{2});\n'.format(
                 name,
@@ -137,21 +140,36 @@ def _generate_swap_struct(pnodes, struct):
         elif pnodes.is_dynamic(last_mem):
             return 'return cast<{0}*>({1});\n'.format(
                 name,
-                gen_member(last_mem)
+                gen_member(last_mem, delimiters)
             )
         else:
             return gen_member(last_mem) + ';\n' + 'return payload + 1;\n'
 
     def gen_main(main, parts):
+        all_names = {mem.name: 'payload' for mem in main}
+        for i, part in enumerate(parts):
+            all_names.update({mem.name: 'part{0}'.format(i + 2) for mem in part})
+
+        def get_missing(part_number):
+            part = parts[part_number]
+            names = [mem.name for mem in part]
+            return [(all_names[mem.array_bound], mem.array_bound)
+                    for mem in part
+                    if mem.array_bound and mem.array_bound not in names]
+
         members = ''.join(gen_member(mem) + ';\n' for mem in main[:-1])
         if parts:
             for i, part in enumerate(parts):
                 members += '{0}::part{1}* part{1} = cast<{0}::part{1}*>({2});\n'.format(
                     struct.name,
                     i + 2,
-                    'swap(part{0})'.format(i + 1) if i else gen_member(main[-1])
+                    'swap(part{0}{1})'.format(
+                        i + 1,
+                        ''.join(', {0}->{1}'.format(x[0], x[1]) for x in get_missing(i))
+                    ) if i else gen_member(main[-1])
                 )
-            members += 'return cast<{0}*>(swap(part{1}));\n'.format(struct.name, i + 2)
+            missings = ''.join(', {0}->{1}'.format(x[0], x[1]) for x in get_missing(i))
+            members += 'return cast<{0}*>(swap(part{1}{2}));\n'.format(struct.name, i + 2, missings)
         elif main:
             members += gen_last_member(struct.name, main[-1])
         return ('template <>\n'
@@ -159,16 +177,26 @@ def _generate_swap_struct(pnodes, struct):
                 '{{\n'
                 '{1}'
                 '}}\n').format(struct.name, _indent(members, 4))
-    
+
     def gen_part(part_number, part):
-        members = ''.join(gen_member(mem) + ';\n' for mem in part[:-1])
-        members += gen_last_member(struct.name + '::part{0}'.format(part_number), part[-1])
-        return ('template <>\n'
-                'inline {0}::part{1}* swap<{0}::part{1}>({0}::part{1}* payload)\n'
-                '{{\n'
-                '{2}}}\n').format(struct.name,
-                                  part_number,
-                                  _indent(members, 4))
+        names = [mem.name for mem in part]
+        delimiters = [mem.array_bound for mem in part if mem.array_bound and mem.array_bound not in names]
+        members = ''.join(gen_member(mem, delimiters) + ';\n' for mem in part[:-1])
+        members += gen_last_member(struct.name + '::part{0}'.format(part_number), part[-1], delimiters)
+        if delimiters:
+            return ('inline {0}::part{1}* swap({0}::part{1}* payload{3})\n'
+                    '{{\n'
+                    '{2}}}\n').format(struct.name,
+                                      part_number,
+                                      _indent(members, 4),
+                                      ''.join(', size_t {0}'.format(x) for x in delimiters))
+        else:
+            return ('template <>\n'
+                    'inline {0}::part{1}* swap<{0}::part{1}>({0}::part{1}* payload)\n'
+                    '{{\n'
+                    '{2}}}\n').format(struct.name,
+                                      part_number,
+                                      _indent(members, 4))
 
     main, parts = pnodes.partition(struct.members)
     return '\n'.join([gen_part(i + 2, part) for i, part in enumerate(parts)] +
