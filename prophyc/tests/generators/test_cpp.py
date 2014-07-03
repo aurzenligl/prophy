@@ -335,6 +335,12 @@ inline X* swap<X>(X* payload)
 }
 """
 
+def test_swap_struct_with_enum_element():
+    pass
+
+def test_swap_struct_with_optional_element():
+    pass
+
 def test_swap_struct_with_fixed_array_of_fixed_elements():
     nodes = [
         model.Struct("X", [
@@ -350,6 +356,9 @@ inline X* swap<X>(X* payload)
     return payload + 1;
 }
 """
+
+def test_swap_struct_with_limited_array_of_fixed_elements():
+    pass
 
 def test_swap_struct_with_dynamic_array_of_fixed_elements():
     nodes = [
@@ -369,6 +378,9 @@ inline X* swap<X>(X* payload)
     );
 }
 """
+
+def test_swap_struct_with_greedy_array():
+    pass
 
 def test_swap_struct_with_dynamic_element():
     nodes = [
@@ -399,3 +411,15 @@ inline X* swap<X>(X* payload)
     );
 }
 """
+
+def test_swap_struct_with_dynamic_array_of_dynamic_elements():
+    pass
+
+def test_swap_struct_with_many_arrays():
+    pass
+
+def test_swap_struct_with_many_dynamic_fields():
+    pass
+
+def test_swap_union():
+    pass
