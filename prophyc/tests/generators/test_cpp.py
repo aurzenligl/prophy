@@ -550,11 +550,48 @@ inline X* swap<X>(X* payload)
 }
 """
 
-def test_swap_struct_with_many_dynamic_fields():
-    pass
-
 def test_swap_struct_with_dynamic_field_and_tail_fixed():
     pass
+
+def test_swap_struct_with_many_dynamic_fields():
+    nodes = [
+        model.Struct("Y", [
+            (model.StructMember("num_of_x", "u32", None, None, None, False)),
+            (model.StructMember("x", "u16", True, "num_of_x", None, False))
+        ]),
+        model.Struct("X", [
+            (model.StructMember("x", "Y", None, None, None, False)),
+            (model.StructMember("y", "Y", None, None, None, False)),
+            (model.StructMember("z", "Y", None, None, None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline Y* swap<Y>(Y* payload)
+{
+    swap(&payload->num_of_x);
+    return cast<Y*>(swap_n_fixed(payload->x, payload->num_of_x));
+}
+
+inline X::part2* swap(X::part2* payload)
+{
+    return cast<X::part2*>(swap(&payload->y));
+}
+
+inline X::part3* swap(X::part3* payload)
+{
+    return cast<X::part3*>(swap(&payload->z));
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    X::part2* part2 = cast<X::part2*>(swap(&payload->x));
+    X::part3* part3 = cast<X::part3*>(swap(part2));
+    return cast<X*>(swap(part3));
+}
+"""
 
 def test_generate_file():
     nodes = [
