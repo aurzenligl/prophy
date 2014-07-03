@@ -113,6 +113,14 @@ def _generator_def(nodes):
         yield prepend_newline * '\n' + _generate_def_visitor[type(node)](pnodes, node) + '\n'
         last_node = node
 
+def _generate_swap_enum(pnodes, enum):
+    return ('template <>\n'
+            'inline {0}* swap<{0}>({0}* payload)\n'
+            '{{\n'
+            '    swap(reinterpret_cast<uint32_t*>(payload));\n'
+            '    return payload + 1;\n'
+            '}}\n').format(enum.name)
+
 def _generate_swap_struct(pnodes, struct):
     def gen_member(member, delimiters = []):
         if member.array:
@@ -197,6 +205,7 @@ def _generate_swap_union(pnodes, union):
     return 'not implemented'
 
 _generate_swap_visitor = {
+    model.Enum: _generate_swap_enum,
     model.Struct: _generate_swap_struct,
     model.Union: _generate_swap_union
 }

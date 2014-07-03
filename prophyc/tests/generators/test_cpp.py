@@ -315,7 +315,32 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_enum_element():
-    pass
+    nodes = [
+        model.Enum("Enum", [
+            model.EnumMember("Enum_A", "0"),
+            model.EnumMember("Enum_B", "1"),
+            model.EnumMember("Enum_C", "2")
+        ]),
+        model.Struct("X", [
+            (model.StructMember("x", "Enum", None, None, None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline Enum* swap<Enum>(Enum* payload)
+{
+    swap(reinterpret_cast<uint32_t*>(payload));
+    return payload + 1;
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->x);
+    return payload + 1;
+}
+"""
 
 def test_swap_struct_with_optional_element():
     pass
@@ -561,8 +586,7 @@ def test_swap_struct_with_dynamic_field_and_tail_fixed():
     ]
 
     assert generate_swap(nodes) == """\
-template <>
-inline X::part2* swap<X::part2>(X::part2* payload)
+inline X::part2* swap(X::part2* payload)
 {
     swap(&payload->y);
     swap(&payload->z);
