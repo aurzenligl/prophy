@@ -157,19 +157,18 @@ def _generate_swap_struct(pnodes, struct):
                     for mem in part
                     if mem.array_bound and mem.array_bound not in names]
 
+        def gen_missing(part_number):
+            return ''.join(', {0}->{1}'.format(x[0], x[1]) for x in get_missing(part_number))
+
         members = ''.join(gen_member(mem) + ';\n' for mem in main[:-1])
         if parts:
             for i, part in enumerate(parts):
                 members += '{0}::part{1}* part{1} = cast<{0}::part{1}*>({2});\n'.format(
                     struct.name,
                     i + 2,
-                    'swap(part{0}{1})'.format(
-                        i + 1,
-                        ''.join(', {0}->{1}'.format(x[0], x[1]) for x in get_missing(i))
-                    ) if i else gen_member(main[-1])
+                    'swap(part{0}{1})'.format(i + 1, gen_missing(i)) if i else gen_member(main[-1])
                 )
-            missings = ''.join(', {0}->{1}'.format(x[0], x[1]) for x in get_missing(i))
-            members += 'return cast<{0}*>(swap(part{1}{2}));\n'.format(struct.name, i + 2, missings)
+            members += 'return cast<{0}*>(swap(part{1}{2}));\n'.format(struct.name, i + 2, gen_missing(i))
         elif main:
             members += gen_last_member(struct.name, main[-1])
         return ('template <>\n'
