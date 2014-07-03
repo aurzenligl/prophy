@@ -114,33 +114,27 @@ def _generator_def(nodes):
         last_node = node
 
 def _generate_swap_struct(pnodes, struct):
-    def gen_member(member, semicolon = True):
+    def gen_member(member):
         if member.array:
             if member.array_bound and not member.array_size:
                 fmt = 'swap_n_fixed(payload->{0}, payload->{1})'
-                out = fmt.format(member.name, member.array_bound)
+                return fmt.format(member.name, member.array_bound)
             elif not member.array_bound and member.array_size:
                 fmt = 'swap_n_fixed(payload->{0}, {1})'
-                out = fmt.format(member.name, member.array_size)
+                return fmt.format(member.name, member.array_size)
         else:
-            out = 'swap(&payload->{0})'.format(member.name)
-        if semicolon:
-            out += ';'
-        return out + '\n'
+            return 'swap(&payload->{0})'.format(member.name)
 
-    members = ''.join(gen_member(mem) for mem in struct.members[:-1])
+    members = ''.join(gen_member(mem) + ';\n' for mem in struct.members[:-1])
     if struct.members:
         last_mem = struct.members[-1]
         if pnodes.is_dynamic(last_mem):
-            fmt = ('return cast<{0}*>(\n'
-                   '{1}'
-                   ');\n')
-            members += fmt.format(
+            members += 'return cast<{0}*>({1});\n'.format(
                 struct.name,
-                _indent(gen_member(last_mem, semicolon = False), 4)
+                gen_member(last_mem)
             )
         else:
-            members += gen_member(last_mem)
+            members += gen_member(last_mem) + ';\n'
             members += 'return payload + 1;\n'
     fmt = ('template <>\n'
            'inline {0}* swap<{0}>({0}* payload)\n'

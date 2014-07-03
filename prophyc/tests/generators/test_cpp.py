@@ -352,9 +352,7 @@ template <>
 inline X* swap<X>(X* payload)
 {
     swap(&payload->num_of_x);
-    return cast<X*>(
-        swap_n_fixed(payload->x, payload->num_of_x)
-    );
+    return cast<X*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
 """
 
@@ -377,17 +375,13 @@ template <>
 inline Dynamic* swap<Dynamic>(Dynamic* payload)
 {
     swap(&payload->num_of_x);
-    return cast<Dynamic*>(
-        swap_n_fixed(payload->x, payload->num_of_x)
-    );
+    return cast<Dynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
 
 template <>
 inline X* swap<X>(X* payload)
 {
-    return cast<X*>(
-        swap(&payload->a)
-    );
+    return cast<X*>(swap(&payload->a));
 }
 """
 
