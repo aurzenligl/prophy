@@ -117,11 +117,14 @@ def _generate_swap_struct(pnodes, struct):
     def gen_member(member):
         if member.array:
             if member.array_bound and not member.array_size:
-                fmt = 'swap_n_fixed(payload->{0}, payload->{1})'
-                return fmt.format(member.name, member.array_bound)
+                return 'swap_n_fixed(payload->{0}, payload->{1})'.format(
+                    member.name, member.array_bound)
             elif not member.array_bound and member.array_size:
-                fmt = 'swap_n_fixed(payload->{0}, {1})'
-                return fmt.format(member.name, member.array_size)
+                return 'swap_n_fixed(payload->{0}, {1})'.format(
+                    member.name, member.array_size)
+            elif member.array_bound and member.array_size:
+                return 'swap_n_fixed(payload->{0}, payload->{1})'.format(
+                    member.name, member.array_bound)
         else:
             return 'swap(&payload->{0})'.format(member.name)
 
