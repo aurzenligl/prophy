@@ -397,6 +397,9 @@ def test_swap_struct_with_dynamic_array_of_dynamic_elements():
 def test_swap_struct_with_many_arrays():
     pass
 
+def test_swap_struct_with_many_arrays_passing_numbering_fields():
+    pass
+
 def test_swap_struct_with_many_dynamic_fields():
     pass
 
