@@ -372,7 +372,30 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_greedy_array():
-    pass
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("x", "u8", None, None, None, False)),
+            (model.StructMember("y", "Y", True, None, None, False))
+        ]),
+        model.Struct("Z", [
+            (model.StructMember("z", "X", None, None, None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->x);
+    return cast<X*>(payload->y);
+}
+
+template <>
+inline Z* swap<Z>(Z* payload)
+{
+    return cast<Z*>(&payload->z);
+}
+"""
 
 def test_swap_struct_with_dynamic_element():
     nodes = [

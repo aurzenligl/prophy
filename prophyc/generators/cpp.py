@@ -130,7 +130,13 @@ def _generate_swap_struct(pnodes, struct):
     members = ''.join(gen_member(mem) + ';\n' for mem in struct.members[:-1])
     if struct.members:
         last_mem = struct.members[-1]
-        if pnodes.is_dynamic(last_mem):
+        if pnodes.is_unlimited(last_mem):
+            members += 'return cast<{0}*>({1}payload->{2});\n'.format(
+                struct.name,
+                '' if last_mem.array else '&',
+                last_mem.name
+            )
+        elif pnodes.is_dynamic(last_mem):
             members += 'return cast<{0}*>({1});\n'.format(
                 struct.name,
                 gen_member(last_mem)
