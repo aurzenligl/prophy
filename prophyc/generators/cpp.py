@@ -1,7 +1,7 @@
 import os
 
 from prophyc import model
-from prophyc import model_process
+from prophyc.model_process import StructKind, ProcessedNodes
 
 primitive_types = {
     'u8': 'uint8_t',
@@ -104,7 +104,7 @@ _generate_def_visitor = {
 }
 
 def _generator_def(nodes):
-    pnodes = model_process.ProcessedNodes(nodes)
+    pnodes = ProcessedNodes(nodes)
     last_node = None
     for node in nodes:
         prepend_newline = bool(last_node
@@ -116,15 +116,14 @@ def _generator_def(nodes):
 def _generate_swap_struct(pnodes, struct):
     def gen_member(member):
         if member.array:
-            if member.array_bound and not member.array_size:
-                return 'swap_n_fixed(payload->{0}, payload->{1})'.format(
-                    member.name, member.array_bound)
+            is_dynamic = pnodes._get_kind(member) == StructKind.DYNAMIC
+            swap_mode = 'dynamic' if is_dynamic else 'fixed'
+            if member.array_bound:
+                return 'swap_n_{0}(payload->{1}, payload->{2})'.format(
+                    swap_mode, member.name, member.array_bound)
             elif not member.array_bound and member.array_size:
-                return 'swap_n_fixed(payload->{0}, {1})'.format(
-                    member.name, member.array_size)
-            elif member.array_bound and member.array_size:
-                return 'swap_n_fixed(payload->{0}, payload->{1})'.format(
-                    member.name, member.array_bound)
+                return 'swap_n_{0}(payload->{1}, {2})'.format(
+                    swap_mode, member.name, member.array_size)
         else:
             return 'swap(&payload->{0})'.format(member.name)
 
@@ -155,7 +154,7 @@ _generate_swap_visitor = {
 }
 
 def _generator_swap(nodes):
-    pnodes = model_process.ProcessedNodes(nodes)
+    pnodes = ProcessedNodes(nodes)
     for node in nodes:
         fun = _generate_swap_visitor.get(type(node))
         if fun:

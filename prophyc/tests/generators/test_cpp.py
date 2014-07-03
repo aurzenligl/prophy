@@ -401,7 +401,32 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_dynamic_array_of_dynamic_elements():
-    pass
+    nodes = [
+        model.Struct("Y", [
+            (model.StructMember("num_of_x", "u32", None, None, None, False)),
+            (model.StructMember("x", "u16", True, "num_of_x", None, False))
+        ]),
+        model.Struct("X", [
+            (model.StructMember("num_of_x", "u32", None, None, None, False)),
+            (model.StructMember("x", "Y", True, "num_of_x", None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline Y* swap<Y>(Y* payload)
+{
+    swap(&payload->num_of_x);
+    return cast<Y*>(swap_n_fixed(payload->x, payload->num_of_x));
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->num_of_x);
+    return cast<X*>(swap_n_dynamic(payload->x, payload->num_of_x));
+}
+"""
 
 def test_swap_struct_with_many_arrays():
     pass
