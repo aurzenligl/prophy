@@ -166,7 +166,7 @@ def _generate_swap_struct(pnodes, struct):
                 members += '{0}::part{1}* part{1} = cast<{0}::part{1}*>({2});\n'.format(
                     struct.name,
                     i + 2,
-                    'swap(part{0}{1})'.format(i + 1, gen_missing(i)) if i else gen_member(main[-1])
+                    'swap(part{0}{1})'.format(i + 1, gen_missing(i - 1)) if i else gen_member(main[-1])
                 )
             members += 'return cast<{0}*>(swap(part{1}{2}));\n'.format(struct.name, i + 2, gen_missing(i))
         elif main:
@@ -182,20 +182,12 @@ def _generate_swap_struct(pnodes, struct):
         delimiters = [mem.array_bound for mem in part if mem.array_bound and mem.array_bound not in names]
         members = ''.join(gen_member(mem, delimiters) + ';\n' for mem in part[:-1])
         members += gen_last_member(struct.name + '::part{0}'.format(part_number), part[-1], delimiters)
-        if delimiters:
-            return ('inline {0}::part{1}* swap({0}::part{1}* payload{3})\n'
-                    '{{\n'
-                    '{2}}}\n').format(struct.name,
-                                      part_number,
-                                      _indent(members, 4),
-                                      ''.join(', size_t {0}'.format(x) for x in delimiters))
-        else:
-            return ('template <>\n'
-                    'inline {0}::part{1}* swap<{0}::part{1}>({0}::part{1}* payload)\n'
-                    '{{\n'
-                    '{2}}}\n').format(struct.name,
-                                      part_number,
-                                      _indent(members, 4))
+        return ('inline {0}::part{1}* swap({0}::part{1}* payload{3})\n'
+                '{{\n'
+                '{2}}}\n').format(struct.name,
+                                  part_number,
+                                  _indent(members, 4),
+                                  ''.join(', size_t {0}'.format(x) for x in delimiters))
 
     main, parts = pnodes.partition(struct.members)
     return '\n'.join([gen_part(i + 2, part) for i, part in enumerate(parts)] +

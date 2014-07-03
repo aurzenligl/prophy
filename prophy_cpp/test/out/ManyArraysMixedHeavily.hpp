@@ -24,15 +24,15 @@ struct ManyArraysMixedHeavily
 namespace prophy
 {
 
-inline ManyArraysMixedHeavily::part3* swap(ManyArraysMixedHeavily::part3* payload, size_t num_of_a)
-{
-    return cast<ManyArraysMixedHeavily::part3*>(swap_n_fixed(payload->a, num_of_a));
-}
-
 inline ManyArraysMixedHeavily::part2* swap(ManyArraysMixedHeavily::part2* payload)
 {
     swap(&payload->num_of_c);
     return cast<ManyArraysMixedHeavily::part2*>(swap_n_fixed(payload->c, payload->num_of_c));
+}
+
+inline ManyArraysMixedHeavily::part3* swap(ManyArraysMixedHeavily::part3* payload, size_t num_of_a)
+{
+    return cast<ManyArraysMixedHeavily::part3*>(swap_n_fixed(payload->a, num_of_a));
 }
 
 template <>

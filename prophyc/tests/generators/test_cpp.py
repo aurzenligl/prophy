@@ -467,15 +467,13 @@ def test_swap_struct_with_many_arrays():
     ]
 
     assert generate_swap(nodes) == """\
-template <>
-inline X::part2* swap<X::part2>(X::part2* payload)
+inline X::part2* swap(X::part2* payload)
 {
     swap(&payload->num_of_y);
     return cast<X::part2*>(swap_n_fixed(payload->y, payload->num_of_y));
 }
 
-template <>
-inline X::part3* swap<X::part3>(X::part3* payload)
+inline X::part3* swap(X::part3* payload)
 {
     swap(&payload->num_of_z);
     return cast<X::part3*>(swap_n_fixed(payload->z, payload->num_of_z));
@@ -518,7 +516,39 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_arrays_passing_numbering_fields_heavily():
-    pass
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("num_of_a", "u32", None, None, None, False)),
+            (model.StructMember("num_of_b", "u32", None, None, None, False)),
+            (model.StructMember("b", "u16", True, "num_of_b", None, False)),
+            (model.StructMember("num_of_c", "u32", None, None, None, False)),
+            (model.StructMember("c", "u16", True, "num_of_c", None, False)),
+            (model.StructMember("a", "u16", True, "num_of_a", None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+inline X::part2* swap(X::part2* payload)
+{
+    swap(&payload->num_of_c);
+    return cast<X::part2*>(swap_n_fixed(payload->c, payload->num_of_c));
+}
+
+inline X::part3* swap(X::part3* payload, size_t num_of_a)
+{
+    return cast<X::part3*>(swap_n_fixed(payload->a, num_of_a));
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->num_of_a);
+    swap(&payload->num_of_b);
+    X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->b, payload->num_of_b));
+    X::part3* part3 = cast<X::part3*>(swap(part2));
+    return cast<X*>(swap(part3, payload->num_of_a));
+}
+"""
 
 def test_swap_struct_with_many_dynamic_fields():
     pass

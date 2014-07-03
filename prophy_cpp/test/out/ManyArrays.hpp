@@ -24,15 +24,13 @@ struct ManyArrays
 namespace prophy
 {
 
-template <>
-inline ManyArrays::part2* swap<ManyArrays::part2>(ManyArrays::part2* payload)
+inline ManyArrays::part2* swap(ManyArrays::part2* payload)
 {
     swap(&payload->num_of_y);
     return cast<ManyArrays::part2*>(swap_n_fixed(payload->y, payload->num_of_y));
 }
 
-template <>
-inline ManyArrays::part3* swap<ManyArrays::part3>(ManyArrays::part3* payload)
+inline ManyArrays::part3* swap(ManyArrays::part3* payload)
 {
     swap(&payload->num_of_z);
     return cast<ManyArrays::part3*>(swap_n_fixed(payload->z, payload->num_of_z));
