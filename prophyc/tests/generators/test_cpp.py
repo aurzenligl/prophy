@@ -320,6 +320,9 @@ def test_swap_struct_with_enum_element():
 def test_swap_struct_with_optional_element():
     pass
 
+def test_swap_union():
+    pass
+
 def test_swap_struct_with_fixed_array_of_fixed_elements():
     nodes = [
         model.Struct("X", [
@@ -452,15 +455,49 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_arrays():
-    pass
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("num_of_x", "u32", None, None, None, False)),
+            (model.StructMember("x", "u32", True, "num_of_x", None, False)),
+            (model.StructMember("num_of_y", "u32", None, None, None, False)),
+            (model.StructMember("y", "u32", True, "num_of_y", None, False)),
+            (model.StructMember("num_of_z", "u32", None, None, None, False)),
+            (model.StructMember("z", "u32", True, "num_of_z", None, False))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X::part2* swap<X::part2>(X::part2* payload)
+{
+    swap(&payload->num_of_y);
+    return cast<X::part2*>(swap_n_fixed(payload->y, payload->num_of_y));
+}
+
+template <>
+inline X::part3* swap<X::part3>(X::part3* payload)
+{
+    swap(&payload->num_of_z);
+    return cast<X::part3*>(swap_n_fixed(payload->z, payload->num_of_z));
+}
+
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->num_of_x);
+    X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
+    X::part3* part3 = cast<X::part3*>(swap(part2));
+    return cast<X*>(swap(part3));
+}
+"""
 
 def test_swap_struct_with_many_arrays_passing_numbering_fields():
     pass
 
-def test_swap_struct_with_many_dynamic_fields():
+def test_swap_struct_with_many_arrays_passing_numbering_fields_heavily():
     pass
 
-def test_swap_union():
+def test_swap_struct_with_many_dynamic_fields():
     pass
 
 def test_generate_file():
