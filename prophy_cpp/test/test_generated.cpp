@@ -2,11 +2,11 @@
 #include <gmock/gmock.h>
 
 #include "util.hpp"
-#include "out/Composite.hpp"
-#include "out/CompositeDynamicArray.hpp"
-#include "out/CompositeFixedArray.hpp"
-#include "out/CompositeGreedyArray.hpp"
-#include "out/CompositeLimitedArray.hpp"
+#include "out/Composite.pp.hpp"
+#include "out/CompositeDynamicArray.pp.hpp"
+#include "out/CompositeFixedArray.pp.hpp"
+#include "out/CompositeGreedyArray.pp.hpp"
+#include "out/CompositeLimitedArray.pp.hpp"
 #include "out/ConstantTypedefEnum.hpp"
 #include "out/DynamicComposite.hpp"
 #include "out/DynamicCompositeComposite.hpp"

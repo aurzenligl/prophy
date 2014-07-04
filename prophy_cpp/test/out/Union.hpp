@@ -3,7 +3,7 @@
 
 #include <prophy/prophy.hpp>
 
-#include "Composite.hpp"
+#include "Composite.pp.hpp"
 
 struct Union
 {

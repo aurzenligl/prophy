@@ -10,16 +10,4 @@ struct CompositeFixedArray
     Scalar a[3];
 };
 
-namespace prophy
-{
-
-template <>
-inline CompositeFixedArray* swap<CompositeFixedArray>(CompositeFixedArray* payload)
-{
-    swap_n_fixed(payload->a, 3);
-    return payload + 1;
-}
-
-} // namespace prophy
-
 #endif  /* _PROPHY_GENERATED_CompositeFixedArray_HPP */

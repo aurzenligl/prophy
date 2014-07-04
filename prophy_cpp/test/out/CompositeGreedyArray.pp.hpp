@@ -11,16 +11,4 @@ struct CompositeGreedyArray
     Scalar y[1];
 };
 
-namespace prophy
-{
-
-template <>
-inline CompositeGreedyArray* swap<CompositeGreedyArray>(CompositeGreedyArray* payload)
-{
-    swap(&payload->x);
-    return cast<CompositeGreedyArray*>(payload->y);
-}
-
-} // namespace prophy
-
 #endif  /* _PROPHY_GENERATED_CompositeGreedyArray_HPP */

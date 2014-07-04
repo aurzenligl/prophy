@@ -11,16 +11,4 @@ struct CompositeDynamicArray
     Scalar x[1];
 };
 
-namespace prophy
-{
-
-template <>
-inline CompositeDynamicArray* swap<CompositeDynamicArray>(CompositeDynamicArray* payload)
-{
-    swap(&payload->num_of_x);
-    return cast<CompositeDynamicArray*>(swap_n_fixed(payload->x, payload->num_of_x));
-}
-
-} // namespace prophy
-
 #endif  /* _PROPHY_GENERATED_CompositeDynamicArray_HPP */

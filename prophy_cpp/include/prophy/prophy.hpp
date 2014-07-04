@@ -104,13 +104,13 @@ struct enable_if<true, T>
 };
 
 template <class T>
-typename enable_if<is_convertible<T, uint32_t>::value, void>::type swap(T* in)
+inline typename enable_if<is_convertible<T, uint32_t>::value, void>::type swap(T* in)
 {
     swap(reinterpret_cast<uint32_t*>(in));
 }
 
 template <typename Tp>
-inline typename enable_if<!is_convertible<Tp, uint32_t>::value, Tp*>::type swap(Tp*);
+typename enable_if<!is_convertible<Tp, uint32_t>::value, Tp*>::type swap(Tp*);
 
 template <typename Tp>
 inline Tp* swap_n_fixed(Tp* first, size_t n)

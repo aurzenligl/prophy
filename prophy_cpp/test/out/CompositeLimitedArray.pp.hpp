@@ -11,17 +11,4 @@ struct CompositeLimitedArray
     Scalar x[3];
 };
 
-namespace prophy
-{
-
-template <>
-inline CompositeLimitedArray* swap<CompositeLimitedArray>(CompositeLimitedArray* payload)
-{
-    swap(&payload->num_of_x);
-    swap_n_fixed(payload->x, payload->num_of_x);
-    return payload + 1;
-}
-
-} // namespace prophy
-
 #endif  /* _PROPHY_GENERATED_CompositeLimitedArray_HPP */
