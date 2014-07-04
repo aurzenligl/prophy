@@ -681,6 +681,23 @@ inline X* swap<X>(X* payload)
 }
 """
 
+def test_generate_empty_file():
+    assert generate_file([], "TestEmpty") == """\
+#ifndef _PROPHY_GENERATED_TestEmpty_HPP
+#define _PROPHY_GENERATED_TestEmpty_HPP
+
+#include <prophy/prophy.hpp>
+
+
+namespace prophy
+{
+
+
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_TestEmpty_HPP */
+"""
+
 def test_generate_file():
     nodes = [
         model.Struct("Struct", [
