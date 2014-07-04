@@ -23,13 +23,6 @@ namespace prophy
 {
 
 template <>
-inline Enum* swap<Enum>(Enum* payload)
-{
-    swap(reinterpret_cast<uint32_t*>(payload));
-    return payload + 1;
-}
-
-template <>
 inline ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum* payload)
 {
     swap_n_fixed(payload->a, CONSTANT);
