@@ -206,7 +206,19 @@ def _generate_swap_struct(pnodes, struct):
                      [gen_main(main, parts)])
 
 def _generate_swap_union(pnodes, union):
-    return 'not implemented'
+    return ('template <>\n'
+            'inline {0}* swap<{0}>({0}* payload)\n'
+            '{{\n'
+            '    swap(reinterpret_cast<uint32_t*>(&payload->discriminator));\n'
+            '    switch (payload->discriminator)\n'
+            '    {{\n{1}'
+            '        default: break;\n'
+            '    }}\n'
+            '    return payload + 1;\n'
+            '}}\n').format(
+                union.name,
+                ''.join(8 * ' ' + 'case {0}::discriminator_{1}: swap(&payload->{1}); break;\n'.format(union.name, m.name) for m in union.members)
+            )
 
 _generate_swap_visitor = {
     model.Enum: _generate_swap_enum,

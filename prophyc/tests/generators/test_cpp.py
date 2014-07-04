@@ -363,7 +363,29 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_union():
-    pass
+    nodes = [
+        model.Union("X", [
+            (model.UnionMember("a", "u8", 1)),
+            (model.UnionMember("b", "u64", 2)),
+            (model.UnionMember("c", "C", 3))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(reinterpret_cast<uint32_t*>(&payload->discriminator));
+    switch (payload->discriminator)
+    {
+        case X::discriminator_a: swap(&payload->a); break;
+        case X::discriminator_b: swap(&payload->b); break;
+        case X::discriminator_c: swap(&payload->c); break;
+        default: break;
+    }
+    return payload + 1;
+}
+"""
 
 def test_swap_struct_with_fixed_array_of_fixed_elements():
     nodes = [
