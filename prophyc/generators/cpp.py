@@ -244,6 +244,15 @@ footer = """\
 #endif  /* _PROPHY_GENERATED_{0}_HPP */
 """
 
+swap_header = """\
+namespace prophy
+{
+"""
+
+swap_footer = """\
+} // namespace prophy
+"""
+
 class CppGenerator(object):
 
     def __init__(self, output_dir = "."):
@@ -259,6 +268,7 @@ class CppGenerator(object):
         return '\n'.join((
             header.format(basename),
             self.generate_definitions(nodes),
+            '\n'.join((swap_header, self.generate_swap(nodes), swap_footer)),
             footer.format(basename)
         ))
 

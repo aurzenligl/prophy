@@ -161,6 +161,18 @@ struct Test
     uint32_t x[1]; /// dynamic array, size in x_len
 };
 
+namespace prophy
+{
+
+template <>
+inline Test* swap<Test>(Test* payload)
+{
+    swap(&payload->x_len);
+    return cast<Test*>(swap_n_fixed(payload->x, payload->x_len));
+}
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
 
@@ -234,6 +246,18 @@ struct Test
 {
     uint32_t x;
 };
+
+namespace prophy
+{
+
+template <>
+inline Test* swap<Test>(Test* payload)
+{
+    swap(&payload->x);
+    return payload + 1;
+}
+
+} // namespace prophy
 
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """

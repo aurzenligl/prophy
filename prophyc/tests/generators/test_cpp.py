@@ -699,5 +699,17 @@ struct Struct
     uint8_t a;
 };
 
+namespace prophy
+{
+
+template <>
+inline Struct* swap<Struct>(Struct* payload)
+{
+    swap(&payload->a);
+    return payload + 1;
+}
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_TestFile_HPP */
 """
