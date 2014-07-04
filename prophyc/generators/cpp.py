@@ -175,6 +175,8 @@ def _generate_swap_struct(pnodes, struct):
             members += 'return cast<{0}*>(swap(part{1}{2}));\n'.format(struct.name, i + 2, gen_missing(i))
         elif main:
             members += gen_last_member(struct.name, main[-1])
+        else:
+            members += 'return payload + 1;\n'
         return ('template <>\n'
                 'inline {0}* swap<{0}>({0}* payload)\n'
                 '{{\n'

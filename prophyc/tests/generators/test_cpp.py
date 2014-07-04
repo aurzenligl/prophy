@@ -298,6 +298,19 @@ struct B
 };
 """
 
+def test_swap_empty_struct():
+    nodes = [
+        model.Struct("X", [])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X* swap<X>(X* payload)
+{
+    return payload + 1;
+}
+"""
+
 def test_swap_struct_with_fixed_element():
     nodes = [
         model.Struct("X", [
