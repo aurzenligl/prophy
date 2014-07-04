@@ -161,19 +161,22 @@ struct Test
     uint32_t x[1]; /// dynamic array, size in x_len
 };
 
+#endif  /* _PROPHY_GENERATED_input_HPP */
+"""
+    assert open("input.pp.cpp").read() == """\
+#include "input.pp.hpp"
+
 namespace prophy
 {
 
 template <>
-inline Test* swap<Test>(Test* payload)
+Test* swap<Test>(Test* payload)
 {
     swap(&payload->x_len);
     return cast<Test*>(swap_n_fixed(payload->x, payload->x_len));
 }
 
 } // namespace prophy
-
-#endif  /* _PROPHY_GENERATED_input_HPP */
 """
 
 @pytest.clang_installed
@@ -247,19 +250,22 @@ struct Test
     uint32_t x;
 };
 
+#endif  /* _PROPHY_GENERATED_input_HPP */
+"""
+    assert open("input.pp.cpp").read() == """\
+#include "input.pp.hpp"
+
 namespace prophy
 {
 
 template <>
-inline Test* swap<Test>(Test* payload)
+Test* swap<Test>(Test* payload)
 {
     swap(&payload->x);
     return payload + 1;
 }
 
 } // namespace prophy
-
-#endif  /* _PROPHY_GENERATED_input_HPP */
 """
 
 @pytest.clang_not_installed

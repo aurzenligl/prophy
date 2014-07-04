@@ -7,8 +7,11 @@ def generate_definitions(nodes):
 def generate_swap(nodes):
     return CppGenerator().generate_swap(nodes)
 
-def generate_file(nodes, basename):
-    return CppGenerator().serialize_string(nodes, basename)
+def generate_hpp(nodes, basename):
+    return CppGenerator().serialize_string_hpp(nodes, basename)
+
+def generate_cpp(nodes, basename):
+    return CppGenerator().serialize_string_cpp(nodes, basename)
 
 def test_definitions_includes():
     nodes = [model.Include("szydlo"),
@@ -305,7 +308,7 @@ def test_swap_empty_struct():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     return payload + 1;
 }
@@ -320,7 +323,7 @@ def test_swap_struct_with_fixed_element():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->a);
     return payload + 1;
@@ -337,7 +340,7 @@ def test_swap_struct_with_optional_element():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->has_x);
     if (payload->has_x) swap(&payload->x);
@@ -358,7 +361,7 @@ def test_swap_union():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(reinterpret_cast<uint32_t*>(&payload->discriminator));
     switch (payload->discriminator)
@@ -381,7 +384,7 @@ def test_swap_struct_with_fixed_array_of_fixed_elements():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap_n_fixed(payload->x, 5);
     return payload + 1;
@@ -398,7 +401,7 @@ def test_swap_struct_with_limited_array_of_fixed_elements():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->num_of_x);
     swap_n_fixed(payload->x, payload->num_of_x);
@@ -416,7 +419,7 @@ def test_swap_struct_with_dynamic_array_of_fixed_elements():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->num_of_x);
     return cast<X*>(swap_n_fixed(payload->x, payload->num_of_x));
@@ -436,14 +439,14 @@ def test_swap_struct_with_greedy_array():
 
     assert generate_swap(nodes) == """\
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->x);
     return cast<X*>(payload->y);
 }
 
 template <>
-inline Z* swap<Z>(Z* payload)
+Z* swap<Z>(Z* payload)
 {
     return cast<Z*>(&payload->z);
 }
@@ -462,14 +465,14 @@ def test_swap_struct_with_dynamic_element():
 
     assert generate_swap(nodes) == """\
 template <>
-inline Dynamic* swap<Dynamic>(Dynamic* payload)
+Dynamic* swap<Dynamic>(Dynamic* payload)
 {
     swap(&payload->num_of_x);
     return cast<Dynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
 
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     return cast<X*>(swap(&payload->a));
 }
@@ -489,14 +492,14 @@ def test_swap_struct_with_dynamic_array_of_dynamic_elements():
 
     assert generate_swap(nodes) == """\
 template <>
-inline Y* swap<Y>(Y* payload)
+Y* swap<Y>(Y* payload)
 {
     swap(&payload->num_of_x);
     return cast<Y*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
 
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->num_of_x);
     return cast<X*>(swap_n_dynamic(payload->x, payload->num_of_x));
@@ -529,7 +532,7 @@ inline X::part3* swap(X::part3* payload)
 }
 
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->num_of_x);
     X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
@@ -555,7 +558,7 @@ inline X::part2* swap(X::part2* payload, size_t num_of_y)
 }
 
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->num_of_x);
     swap(&payload->num_of_y);
@@ -589,7 +592,7 @@ inline X::part3* swap(X::part3* payload, size_t num_of_a)
 }
 
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->num_of_a);
     swap(&payload->num_of_b);
@@ -618,7 +621,7 @@ inline X::part2* swap(X::part2* payload)
 }
 
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     swap(&payload->num_of_x);
     X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
@@ -641,7 +644,7 @@ def test_swap_struct_with_many_dynamic_fields():
 
     assert generate_swap(nodes) == """\
 template <>
-inline Y* swap<Y>(Y* payload)
+Y* swap<Y>(Y* payload)
 {
     swap(&payload->num_of_x);
     return cast<Y*>(swap_n_fixed(payload->x, payload->num_of_x));
@@ -658,7 +661,7 @@ inline X::part3* swap(X::part3* payload)
 }
 
 template <>
-inline X* swap<X>(X* payload)
+X* swap<X>(X* payload)
 {
     X::part2* part2 = cast<X::part2*>(swap(&payload->x));
     X::part3* part3 = cast<X::part3*>(swap(part2));
@@ -667,20 +670,24 @@ inline X* swap<X>(X* payload)
 """
 
 def test_generate_empty_file():
-    assert generate_file([], "TestEmpty") == """\
+    assert generate_hpp([], "TestEmpty") == """\
 #ifndef _PROPHY_GENERATED_TestEmpty_HPP
 #define _PROPHY_GENERATED_TestEmpty_HPP
 
 #include <prophy/prophy.hpp>
 
 
+#endif  /* _PROPHY_GENERATED_TestEmpty_HPP */
+"""
+
+    assert generate_cpp([], "TestEmpty") == """\
+#include \"TestEmpty.pp.hpp\"
+
 namespace prophy
 {
 
 
 } // namespace prophy
-
-#endif  /* _PROPHY_GENERATED_TestEmpty_HPP */
 """
 
 def test_generate_file():
@@ -690,7 +697,7 @@ def test_generate_file():
         ])
     ]
 
-    assert generate_file(nodes, "TestFile") == """\
+    assert generate_hpp(nodes, "TestFile") == """\
 #ifndef _PROPHY_GENERATED_TestFile_HPP
 #define _PROPHY_GENERATED_TestFile_HPP
 
@@ -701,17 +708,21 @@ struct Struct
     uint8_t a;
 };
 
+#endif  /* _PROPHY_GENERATED_TestFile_HPP */
+"""
+
+    assert generate_cpp(nodes, "TestFile") == """\
+#include "TestFile.pp.hpp"
+
 namespace prophy
 {
 
 template <>
-inline Struct* swap<Struct>(Struct* payload)
+Struct* swap<Struct>(Struct* payload)
 {
     swap(&payload->a);
     return payload + 1;
 }
 
 } // namespace prophy
-
-#endif  /* _PROPHY_GENERATED_TestFile_HPP */
 """

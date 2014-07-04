@@ -178,7 +178,7 @@ def _generate_swap_struct(pnodes, struct):
         else:
             members += 'return payload + 1;\n'
         return ('template <>\n'
-                'inline {0}* swap<{0}>({0}* payload)\n'
+                '{0}* swap<{0}>({0}* payload)\n'
                 '{{\n'
                 '{1}'
                 '}}\n').format(struct.name, _indent(members, 4))
@@ -201,7 +201,7 @@ def _generate_swap_struct(pnodes, struct):
 
 def _generate_swap_union(pnodes, union):
     return ('template <>\n'
-            'inline {0}* swap<{0}>({0}* payload)\n'
+            '{0}* swap<{0}>({0}* payload)\n'
             '{{\n'
             '    swap(reinterpret_cast<uint32_t*>(&payload->discriminator));\n'
             '    switch (payload->discriminator)\n'
@@ -257,15 +257,23 @@ class CppGenerator(object):
     def generate_swap(self, nodes):
         return '\n'.join(_generator_swap(nodes))
 
-    def serialize_string(self, nodes, basename):
+    def serialize_string_hpp(self, nodes, basename):
         return '\n'.join((
             header.format(basename),
             self.generate_definitions(nodes),
-            '\n'.join((swap_header, self.generate_swap(nodes), swap_footer)),
             footer.format(basename)
         ))
 
+    def serialize_string_cpp(self, nodes, basename):
+        return '\n'.join((
+            '#include "{0}.pp.hpp"\n'.format(basename),
+            swap_header,
+            self.generate_swap(nodes),
+            swap_footer
+        ))
+
     def serialize(self, nodes, basename):
-        path = os.path.join(self.output_dir, basename + ".pp.hpp")
-        out = self.serialize_string(nodes, basename)
-        open(path, "w").write(out)
+        hpp_path = os.path.join(self.output_dir, basename + ".pp.hpp")
+        cpp_path = os.path.join(self.output_dir, basename + ".pp.cpp")
+        open(hpp_path, "w").write(self.serialize_string_hpp(nodes, basename))
+        open(cpp_path, "w").write(self.serialize_string_cpp(nodes, basename))
