@@ -343,7 +343,24 @@ inline X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_optional_element():
-    pass
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("x", "u32", None, None, None, True)),
+            (model.StructMember("y", "Y", None, None, None, True))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+inline X* swap<X>(X* payload)
+{
+    swap(&payload->has_x);
+    if (payload->has_x) swap(&payload->x);
+    swap(&payload->has_y);
+    if (payload->has_y) swap(&payload->y);
+    return payload + 1;
+}
+"""
 
 def test_swap_union():
     pass

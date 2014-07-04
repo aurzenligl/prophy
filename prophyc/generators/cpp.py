@@ -136,7 +136,11 @@ def _generate_swap_struct(pnodes, struct):
                 return 'swap_n_{0}(payload->{1}, {2})'.format(
                     swap_mode, member.name, member.array_size)
         else:
-            return 'swap(&payload->{0})'.format(member.name)
+            if member.optional:
+                preamble = 'swap(&payload->has_{0});\nif (payload->has_{0}) '.format(member.name)
+            else:
+                preamble = ''
+            return preamble + 'swap(&payload->{0})'.format(member.name)
 
     def gen_last_member(name, last_mem, delimiters = []):
         if pnodes.is_unlimited(last_mem):
