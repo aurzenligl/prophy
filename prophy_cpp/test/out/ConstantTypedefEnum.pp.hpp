@@ -19,18 +19,4 @@ struct ConstantTypedefEnum
     Enum c;
 };
 
-namespace prophy
-{
-
-template <>
-inline ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum* payload)
-{
-    swap_n_fixed(payload->a, CONSTANT);
-    swap(&payload->b);
-    swap(&payload->c);
-    return payload + 1;
-}
-
-} // namespace prophy
-
 #endif  /* _PROPHY_GENERATED_ConstantTypedefEnum_HPP */

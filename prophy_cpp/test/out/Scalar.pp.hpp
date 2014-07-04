@@ -9,17 +9,4 @@ struct Scalar
     uint16_t b;
 };
 
-namespace prophy
-{
-
-template <>
-inline Scalar* swap<Scalar>(Scalar* payload)
-{
-    swap(&payload->a);
-    swap(&payload->b);
-    return payload + 1;
-}
-
-} // namespace prophy
-
 #endif  /* _PROPHY_GENERATED_Scalar_HPP */

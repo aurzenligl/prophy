@@ -3,24 +3,12 @@
 
 #include <prophy/prophy.hpp>
 
-#include "DynamicComposite.hpp"
+#include "DynamicComposite.pp.hpp"
 
 struct DynamicCompositeGreedyArray
 {
     uint16_t x;
     DynamicComposite y[1];
 };
-
-namespace prophy
-{
-
-template <>
-inline DynamicCompositeGreedyArray* swap<DynamicCompositeGreedyArray>(DynamicCompositeGreedyArray* payload)
-{
-    swap(&payload->x);
-    return cast<DynamicCompositeGreedyArray*>(payload->y);
-}
-
-} // namespace prophy
 
 #endif  /* _PROPHY_GENERATED_DynamicCompositeGreedyArray_HPP */

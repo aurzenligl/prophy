@@ -3,7 +3,7 @@
 
 #include <prophy/prophy.hpp>
 
-#include "Scalar.hpp"
+#include "Scalar.pp.hpp"
 
 struct CompositeDynamicArray
 {
