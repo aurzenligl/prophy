@@ -12,6 +12,8 @@ Requirements
 ------------
 
 - Python 2.7
+
+If you need sack mode in prophyc:
 - libclang, at least 3.4
 - Python libclang adapter with corresponding version
 
@@ -52,7 +54,28 @@ depending on endianness.
 This allows to manipulate message directly in serialized buffer
 and contributes to encoding speed.
 
-``prophy`` supports integers, enums, arrays and unions.
+``prophy`` supports integers, enums,
+arrays (fixed, dynamic and limited) and unions.
+
+Compiler
+--------
+
+``prophyc`` compiler is meant to process message defition files,
+which can be given in different formats, and generate codecs in target language.
+Codecs using varying platforms and languages must produce and understand the same data.
+
+.. warning::
+   C++ output makes assumptions about compiler's struct padding heuristics,
+   and requires enum to be represented as a 32-bit integral value.
+   It has been tested with gcc compiler on a number of 32- and 64-bit platforms.
+
+``prophyc`` accepts following inputs:
+- ``sack``: C++ headers with struct definitions
+- ``isar``: xml files
+
+``prophyc`` generates following outputs:
+- C++: structs and endianness swapping functions
+- Python: full-fledged codecs
 
 Sack
 ----
@@ -95,6 +118,28 @@ which can be used in following way::
     x: 1
     x: 2
 
+C++ codec can be produced via::
+
+    prophyc --sack --patch patch.txt --cpp_out . test.hpp
+
+It consists of hpp file with struct definition (``test.pp.hpp``)::
+
+    struct Test
+    {
+        uint32_t num_of_x;
+        uint32_t x[1]; /// dynamic array, size in num_of_x
+    };
+
+and cpp file with function swapping message endianness
+from non-native to native (``test.pp.cpp``):
+
+    template <>
+    Test* swap<Test>(Test* payload)
+    {
+        swap(&payload->num_of_x);
+        return cast<Test*>(swap_n_fixed(payload->x, payload->num_of_x));
+    }
+
 Isar
 ----
 
@@ -112,9 +157,9 @@ With this definition (``test.xml``)::
 
 this command::
 
-    prophyc --isar --python_out . test.xml
+    prophyc --isar --python_out . --cpp_out . test.xml
 
-generates identical codec to one from previous example.
+generates identical codecs to ones from previous example.
 
 Work remaining
 --------------
@@ -122,5 +167,4 @@ Work remaining
 Prophy is a work in progress.
 In order to make it resemble mature frameworks it needs:
 
-- C/C++ outputs in prophyc compiler,
 - dedicated message definition language as input.
