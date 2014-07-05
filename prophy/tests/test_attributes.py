@@ -370,6 +370,18 @@ def test_struct_partially_padded():
     assert Y._ALIGNMENT == 8
     assert [tp._PARTIAL_ALIGNMENT for _, tp in Y._descriptor] == [None, 4, None, 8, None]
 
+def test_bytes_partially_padded():
+    class Y(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u8),
+                       ("x", prophy.bytes(bound = "x_len")),
+                       ("y_len", prophy.u32),
+                       ("y", prophy.bytes(bound = "y_len")),
+                       ("z", prophy.u64)]
+
+    assert Y._ALIGNMENT == 8
+    assert [tp._PARTIAL_ALIGNMENT for _, tp in Y._descriptor] == [None, 4, None, 8, None]
+
 def test_empty_struct():
     class E(prophy.struct):
         __metaclass__ = prophy.struct_generator
