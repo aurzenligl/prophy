@@ -135,7 +135,7 @@ It consists of hpp file with struct definition (``test.pp.hpp``)::
     };
 
 and cpp file with function swapping message endianness
-from non-native to native (``test.pp.cpp``):
+from non-native to native (``test.pp.cpp``)::
 
     template <>
     Test* swap<Test>(Test* payload)
