@@ -1,5 +1,5 @@
-import model
-import model_sort
+from prophyc import model
+from prophyc import model_sort
 
 def test_model_sort_enums():
     nodes = [model.Typedef("B", "A"),

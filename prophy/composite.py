@@ -20,7 +20,7 @@ def add_attributes(cls, descriptor):
 
     alignment = 1
     for _, tp in reversed(descriptor):
-        if issubclass(tp, container.base_array) and tp._DYNAMIC:
+        if issubclass(tp, (container.base_array, str)) and tp._DYNAMIC:
             tp._PARTIAL_ALIGNMENT = alignment
             alignment = 1
         alignment = max(tp._ALIGNMENT, alignment)
