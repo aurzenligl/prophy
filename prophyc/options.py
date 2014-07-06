@@ -51,13 +51,13 @@ def parse_options():
                         type = readable_file,
                         help = ("File with instructions changing definitions of prophy "
                                 "messages after parsing. It's needed in sack and isar "
-                                "modes, since C++ and isar xml they're unable to express "
+                                "modes, since C++ and isar xml are unable to express "
                                 "all prophy features."))
 
     parser.add_argument('--python_out',
                         metavar = 'OUT_DIR',
                         type = readable_dir,
-                        help = 'Generate Python source file.')
+                        help = 'Generate Python source files.')
 
     parser.add_argument('--cpp_out',
                         metavar = 'OUT_DIR',
