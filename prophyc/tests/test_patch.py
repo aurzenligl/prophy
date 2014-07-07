@@ -2,8 +2,8 @@ import os
 import tempfile
 import pytest
 
-import patch
-import model
+from prophyc import patch
+from prophyc import model
 
 def parse(content):
     try:

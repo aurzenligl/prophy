@@ -1,10 +1,11 @@
-import model
-import IsarParser
-import PythonSerializer
 from collections import namedtuple
 
+from prophyc import model
+from prophyc.parsers.isar import IsarParser
+from prophyc.parsers.isar import expand_operators
+
 def parse(xml_string):
-    return IsarParser.IsarParser().parse_string(xml_string)
+    return IsarParser().parse_string(xml_string)
 
 def test_includes_parsing():
     xml = """\
@@ -304,3 +305,52 @@ def test_empty_elemens_parsing():
 
     assert len(nodes) == 0
 
+def test_primitive_types():
+    xml = """\
+<xml>
+    <typedef name="u8" primitiveType="8 bit integer unsigned"/>
+    <typedef name="u16" primitiveType="16 bit integer unsigned"/>
+    <typedef name="u32" primitiveType="32 bit integer unsigned"/>
+    <typedef name="u64" primitiveType="64 bit integer unsigned"/>
+    <typedef name="i8" primitiveType="8 bit integer signed"/>
+    <typedef name="i16" primitiveType="16 bit integer signed"/>
+    <typedef name="i32" primitiveType="32 bit integer signed"/>
+    <typedef name="i64" primitiveType="64 bit integer signed"/>
+    <typedef name="ImNotAPrimitiveType" primitiveType="32 bit integer unsigned"/>
+    <typedef name="r32" primitiveType="32 bit float"/>
+    <typedef name="r64" primitiveType="64 bit float"/>
+</xml>
+"""
+
+    nodes = parse(xml)
+
+    assert nodes == [("ImNotAPrimitiveType", "u32")]
+
+def test_operator_expansion():
+    assert expand_operators('bitMaskOr(1, 2)') == '((1) | (2))'
+    assert expand_operators('shiftLeft(1, 2)') == '((1) << (2))'
+
+    assert expand_operators('bitMaskOr(1 ,2)') == '((1) | (2))'
+    assert expand_operators('bitMaskOr(1 , 2)') == '((1) | (2))'
+
+    assert (expand_operators('shiftLeft(bitMaskOr(1, 2), bitMaskOr(3, 4))') ==
+                '((((1) | (2))) << (((3) | (4))))')
+
+def test_operator_expansion_in_enum_and_constant():
+    xml = """\
+<x>
+    <constant name="Constant" value="bitMaskOr(value_one, value_two)"/>
+    <enum name="Enum">
+        <enum-member name="Enum_A" value="shiftLeft(Constant, 16)"/>
+    </enum>
+</x>
+"""
+
+    nodes = parse(xml)
+
+    assert nodes == [
+        ("Constant", "((value_one) | (value_two))"),
+        ("Enum", [
+            ("Enum_A", "((Constant) << (16))")
+        ])
+    ]

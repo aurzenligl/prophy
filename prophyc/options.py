@@ -17,30 +17,51 @@ def parse_options():
         def error(self, message):
             self.exit(1, '%s: error: %s\n' % (self.prog, message))
 
-    parser = ArgumentParser(description = 'Isar/sack compiler.')
+    parser = ArgumentParser('prophyc',
+                            description = ('Parse input files and generate '
+                                           'output based on options given.'))
+
+    parser.add_argument('input_files',
+                        metavar = 'INPUT_FILE',
+                        type = readable_file,
+                        nargs = '+',
+                        help = ('C++ or isar xml files with definitions of prophy '
+                                'messages.'))
 
     group = parser.add_mutually_exclusive_group(required = True)
-    group.add_argument('--isar', action = 'store_true')
-    group.add_argument('--sack', action = 'store_true')
+    group.add_argument('--isar',
+                       action = 'store_true',
+                       help = 'Parse input files as isar xml.')
+    group.add_argument('--sack',
+                       action = 'store_true',
+                       help = 'Parse input files as sack C++.')
 
-    parser.add_argument('-I',
+    parser.add_argument('-I', '--include_dir',
+                        metavar = 'DIR',
                         dest = 'include_dirs',
                         type = readable_dir,
                         action = 'append',
                         default = [],
-                        help = 'include directories')
+                        help = ('Specify the directory in which to search for '
+                                'include directories in sack mode.  '
+                                'May be specified multiple times.'))
 
-    parser.add_argument('--patch',
+    parser.add_argument('-p', '--patch',
+                        metavar = 'FILE',
                         type = readable_file,
-                        help = 'patch file')
+                        help = ("File with instructions changing definitions of prophy "
+                                "messages after parsing. It's needed in sack and isar "
+                                "modes, since C++ and isar xml are unable to express "
+                                "all prophy features."))
 
     parser.add_argument('--python_out',
+                        metavar = 'OUT_DIR',
                         type = readable_dir,
-                        help = 'python output directory')
+                        help = 'Generate Python source files.')
 
-    parser.add_argument('input_files',
-                        type = readable_file,
-                        nargs = '+',
-                        help = 'input file')
+    parser.add_argument('--cpp_out',
+                        metavar = 'OUT_DIR',
+                        type = readable_dir,
+                        help = 'Generate C++ header and source files.')
 
     return parser.parse_args()

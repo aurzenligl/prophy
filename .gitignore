@@ -17,3 +17,14 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Waf build tool
+waf-*
+.waf-*
+.lock-*
+
+# IDE
+.cproject
+.project
+.pydevproject
+.settings
