@@ -1,8 +1,8 @@
-import model
-import PythonSerializer
+from prophyc import model
+from prophyc.generators.python import PythonGenerator
 
 def serialize(nodes):
-    return PythonSerializer.PythonSerializer().serialize_string(nodes, header = False)
+    return PythonGenerator().generate_definitions(nodes)
 
 def test_includes_rendering():
     nodes = [model.Include("szydlo"),
@@ -11,10 +11,18 @@ def test_includes_rendering():
 
     ref = """\
 from szydlo import *
-
 from mydlo import *
-
 from powidlo import *
+"""
+    assert ref == serialize(nodes)
+
+def test_constants_rendering():
+    nodes = [model.Constant("CONST_A", "0"),
+             model.Constant("CONST_B", "31")]
+
+    ref = """\
+CONST_A = 0
+CONST_B = 31
 """
     assert ref == serialize(nodes)
 
@@ -41,17 +49,6 @@ class EEnum(prophy.enum):
 EEnum_A = 0
 EEnum_B = 1
 EEnum_C = 2
-"""
-    assert ref == serialize(nodes)
-
-def test_constants_rendering():
-    nodes = [model.Constant("CONST_A", "0"),
-             model.Constant("CONST_B", "31")]
-
-    ref = """\
-CONST_A = 0
-
-CONST_B = 31
 """
     assert ref == serialize(nodes)
 
@@ -163,7 +160,7 @@ class U(prophy.union):
 """
     assert ref == serialize(nodes)
 
-def test_of_PythonSerializer():
+def test_of_PythonGenerator():
     ih = []
     th = []
     for x in range(20, 200, 60):
@@ -187,46 +184,28 @@ def test_of_PythonSerializer():
     nodes += [model.Enum("test", enum)]
     nodes += [msg_h]
 
-    ps = PythonSerializer.PythonSerializer()
+    ps = PythonGenerator()
     output = ps.serialize_string(nodes)
 
     ref = """\
 import prophy
 
-def bitMaskOr(x, y):
-    return x | y
-
-def shiftLeft(x, y):
-    return x << y
-
 from test_include_20 import *
-
 from test_include_80 import *
-
 from test_include_140 import *
 
 C_A = 5
-
 C_B = 5
-
 C_C = C_B + C_A
 
 td_elem_name_20 = td_elem_val_20
-
 td_elem_name_20 = i_td_elem_val_20
-
 td_elem_name_20 = u_td_elem_val_20
-
 td_elem_name_80 = td_elem_val_80
-
 td_elem_name_80 = i_td_elem_val_80
-
 td_elem_name_80 = u_td_elem_val_80
-
 td_elem_name_140 = td_elem_val_140
-
 td_elem_name_140 = i_td_elem_val_140
-
 td_elem_name_140 = u_td_elem_val_140
 
 class test(prophy.enum):

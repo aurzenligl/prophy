@@ -1,6 +1,7 @@
 import re
 from clang.cindex import Index, CursorKind, TypeKind
-import model
+
+from prophyc import model
 
 unambiguous_builtins = {
     TypeKind.UCHAR: 'u8',
@@ -93,7 +94,7 @@ class Builder(object):
     def add_struct(self, cursor):
         members = [self._build_struct_member(x)
                    for x in cursor.get_children()
-                   if x.kind is CursorKind.FIELD_DECL]
+                   if x.kind is CursorKind.FIELD_DECL and not x.is_bitfield()]
         node = model.Struct(alphanumeric_name(cursor), members)
         self._add_node(node)
 
@@ -109,9 +110,9 @@ def build_model(tu):
     for cursor in tu.cursor.get_children():
         if cursor.kind is CursorKind.UNEXPOSED_DECL:
             for in_cursor in cursor.get_children():
-                if in_cursor.kind is CursorKind.STRUCT_DECL and in_cursor.spelling:
+                if in_cursor.kind is CursorKind.STRUCT_DECL and in_cursor.spelling and in_cursor.is_definition():
                     builder.add_struct(in_cursor)
-        if cursor.kind is CursorKind.STRUCT_DECL and cursor.spelling:
+        if cursor.kind is CursorKind.STRUCT_DECL and cursor.spelling and cursor.is_definition():
             builder.add_struct(cursor)
     return builder.nodes
 
