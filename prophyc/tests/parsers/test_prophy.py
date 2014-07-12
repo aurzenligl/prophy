@@ -47,6 +47,18 @@ def test_error_newline_in_type_definition():
 def test_no_error_with_newlines():
     assert len(parse('\nconst CONST1 = 0;\n\r\nconst CONST2 = 0;\n')) == 2
 
+def test_no_error_with_comments():
+    assert len(parse("""\
+const CONST1 = 0; // ajisja /* */
+const CONST2 = 0; //// ajisja
+// odkosd
+// const CONST3 = 0;
+/*
+const CONST4 = 0; /// ajisja
+*/
+const CONST5 = 0;
+""")) == 3
+
 def test_error_constant_text_value():
     with pytest.raises(ParseError) as e:
         parse('const CONST_X = wrong;')
