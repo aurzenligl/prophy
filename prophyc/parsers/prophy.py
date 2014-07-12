@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
 import os
+from collections import namedtuple
 
 from plyplus import Grammar, grammars, ParseError
 
@@ -12,6 +11,16 @@ builtins = {
     'float', 'double'
 }
 
+State = namedtuple('State', ['typedecls', 'constdecls'])
+
+def validate_decl_not_defined(state, name):
+    if name in state.typedecls or name in state.constdecls:
+        raise Exception("Name '{}' redefined".format(name))
+
+def validate_typedecl_exists(state, type_):
+    if type_ not in builtins and type_ not in state.typedecls:
+        raise Exception("Name '{}' was not declared".format(type_))
+
 def type_specifier(tree):
     if tree.head in builtins:
         return str(tree.head)
@@ -21,11 +30,26 @@ def type_specifier(tree):
 def declaration(tree):
     return type_specifier(tree.tail[0]), str(tree.tail[1].tail[0])
 
-def constant_def(tail):
-    return Constant(str(tail[0].tail[0]), str(tail[1].tail[0]))
+def constant_def(state, tail):
+    name = str(tail[0].tail[0])
+    value = str(tail[1].tail[0])
 
-def typedef_def(tail):
-    return Typedef(type_specifier(tail[0]), str(tail[1].tail[0]))
+    validate_decl_not_defined(state, name)
+
+    node = Constant(name, value)
+    state.constdecls[name] = node
+    return node
+
+def typedef_def(state, tail):
+    type_ = type_specifier(tail[0])
+    name = str(tail[1].tail[0])
+
+    validate_decl_not_defined(state, name)
+    validate_typedecl_exists(state, type_)
+
+    node = Typedef(name, type_)
+    state.typedecls[name] = node
+    return node
 
 def enum_def(tail):
     print 'ENUM', str(tail[0].tail[0]), ' '.join(
@@ -55,7 +79,8 @@ def get_grammar():
 
 def build_model(string_):
     out = get_grammar().parse(string_)
-    return [symbols[tree.head](tree.tail) for tree in out.tail]
+    state = State({}, {})
+    return [symbols[tree.head](state, tree.tail) for tree in out.tail]
 
 class ProphyParser(object):
 
