@@ -32,14 +32,14 @@ def validate_constdecl_exists(state, value):
     if not _is_int(value) and value not in state.constdecls:
         raise Exception("Constant '{}' was not declared".format(value))
 
-def type_specifier(tree):
+def get_type_specifier(tree):
     if tree.head in builtins:
         return str(tree.head)
     else:
         return str(tree.tail[0])
 
-def declaration(tree):
-    return type_specifier(tree.tail[0]), str(tree.tail[1].tail[0])
+def get_declaration(tree):
+    return get_type_specifier(tree.tail[0]), str(tree.tail[1].tail[0])
 
 def constant_def(state, tail):
     name = str(tail[0].tail[0])
@@ -52,7 +52,7 @@ def constant_def(state, tail):
     return node
 
 def typedef_def(state, tail):
-    type_ = type_specifier(tail[0])
+    type_ = get_type_specifier(tail[0])
     name = str(tail[1].tail[0])
 
     validate_decl_not_defined(state, name)
@@ -85,7 +85,7 @@ def enum_def(state, tail):
 
 #def struct_def(tail):
 #    print 'STRUCT', str(tail[0].tail[0]), ' '.join(
-#        '{}->{}'.format(*declaration(x)) for x in tail[1].tail
+#        '{}->{}'.format(*get_declaration(x)) for x in tail[1].tail
 #    )
 
 symbols = {
