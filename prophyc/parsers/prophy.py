@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-from os.path import abspath, exists
+import os
+
 from plyplus import Grammar, grammars
 
-grammar_path = abspath('prophy.g')
-g = Grammar(grammars.open(grammar_path))
-out = g.parse(open('prophy.prophy').read())
-
-from pprint import pprint
-pprint(out.tail)
-
-#import pdb;pdb.set_trace()
+from prophyc.model import Constant, Typedef
 
 builtins = {
     'u8', 'u16', 'u32', 'u64',
@@ -28,10 +22,10 @@ def declaration(tree):
     return type_specifier(tree.tail[0]), str(tree.tail[1].tail[0])
 
 def constant_def(tail):
-    print 'CONSTANT', str(tail[0].tail[0]), str(tail[1].tail[0])
+    return Constant(str(tail[0].tail[0]), str(tail[1].tail[0]))
 
 def typedef_def(tail):
-    print 'TYPEDEF', type_specifier(tail[0]), str(tail[1].tail[0])
+    return Typedef(type_specifier(tail[0]), str(tail[1].tail[0]))
 
 def enum_def(tail):
     print 'ENUM', str(tail[0].tail[0]), ' '.join(
@@ -43,14 +37,20 @@ def enum_def(tail):
 #        '{}->{}'.format(*declaration(x)) for x in tail[1].tail
 #    )
 
-defs = {
+symbols = {
     'constant_def': constant_def,
     'typedef_def': typedef_def,
     'enum_def': enum_def,
 #    'struct_def': struct_def
 }
 
-for x in out.tail:
-    foo = defs.get(x.head)
-    if foo:
-        foo(x.tail)
+def build_model(string_):
+    grammar_path = os.path.join(os.path.split(__file__)[0], 'prophy.g')
+    g = Grammar(grammars.open(grammar_path))
+    out = g.parse(string_)
+    return [symbols[tree.head](tree.tail) for tree in out.tail]
+
+class ProphyParser(object):
+
+    def parse_string(self, string_):
+        return build_model(string_)
