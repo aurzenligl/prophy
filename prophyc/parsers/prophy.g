@@ -94,7 +94,7 @@ double: 'double\s';
 
 constant : decimal_constant | hexadecimal_constant | octal_constant;
 
-@decimal_constant : '[1-9]\d*';
+@decimal_constant : '-?[1-9]\d*';
 
 @hexadecimal_constant : '0x[\da-f]*';
 
