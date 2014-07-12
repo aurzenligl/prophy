@@ -6,7 +6,7 @@ const max = 0x666;
 typedef u32 int3_t;
 typedef u32 int2_t;
 
-typedef u32 struct_t;
+typedef u16 struct_t;
 typedef u32 const_t;
 typedef u32 union_t;
 typedef u32 enum_t;
@@ -15,12 +15,13 @@ typedef u32 u16_t;
 typedef u32 u64_t;
 typedef u32 bytes_t;
 typedef u32 float_t;
-typedef u32 double_t;
+typedef int3_t double_t;
 
 enum enum_t
 {
     enum_t_1 = 1, // first enum value
-    enum_t_2 = 2 // second enum value
+    enum_t_2 = 2, // second enum value
+    enum_t_3 = enum_t_2 // third enum value
 };
 
 // nonsense

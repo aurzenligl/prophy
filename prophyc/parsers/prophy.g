@@ -1,28 +1,38 @@
 start : specification;
 
-@specification : newline definition*;
+@specification : newline (definition newline)*;
 
 @definition:
-    (type_def | constant_def) newline;
-
-type_def:
-      'typedef\s' type_specifier identifier ';'
-    | 'enum\s' identifier newline enum_body ';'
-    | 'struct\s' identifier newline struct_body ';'
+      constant_def
+    | typedef_def
+    | enum_def
+    | struct_def
     | 'union\s' identifier newline union_body ';'
     ;
 
 constant_def:
     'const\s' identifier '=' constant ';';
 
+typedef_def:
+    'typedef\s' type_specifier identifier ';';
+
+enum_def:
+    'enum\s' identifier newline enum_body ';';
+
+struct_def:
+    'struct\s' identifier newline struct_body ';';
+
 enum_body:
     '{'
     newline
-        ( identifier '=' value )
-        ( ',' newline identifier '=' value )*
+        enumerator_spec
+        ( ',' newline enumerator_spec )*
     newline
     '}'
     ;
+
+enumerator_spec:
+    identifier '=' value;
 
 struct_body:
     '{'
@@ -54,30 +64,41 @@ declaration:
     | 'bytes\s' identifier '<' value? '>'
     ;
 
-type_specifier :
-      'u8'
-    | 'u16'
-    | 'u32'
-    | 'u64'
-    | 'i8'
-    | 'i16'
-    | 'i32'
-    | 'i64'
-    | 'float\s'
-    | 'double\s'
+@type_specifier :
+      u8
+    | u16
+    | u32
+    | u64
+    | i8
+    | i16
+    | i32
+    | i64
+    | float
+    | double
     | identifier
     ;
 
-value:
+u8: 'u8\s';
+u16: 'u16\s';
+u32: 'u32\s';
+u64: 'u64\s';
+i8: 'i8\s';
+i16: 'i16\s';
+i32: 'i32\s';
+i64: 'i64\s';
+float: 'float\s';
+double: 'double\s';
+
+@value:
     constant | identifier;
 
 constant : decimal_constant | hexadecimal_constant | octal_constant;
 
-decimal_constant : '[1-9]\d*';
+@decimal_constant : '[1-9]\d*';
 
-hexadecimal_constant : '0x[\da-f]*';
+@hexadecimal_constant : '0x[\da-f]*';
 
-octal_constant : '0o?[0-7]*';
+@octal_constant : '0o?[0-7]*';
 
 identifier: '\w+';
 
