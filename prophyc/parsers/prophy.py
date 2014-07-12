@@ -44,10 +44,17 @@ symbols = {
 #    'struct_def': struct_def
 }
 
+_grammar = None
+
+def get_grammar():
+    global _grammar
+    if not _grammar:
+        grammar_path = os.path.join(os.path.split(__file__)[0], 'prophy.g')
+        _grammar = Grammar(grammars.open(grammar_path))
+    return _grammar
+
 def build_model(string_):
-    grammar_path = os.path.join(os.path.split(__file__)[0], 'prophy.g')
-    g = Grammar(grammars.open(grammar_path))
-    out = g.parse(string_)
+    out = get_grammar().parse(string_)
     return [symbols[tree.head](tree.tail) for tree in out.tail]
 
 class ProphyParser(object):
