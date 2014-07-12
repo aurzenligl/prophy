@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from plyplus import Grammar, grammars, ParseError
 
-from prophyc.model import Constant, Typedef
+from prophyc.model import Constant, Typedef, Enum, EnumMember
 
 builtins = {
     'u8', 'u16', 'u32', 'u64',
@@ -51,10 +51,18 @@ def typedef_def(state, tail):
     state.typedecls[name] = node
     return node
 
-def enum_def(tail):
-    print 'ENUM', str(tail[0].tail[0]), ' '.join(
-        str(x.tail[0].tail[0]) + '->' + str(x.tail[1].tail[0]) for x in tail[1].tail
-    )
+def enum_def(state, tail):
+    def enumerator_def(tree):
+        name = str(tree.tail[0].tail[0])
+        value = str(tree.tail[1].tail[0])
+        return name, value
+
+    name = str(tail[0].tail[0])
+    enumerators = [enumerator_def(tree) for tree in tail[1].tail]
+
+    node = Enum(name, [EnumMember(*x) for x in enumerators])
+    state.typedecls[name] = node
+    return node
 
 #def struct_def(tail):
 #    print 'STRUCT', str(tail[0].tail[0]), ' '.join(

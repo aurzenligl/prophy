@@ -34,6 +34,24 @@ typedef x y;
         model.Typedef("y", "x")
     ]
 
+def test_enums_parsing():
+    content = """\
+enum enum_t
+{
+    enum_t_1 = 1,
+    enum_t_2 = 2,
+    enum_t_3 = 3
+};
+"""
+
+    assert parse(content) == [
+        model.Enum('enum_t', [
+            model.EnumMember('enum_t_1', '1'),
+            model.EnumMember('enum_t_2', '2'),
+            model.EnumMember('enum_t_3', '3')
+        ])
+    ]
+
 def test_error_lack_of_semicolon():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 0')
