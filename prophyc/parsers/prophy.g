@@ -60,8 +60,8 @@ declaration:
     | type_specifier identifier '\[' value ']'
     | type_specifier identifier '<' value? '>'
     | type_specifier '\*' identifier
-    | 'bytes\s' identifier '\[' value ']'
-    | 'bytes\s' identifier '<' value? '>'
+    | bytes identifier '\[' value ']'
+    | bytes identifier '<' value? '>'
     ;
 
 @type_specifier :
@@ -88,6 +88,7 @@ i32: 'i32\s';
 i64: 'i64\s';
 float: 'float\s';
 double: 'double\s';
+bytes: 'bytes\s';
 
 @value:
     constant | identifier;

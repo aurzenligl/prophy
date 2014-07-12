@@ -40,7 +40,11 @@ enum enum_t
 {
     enum_t_1 = 1,
     enum_t_2 = 2,
-    enum_t_3 = 3
+    enum_t_3 = enum_t_2
+};
+enum enum2_t
+{
+    enum2_t_1 = enum_t_3
 };
 """
 
@@ -48,7 +52,10 @@ enum enum_t
         model.Enum('enum_t', [
             model.EnumMember('enum_t_1', '1'),
             model.EnumMember('enum_t_2', '2'),
-            model.EnumMember('enum_t_3', '3')
+            model.EnumMember('enum_t_3', 'enum_t_2')
+        ]),
+        model.Enum('enum2_t', [
+            model.EnumMember('enum2_t_1', 'enum_t_3')
         ])
     ]
 
@@ -100,12 +107,45 @@ def test_error_typedef_redefined():
         parse('typedef u32 x; typedef u32 x;')
     assert "Name 'x' redefined" in e.value.message
 
-def test_error_typedef_type_not_there():
+def test_error_typedef_type_not_declared():
     with pytest.raises(Exception) as e:
         parse('typedef x y;')
-    assert "Name 'x' was not declared" in e.value.message
+    assert "Type 'x' was not declared" in e.value.message
 
 def test_error_typedef_builtin_as_identifier():
     with pytest.raises(ParseError) as e:
         parse('typedef bytes x;')
     assert "Syntax error in input at 'bytes '" in e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('typedef u32 bytes ;')
+    assert "Syntax error in input at 'bytes '" in e.value.message
+
+def test_error_enum_builtin_as_identifier():
+    with pytest.raises(ParseError) as e:
+        parse('enum u32 { enum_t_1 = 1 };')
+    assert "Syntax error in input at 'u32 '" in e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('enum enum_t { u32 = 1 };')
+    assert "Syntax error in input at 'u32 '" in e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('enum enum_t { enum_t_1 = u32 };')
+    assert "Syntax error in input at 'u32 '" in e.value.message
+
+def test_error_enum_redefined():
+    with pytest.raises(Exception) as e:
+        parse('const enum_t = 10; enum enum_t { enum_t_1 = 1 };')
+    assert "Name 'enum_t' redefined" in e.value.message
+    with pytest.raises(Exception) as e:
+        parse('const enum_t_1 = 10; enum enum_t { enum_t_1 = 1 };')
+    assert "Name 'enum_t_1' redefined" in e.value.message
+    with pytest.raises(Exception) as e:
+        parse('enum enum_t { enum_t_1 = 1 }; const enum_t_1 = 10; ')
+    assert "Name 'enum_t_1' redefined" in e.value.message
+
+def test_error_enum_constant_not_declared():
+    with pytest.raises(Exception) as e:
+        parse('enum enum_t { enum_t_1 = unknown };')
+    assert "Constant 'unknown' was not declared" in e.value.message
+
+def test_no_error_enum_comment():
+    assert len(parse('enum enum_t { enum_t_1 = 1, /* xxx */ enum_t_2 = 2 };')) == 1
