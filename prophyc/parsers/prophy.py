@@ -2,7 +2,7 @@
 
 import os
 
-from plyplus import Grammar, grammars
+from plyplus import Grammar, grammars, ParseError
 
 from prophyc.model import Constant, Typedef
 
