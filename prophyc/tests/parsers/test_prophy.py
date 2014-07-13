@@ -59,6 +59,20 @@ enum enum2_t
         ])
     ]
 
+def test_structs_parsing():
+    content = """\
+struct test
+{
+    u32 x;
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('x', 'u32', None, None, None, False)
+        ])
+    ]
+
 def test_error_lack_of_semicolon():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 0')

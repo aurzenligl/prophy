@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from plyplus import Grammar, grammars, ParseError
 
-from prophyc.model import Constant, Typedef, Enum, EnumMember
+from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember
 
 def _is_int(s):
     try:
@@ -38,13 +38,9 @@ def get_type_specifier(tree):
     else:
         return str(tree.tail[0])
 
-def get_declaration(tree):
-    return get_type_specifier(tree.tail[0]), str(tree.tail[1].tail[0])
-
 def constant_def(state, tail):
     name = str(tail[0].tail[0])
     value = str(tail[1].tail[0])
-
     validate_decl_not_defined(state, name)
 
     node = Constant(name, value)
@@ -54,7 +50,6 @@ def constant_def(state, tail):
 def typedef_def(state, tail):
     type_ = get_type_specifier(tail[0])
     name = str(tail[1].tail[0])
-
     validate_decl_not_defined(state, name)
     validate_typedecl_exists(state, type_)
 
@@ -66,7 +61,6 @@ def enum_def(state, tail):
     def enumerator_def(tree):
         name = str(tree.tail[0].tail[0])
         value = str(tree.tail[1].tail[0])
-
         validate_decl_not_defined(state, name)
         validate_constdecl_exists(state, value)
 
@@ -77,22 +71,30 @@ def enum_def(state, tail):
     name = str(tail[0].tail[0])
     validate_decl_not_defined(state, name)
 
-    enumerators = [enumerator_def(tree) for tree in tail[1].tail]
-
-    node = Enum(name, enumerators)
+    node = Enum(name, [enumerator_def(tree) for tree in tail[1].tail])
     state.typedecls[name] = node
     return node
 
-#def struct_def(tail):
-#    print 'STRUCT', str(tail[0].tail[0]), ' '.join(
-#        '{}->{}'.format(*get_declaration(x)) for x in tail[1].tail
-#    )
+def struct_def(state, tail):
+    def field_def(tree):
+        type_ = get_type_specifier(tree.tail[0])
+        name = str(tree.tail[1].tail[0])
+        validate_typedecl_exists(state, type_)
+
+        return StructMember(name, type_, None, None, None, False)
+
+    name = str(tail[0].tail[0])
+    validate_decl_not_defined(state, name)
+
+    node = Struct(name, [field_def(tree) for tree in tail[1].tail])
+    state.typedecls[name] = node
+    return node
 
 symbols = {
     'constant_def': constant_def,
     'typedef_def': typedef_def,
     'enum_def': enum_def,
-#    'struct_def': struct_def
+    'struct_def': struct_def
 }
 
 _grammar = None
