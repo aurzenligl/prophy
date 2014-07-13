@@ -60,9 +60,11 @@ case_spec:
 
 declaration:
       type_specifier identifier array_spec?
-    | type_specifier '\*' identifier
     | bytes identifier array_spec?
+    | type_specifier optional identifier
     ;
+
+optional: '\*';
 
 @array_spec:
       fixed_array

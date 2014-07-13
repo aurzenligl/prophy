@@ -110,13 +110,18 @@ def struct_def(state, tail):
         last_index = len(tail) - 1
         for index, tree in enumerate(tail):
             type_ = get_struct_type_specifier(tree.tail[0])
-            name = str(tree.tail[1].tail[0])
+            if tree.tail[1].head == 'optional':
+                optional = True
+                name = str(tree.tail[2].tail[0])
+            else:
+                optional = False
+                name = str(tree.tail[1].tail[0])
 
             validate_field_name_not_defined(names, name)
             validate_typedecl_exists(state, type_)
             names.add(name)
 
-            if len(tree.tail) > 2:
+            if len(tree.tail) > 2 and not optional:
                 array = tree.tail[2]
                 if array.head == 'fixed_array':
                     value = str(array.tail[0].tail[0])
@@ -136,7 +141,7 @@ def struct_def(state, tail):
                     validate_greedy_field_last(last_index, index, name)
                     yield StructMember(name, type_, True, None, None, False)
             else:
-                yield StructMember(name, type_, None, None, None, False)
+                yield StructMember(name, type_, None, None, None, optional)
 
     name = str(tail[0].tail[0])
     validate_decl_not_defined(state, name)

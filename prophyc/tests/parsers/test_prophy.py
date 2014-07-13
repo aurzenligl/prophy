@@ -154,6 +154,20 @@ struct test
         ])
     ]
 
+def test_structs_with_optional_field():
+    content = """\
+struct test
+{
+    u32* x;
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('x', 'u32', None, None, None, True)
+        ])
+    ]
+
 def test_unions_parsing():
     content = """\
 const three = 3;
