@@ -32,9 +32,17 @@ def validate_constdecl_exists(state, value):
     if not _is_int(value) and value not in state.constdecls:
         raise Exception("Constant '{}' was not declared".format(value))
 
+def validate_value_positive(state, value):
+    if _is_int(value) and int(value) <= 0:
+        raise Exception("Array size '{}' must be positive".format(value))
+
 def validate_field_name_not_defined(names, name):
     if name in names:
         raise Exception("Field '{}' redefined".format(name))
+
+def validate_greedy_field_last(last_index, index, name):
+    if index != last_index:
+        raise Exception("Greedy array field '{}' not last".format(name))
 
 def get_type_specifier(tree):
     if tree.head in builtins:
@@ -82,7 +90,8 @@ def enum_def(state, tail):
 def struct_def(state, tail):
     def field_def(tail):
         names = set()
-        for tree in tail:
+        last_index = len(tail) - 1
+        for index, tree in enumerate(tail):
             type_ = get_type_specifier(tree.tail[0])
             name = str(tree.tail[1].tail[0])
             validate_field_name_not_defined(names, name)
@@ -94,6 +103,7 @@ def struct_def(state, tail):
                 if array.head == 'fixed_array':
                     value = str(array.tail[0].tail[0])
                     validate_constdecl_exists(state, value)
+                    validate_value_positive(state, value)
                     yield StructMember(name, type_, True, None, value, False)
                 elif array.head == 'dynamic_array':
                     yield StructMember('num_of_' + name, 'u32', None, None, None, False)
@@ -101,9 +111,11 @@ def struct_def(state, tail):
                 elif array.head == 'limited_array':
                     value = str(array.tail[0].tail[0])
                     validate_constdecl_exists(state, value)
+                    validate_value_positive(state, value)
                     yield StructMember('num_of_' + name, 'u32', None, None, None, False)
                     yield StructMember(name, type_, True, 'num_of_' + name, value, False)
                 else:
+                    validate_greedy_field_last(last_index, index, name)
                     yield StructMember(name, type_, True, None, None, False)
             else:
                 yield StructMember(name, type_, None, None, None, False)

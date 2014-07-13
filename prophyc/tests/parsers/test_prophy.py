@@ -276,7 +276,14 @@ def test_error_struct_array_size_not_declared():
     assert "Constant 'unknown' was not declared" in e.value.message
 
 def test_error_struct_array_size_cannot_be_negative():
-    pass
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x[-1]; };')
+    assert "Array size '-1' must be positive" in e.value.message
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x<0>; };')
+    assert "Array size '0' must be positive" in e.value.message
 
 def test_error_struct_greedy_field_is_not_the_last_one():
-    pass
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x<...>; u32 y; };')
+    assert "Greedy array field 'x' not last" in e.value.message
