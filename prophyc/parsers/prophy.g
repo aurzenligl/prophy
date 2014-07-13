@@ -56,13 +56,22 @@ case_spec:
     value ':' declaration ';';
 
 declaration:
-      type_specifier identifier
-    | type_specifier identifier '\[' value ']'
-    | type_specifier identifier '<' value? '>'
+      type_specifier identifier array_spec?
     | type_specifier '\*' identifier
-    | bytes identifier '\[' value ']'
-    | bytes identifier '<' value? '>'
+    | bytes identifier array_spec?
     ;
+
+@array_spec:
+      fixed_array
+    | dynamic_array
+    | limited_array
+    | greedy_array
+    ;
+
+fixed_array: '\[' value ']';
+dynamic_array: '<>';
+limited_array: '<' value '>';
+greedy_array: '<...>';
 
 @type_specifier :
       u8

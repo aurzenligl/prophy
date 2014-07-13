@@ -81,6 +81,15 @@ def struct_def(state, tail):
         name = str(tree.tail[1].tail[0])
         validate_typedecl_exists(state, type_)
 
+        if len(tree.tail) > 2:
+            array = tree.tail[2]
+            if array.head == 'fixed_array':
+                value = str(array.tail[0].tail[0])
+                validate_constdecl_exists(state, value)
+                return StructMember(name, type_, True, None, value, False)
+            else:
+                not implemented
+
         return StructMember(name, type_, None, None, None, False)
 
     name = str(tail[0].tail[0])

@@ -64,12 +64,28 @@ def test_structs_parsing():
 struct test
 {
     u32 x;
+    u32 y;
 };
 """
 
     assert parse(content) == [
         model.Struct('test', [
-            model.StructMember('x', 'u32', None, None, None, False)
+            model.StructMember('x', 'u32', None, None, None, False),
+            model.StructMember('y', 'u32', None, None, None, False)
+        ])
+    ]
+
+def test_structs_with_fixed_array_parsing():
+    content = """\
+struct test
+{
+    u32 x[3];
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('x', 'u32', True, None, '3', False)
         ])
     ]
 
@@ -163,3 +179,9 @@ def test_error_enum_constant_not_declared():
 
 def test_no_error_enum_comment():
     assert len(parse('enum enum_t { enum_t_1 = 1, /* xxx */ enum_t_2 = 2 };')) == 1
+
+def test_error_struct_repeated_field_names():
+    pass
+
+def test_no_error_struct_comments_between_newlines():
+    pass
