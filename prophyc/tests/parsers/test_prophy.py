@@ -171,6 +171,22 @@ union test
         ])
     ]
 
+def test_floats_parsing():
+    content = """\
+typedef float x;
+typedef double y;
+struct z { float a; double b; };
+"""
+
+    assert parse(content) == [
+        model.Typedef('x', 'r32'),
+        model.Typedef('y', 'r64'),
+        model.Struct('z', [
+            model.StructMember('a', 'r32', None, None, None, False),
+            model.StructMember('b', 'r64', None, None, None, False)
+        ])
+    ]
+
 def test_error_lack_of_semicolon():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 0')

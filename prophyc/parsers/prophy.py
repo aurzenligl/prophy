@@ -13,9 +13,18 @@ def _is_int(s):
         return False
 
 builtins = {
-    'u8', 'u16', 'u32', 'u64',
-    'i8', 'i16', 'i32', 'i64',
-    'float', 'double'
+    'u8': 'u8',
+    'u16': 'u16',
+    'u32': 'u32',
+    'u64': 'u64',
+    'i8': 'i8',
+    'i16': 'i16',
+    'i32': 'i32',
+    'i64': 'i64',
+    'float': 'r32',
+    'r32': 'r32',
+    'double': 'r64',
+    'r64': 'r64'
 }
 
 State = namedtuple('State', ['typedecls', 'constdecls'])
@@ -49,10 +58,7 @@ def validate_greedy_field_last(last_index, index, name):
         raise Exception("Greedy array field '{}' not last".format(name))
 
 def get_type_specifier(tree):
-    if tree.head in builtins:
-        return str(tree.head)
-    else:
-        return str(tree.tail[0])
+    return builtins.get(tree.head, str(tree.tail[0]))
 
 def constant_def(state, tail):
     name = str(tail[0].tail[0])
