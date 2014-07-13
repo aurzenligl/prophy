@@ -82,6 +82,7 @@ struct test
 {
     u32 x[3];
     u32 y[max];
+    bytes z[10];
 };
 """
 
@@ -89,7 +90,8 @@ struct test
         model.Constant('max', '5'),
         model.Struct('test', [
             model.StructMember('x', 'u32', True, None, '3', False),
-            model.StructMember('y', 'u32', True, None, 'max', False)
+            model.StructMember('y', 'u32', True, None, 'max', False),
+            model.StructMember('z', 'byte', True, None, '10', False)
         ])
     ]
 
@@ -99,6 +101,7 @@ typedef u32 x_t;
 struct test
 {
     x_t x<>;
+    bytes y<>;
 };
 """
 
@@ -106,7 +109,9 @@ struct test
         model.Typedef('x_t', 'u32'),
         model.Struct('test', [
             model.StructMember('num_of_x', 'u32', None, None, None, False),
-            model.StructMember('x', 'x_t', True, 'num_of_x', None, False)
+            model.StructMember('x', 'x_t', True, 'num_of_x', None, False),
+            model.StructMember('num_of_y', 'u32', None, None, None, False),
+            model.StructMember('y', 'byte', True, 'num_of_y', None, False)
         ])
     ]
 

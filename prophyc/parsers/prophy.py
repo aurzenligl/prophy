@@ -24,7 +24,8 @@ builtins = {
     'float': 'r32',
     'r32': 'r32',
     'double': 'r64',
-    'r64': 'r64'
+    'r64': 'r64',
+    'byte': 'byte'
 }
 
 State = namedtuple('State', ['typedecls', 'constdecls'])
@@ -59,6 +60,12 @@ def validate_greedy_field_last(last_index, index, name):
 
 def get_type_specifier(tree):
     return builtins.get(tree.head, str(tree.tail[0]))
+
+def get_struct_type_specifier(tree):
+    if tree.head == 'bytes':
+        return 'byte'
+    else:
+        return get_type_specifier(tree)
 
 def constant_def(state, tail):
     name = str(tail[0].tail[0])
@@ -102,8 +109,9 @@ def struct_def(state, tail):
         names = set()
         last_index = len(tail) - 1
         for index, tree in enumerate(tail):
-            type_ = get_type_specifier(tree.tail[0])
+            type_ = get_struct_type_specifier(tree.tail[0])
             name = str(tree.tail[1].tail[0])
+
             validate_field_name_not_defined(names, name)
             validate_typedecl_exists(state, type_)
             names.add(name)
