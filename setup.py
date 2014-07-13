@@ -16,7 +16,7 @@ setup(name = 'prophy',
       author_email = 'krzysztof.laskowski@nsn.com',
       url = "https://github.com/aurzenligl/prophy",
       license = 'MIT license',
-      keywords = "IDL codec binary data",
+      keywords = "idl codec binary data protocol compiler",
       classifiers = [
             "Development Status :: 4 - Beta",
             "Intended Audience :: Developers",
