@@ -136,7 +136,6 @@ def _limited(node, patch):
     p1, p2, _, _, p3, _ = node.members[i]
     node.members[i] = model.StructMember(p1, p2, True, len_array, p3, None)
 
-
 _actions = {'type': _type,
             'insert': _insert,
             'remove': _remove,

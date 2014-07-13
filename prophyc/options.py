@@ -25,8 +25,8 @@ def parse_options():
                         metavar = 'INPUT_FILE',
                         type = readable_file,
                         nargs = '+',
-                        help = ('C++ or isar xml files with definitions of prophy '
-                                'messages.'))
+                        help = ('Prophy language, C++ or isar xml files with definitions of prophy '
+                                'messages. By default prophy language is assumed.'))
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--isar',
