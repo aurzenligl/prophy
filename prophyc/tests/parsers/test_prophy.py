@@ -311,19 +311,34 @@ def test_error_struct_greedy_field_is_not_the_last_one():
     assert "Greedy array field 'x' not last" in e.value.message
 
 def test_error_union_redefined():
-    pass
+    with pytest.raises(Exception) as e:
+        parse('const test = 10; union test { 1: u32 x; };')
+    assert "Name 'test' redefined" in e.value.message
+    with pytest.raises(Exception) as e:
+        parse('union test { 1: u32 x; }; union test { 1: u32 x; };')
+    assert "Name 'test' redefined" in e.value.message
 
 def test_error_union_empty():
-    pass
+    with pytest.raises(ParseError) as e:
+        parse('union test {};')
+    assert "Syntax error in input at '}'" in e.value.message
 
 def test_error_union_repeated_arm_name():
-    pass
+    with pytest.raises(Exception) as e:
+        parse('union test { 1: u32 x; 2: u32 x; };')
+    assert "Field 'x' redefined" in e.value.message
+
+def test_error_union_repeated_arm_discriminator():
+    with pytest.raises(Exception) as e:
+        parse('union test { 1: u32 x; 2: u32 x; };')
+    assert "Field 'x' redefined" in e.value.message
 
 def test_error_union_field_type_not_declared():
-    pass
+    with pytest.raises(Exception) as e:
+        parse('union test { 1: u32 x; 1: u32 y; };')
+    assert "Value '1' redefined" in e.value.message
 
-def test_error_union_array_size_not_declared():
-    pass
-
-def test_error_union_arm_cannot_be_array():
-    pass
+def test_error_union_discriminator_size_not_declared():
+    with pytest.raises(Exception) as e:
+        parse('union test { unknown: u32 x; };')
+    assert "Constant 'unknown' was not declared" in e.value.message

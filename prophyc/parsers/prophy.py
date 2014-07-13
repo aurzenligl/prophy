@@ -40,6 +40,10 @@ def validate_field_name_not_defined(names, name):
     if name in names:
         raise Exception("Field '{}' redefined".format(name))
 
+def validate_value_not_defined(values, value):
+    if value in values:
+        raise Exception("Value '{}' redefined".format(value))
+
 def validate_greedy_field_last(last_index, index, name):
     if index != last_index:
         raise Exception("Greedy array field '{}' not last".format(name))
@@ -128,13 +132,16 @@ def struct_def(state, tail):
     return node
 
 def union_def(state, tail):
-    def arm_def(tree, names = set()):
+    def arm_def(tree, names = set(), values = set()):
         value = str(tree.tail[0].tail[0])
         type_ = get_type_specifier(tree.tail[1])
         name = str(tree.tail[2].tail[0])
         validate_typedecl_exists(state, type_)
         validate_constdecl_exists(state, value)
         validate_field_name_not_defined(names, name)
+        validate_value_not_defined(values, value)
+        values.add(value)
+        names.add(name)
         return UnionMember(name, type_, value)
 
     name = str(tail[0].tail[0])
