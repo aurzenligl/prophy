@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from plyplus import Grammar, grammars, ParseError
 
-from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember
+from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember
 
 def _is_int(s):
     try:
@@ -127,11 +127,28 @@ def struct_def(state, tail):
     state.typedecls[name] = node
     return node
 
+def union_def(state, tail):
+    def arm_def(tree):
+        value = str(tree.tail[0].tail[0])
+        type_ = get_type_specifier(tree.tail[1].tail[0])
+        name = str(tree.tail[1].tail[1].tail[0])
+        validate_constdecl_exists(state, value)
+        validate_typedecl_exists(state, type_)
+        return UnionMember(name, type_, value)
+
+    name = str(tail[0].tail[0])
+    validate_decl_not_defined(state, name)
+
+    node = Union(name, [arm_def(x) for x in tail[1].tail])
+    state.typedecls[name] = node
+    return node
+
 symbols = {
     'constant_def': constant_def,
     'typedef_def': typedef_def,
     'enum_def': enum_def,
-    'struct_def': struct_def
+    'struct_def': struct_def,
+    'union_def': union_def
 }
 
 _grammar = None

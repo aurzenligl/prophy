@@ -7,7 +7,7 @@ start : specification;
     | typedef_def
     | enum_def
     | struct_def
-    | 'union\s' identifier newline union_body ';'
+    | union_def
     ;
 
 constant_def:
@@ -21,6 +21,9 @@ enum_def:
 
 struct_def:
     'struct\s' identifier newline struct_body ';';
+
+union_def:
+    'union\s' identifier newline union_body ';';
 
 enum_body:
     '{'

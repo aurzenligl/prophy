@@ -149,6 +149,22 @@ struct test
         ])
     ]
 
+def test_unions_parsing():
+    content = """\
+union test
+{
+    1: u32 x;
+    2: u32 y;
+};
+"""
+
+    assert parse(content) == [
+        model.Union('test', [
+            model.UnionMember('x', 'u32', '1'),
+            model.UnionMember('y', 'u32', '2')
+        ])
+    ]
+
 def test_error_lack_of_semicolon():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 0')
