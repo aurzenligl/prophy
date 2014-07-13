@@ -76,26 +76,35 @@ def enum_def(state, tail):
     return node
 
 def struct_def(state, tail):
-    def field_def(tree):
-        type_ = get_type_specifier(tree.tail[0])
-        name = str(tree.tail[1].tail[0])
-        validate_typedecl_exists(state, type_)
+    def field_def(tail):
+        for tree in tail:
+            type_ = get_type_specifier(tree.tail[0])
+            name = str(tree.tail[1].tail[0])
+            validate_typedecl_exists(state, type_)
 
-        if len(tree.tail) > 2:
-            array = tree.tail[2]
-            if array.head == 'fixed_array':
-                value = str(array.tail[0].tail[0])
-                validate_constdecl_exists(state, value)
-                return StructMember(name, type_, True, None, value, False)
+            if len(tree.tail) > 2:
+                array = tree.tail[2]
+                if array.head == 'fixed_array':
+                    value = str(array.tail[0].tail[0])
+                    validate_constdecl_exists(state, value)
+                    yield StructMember(name, type_, True, None, value, False)
+                elif array.head == 'dynamic_array':
+                    yield StructMember('num_of_' + name, 'u32', None, None, None, False)
+                    yield StructMember(name, type_, True, 'num_of_' + name, None, False)
+                elif array.head == 'limited_array':
+                    value = str(array.tail[0].tail[0])
+                    validate_constdecl_exists(state, value)
+                    yield StructMember('num_of_' + name, 'u32', None, None, None, False)
+                    yield StructMember(name, type_, True, 'num_of_' + name, value, False)
+                else:
+                    yield StructMember(name, type_, True, None, None, False)
             else:
-                not implemented
-
-        return StructMember(name, type_, None, None, None, False)
+                yield StructMember(name, type_, None, None, None, False)
 
     name = str(tail[0].tail[0])
     validate_decl_not_defined(state, name)
 
-    node = Struct(name, [field_def(tree) for tree in tail[1].tail])
+    node = Struct(name, [x for x in field_def(tail[1].tail)])
     state.typedecls[name] = node
     return node
 

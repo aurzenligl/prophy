@@ -89,6 +89,50 @@ struct test
         ])
     ]
 
+def test_structs_with_dynamic_array_parsing():
+    content = """\
+struct test
+{
+    u32 x<>;
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('num_of_x', 'u32', None, None, None, False),
+            model.StructMember('x', 'u32', True, 'num_of_x', None, False)
+        ])
+    ]
+
+def test_structs_with_limited_array_parsing():
+    content = """\
+struct test
+{
+    u32 x<5>;
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('num_of_x', 'u32', None, None, None, False),
+            model.StructMember('x', 'u32', True, 'num_of_x', '5', False)
+        ])
+    ]
+
+def test_structs_with_greedy_array_parsing():
+    content = """\
+struct test
+{
+    u32 x<...>;
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('x', 'u32', True, None, None, False)
+        ])
+    ]
+
 def test_error_lack_of_semicolon():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 0')
