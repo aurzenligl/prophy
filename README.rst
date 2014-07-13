@@ -10,12 +10,14 @@ It has compiler and runtime libraries and is similar in purpose to:
 - `Apache Thrift <http://thrift.apache.org/>`_,
 - `Cap'n Proto <http://kentonv.github.io/capnproto/>`_.
 
-Requirements
+Installation
 ------------
 
-- Python 2.7
+Prophyc requires Python 2.7. You can install via PyPI::
 
-If you need sack mode in prophyc:
+    pip install prophy
+
+If you need sack mode in prophyc, you also need:
 
 - libclang, at least 3.4
 - Python libclang adapter with corresponding version
@@ -175,6 +177,7 @@ Codecs using varying platforms and languages must produce and understand the sam
 
 ``prophyc`` accepts following inputs:
 
+- ``prophy``: dedicated language to express prophy types best
 - ``sack``: C++ headers with struct definitions
 - ``isar``: xml files
 
@@ -182,6 +185,10 @@ Codecs using varying platforms and languages must produce and understand the sam
 
 - C++: structs and endianness swapping functions
 - Python: full-fledged codecs
+
+Example of compiler usage::
+
+    prophyc --python_out . --cpp_out . my_message.prophy
 
 Sack
 ----
