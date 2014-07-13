@@ -32,6 +32,10 @@ def validate_constdecl_exists(state, value):
     if not _is_int(value) and value not in state.constdecls:
         raise Exception("Constant '{}' was not declared".format(value))
 
+def validate_field_name_not_defined(names, name):
+    if name in names:
+        raise Exception("Field '{}' redefined".format(name))
+
 def get_type_specifier(tree):
     if tree.head in builtins:
         return str(tree.head)
@@ -77,10 +81,13 @@ def enum_def(state, tail):
 
 def struct_def(state, tail):
     def field_def(tail):
+        names = set()
         for tree in tail:
             type_ = get_type_specifier(tree.tail[0])
             name = str(tree.tail[1].tail[0])
+            validate_field_name_not_defined(names, name)
             validate_typedecl_exists(state, type_)
+            names.add(name)
 
             if len(tree.tail) > 2:
                 array = tree.tail[2]

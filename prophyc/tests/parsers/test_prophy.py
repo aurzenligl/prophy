@@ -77,45 +77,61 @@ struct test
 
 def test_structs_with_fixed_array_parsing():
     content = """\
+const max = 5;
 struct test
 {
     u32 x[3];
+    u32 y[max];
 };
 """
 
     assert parse(content) == [
+        model.Constant('max', '5'),
         model.Struct('test', [
-            model.StructMember('x', 'u32', True, None, '3', False)
+            model.StructMember('x', 'u32', True, None, '3', False),
+            model.StructMember('y', 'u32', True, None, 'max', False)
         ])
     ]
 
 def test_structs_with_dynamic_array_parsing():
     content = """\
+typedef u32 x_t;
 struct test
 {
-    u32 x<>;
+    x_t x<>;
 };
 """
 
     assert parse(content) == [
+        model.Typedef('x_t', 'u32'),
         model.Struct('test', [
             model.StructMember('num_of_x', 'u32', None, None, None, False),
-            model.StructMember('x', 'u32', True, 'num_of_x', None, False)
+            model.StructMember('x', 'x_t', True, 'num_of_x', None, False)
         ])
     ]
 
 def test_structs_with_limited_array_parsing():
     content = """\
+enum sizes
+{
+    size = 10
+};
 struct test
 {
     u32 x<5>;
+    u32 y<size>;
 };
 """
 
     assert parse(content) == [
+        model.Enum('sizes', [
+            model.EnumMember('size', '10')
+        ]),
         model.Struct('test', [
             model.StructMember('num_of_x', 'u32', None, None, None, False),
-            model.StructMember('x', 'u32', True, 'num_of_x', '5', False)
+            model.StructMember('x', 'u32', True, 'num_of_x', '5', False),
+            model.StructMember('num_of_y', 'u32', None, None, None, False),
+            model.StructMember('y', 'u32', True, 'num_of_y', 'size', False)
         ])
     ]
 
@@ -224,8 +240,43 @@ def test_error_enum_constant_not_declared():
 def test_no_error_enum_comment():
     assert len(parse('enum enum_t { enum_t_1 = 1, /* xxx */ enum_t_2 = 2 };')) == 1
 
+def test_error_struct_redefined():
+    with pytest.raises(Exception) as e:
+        parse('const test = 10; struct test { u32 x; };')
+    assert "Name 'test' redefined" in e.value.message
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x; }; struct test { u32 x; };')
+    assert "Name 'test' redefined" in e.value.message
+
+def test_error_struct_empty():
+    with pytest.raises(ParseError) as e:
+        parse('struct test {};')
+    assert "Syntax error in input at '}'" in e.value.message
+
 def test_error_struct_repeated_field_names():
-    pass
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x; u32 x; };')
+    assert "Field 'x' redefined" in e.value.message
 
 def test_no_error_struct_comments_between_newlines():
+    assert len(parse('struct test { u32 x; /* \n u32 y; \n */ \n u32 z; };')) == 1
+    assert len(parse('struct test { u32 x; // xxxx \n u32 y; \n // u32 z; \n };')) == 1
+
+def test_error_struct_field_type_not_declared():
+    with pytest.raises(Exception) as e:
+        parse('struct test { unknown x; };')
+    assert "Type 'unknown' was not declared" in e.value.message
+
+def test_error_struct_array_size_not_declared():
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x[unknown]; };')
+    assert "Constant 'unknown' was not declared" in e.value.message
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x<unknown>; };')
+    assert "Constant 'unknown' was not declared" in e.value.message
+
+def test_error_struct_array_size_cannot_be_negative():
+    pass
+
+def test_error_struct_greedy_field_is_not_the_last_one():
     pass
