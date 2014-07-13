@@ -128,12 +128,13 @@ def struct_def(state, tail):
     return node
 
 def union_def(state, tail):
-    def arm_def(tree):
+    def arm_def(tree, names = set()):
         value = str(tree.tail[0].tail[0])
-        type_ = get_type_specifier(tree.tail[1].tail[0])
-        name = str(tree.tail[1].tail[1].tail[0])
-        validate_constdecl_exists(state, value)
+        type_ = get_type_specifier(tree.tail[1])
+        name = str(tree.tail[2].tail[0])
         validate_typedecl_exists(state, type_)
+        validate_constdecl_exists(state, value)
+        validate_field_name_not_defined(names, name)
         return UnionMember(name, type_, value)
 
     name = str(tail[0].tail[0])

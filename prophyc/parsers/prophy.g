@@ -56,7 +56,7 @@ union_body:
     ;
 
 case_spec:
-    value ':' declaration ';';
+    value ':' type_specifier identifier ';';
 
 declaration:
       type_specifier identifier array_spec?

@@ -151,17 +151,23 @@ struct test
 
 def test_unions_parsing():
     content = """\
+const three = 3;
+typedef u32 z_t;
 union test
 {
     1: u32 x;
     2: u32 y;
+    three: z_t z;
 };
 """
 
     assert parse(content) == [
+        model.Constant('three', '3'),
+        model.Typedef('z_t', 'u32'),
         model.Union('test', [
             model.UnionMember('x', 'u32', '1'),
-            model.UnionMember('y', 'u32', '2')
+            model.UnionMember('y', 'u32', '2'),
+            model.UnionMember('z', 'z_t', 'three')
         ])
     ]
 
@@ -303,3 +309,21 @@ def test_error_struct_greedy_field_is_not_the_last_one():
     with pytest.raises(Exception) as e:
         parse('struct test { u32 x<...>; u32 y; };')
     assert "Greedy array field 'x' not last" in e.value.message
+
+def test_error_union_redefined():
+    pass
+
+def test_error_union_empty():
+    pass
+
+def test_error_union_repeated_arm_name():
+    pass
+
+def test_error_union_field_type_not_declared():
+    pass
+
+def test_error_union_array_size_not_declared():
+    pass
+
+def test_error_union_arm_cannot_be_array():
+    pass
