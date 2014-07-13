@@ -22,7 +22,7 @@ If you need sack mode in prophyc, you also need:
 - libclang, at least 3.4
 - Python libclang adapter with corresponding version
 
-Laguage
+Language
 --------
 
 Prophy language features following built-in types:
