@@ -43,14 +43,6 @@ def test_missing_output(tmpdir_cwd):
     assert out == ""
     assert tr(err) == "Missing output directives\n"
 
-def test_passing_neither_isar_nor_sack(tmpdir_cwd):
-    open("input", "w")
-    ret, out, err = call(["--python_out", ".",
-                          os.path.join(str(tmpdir_cwd), "input")])
-    assert ret == 1
-    assert out == ""
-    assert tr(err) == "prophyc: error: one of the arguments --isar --sack is required\n"
-
 def test_passing_isar_and_sack(tmpdir_cwd):
     open("input", "w")
     ret, out, err = call(["--isar", "--sack", "--python_out", ".",
@@ -278,3 +270,98 @@ def test_clang_not_installed(tmpdir_cwd):
     assert ret == 1
     assert out == ""
     assert tr(err) == "Sack input requires clang and it's not installed\n"
+
+def test_prophy_language(tmpdir_cwd):
+    open("input.prophy", "w").write("""\
+struct X
+{
+    u32 x[5];
+    u64 y<2>;
+};
+union U
+{
+    1: X x;
+    2: u32 y;
+};
+""")
+
+    ret, out, err = call(["--python_out", str(tmpdir_cwd),
+                          "--cpp_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.prophy")])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert open("input.py").read() == """\
+import prophy
+
+class X(prophy.struct):
+    __metaclass__ = prophy.struct_generator
+    _descriptor = [('x', prophy.array(prophy.u32, size = 5)),
+                   ('num_of_y', prophy.u32),
+                   ('y', prophy.array(prophy.u64, bound = 'num_of_y', size = 2))]
+
+class U(prophy.union):
+    __metaclass__ = prophy.union_generator
+    _descriptor = [('x', X, 1),
+                   ('y', prophy.u32, 2)]
+"""
+    assert open("input.pp.hpp").read() == """\
+#ifndef _PROPHY_GENERATED_input_HPP
+#define _PROPHY_GENERATED_input_HPP
+
+#include <prophy/prophy.hpp>
+
+struct X
+{
+    uint32_t x[5];
+    uint32_t num_of_y;
+    uint64_t y[2]; /// limited array, size in num_of_y
+};
+
+struct U
+{
+    enum _discriminator
+    {
+        discriminator_x = 1,
+        discriminator_y = 2
+    } discriminator;
+
+    union
+    {
+        X x;
+        uint32_t y;
+    };
+};
+
+#endif  /* _PROPHY_GENERATED_input_HPP */
+"""
+    assert open("input.pp.cpp").read() == """\
+#include "input.pp.hpp"
+
+namespace prophy
+{
+
+template <>
+X* swap<X>(X* payload)
+{
+    swap_n_fixed(payload->x, 5);
+    swap(&payload->num_of_y);
+    swap_n_fixed(payload->y, payload->num_of_y);
+    return payload + 1;
+}
+
+template <>
+U* swap<U>(U* payload)
+{
+    swap(reinterpret_cast<uint32_t*>(&payload->discriminator));
+    switch (payload->discriminator)
+    {
+        case U::discriminator_x: swap(&payload->x); break;
+        case U::discriminator_y: swap(&payload->y); break;
+        default: break;
+    }
+    return payload + 1;
+}
+
+} // namespace prophy
+"""

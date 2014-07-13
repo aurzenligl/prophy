@@ -164,7 +164,7 @@ _grammar = None
 def get_grammar():
     global _grammar
     if not _grammar:
-        grammar_path = os.path.join(os.path.split(__file__)[0], 'prophy.g')
+        grammar_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], 'prophy.g')
         _grammar = Grammar(grammars.open(grammar_path))
     return _grammar
 
@@ -177,3 +177,6 @@ class ProphyParser(object):
 
     def parse_string(self, string_):
         return build_model(string_)
+
+    def parse(self, filename):
+        return build_model(open(filename).read())
