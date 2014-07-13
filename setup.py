@@ -9,7 +9,7 @@ setup(name = 'prophy',
               'prophyc = prophyc:main'
           ]
       },
-      version = '0.3',
+      version = '0.4',
       description = 'prophy: fast data interchange format toolchain',
       long_description = long_description,
       author = 'Krzysztof Laskowski',
