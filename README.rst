@@ -13,8 +13,15 @@ It has compiler and runtime libraries and is similar in purpose to:
 Installation
 ------------
 
-Prophyc requires Python 2.7. You can install via PyPI::
+Prophyc requires Python 2.7 and libraries:
 
+- ply
+- plyplus
+
+You can install via PyPI::
+
+    pip install ply
+    pip install plyplus
     pip install prophy
 
 If you need sack mode in prophyc, you also need:
