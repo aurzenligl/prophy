@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 from prophyc import model
 from prophyc.parsers.isar import IsarParser
 from prophyc.parsers.isar import expand_operators

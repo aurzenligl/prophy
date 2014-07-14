@@ -4,19 +4,20 @@ long_description = open('README.rst').read()
 
 setup(name = 'prophy',
       packages = find_packages(),
+      include_package_data = True,
       entry_points = {
           'console_scripts': [
               'prophyc = prophyc:main'
           ]
       },
-      version = '0.3',
+      version = '0.4',
       description = 'prophy: fast data interchange format toolchain',
       long_description = long_description,
       author = 'Krzysztof Laskowski',
       author_email = 'krzysztof.laskowski@nsn.com',
       url = "https://github.com/aurzenligl/prophy",
       license = 'MIT license',
-      keywords = "IDL codec binary data",
+      keywords = "idl codec binary data protocol compiler",
       classifiers = [
             "Development Status :: 4 - Beta",
             "Intended Audience :: Developers",

@@ -28,6 +28,9 @@ def main():
             sys.exit("Sack input requires clang and it's not installed")
         from prophyc.parsers.sack import SackParser
         parser = SackParser(opts.include_dirs)
+    else:
+        from prophyc.parsers.prophy import ProphyParser
+        parser = ProphyParser()
 
     serializers = []
     if opts.python_out:

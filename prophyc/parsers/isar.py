@@ -124,4 +124,3 @@ class IsarParser(object):
 
     def parse(self, file):
         return self.__get_model(ElementTree.parse(file))
-
