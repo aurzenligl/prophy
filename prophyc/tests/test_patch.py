@@ -1,14 +1,18 @@
+import os
 import tempfile
 import pytest
 
-import patch
-import model
+from prophyc import patch
+from prophyc import model
 
 def parse(content):
-    with tempfile.NamedTemporaryFile() as temp:
-        temp.write(content)
-        temp.flush()
-        return patch.parse(temp.name)
+    try:
+        with tempfile.NamedTemporaryFile(delete = False) as temp:
+            temp.write(content)
+            temp.flush()
+            return patch.parse(temp.name)
+    finally:
+        os.unlink(temp.name)
 
 def test_parsing_ignoring_empty_lines():
     content = """\

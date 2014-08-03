@@ -1,3 +1,22 @@
+0.4
+-----------------------------------
+- prophyc: dedicated input language based on xdr and thrift
+
+0.3
+-----------------------------------
+
+- prophyc: cpp output added
+- prophyc: bitMaskOr and shiftLeft operators are translated by isar parser
+- cpp prophy: new output consists of structs defining messages and endianness swap algorithms
+- python prophy: messages with multiple dynamic fields are split in parts in such way that
+  first part has alignment of all fields and each following part has alignment of its fields
+
+0.2.5
+-----------------------------------
+
+- prophyc sorts symbols accorting to dependencies also in patched sack case
+- prophy copy_from bug fixed
+
 0.2.4
 -----------------------------------
 

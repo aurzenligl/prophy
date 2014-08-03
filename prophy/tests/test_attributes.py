@@ -1,110 +1,65 @@
 import prophy
 import pytest
 
-def test_int_attributes():
-    assert 1 == prophy.i8._SIZE
-    assert False == prophy.i8._DYNAMIC
-    assert False == prophy.i8._UNLIMITED
-    assert 0 == prophy.i8._DEFAULT
-    assert False == prophy.i8._OPTIONAL
-    assert 1 == prophy.i8._ALIGNMENT
-    assert None == prophy.i8._BOUND
+@pytest.mark.parametrize("tp, size", [
+    (prophy.i8, 1),
+    (prophy.i16, 2),
+    (prophy.i32, 4),
+    (prophy.i64, 8),
+    (prophy.u8, 1),
+    (prophy.u16, 2),
+    (prophy.u32, 4),
+    (prophy.u64, 8)
+])
+def test_int_attributes(tp, size):
+    assert tp._SIZE == size
+    assert tp._DYNAMIC == False
+    assert tp._UNLIMITED == False
+    assert tp._DEFAULT == 0
+    assert tp._OPTIONAL == False
+    assert tp._ALIGNMENT == size
+    assert tp._BOUND is None
+    assert tp._PARTIAL_ALIGNMENT is None
 
-    assert 2 == prophy.i16._SIZE
-    assert False == prophy.i16._DYNAMIC
-    assert False == prophy.i16._UNLIMITED
-    assert 0 == prophy.i16._DEFAULT
-    assert False == prophy.i16._OPTIONAL
-    assert 2 == prophy.i16._ALIGNMENT
-    assert None == prophy.i16._BOUND
+@pytest.mark.parametrize("tp, size", [
+    (prophy.r32, 4),
+    (prophy.r64, 8)
+])
+def test_float_attributes(tp, size):
+    assert tp._SIZE == size
+    assert tp._DYNAMIC == False
+    assert tp._UNLIMITED == False
+    assert tp._DEFAULT == 0.0
+    assert tp._OPTIONAL == False
+    assert tp._ALIGNMENT == size
+    assert tp._BOUND is None
+    assert tp._PARTIAL_ALIGNMENT is None
 
-    assert 4 == prophy.i32._SIZE
-    assert False == prophy.i32._DYNAMIC
-    assert False == prophy.i32._UNLIMITED
-    assert 0 == prophy.i32._DEFAULT
-    assert False == prophy.i32._OPTIONAL
-    assert 4 == prophy.i32._ALIGNMENT
-    assert None == prophy.i32._BOUND
-
-    assert 8 == prophy.i64._SIZE
-    assert False == prophy.i64._DYNAMIC
-    assert False == prophy.i64._UNLIMITED
-    assert 0 == prophy.i64._DEFAULT
-    assert False == prophy.i64._OPTIONAL
-    assert 8 == prophy.i64._ALIGNMENT
-    assert None == prophy.i64._BOUND
-
-    assert 1 == prophy.u8._SIZE
-    assert False == prophy.u8._DYNAMIC
-    assert False == prophy.u8._UNLIMITED
-    assert 0 == prophy.u8._DEFAULT
-    assert False == prophy.u8._OPTIONAL
-    assert 1 == prophy.u8._ALIGNMENT
-    assert None == prophy.u8._BOUND
-
-    assert 2 == prophy.u16._SIZE
-    assert False == prophy.u16._DYNAMIC
-    assert False == prophy.u16._UNLIMITED
-    assert 0 == prophy.u16._DEFAULT
-    assert False == prophy.u16._OPTIONAL
-    assert 2 == prophy.u16._ALIGNMENT
-    assert None == prophy.u16._BOUND
-
-    assert 4 == prophy.u32._SIZE
-    assert False == prophy.u32._DYNAMIC
-    assert False == prophy.u32._UNLIMITED
-    assert 0 == prophy.u32._DEFAULT
-    assert False == prophy.u32._OPTIONAL
-    assert 4 == prophy.u32._ALIGNMENT
-    assert None == prophy.u32._BOUND
-
-    assert 8 == prophy.u64._SIZE
-    assert False == prophy.u64._DYNAMIC
-    assert False == prophy.u64._UNLIMITED
-    assert 0 == prophy.u64._DEFAULT
-    assert False == prophy.u64._OPTIONAL
-    assert 8 == prophy.u64._ALIGNMENT
-    assert None == prophy.u64._BOUND
-
-def test_float_attributes():
-    assert 4 == prophy.r32._SIZE
-    assert False == prophy.r32._DYNAMIC
-    assert False == prophy.r32._UNLIMITED
-    assert 0.0 == prophy.r32._DEFAULT
-    assert 4 == prophy.r32._ALIGNMENT
-    assert None == prophy.r32._BOUND
-
-    assert 8 == prophy.r64._SIZE
-    assert False == prophy.r64._DYNAMIC
-    assert False == prophy.r64._UNLIMITED
-    assert 0.0 == prophy.r64._DEFAULT
-    assert 8 == prophy.r64._ALIGNMENT
-    assert None == prophy.r64._BOUND
-
-def test_enum_attributes():
+def make_E():
     class E(prophy.enum):
         __metaclass__ = prophy.enum_generator
         _enumerators = [("E_1", 1)]
+    return E
 
-    assert 4 == E._SIZE
-    assert False == E._DYNAMIC
-    assert False == E._UNLIMITED
-    assert 1 == E._DEFAULT
-    assert False == E._OPTIONAL
-    assert 4 == E._ALIGNMENT
-    assert None == E._BOUND
-
+def make_E8():
     class E8(prophy.enum8):
         __metaclass__ = prophy.enum_generator
         _enumerators = [("E_1", 1)]
+    return E8
 
-    assert 1 == E8._SIZE
-    assert False == E8._DYNAMIC
-    assert False == E8._UNLIMITED
-    assert 1 == E8._DEFAULT
-    assert False == E8._OPTIONAL
-    assert 1 == E8._ALIGNMENT
-    assert None == E8._BOUND
+@pytest.mark.parametrize("tp_factory, size", [
+    (make_E, 4),
+    (make_E8, 1)
+])
+def test_enum_attributes(tp_factory, size):
+    assert tp_factory()._SIZE == size
+    assert tp_factory()._DYNAMIC == False
+    assert tp_factory()._UNLIMITED == False
+    assert tp_factory()._DEFAULT == 1
+    assert tp_factory()._OPTIONAL == False
+    assert tp_factory()._ALIGNMENT == size
+    assert tp_factory()._BOUND is None
+    assert tp_factory()._PARTIAL_ALIGNMENT is None
 
 def test_optional_attributes():
     assert 1 == prophy.optional(prophy.i8)._SIZE
@@ -114,6 +69,7 @@ def test_optional_attributes():
     assert True == prophy.optional(prophy.i8)._OPTIONAL
     assert 1 == prophy.optional(prophy.i8)._ALIGNMENT
     assert None == prophy.optional(prophy.i8)._BOUND
+    assert None == prophy.optional(prophy.i8)._PARTIAL_ALIGNMENT
 
 def test_bytes_static_attributes():
     B = prophy.bytes(size = 3)
@@ -124,7 +80,8 @@ def test_bytes_static_attributes():
     assert '\x00\x00\x00' == B._DEFAULT
     assert False == B._OPTIONAL
     assert 1 == B._ALIGNMENT
-    assert None == B._BOUND
+    assert B._BOUND is None
+    assert B._PARTIAL_ALIGNMENT is None
 
 def test_bytes_limited_attributes():
     B = prophy.bytes(bound = "a_len", size = 3)
@@ -136,6 +93,7 @@ def test_bytes_limited_attributes():
     assert False == B._OPTIONAL
     assert 1 == B._ALIGNMENT
     assert "a_len" == B._BOUND
+    assert B._PARTIAL_ALIGNMENT is None
 
 def test_bytes_bound_attributes():
     B = prophy.bytes(bound = "a_len")
@@ -147,6 +105,7 @@ def test_bytes_bound_attributes():
     assert False == B._OPTIONAL
     assert 1 == B._ALIGNMENT
     assert "a_len" == B._BOUND
+    assert B._PARTIAL_ALIGNMENT is None
 
 def test_bytes_greedy_attributes():
     B = prophy.bytes()
@@ -158,6 +117,7 @@ def test_bytes_greedy_attributes():
     assert False == B._OPTIONAL
     assert 1 == B._ALIGNMENT
     assert None == B._BOUND
+    assert B._PARTIAL_ALIGNMENT is None
 
 def test_array_static_attributes():
     A = prophy.array(prophy.u16, size = 3)
@@ -168,6 +128,7 @@ def test_array_static_attributes():
     assert False == A._OPTIONAL
     assert 2 == A._ALIGNMENT
     assert None == A._BOUND
+    assert A._PARTIAL_ALIGNMENT is None
 
 def test_array_limited_attributes():
     A = prophy.array(prophy.u16, bound = "a_len", size = 3)
@@ -178,6 +139,7 @@ def test_array_limited_attributes():
     assert False == A._OPTIONAL
     assert 2 == A._ALIGNMENT
     assert "a_len" == A._BOUND
+    assert A._PARTIAL_ALIGNMENT is None
 
 def test_array_bound_attributes():
     A = prophy.array(prophy.u16, bound = "a_len")
@@ -188,6 +150,7 @@ def test_array_bound_attributes():
     assert False == A._OPTIONAL
     assert 2 == A._ALIGNMENT
     assert "a_len" == A._BOUND
+    assert A._PARTIAL_ALIGNMENT is None
 
 def test_array_greedy_attributes():
     A = prophy.array(prophy.u16)
@@ -198,6 +161,7 @@ def test_array_greedy_attributes():
     assert False == A._OPTIONAL
     assert 2 == A._ALIGNMENT
     assert None == A._BOUND
+    assert A._PARTIAL_ALIGNMENT is None
 
 def test_container_len_attributes():
     class S(prophy.struct_packed):
@@ -207,7 +171,7 @@ def test_container_len_attributes():
                        ("b_len", prophy.u8),
                        ("b", prophy.array(prophy.u8, bound = "b_len"))]
 
-    assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp, _ in S._descriptor]
+    assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp in S._descriptor]
 
 def test_struct_static_attributes():
     class S(prophy.struct_packed):
@@ -224,7 +188,8 @@ def test_struct_static_attributes():
     assert False == S._UNLIMITED
     assert False == S._OPTIONAL
     assert 1 == S._ALIGNMENT
-    assert None == S._BOUND
+    assert S._BOUND is None
+    assert S._PARTIAL_ALIGNMENT is None
 
     class S1(prophy.struct_packed):
         __metaclass__ = prophy.struct_generator
@@ -237,7 +202,6 @@ def test_struct_static_attributes():
     assert False == S1._UNLIMITED
     assert False == S1._OPTIONAL
     assert 1 == S1._ALIGNMENT
-    assert [0, 0, 0] == [padding for _, _, padding in S1._descriptor]
     assert None == S1._BOUND
 
 def test_struct_with_optional_attributes():
@@ -260,7 +224,6 @@ def test_struct_with_optional_attributes():
     assert False == O._UNLIMITED
     assert False == O._OPTIONAL
     assert 4 == O._ALIGNMENT
-    assert [0, 0, 0] == [padding for _, _, padding in O._descriptor]
     assert None == O._BOUND
 
 def test_struct_dynamic_attributes():
@@ -345,7 +308,6 @@ def test_struct_padded():
 
     assert 8 == S._ALIGNMENT
     assert 16 == S._SIZE
-    assert [3, 0, 0] == [padding for _, _, padding in S._descriptor]
 
     class S2(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -354,7 +316,6 @@ def test_struct_padded():
 
     assert 8 == S2._ALIGNMENT
     assert 24 == S2._SIZE
-    assert [4, 0] == [padding for _, _, padding in S2._descriptor]
 
     class S3(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -363,7 +324,6 @@ def test_struct_padded():
 
     assert 4 == S3._ALIGNMENT
     assert 8 == S3._SIZE
-    assert [0, 3] == [padding for _, _, padding in S3._descriptor]
 
     class S4(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -372,7 +332,6 @@ def test_struct_padded():
 
     assert 4 == S4._ALIGNMENT
     assert 12 == S4._SIZE
-    assert [1, 0] == [padding for _, _, padding in S4._descriptor]
 
     class U(prophy.union):
         __metaclass__ = prophy.union_generator
@@ -388,7 +347,40 @@ def test_struct_padded():
 
     assert 4 == S5._ALIGNMENT
     assert 16 == S5._SIZE
-    assert [3, 0, 3] == [padding for _, _, padding in S5._descriptor]
+
+def test_struct_partially_padded():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u8),
+                       ("x", prophy.array(prophy.u8, bound = "x_len")),
+                       ("y", prophy.u32),
+                       ("z", prophy.u64)]
+
+    assert X._ALIGNMENT == 8
+    assert [tp._PARTIAL_ALIGNMENT for _, tp in X._descriptor] == [None, 8, None, None]
+
+    class Y(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u8),
+                       ("x", prophy.array(prophy.u8, bound = "x_len")),
+                       ("y_len", prophy.u32),
+                       ("y", prophy.array(prophy.u8, bound = "y_len")),
+                       ("z", prophy.u64)]
+
+    assert Y._ALIGNMENT == 8
+    assert [tp._PARTIAL_ALIGNMENT for _, tp in Y._descriptor] == [None, 4, None, 8, None]
+
+def test_bytes_partially_padded():
+    class Y(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [("x_len", prophy.u8),
+                       ("x", prophy.bytes(bound = "x_len")),
+                       ("y_len", prophy.u32),
+                       ("y", prophy.bytes(bound = "y_len")),
+                       ("z", prophy.u64)]
+
+    assert Y._ALIGNMENT == 8
+    assert [tp._PARTIAL_ALIGNMENT for _, tp in Y._descriptor] == [None, 4, None, 8, None]
 
 def test_empty_struct():
     class E(prophy.struct):
@@ -414,4 +406,5 @@ def test_union_attributes():
     assert False == U._UNLIMITED
     assert False == U._OPTIONAL
     assert 4 == U._ALIGNMENT
-    assert None == U._BOUND
+    assert U._BOUND is None
+    assert U._PARTIAL_ALIGNMENT is None

@@ -1,4 +1,5 @@
 import composite
+from exception import ProphyError
 
 def decode_scalar_array(tp, data, endianness, count):
     if count is None:
@@ -12,14 +13,34 @@ def decode_scalar_array(tp, data, endianness, count):
         values.append(value)
     return values, cursor
 
+def scalar_array_eq(self, other):
+    if self is other:
+        return True
+    # Special case for the same type which should be common and fast.
+    if isinstance(other, self.__class__):
+        return other._values == self._values
+    # We are presumably comparing against some other sequence type.
+    return other == self._values
+
+def composite_array_eq(self, other):
+    if self is other:
+        return True
+    if not isinstance(other, self.__class__):
+        raise ProphyError('Can only compare repeated composite fields against '
+                          'other repeated composite fields.')
+    return self._values == other._values
+
 class base_array(object):
     __slots__ = ['_values']
 
     def __init__(self):
         self._values = []
 
-    def __getitem__(self, key):
-        return self._values[key]
+    def __getitem__(self, idx):
+        return self._values[idx]
+
+    def __getslice__(self, start, stop):
+        return self._values[start:stop]
 
     def __len__(self):
         return len(self._values)
@@ -37,37 +58,23 @@ class base_array(object):
         self._values.sort(sort_function)
 
 class fixed_scalar_array(base_array):
-
     __slots__ = []
 
     def __init__(self):
         super(fixed_scalar_array, self).__init__()
         self._values = [self._TYPE._DEFAULT] * self._max_len
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, idx, value):
         value = self._TYPE._check(value)
-        self._values[key] = value
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
+        self._values[idx] = value
 
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) is not len(values):
-            raise Exception("setting slice with different length collection")
-        new_values = []
-        for value in values:
-            value = self._TYPE._check(value)
-            new_values.append(value)
-        self._values[start:stop] = new_values
+            raise ProphyError("setting slice with different length collection")
+        self._values[start:stop] = map(self._TYPE._check, values)
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        # Special case for the same type which should be common and fast.
-        if isinstance(other, self.__class__):
-            return other._values == self._values
-        # We are presumably comparing against some other sequence type.
-        return other == self._values
+        return scalar_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self)
@@ -77,7 +84,6 @@ class fixed_scalar_array(base_array):
         return size
 
 class bound_scalar_array(base_array):
-
     __slots__ = []
 
     def __init__(self):
@@ -86,66 +92,49 @@ class bound_scalar_array(base_array):
     def append(self, value):
         value = self._TYPE._check(value)
         if self._max_len and len(self) == self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
         self._values.append(value)
 
-    def insert(self, key, value):
+    def insert(self, idx, value):
         value = self._TYPE._check(value)
         if self._max_len and len(self) == self._max_len:
-            raise Exception("exceeded array limit")
-        self._values.insert(key, value)
+            raise ProphyError("exceeded array limit")
+        self._values.insert(idx, value)
 
-    def extend(self, elem_seq):
-        if not elem_seq:
+    def extend(self, values):
+        if not values:
             return
-        if self._max_len and len(self) + len(elem_seq) > self._max_len:
-            raise Exception("exceeded array limit")
-        new_values = []
-        for elem in elem_seq:
-            elem = self._TYPE._check(elem)
-            new_values.append(elem)
-        self._values.extend(new_values)
+        if self._max_len and len(self) + len(values) > self._max_len:
+            raise ProphyError("exceeded array limit")
+        self._values.extend(map(self._TYPE._check, values))
 
     def remove(self, elem):
         self._values.remove(elem)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, idx, value):
         value = self._TYPE._check(value)
-        self._values[key] = value
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
+        self._values[idx] = value
 
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
-            raise Exception("exceeded array limit")
-        new_values = []
-        for value in values:
-            value = self._TYPE._check(value)
-            new_values.append(value)
-        self._values[start:stop] = new_values
+            raise ProphyError("exceeded array limit")
+        self._values[start:stop] = map(self._TYPE._check, values)
 
-    def __delitem__(self, key):
-        del self._values[key]
+    def __delitem__(self, idx):
+        del self._values[idx]
 
     def __delslice__(self, start, stop):
         del self._values[start:stop]
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        # Special case for the same type which should be common and fast.
-        if isinstance(other, self.__class__):
-            return other._values == self._values
-        # We are presumably comparing against some other sequence type.
-        return other == self._values
+        return scalar_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
 
     def decode(self, data, endianness, len_hint):
         if self._SIZE > len(data):
-            raise Exception("too few bytes to decode array")
+            raise ProphyError("too few bytes to decode array")
         self[:], size = decode_scalar_array(self._TYPE, data, endianness, len_hint)
         return max(size, self._SIZE)
 
@@ -157,16 +146,8 @@ class fixed_composite_array(base_array):
         super(fixed_composite_array, self).__init__()
         self._values = [self._TYPE() for _ in xrange(self._max_len)]
 
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
-
     def __eq__(self, other):
-        if self is other:
-            return True
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only compare repeated composite fields against '
-                            'other repeated composite fields.')
-        return self._values == other._values
+        return composite_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self)
@@ -178,7 +159,6 @@ class fixed_composite_array(base_array):
         return cursor
 
 class bound_composite_array(base_array):
-
     __slots__ = []
 
     def __init__(self):
@@ -187,7 +167,7 @@ class bound_composite_array(base_array):
     """ TODO kl. implement **kwargs to fill structure with data at addition time already """
     def add(self):
         if self._max_len and len(self) == self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
 
         new_element = self._TYPE()
         self._values.append(new_element)
@@ -195,7 +175,7 @@ class bound_composite_array(base_array):
 
     def extend(self, elem_seq):
         if self._max_len and len(self) + len(elem_seq) > self._max_len:
-            raise Exception("exceeded array limit")
+            raise ProphyError("exceeded array limit")
 
         composite_cls = self._TYPE
         for message in elem_seq:
@@ -203,29 +183,21 @@ class bound_composite_array(base_array):
             new_element.copy_from(message)
             self._values.append(new_element)
 
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
-
-    def __delitem__(self, key):
-        del self._values[key]
+    def __delitem__(self, idx):
+        del self._values[idx]
 
     def __delslice__(self, start, stop):
         del self._values[start:stop]
 
     def __eq__(self, other):
-        if self is other:
-            return True
-        if not isinstance(other, self.__class__):
-            raise TypeError('Can only compare repeated composite fields against '
-                            'other repeated composite fields.')
-        return self._values == other._values
+        return composite_array_eq(self, other)
 
     def encode(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, "\x00")
 
     def decode(self, data, endianness, len_hint):
         if self._SIZE > len(data):
-            raise Exception("too few bytes to decode array")
+            raise ProphyError("too few bytes to decode array")
         del self[:]
         cursor = 0
         if not self._SIZE and not self._BOUND:
@@ -241,20 +213,20 @@ def array(type, **kwargs):
     bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if kwargs:
-        raise Exception("unknown arguments to array field")
+        raise ProphyError("unknown arguments to array field")
 
     if issubclass(type, base_array):
-        raise Exception("array of arrays not allowed")
+        raise ProphyError("array of arrays not allowed")
     if issubclass(type, str):
-        raise Exception("array of strings not allowed")
+        raise ProphyError("array of strings not allowed")
     if size and type._DYNAMIC:
-        raise Exception("static/limited array of dynamic type not allowed")
+        raise ProphyError("static/limited array of dynamic type not allowed")
     if shift and (not bound or size):
-        raise Exception("only shifting bound array implemented")
+        raise ProphyError("only shifting bound array implemented")
     if type._UNLIMITED:
-        raise Exception("array with unlimited field disallowed")
+        raise ProphyError("array with unlimited field disallowed")
     if type._OPTIONAL:
-        raise Exception("array of optional type not allowed")
+        raise ProphyError("array of optional type not allowed")
 
     is_static = size and not bound
     is_composite = issubclass(type, (composite.struct, composite.union))
@@ -275,5 +247,6 @@ def array(type, **kwargs):
         _ALIGNMENT = type._ALIGNMENT
         _BOUND = bound
         _BOUND_SHIFT = shift
+        _PARTIAL_ALIGNMENT = None
 
     return _array

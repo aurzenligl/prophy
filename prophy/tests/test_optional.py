@@ -141,6 +141,15 @@ def test_optional_bytes():
         prophy.optional(prophy.bytes(size = 3))
     assert "optional bytes not implemented" == e.value.message
 
+def test_optional_dynamic_field():
+    class Dynamic(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('a_len', prophy.u32),
+                       ('a', prophy.array(prophy.u8, bound = 'a_len'))]
+    with pytest.raises(Exception) as e:
+        prophy.optional(Dynamic)
+    assert "optional dynamic fields not implemented" == e.value.message
+
 def test_optional_array():
     with pytest.raises(Exception) as e:
         prophy.optional(prophy.array(prophy.u8, size = 3))
@@ -156,12 +165,3 @@ def test_optional_array():
     with pytest.raises(Exception) as e:
         prophy.array(prophy.optional(prophy.u32))
     assert "array of optional type not allowed" == e.value.message
-
-def test_optional_inside_union():
-    with pytest.raises(Exception) as e:
-        class U(prophy.union):
-            __metaclass__ = prophy.union_generator
-            _descriptor = [("a", prophy.u32, 0),
-                           ("b", prophy.optional(prophy.u32), 1),
-                           ("c", prophy.u32, 2)]
-    assert "union with optional field disallowed" == e.value.message

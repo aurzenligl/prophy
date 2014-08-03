@@ -1,0 +1,22 @@
+import sys
+
+from waflib.Tools import waf_unit_test
+
+def options(ctx):
+    ctx.load('compiler_cxx waf_unit_test')
+
+def configure(ctx):
+    ctx.load('compiler_cxx waf_unit_test')
+
+def build(ctx):
+    os_lib = []
+    if 'linux' in sys.platform:
+        os_lib += ['pthread']
+    ctx(features = 'cxx cxxprogram test',
+        target = 'test_prophy',
+        includes = 'include',
+        source = ctx.path.ant_glob('test/**/*.cpp'),
+        cxxflags = '-g -Wall',
+        lib = ['gtest', 'gmock'] + os_lib)
+    ctx.add_post_fun(waf_unit_test.summary)
+    ctx.add_post_fun(waf_unit_test.set_exit_code)
