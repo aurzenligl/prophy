@@ -38,8 +38,8 @@ def _type(node, patch):
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
-    p1, _, p3, p4, p5, p6 = node.members[i]
-    node.members[i] = model.StructMember(p1, tp, p3, p4, p5, p6)
+    p1, _, p3, p4, = node.members[i]
+    node.members[i] = model.StructMember(p1, tp, p3, p4)
 
 def _insert(node, patch):
     if not isinstance(node, model.Struct):
@@ -53,7 +53,7 @@ def _insert(node, patch):
         raise Exception("Index is not a number: %s %s" % (node.name, patch))
     index = int(index)
 
-    node.members.insert(index, model.StructMember(name, tp, None, None, None, None))
+    node.members.insert(index, model.StructMember(name, tp, None, False))
 
 def _remove(node, patch):
     if not isinstance(node, model.Struct):
@@ -81,8 +81,8 @@ def _dynamic(node, patch):
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
-    p1, p2, _, _, _, _ = node.members[i]
-    node.members[i] = model.StructMember(p1, p2, True, len_name, None, None)
+    p1, p2, _, _ = node.members[i]
+    node.members[i] = model.StructMember(p1, p2, model.Array(len_name, None), False)
 
 def _greedy(node, patch):
     if not isinstance(node, model.Struct):
@@ -96,8 +96,8 @@ def _greedy(node, patch):
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
-    p1, p2, _, _, _, _ = node.members[i]
-    node.members[i] = model.StructMember(p1, p2, True, None, None, None)
+    p1, p2, _, _ = node.members[i]
+    node.members[i] = model.StructMember(p1, p2, model.Array(None, None), False)
 
 def _static(node, patch):
     if not isinstance(node, model.Struct):
@@ -114,8 +114,8 @@ def _static(node, patch):
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
-    p1, p2, _, _, _, _ = node.members[i]
-    node.members[i] = model.StructMember(p1, p2, True, None, size, None)
+    p1, p2, _, _ = node.members[i]
+    node.members[i] = model.StructMember(p1, p2, model.Array(None, size), False)
 
 def _limited(node, patch):
     if not isinstance(node, model.Struct):
@@ -133,8 +133,8 @@ def _limited(node, patch):
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
-    p1, p2, _, _, p3, _ = node.members[i]
-    node.members[i] = model.StructMember(p1, p2, True, len_array, p3, None)
+    p1, p2, p3, _ = node.members[i]
+    node.members[i] = model.StructMember(p1, p2, model.Array(len_array, p3.size if p3 else None), False)
 
 _actions = {'type': _type,
             'insert': _insert,

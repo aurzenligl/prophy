@@ -4,6 +4,7 @@ import pytest
 
 from prophyc import patch
 from prophyc import model
+from util import *
 
 def parse(content):
     try:
@@ -31,9 +32,9 @@ YourStruct type lastField AnotherRealMember
                            ('type', ['lastField', 'AnotherRealMember'])]} == patches
 
 def test_unknown_action():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('typo_or_something', [])]}
 
     with pytest.raises(Exception) as e:
@@ -41,16 +42,16 @@ def test_unknown_action():
     assert "Unknown action: MyStruct Action(action='typo_or_something', params=[])" == e.value.message
 
 def test_change_field_type():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('type', ['field2', 'TheRealType'])]}
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
-                          ('field2', 'TheRealType', None, None, None, None),
-                          ('field3', 'u32', None, None, None, None)])] == nodes
+    assert [('MyStruct', [make_member('field1', 'u32'),
+                          make_member('field2', 'TheRealType'),
+                          make_member('field3', 'u32')])] == nodes
 
 def test_change_field_type_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -61,9 +62,9 @@ def test_change_field_type_not_a_struct():
     assert "Can change field only in struct: MyStruct Action(action='type', params=['field2', 'TheRealType'])" == e.value.message
 
 def test_change_field_type_no_2_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
 
     patches = {'MyStruct': [patch.Action('type', ['field2'])]}
     with pytest.raises(Exception) as e:
@@ -76,9 +77,9 @@ def test_change_field_type_no_2_params():
     assert 'Change field must have 2 params: MyStruct' in e.value.message
 
 def test_change_field_type_no_2_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('type', ['field4', 'TheRealType'])]}
 
     with pytest.raises(Exception) as e:
@@ -87,21 +88,21 @@ def test_change_field_type_no_2_params():
 
 
 def test_insert_field():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('insert', ['1', 'additional1', 'u8']),
                             patch.Action('insert', ['-1', 'additional2', 'u16']),
                             patch.Action('insert', ['128', 'additional3', 'u64'])]}
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
-                          ('additional1', 'u8', None, None, None, None),
-                          ('field2', 'u32', None, None, None, None),
-                          ('additional2', 'u16', None, None, None, None),
-                          ('field3', 'u32', None, None, None, None),
-                          ('additional3', 'u64', None, None, None, None)])] == nodes
+    assert [('MyStruct', [make_member('field1', 'u32'),
+                          make_member('additional1', 'u8'),
+                          make_member('field2', 'u32'),
+                          make_member('additional2', 'u16'),
+                          make_member('field3', 'u32'),
+                          make_member('additional3', 'u64')])] == nodes
 
 def test_insert_field_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -112,7 +113,7 @@ def test_insert_field_not_a_struct():
     assert 'Can insert field only in struct: MyStruct' in e.value.message
 
 def test_insert_field_no_3_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32")])]
     patches = {'MyStruct': [patch.Action('insert', ['1', 'additional1', 'u8', 'extra'])]}
 
     with pytest.raises(Exception) as e:
@@ -120,7 +121,7 @@ def test_insert_field_no_3_params():
     assert 'Change field must have 3 params: MyStruct' in e.value.message
 
 def test_insert_field_index_not_an_int():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32")])]
     patches = {'MyStruct': [patch.Action('insert', ['not_a_number', 'additional1', 'u8'])]}
 
     with pytest.raises(Exception) as e:
@@ -128,15 +129,15 @@ def test_insert_field_index_not_an_int():
     assert 'Index is not a number: MyStruct' in e.value.message
 
 def test_remove_field():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('remove', ['field2'])]}
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
-                          ('field3', 'u32', None, None, None, None)])] == nodes
+    assert [('MyStruct', [make_member('field1', 'u32'),
+                          make_member('field3', 'u32')])] == nodes
 
 def test_remove_field_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -147,7 +148,7 @@ def test_remove_field_not_a_struct():
     assert 'Can remove field only in struct: MyStruct' in e.value.message
 
 def test_remove_field_no_1_param():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32")])]
     patches = {'MyStruct': [patch.Action('remove', ['field1', 'extra_param'])]}
 
     with pytest.raises(Exception) as e:
@@ -155,7 +156,7 @@ def test_remove_field_no_1_param():
     assert 'Remove field must have 1 param: MyStruct' in e.value.message
 
 def test_remove_field_not_found():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32")])]
     patches = {'MyStruct': [patch.Action('remove', ['not_a_field'])]}
 
     with pytest.raises(Exception) as e:
@@ -163,16 +164,16 @@ def test_remove_field_not_found():
     assert 'Member not found: MyStruct' in e.value.message
 
 def test_make_field_dynamic_array():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('dynamic', ['field3', 'field1'])]}
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
-                          ('field2', 'u32', None, None, None, None),
-                          ('field3', 'u32', True, 'field1', None, None)])] == nodes
+    assert [('MyStruct', [make_member('field1', 'u32'),
+                          make_member('field2', 'u32'),
+                          make_member('field3', 'u32', array = ('field1', None))])] == nodes
 
 def test_make_field_dynamic_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -183,9 +184,9 @@ def test_make_field_dynamic_array_not_a_struct():
     assert "Can change field only in struct: MyStruct" in e.value.message
 
 def test_make_field_dynamic_array_no_2_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
 
     patches = {'MyStruct': [patch.Action('dynamic', ['field2'])]}
     with pytest.raises(Exception) as e:
@@ -198,9 +199,9 @@ def test_make_field_dynamic_array_no_2_params():
     assert 'Change field must have 2 params: MyStruct' in e.value.message
 
 def test_make_field_dynamic_array_no_2_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('dynamic', ['field4', 'field1'])]}
 
     with pytest.raises(Exception) as e:
@@ -208,16 +209,16 @@ def test_make_field_dynamic_array_no_2_params():
     assert 'Member not found: MyStruct' in e.value.message
 
 def test_make_field_greedy_array():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('greedy', ['field3'])]}
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
-                          ('field2', 'u32', None, None, None, None),
-                          ('field3', 'u32', True, None, None, None)])] == nodes
+    assert [('MyStruct', [make_member('field1', 'u32'),
+                          make_member('field2', 'u32'),
+                          make_member('field3', 'u32', array = (None, None))])] == nodes
 
 def test_make_field_greedy_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -228,9 +229,9 @@ def test_make_field_greedy_array_not_a_struct():
     assert "Can change field only in struct: MyStruct" in e.value.message
 
 def test_make_field_greedy_array_no_1_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
 
     patches = {'MyStruct': [patch.Action('greedy', ['field2', 'extra_args'])]}
     with pytest.raises(Exception) as e:
@@ -239,9 +240,9 @@ def test_make_field_greedy_array_no_1_params():
 
 
 def test_make_field_greedy_array_with_wrong_name_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('greedy', ['field4'])]}
 
     with pytest.raises(Exception) as e:
@@ -249,16 +250,16 @@ def test_make_field_greedy_array_with_wrong_name_params():
     assert 'Member not found: MyStruct' in e.value.message
 
 def test_make_field_static_array():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('static', ['field3', '3'])]}
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
-                          ('field2', 'u32', None, None, None, None),
-                          ('field3', 'u32', True, None, '3', None)])] == nodes
+    assert [('MyStruct', [make_member('field1', 'u32'),
+                          make_member('field2', 'u32'),
+                          make_member('field3', 'u32', array = (None, '3'))])] == nodes
 
 def test_make_field_static_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -269,9 +270,9 @@ def test_make_field_static_array_not_a_struct():
     assert "Can change field only in struct: MyStruct" in e.value.message
 
 def test_make_field_static_array_no_2_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
 
     patches = {'MyStruct': [patch.Action('static', ['field2'])]}
     with pytest.raises(Exception) as e:
@@ -284,9 +285,9 @@ def test_make_field_static_array_no_2_params():
     assert 'Change field must have 2 params: MyStruct' in e.value.message
 
 def test_make_field_static_array_with_wrong_name_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('static', ['field4', '3'])]}
 
     with pytest.raises(Exception) as e:
@@ -294,9 +295,9 @@ def test_make_field_static_array_with_wrong_name_params():
     assert 'Member not found: MyStruct' in e.value.message
 
 def test_make_field_static_array_with_wrong_size_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('static', ['field3', 'wrong_size'])]}
 
     with pytest.raises(Exception) as e:
@@ -304,16 +305,16 @@ def test_make_field_static_array_with_wrong_size_params():
     assert 'Size is not a number: MyStruct' in e.value.message
 
 def test_make_field_limited_array():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, 'field1', None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32", array = (None, '20'))])]
     patches = {'MyStruct': [patch.Action('limited', ['field3', 'field2'])]}
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [('field1', 'u32', None, None, None, None),
-                          ('field2', 'u32', None, None, None, None),
-                          ('field3', 'u32', True, 'field2', 'field1', None)])] == nodes
+    assert [('MyStruct', [make_member('field1', 'u32'),
+                          make_member('field2', 'u32'),
+                          make_member('field3', 'u32', array = ('field2', '20'))])] == nodes
 
 def test_make_field_limited_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -324,9 +325,9 @@ def test_make_field_limited_array_not_a_struct():
     assert "Can change field only in struct: MyStruct" in e.value.message
 
 def test_make_field_limited_array_no_2_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
 
     patches = {'MyStruct': [patch.Action('limited', ['field3'])]}
     with pytest.raises(Exception) as e:
@@ -339,9 +340,9 @@ def test_make_field_limited_array_no_2_params():
     assert 'Change field must have 2 params: MyStruct' in e.value.message
 
 def test_make_field_limited_array_with_wrong_name_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('limited', ['field4', 'field2'])]}
 
     with pytest.raises(Exception) as e:
@@ -349,9 +350,9 @@ def test_make_field_limited_array_with_wrong_name_params():
     assert 'Member not found: MyStruct' in e.value.message
 
 def test_make_field_limited_array_with_wrong_bound_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", None, None, None, None),
-                                       model.StructMember("field2", "u32", None, None, None, None),
-                                       model.StructMember("field3", "u32", None, None, None, None)])]
+    nodes = [model.Struct("MyStruct", [make_member("field1", "u32"),
+                                       make_member("field2", "u32"),
+                                       make_member("field3", "u32")])]
     patches = {'MyStruct': [patch.Action('limited', ['field3', 'field4'])]}
 
     with pytest.raises(Exception) as e:
