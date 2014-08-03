@@ -25,13 +25,13 @@ class ProcessedNodes(object):
 
     def _is_unlimited_array(self, member):
         return (member.array and
-                not member.array_bound and
-                not member.array_size)
+                not member.array.bound and
+                not member.array.size)
 
     def _is_dynamic_array(self, member):
         return (member.array and
-                member.array_bound and
-                not member.array_size)
+                member.array.bound and
+                not member.array.size)
 
     def get_kind(self, member):
         tp = self.types.get(member.type)
