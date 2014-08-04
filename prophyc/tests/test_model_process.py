@@ -1,6 +1,5 @@
 from prophyc import model
 from prophyc import model_process
-from util import *
 
 def partition(nodes, name):
     pnodes = model_process.ProcessedNodes(nodes)
@@ -24,44 +23,44 @@ def test_kinds():
     nodes = [
         model.Struct("Empty", []),
         model.Struct("Dynamic", [
-            make_member("a_len", "u8"),
-            make_member("a", "u8", array = ("a_len", None))
+            model.StructMember("a_len", "u8"),
+            model.StructMember("a", "u8", bound = "a_len")
         ]),
         model.Struct("Fixed", [
-            make_member("a", "u8", array = (None, "10"))
+            model.StructMember("a", "u8", size = "10")
         ]),
         model.Struct("Limited", [
-            make_member("a_len", "u8"),
-            make_member("a", "u8", array = ("a_len", "10"))
+            model.StructMember("a_len", "u8"),
+            model.StructMember("a", "u8", bound = "a_len", size = "10")
         ]),
         model.Struct("Greedy", [
-            make_member("a", "byte", array = (None, None))
+            model.StructMember("a", "byte", unlimited = True)
         ]),
         model.Struct("DynamicWrapper", [
-            make_member("a", "Dynamic")
+            model.StructMember("a", "Dynamic")
         ]),
         model.Struct("GreedyWrapper", [
-            make_member("a", "Greedy")
+            model.StructMember("a", "Greedy")
         ]),
         model.Struct("GreedyDynamic", [
-            make_member("a", "Dynamic", array = (None, None))
+            model.StructMember("a", "Dynamic", unlimited = True)
         ]),
         model.Typedef("TU8", "u8"),
         model.Typedef("TDynamic", "Dynamic"),
         model.Typedef("TGreedy", "Greedy"),
         model.Struct("TypedefedU8", [
-            make_member("a", "TU8")
+            model.StructMember("a", "TU8")
         ]),
         model.Struct("TypedefedDynamic", [
-            make_member("a", "TDynamic")
+            model.StructMember("a", "TDynamic")
         ]),
         model.Struct("TypedefedGreedy", [
-            make_member("a", "TGreedy")
+            model.StructMember("a", "TGreedy")
         ]),
         model.Typedef("TTDynamic", "TDynamic"),
         model.Typedef("TTTDynamic", "TTDynamic"),
         model.Struct("DeeplyTypedefed", [
-            make_member("a", "TTTDynamic")
+            model.StructMember("a", "TTTDynamic")
         ]),
     ]
 
@@ -85,121 +84,121 @@ def test_kinds():
 def test_partition_fixed():
     nodes = [
         model.Struct("Fixed", [
-            make_member("a", "u8"),
-            make_member("b", "u8"),
-            make_member("c", "u8")
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "u8"),
+            model.StructMember("c", "u8")
         ])
     ]
 
     main, parts = partition(nodes, "Fixed")
 
     assert main == [
-        make_member("a", "u8"),
-        make_member("b", "u8"),
-        make_member("c", "u8")
+        model.StructMember("a", "u8"),
+        model.StructMember("b", "u8"),
+        model.StructMember("c", "u8")
     ]
     assert parts == []
 
 def test_partition_many_arrays():
     nodes = [
         model.Struct("ManyArrays", [
-            make_member("num_of_a", "u8"),
-            make_member("a", "u8", array = ("num_of_a", None)),
-            make_member("num_of_b", "u8"),
-            make_member("b", "u8", array = ("num_of_b", None)),
-            make_member("num_of_c", "u8"),
-            make_member("c", "u8", array = ("num_of_c", None))
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a"),
+            model.StructMember("num_of_b", "u8"),
+            model.StructMember("b", "u8", bound = "num_of_b"),
+            model.StructMember("num_of_c", "u8"),
+            model.StructMember("c", "u8", bound = "num_of_c")
         ]),
     ]
 
     main, parts = partition(nodes, "ManyArrays")
 
     assert main == [
-        make_member("num_of_a", "u8"),
-        make_member("a", "u8", array = ("num_of_a", None))
+        model.StructMember("num_of_a", "u8"),
+        model.StructMember("a", "u8", bound = "num_of_a")
     ]
     assert parts == [
         [
-            make_member("num_of_b", "u8"),
-            make_member("b", "u8", array = ("num_of_b", None))
+            model.StructMember("num_of_b", "u8"),
+            model.StructMember("b", "u8", bound = "num_of_b")
         ],
         [
-            make_member("num_of_c", "u8"),
-            make_member("c", "u8", array = ("num_of_c", None))
+            model.StructMember("num_of_c", "u8"),
+            model.StructMember("c", "u8", bound = "num_of_c")
         ]
     ]
 
 def test_partition_many_arrays_mixed():
     nodes = [
         model.Struct("ManyArraysMixed", [
-            make_member("num_of_a", "u8"),
-            make_member("num_of_b", "u8"),
-            make_member("a", "u8", array = ("num_of_a", None)),
-            make_member("b", "u8", array = ("num_of_b", None))
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("num_of_b", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a"),
+            model.StructMember("b", "u8", bound = "num_of_b")
         ]),
     ]
 
     main, parts = partition(nodes, "ManyArraysMixed")
 
     assert main == [
-        make_member("num_of_a", "u8"),
-        make_member("num_of_b", "u8"),
-        make_member("a", "u8", array = ("num_of_a", None))
+        model.StructMember("num_of_a", "u8"),
+        model.StructMember("num_of_b", "u8"),
+        model.StructMember("a", "u8", bound = "num_of_a")
     ]
     assert parts == [
         [
-            make_member("b", "u8", array = ("num_of_b", None))
+            model.StructMember("b", "u8", bound = "num_of_b")
         ]
     ]
 
 def test_partition_dynamic_struct():
     nodes = [
         model.Struct("Dynamic", [
-            make_member("num_of_a", "u8"),
-            make_member("a", "u8", array = ("num_of_a", None))
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a")
         ]),
         model.Struct("X", [
-            make_member("a", "u8"),
-            make_member("b", "Dynamic"),
-            make_member("c", "u8")
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "Dynamic"),
+            model.StructMember("c", "u8")
         ])
     ]
 
     main, parts = partition(nodes, "X")
 
     assert main == [
-        make_member("a", "u8"),
-        make_member("b", "Dynamic")
+        model.StructMember("a", "u8"),
+        model.StructMember("b", "Dynamic")
     ]
     assert parts == [
         [
-            make_member("c", "u8")
+            model.StructMember("c", "u8")
         ]
     ]
 
 def test_partition_many_dynamic_structs():
     nodes = [
         model.Struct("Dynamic", [
-            make_member("num_of_a", "u8"),
-            make_member("a", "u8", array = ("num_of_a", None))
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a")
         ]),
         model.Struct("X", [
-            make_member("a", "Dynamic"),
-            make_member("b", "Dynamic"),
-            make_member("c", "Dynamic")
+            model.StructMember("a", "Dynamic"),
+            model.StructMember("b", "Dynamic"),
+            model.StructMember("c", "Dynamic")
         ])
     ]
 
     main, parts = partition(nodes, "X")
 
     assert main == [
-        make_member("a", "Dynamic")
+        model.StructMember("a", "Dynamic")
     ]
     assert parts == [
         [
-            make_member("b", "Dynamic")
+            model.StructMember("b", "Dynamic")
         ],
         [
-            make_member("c", "Dynamic")
+            model.StructMember("c", "Dynamic")
         ]
     ]
