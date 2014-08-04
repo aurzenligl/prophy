@@ -1,6 +1,5 @@
 from prophyc import model
 from prophyc import model_sort
-from util import *
 
 def test_model_sort_enums():
     nodes = [model.Typedef("B", "A"),
@@ -23,36 +22,36 @@ def test_model_sort_typedefs():
     assert ["A", "B", "C", "D", "E"] == [node.name for node in nodes]
 
 def test_model_sort_structs():
-    nodes = [model.Struct("C", [make_member("a", "B"),
-                                make_member("b", "A"),
-                                make_member("c", "D")]),
-             model.Struct("B", [make_member("a", "X"),
-                                make_member("b", "A"),
-                                make_member("c", "Y")]),
-             model.Struct("A", [make_member("a", "X"),
-                                make_member("b", "Y"),
-                                make_member("c", "Z")])]
+    nodes = [model.Struct("C", [model.StructMember("a", "B"),
+                                model.StructMember("b", "A"),
+                                model.StructMember("c", "D")]),
+             model.Struct("B", [model.StructMember("a", "X"),
+                                model.StructMember("b", "A"),
+                                model.StructMember("c", "Y")]),
+             model.Struct("A", [model.StructMember("a", "X"),
+                                model.StructMember("b", "Y"),
+                                model.StructMember("c", "Z")])]
 
     model_sort.model_sort(nodes)
 
     assert ["A", "B", "C"] == [node.name for node in nodes]
 
 def test_model_sort_struct_with_two_deps():
-    nodes = [model.Struct("C", [make_member("a", "B")]),
-             model.Struct("B", [make_member("a", "A")]),
-             model.Struct("A", [make_member("a", "X")])]
+    nodes = [model.Struct("C", [model.StructMember("a", "B")]),
+             model.Struct("B", [model.StructMember("a", "A")]),
+             model.Struct("A", [model.StructMember("a", "X")])]
 
     model_sort.model_sort(nodes)
 
     assert ["A", "B", "C"] == [node.name for node in nodes]
 
 def test_model_sort_struct_with_multiple_dependencies():
-    nodes = [model.Struct("D", [make_member("a", "A"),
-                                make_member("b", "B"),
-                                make_member("c", "C")]),
-             model.Struct("C", [make_member("a", "A"),
-                                make_member("b", "B")]),
-             model.Struct("B", [make_member("a", "A")]),
+    nodes = [model.Struct("D", [model.StructMember("a", "A"),
+                                model.StructMember("b", "B"),
+                                model.StructMember("c", "C")]),
+             model.Struct("C", [model.StructMember("a", "A"),
+                                model.StructMember("b", "B")]),
+             model.Struct("B", [model.StructMember("a", "A")]),
              model.Typedef("A", "TTypeX")]
 
     model_sort.model_sort(nodes)
@@ -63,7 +62,7 @@ def test_model_sort_union():
     nodes = [model.Typedef("C", "B"),
              model.Union("B", [model.UnionMember("a", "A", "0"),
                                model.UnionMember("b", "A", "1")]),
-             model.Struct("A", [make_member("a", "X")])]
+             model.Struct("A", [model.StructMember("a", "X")])]
 
     model_sort.model_sort(nodes)
 
