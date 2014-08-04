@@ -39,14 +39,14 @@ def _generate_def_enum(pnodes, enum):
 def _generate_def_struct(pnodes, struct):
     def gen_member(member):
         def build_annotation(member):
-            if member.array_size:
-                if member.array_bound:
-                    annotation = 'limited array, size in {}'.format(member.array_bound)
+            if member.size:
+                if member.bound:
+                    annotation = 'limited array, size in {}'.format(member.bound)
                 else:
                     annotation = ''
             else:
-                if member.array_bound:
-                    annotation = 'dynamic array, size in {}'.format(member.array_bound)
+                if member.bound:
+                    annotation = 'dynamic array, size in {}'.format(member.bound)
                 else:
                     annotation = 'greedy array'
             return annotation
@@ -54,7 +54,7 @@ def _generate_def_struct(pnodes, struct):
         typename = primitive_types.get(member.type, member.type)
         if member.array:
             annotation = build_annotation(member)
-            size = member.array_size or 1
+            size = member.size or 1
             if annotation:
                 field = '{0} {1}[{2}]; /// {3}\n'.format(typename, member.name, size, annotation)
             else:
@@ -118,15 +118,15 @@ def _generate_swap_struct(pnodes, struct):
         if member.array:
             is_dynamic = pnodes.get_kind(member) == StructKind.DYNAMIC
             swap_mode = 'dynamic' if is_dynamic else 'fixed'
-            if member.array_bound:
-                bound = member.array_bound
-                if member.array_bound not in delimiters:
+            if member.bound:
+                bound = member.bound
+                if member.bound not in delimiters:
                     bound = 'payload->' + bound
                 return 'swap_n_{0}(payload->{1}, {2})'.format(
                     swap_mode, member.name, bound)
-            elif not member.array_bound and member.array_size:
+            elif not member.bound and member.size:
                 return 'swap_n_{0}(payload->{1}, {2})'.format(
-                    swap_mode, member.name, member.array_size)
+                    swap_mode, member.name, member.size)
         else:
             if member.optional:
                 preamble = 'swap(&payload->has_{0});\nif (payload->has_{0}) '.format(member.name)
@@ -157,9 +157,9 @@ def _generate_swap_struct(pnodes, struct):
         def get_missing(part_number):
             part = parts[part_number]
             names = [mem.name for mem in part]
-            return [(all_names[mem.array_bound], mem.array_bound)
+            return [(all_names[mem.bound], mem.bound)
                     for mem in part
-                    if mem.array_bound and mem.array_bound not in names]
+                    if mem.bound and mem.bound not in names]
 
         def gen_missing(part_number):
             return ''.join(', {0}->{1}'.format(x[0], x[1]) for x in get_missing(part_number))
@@ -185,7 +185,7 @@ def _generate_swap_struct(pnodes, struct):
 
     def gen_part(part_number, part):
         names = [mem.name for mem in part]
-        delimiters = [mem.array_bound for mem in part if mem.array_bound and mem.array_bound not in names]
+        delimiters = [mem.bound for mem in part if mem.bound and mem.bound not in names]
         members = ''.join(gen_member(mem, delimiters) + ';\n' for mem in part[:-1])
         members += gen_last_member(struct.name + '::part{0}'.format(part_number), part[-1], delimiters)
         return ('inline {0}::part{1}* swap({0}::part{1}* payload{3})\n'
