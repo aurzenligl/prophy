@@ -81,16 +81,16 @@ def make_struct_members(elem, dynamic_array = False):
     if dimension is not None:
         size = dimension.get("size", None)
         if optional:
-            members.append(model.StructMember("has_" + ename, "u32", None, None, None, False))
+            members.append(model.StructMember("has_" + ename, "u32"))
         if "isVariableSize" in dimension.attrib:
             type = dimension.get("variableSizeFieldType", "u32")
             name = dimension.get("variableSizeFieldName", ename + "_len")
-            members.append(model.StructMember(name, type, None, None, None, False))
-            members.append(model.StructMember(ename, etype, True, name, None if dynamic_array else size, False))
+            members.append(model.StructMember(name, type))
+            members.append(model.StructMember(ename, etype, bound = name, size = None if dynamic_array else size))
         else:
-            members.append(model.StructMember(ename, etype, True, None, size, False))
+            members.append(model.StructMember(ename, etype, size = size))
     else:
-        members.append(model.StructMember(ename, etype, None, None, None, optional))
+        members.append(model.StructMember(ename, etype, optional = optional))
     return members
 
 def make_struct(elem, last_member_array_is_dynamic = False):
