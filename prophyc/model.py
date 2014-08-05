@@ -9,7 +9,17 @@ Typedef = namedtuple("Typedef", ["name", "type"])
 Enum = namedtuple("Enum", ["name", "members"])
 EnumMember = namedtuple("EnumMember", ["name", "value"])
 
-Struct = namedtuple("Struct", ["name", "members"])
+class Struct(object):
+
+    def __init__(self, name, members):
+        self.name = name
+        self.members = members
+
+    def __cmp__(self, other):
+        return cmp(other.__dict__, self.__dict__)
+
+    def __repr__(self):
+        return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
 
 class StructMember(object):
 

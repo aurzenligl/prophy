@@ -49,9 +49,9 @@ def test_change_field_type():
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [model.StructMember('field1', 'u32'),
-                          model.StructMember('field2', 'TheRealType'),
-                          model.StructMember('field3', 'u32')])] == nodes
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('field2', 'TheRealType'),
+                                      model.StructMember('field3', 'u32')])] == nodes
 
 def test_change_field_type_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -97,12 +97,12 @@ def test_insert_field():
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [model.StructMember('field1', 'u32'),
-                          model.StructMember('additional1', 'u8'),
-                          model.StructMember('field2', 'u32'),
-                          model.StructMember('additional2', 'u16'),
-                          model.StructMember('field3', 'u32'),
-                          model.StructMember('additional3', 'u64')])] == nodes
+    assert [model.Struct('MySdtruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('additional1', 'u8'),
+                                      model.StructMember('field2', 'u32'),
+                                      model.StructMember('additional2', 'u16'),
+                                      model.StructMember('field3', 'u32'),
+                                      model.StructMember('additional3', 'u64')])] == nodes
 
 def test_insert_field_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -136,8 +136,8 @@ def test_remove_field():
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [model.StructMember('field1', 'u32'),
-                          model.StructMember('field3', 'u32')])] == nodes
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('field3', 'u32')])] == nodes
 
 def test_remove_field_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -171,9 +171,9 @@ def test_make_field_dynamic_array():
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [model.StructMember('field1', 'u32'),
-                          model.StructMember('field2', 'u32'),
-                          model.StructMember('field3', 'u32', bound = 'field1')])] == nodes
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('field2', 'u32'),
+                                      model.StructMember('field3', 'u32', bound = 'field1')])] == nodes
 
 def test_make_field_dynamic_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -216,9 +216,9 @@ def test_make_field_greedy_array():
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [model.StructMember('field1', 'u32'),
-                          model.StructMember('field2', 'u32'),
-                          model.StructMember('field3', 'u32', unlimited = True)])] == nodes
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('field2', 'u32'),
+                                      model.StructMember('field3', 'u32', unlimited = True)])] == nodes
 
 def test_make_field_greedy_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -257,9 +257,9 @@ def test_make_field_static_array():
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [model.StructMember('field1', 'u32'),
-                          model.StructMember('field2', 'u32'),
-                          model.StructMember('field3', 'u32', size = '3')])] == nodes
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('field2', 'u32'),
+                                      model.StructMember('field3', 'u32', size = '3')])] == nodes
 
 def test_make_field_static_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
@@ -312,9 +312,9 @@ def test_make_field_limited_array():
 
     patch.patch(nodes, patches)
 
-    assert [('MyStruct', [model.StructMember('field1', 'u32'),
-                          model.StructMember('field2', 'u32'),
-                          model.StructMember('field3', 'u32', bound = 'field2', size = '20')])] == nodes
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('field2', 'u32'),
+                                      model.StructMember('field3', 'u32', bound = 'field2', size = '20')])] == nodes
 
 def test_make_field_limited_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]

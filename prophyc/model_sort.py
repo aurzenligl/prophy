@@ -34,8 +34,8 @@ def model_sort_rotate(nodes, known, available, index):
     node = nodes[index]
     for dep in get_deps(node):
         if dep not in known and dep in available:
-            found = next(ifilter(lambda x: x.name == dep, islice(nodes, index + 1, None)))
-            found_index = nodes.index(found)
+            found_index, found = next(ifilter(lambda x: x[1].name == dep,
+                                      enumerate(islice(nodes, index + 1, None), start = index + 1)))
             nodes.insert(index, nodes.pop(found_index))
             return True
     known.add(node.name)
