@@ -21,22 +21,22 @@ def _indent(string_, spaces):
     indentation = spaces * ' '
     return '\n'.join(indentation + x if x else x for x in string_.split('\n'))
 
-def _generate_def_include(pnodes, include):
+def _generate_def_include(include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
-def _generate_def_constant(pnodes, constant):
+def _generate_def_constant(constant):
     return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
 
-def _generate_def_typedef(pnodes, typedef):
+def _generate_def_typedef(typedef):
     tp = primitive_types.get(typedef.type, typedef.type)
     return 'typedef {} {};'.format(tp, typedef.name)
 
-def _generate_def_enum(pnodes, enum):
+def _generate_def_enum(enum):
     members = ',\n'.join('{} = {}'.format(name, value)
                          for name, value in enum.members)
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
-def _generate_def_struct(pnodes, struct):
+def _generate_def_struct(struct):
     def gen_member(member):
         def build_annotation(member):
             if member.size:
@@ -72,14 +72,14 @@ def _generate_def_struct(pnodes, struct):
         )
         return _indent(generated, 4)
 
-    main, parts = pnodes.partition(struct.members)
+    main, parts = model.partition(struct.members)
     generated = _indent(''.join(map(gen_member, main)), 4)
     if parts:
         generated += '\n' + '\n\n'.join(map(gen_part, range(len(parts)), parts)) + '\n'
 
     return 'struct {}\n{{\n{}}};'.format(struct.name, generated)
 
-def _generate_def_union(pnodes, union):
+def _generate_def_union(union):
     def gen_member(member):
         typename = primitive_types.get(member.type, member.type)
         return '{0} {1};\n'.format(typename, member.name)
@@ -104,13 +104,12 @@ _generate_def_visitor = {
 }
 
 def _generator_def(nodes):
-    pnodes = ProcessedNodes(nodes)
     last_node = None
     for node in nodes:
         prepend_newline = bool(last_node
                                and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
                                     or type(last_node) is not type(node)))
-        yield prepend_newline * '\n' + _generate_def_visitor[type(node)](pnodes, node) + '\n'
+        yield prepend_newline * '\n' + _generate_def_visitor[type(node)](node) + '\n'
         last_node = node
 
 def _generate_swap_struct(pnodes, struct):

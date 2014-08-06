@@ -1,16 +1,24 @@
 from prophyc import model
 from prophyc.generators.cpp import CppGenerator
 
+def process_nodes(nodes):
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+
 def generate_definitions(nodes):
+    process_nodes(nodes)
     return CppGenerator().generate_definitions(nodes)
 
 def generate_swap(nodes):
+    process_nodes(nodes)
     return CppGenerator().generate_swap(nodes)
 
 def generate_hpp(nodes, basename):
+    process_nodes(nodes)
     return CppGenerator().serialize_string_hpp(nodes, basename)
 
 def generate_cpp(nodes, basename):
+    process_nodes(nodes)
     return CppGenerator().serialize_string_cpp(nodes, basename)
 
 def test_definitions_includes():
