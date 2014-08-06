@@ -4,7 +4,6 @@ import pytest
 
 from prophyc import patch
 from prophyc import model
-from util import *
 
 def parse(content):
     try:

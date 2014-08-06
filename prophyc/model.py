@@ -1,4 +1,5 @@
 from collections import namedtuple
+from itertools import ifilter, islice
 
 class Kind:
     FIXED = 0
@@ -80,6 +81,49 @@ UnionMember = namedtuple("UnionMember", ["name", "type", "discriminator"])
 
 """ Following functions process model. """
 
+def topological_sort(nodes):
+    """Sorts nodes."""
+    def get_include_deps(include):
+        return []
+    def get_constant_deps(constant):
+        return filter(lambda x: not x.isdigit(),
+                      reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
+    def get_typedef_deps(typedef):
+        return [typedef.type]
+    def get_enum_deps(enum):
+        return []
+    def get_struct_deps(struct):
+        return [member.type for member in struct.members]
+    def get_union_deps(union):
+        return [member.type for member in union.members]
+    deps_visitor = {
+        Include: get_include_deps,
+        Constant: get_constant_deps,
+        Typedef: get_typedef_deps,
+        Enum: get_enum_deps,
+        Struct: get_struct_deps,
+        Union: get_union_deps
+    }
+    def get_deps(node):
+        return deps_visitor[type(node)](node)
+    def model_sort_rotate(nodes, known, available, index):
+        node = nodes[index]
+        for dep in get_deps(node):
+            if dep not in known and dep in available:
+                found_index, found = next(ifilter(lambda x: x[1].name == dep,
+                                          enumerate(islice(nodes, index + 1, None), start = index + 1)))
+                nodes.insert(index, nodes.pop(found_index))
+                return True
+        known.add(node.name)
+        return False
+    known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
+    available = set(node.name for node in nodes)
+    index = 0
+    max_index = len(nodes)
+    while index < max_index:
+        if not model_sort_rotate(nodes, known, available, index):
+            index = index + 1
+
 def cross_reference(nodes):
     """Adds definition reference to Typedef and StructMember."""
     types = {node.name: node for node in nodes}
@@ -124,6 +168,7 @@ def evaluate_kinds(nodes):
             node.kind = evaluate_struct_kind(node)
 
 def partition(members):
+    """Splits struct members to parts, each of which ends with dynamic field."""
     main = []
     parts = []
     current = main
