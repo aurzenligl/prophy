@@ -198,3 +198,95 @@ def test_evaluate_kinds_with_typedefs():
         model.Kind.UNLIMITED,
         model.Kind.DYNAMIC,
     ]
+
+def test_partition_fixed():
+    nodes = [
+        model.Struct("Fixed", [
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "u8"),
+            model.StructMember("c", "u8")
+        ])
+    ]
+
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+    main, parts = model.partition(nodes[0].members)
+
+    assert [x.name for x in main] == ["a", "b", "c"]
+    assert [[x.name for x in part] for part in parts] == []
+
+def test_partition_many_arrays():
+    nodes = [
+        model.Struct("ManyArrays", [
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a"),
+            model.StructMember("num_of_b", "u8"),
+            model.StructMember("b", "u8", bound = "num_of_b"),
+            model.StructMember("num_of_c", "u8"),
+            model.StructMember("c", "u8", bound = "num_of_c")
+        ]),
+    ]
+
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+    main, parts = model.partition(nodes[0].members)
+
+    assert [x.name for x in main] == ["num_of_a", "a"]
+    assert [[x.name for x in part] for part in parts] == [["num_of_b", "b"], ["num_of_c", "c"]]
+
+def test_partition_many_arrays_mixed():
+    nodes = [
+        model.Struct("ManyArraysMixed", [
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("num_of_b", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a"),
+            model.StructMember("b", "u8", bound = "num_of_b")
+        ]),
+    ]
+
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+    main, parts = model.partition(nodes[0].members)
+
+    assert [x.name for x in main] == ["num_of_a", "num_of_b", "a"]
+    assert [[x.name for x in part] for part in parts] == [["b"]]
+
+def test_partition_dynamic_struct():
+    nodes = [
+        model.Struct("Dynamic", [
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "Dynamic"),
+            model.StructMember("c", "u8")
+        ])
+    ]
+
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+    main, parts = model.partition(nodes[1].members)
+
+    assert [x.name for x in main] == ["a", "b"]
+    assert [[x.name for x in part] for part in parts] == [["c"]]
+
+def test_partition_many_dynamic_structs():
+    nodes = [
+        model.Struct("Dynamic", [
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Dynamic"),
+            model.StructMember("b", "Dynamic"),
+            model.StructMember("c", "Dynamic")
+        ])
+    ]
+
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+    main, parts = model.partition(nodes[1].members)
+
+    assert [x.name for x in main] == ["a"]
+    assert [[x.name for x in part] for part in parts] == [["b"], ["c"]]

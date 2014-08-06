@@ -122,3 +122,16 @@ def evaluate_kinds(nodes):
                 node.kind = max(x.kind for x in node.members)
             else:
                 node.kind = Kind.FIXED
+
+def partition(members):
+    main = []
+    parts = []
+    current = main
+    for member in members[:-1]:
+        current.append(member)
+        if member.kind == Kind.DYNAMIC:
+            current = []
+            parts.append(current)
+    if members:
+        current.append(members[-1])
+    return main, parts
