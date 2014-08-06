@@ -4,10 +4,20 @@ Include = namedtuple("Include", ["name"])
 
 Constant = namedtuple("Constant", ["name", "value"])
 
-Typedef = namedtuple("Typedef", ["name", "type"])
-
 Enum = namedtuple("Enum", ["name", "members"])
 EnumMember = namedtuple("EnumMember", ["name", "value"])
+
+class Typedef(object):
+
+    def __init__(self, name, type):
+        self.name = name
+        self.type = type
+
+    def __cmp__(self, other):
+        return cmp(other.__dict__, self.__dict__)
+
+    def __repr__(self):
+        return '{0} {1}'.format(self.type, self.name)
 
 class Struct(object):
 

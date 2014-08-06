@@ -1,5 +1,9 @@
 from prophyc import model
 
+def test_typedef_repr():
+    typedef = model.Typedef("my_typedef", "u8")
+    assert str(typedef) == "u8 my_typedef"
+
 def test_struct_repr():
     struct = model.Struct("MyStruct", [
         model.StructMember("a", "u8"),

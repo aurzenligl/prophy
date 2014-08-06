@@ -43,18 +43,18 @@ def test_typedefs_primitive_type_parsing():
     <typedef name="j" primitiveType="64 bit float"/>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("a", "u8"),
-            ("b", "u16"),
-            ("c", "u32"),
-            ("d", "u64"),
-            ("e", "i8"),
-            ("f", "i16"),
-            ("g", "i32"),
-            ("h", "i64"),
-            ("i", "r32"),
-            ("j", "r64")] == nodes
+    assert parse(xml) == [
+        model.Typedef("a", "u8"),
+        model.Typedef("b", "u16"),
+        model.Typedef("c", "u32"),
+        model.Typedef("d", "u64"),
+        model.Typedef("e", "i8"),
+        model.Typedef("f", "i16"),
+        model.Typedef("g", "i32"),
+        model.Typedef("h", "i64"),
+        model.Typedef("i", "r32"),
+        model.Typedef("j", "r64")
+    ]
 
 def test_typedefs_parsing():
     xml = """\
@@ -62,9 +62,7 @@ def test_typedefs_parsing():
     <typedef name="TILoveTypedefs_ALot" type="MyType"/>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("TILoveTypedefs_ALot", "MyType")] == nodes
+    assert parse(xml) == [model.Typedef("TILoveTypedefs_ALot", "MyType")]
 
 def test_enums_parsing():
     xml = """\
@@ -340,10 +338,7 @@ def test_primitive_types():
     <typedef name="r64" primitiveType="64 bit float"/>
 </xml>
 """
-
-    nodes = parse(xml)
-
-    assert nodes == [("ImNotAPrimitiveType", "u32")]
+    assert parse(xml) == [model.Typedef("ImNotAPrimitiveType", "u32")]
 
 def test_operator_expansion():
     assert expand_operators('bitMaskOr(1, 2)') == '((1) | (2))'
