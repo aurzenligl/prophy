@@ -1,7 +1,6 @@
 import os
 
 from prophyc import model
-from prophyc.model_process import StructKind, ProcessedNodes
 
 primitive_types = {
     'u8': 'uint8_t',
@@ -21,32 +20,32 @@ def _indent(string_, spaces):
     indentation = spaces * ' '
     return '\n'.join(indentation + x if x else x for x in string_.split('\n'))
 
-def _generate_def_include(pnodes, include):
+def _generate_def_include(include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
-def _generate_def_constant(pnodes, constant):
+def _generate_def_constant(constant):
     return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
 
-def _generate_def_typedef(pnodes, typedef):
+def _generate_def_typedef(typedef):
     tp = primitive_types.get(typedef.type, typedef.type)
     return 'typedef {} {};'.format(tp, typedef.name)
 
-def _generate_def_enum(pnodes, enum):
+def _generate_def_enum(enum):
     members = ',\n'.join('{} = {}'.format(name, value)
                          for name, value in enum.members)
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
-def _generate_def_struct(pnodes, struct):
+def _generate_def_struct(struct):
     def gen_member(member):
         def build_annotation(member):
-            if member.array_size:
-                if member.array_bound:
-                    annotation = 'limited array, size in {}'.format(member.array_bound)
+            if member.size:
+                if member.bound:
+                    annotation = 'limited array, size in {}'.format(member.bound)
                 else:
                     annotation = ''
             else:
-                if member.array_bound:
-                    annotation = 'dynamic array, size in {}'.format(member.array_bound)
+                if member.bound:
+                    annotation = 'dynamic array, size in {}'.format(member.bound)
                 else:
                     annotation = 'greedy array'
             return annotation
@@ -54,7 +53,7 @@ def _generate_def_struct(pnodes, struct):
         typename = primitive_types.get(member.type, member.type)
         if member.array:
             annotation = build_annotation(member)
-            size = member.array_size or 1
+            size = member.size or 1
             if annotation:
                 field = '{0} {1}[{2}]; /// {3}\n'.format(typename, member.name, size, annotation)
             else:
@@ -72,14 +71,14 @@ def _generate_def_struct(pnodes, struct):
         )
         return _indent(generated, 4)
 
-    main, parts = pnodes.partition(struct.members)
+    main, parts = model.partition(struct.members)
     generated = _indent(''.join(map(gen_member, main)), 4)
     if parts:
         generated += '\n' + '\n\n'.join(map(gen_part, range(len(parts)), parts)) + '\n'
 
     return 'struct {}\n{{\n{}}};'.format(struct.name, generated)
 
-def _generate_def_union(pnodes, union):
+def _generate_def_union(union):
     def gen_member(member):
         typename = primitive_types.get(member.type, member.type)
         return '{0} {1};\n'.format(typename, member.name)
@@ -104,29 +103,28 @@ _generate_def_visitor = {
 }
 
 def _generator_def(nodes):
-    pnodes = ProcessedNodes(nodes)
     last_node = None
     for node in nodes:
         prepend_newline = bool(last_node
                                and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
                                     or type(last_node) is not type(node)))
-        yield prepend_newline * '\n' + _generate_def_visitor[type(node)](pnodes, node) + '\n'
+        yield prepend_newline * '\n' + _generate_def_visitor[type(node)](node) + '\n'
         last_node = node
 
-def _generate_swap_struct(pnodes, struct):
+def _generate_swap_struct(struct):
     def gen_member(member, delimiters = []):
         if member.array:
-            is_dynamic = pnodes.get_kind(member) == StructKind.DYNAMIC
+            is_dynamic = member.kind == model.Kind.DYNAMIC
             swap_mode = 'dynamic' if is_dynamic else 'fixed'
-            if member.array_bound:
-                bound = member.array_bound
-                if member.array_bound not in delimiters:
+            if member.bound:
+                bound = member.bound
+                if member.bound not in delimiters:
                     bound = 'payload->' + bound
                 return 'swap_n_{0}(payload->{1}, {2})'.format(
                     swap_mode, member.name, bound)
-            elif not member.array_bound and member.array_size:
+            elif not member.bound and member.size:
                 return 'swap_n_{0}(payload->{1}, {2})'.format(
-                    swap_mode, member.name, member.array_size)
+                    swap_mode, member.name, member.size)
         else:
             if member.optional:
                 preamble = 'swap(&payload->has_{0});\nif (payload->has_{0}) '.format(member.name)
@@ -135,13 +133,13 @@ def _generate_swap_struct(pnodes, struct):
             return preamble + 'swap(&payload->{0})'.format(member.name)
 
     def gen_last_member(name, last_mem, delimiters = []):
-        if pnodes.is_unlimited(last_mem):
+        if last_mem.kind == model.Kind.UNLIMITED or last_mem.greedy:
             return 'return cast<{0}*>({1}payload->{2});\n'.format(
                 name,
                 '' if last_mem.array else '&',
                 last_mem.name
             )
-        elif pnodes.is_dynamic(last_mem):
+        elif last_mem.kind == model.Kind.DYNAMIC or last_mem.dynamic:
             return 'return cast<{0}*>({1});\n'.format(
                 name,
                 gen_member(last_mem, delimiters)
@@ -157,9 +155,9 @@ def _generate_swap_struct(pnodes, struct):
         def get_missing(part_number):
             part = parts[part_number]
             names = [mem.name for mem in part]
-            return [(all_names[mem.array_bound], mem.array_bound)
+            return [(all_names[mem.bound], mem.bound)
                     for mem in part
-                    if mem.array_bound and mem.array_bound not in names]
+                    if mem.bound and mem.bound not in names]
 
         def gen_missing(part_number):
             return ''.join(', {0}->{1}'.format(x[0], x[1]) for x in get_missing(part_number))
@@ -185,7 +183,7 @@ def _generate_swap_struct(pnodes, struct):
 
     def gen_part(part_number, part):
         names = [mem.name for mem in part]
-        delimiters = [mem.array_bound for mem in part if mem.array_bound and mem.array_bound not in names]
+        delimiters = [mem.bound for mem in part if mem.bound and mem.bound not in names]
         members = ''.join(gen_member(mem, delimiters) + ';\n' for mem in part[:-1])
         members += gen_last_member(struct.name + '::part{0}'.format(part_number), part[-1], delimiters)
         return ('inline {0}::part{1}* swap({0}::part{1}* payload{3})\n'
@@ -195,11 +193,11 @@ def _generate_swap_struct(pnodes, struct):
                                   _indent(members, 4),
                                   ''.join(', size_t {0}'.format(x) for x in delimiters))
 
-    main, parts = pnodes.partition(struct.members)
+    main, parts = model.partition(struct.members)
     return '\n'.join([gen_part(i + 2, part) for i, part in enumerate(parts)] +
                      [gen_main(main, parts)])
 
-def _generate_swap_union(pnodes, union):
+def _generate_swap_union(union):
     return ('template <>\n'
             '{0}* swap<{0}>({0}* payload)\n'
             '{{\n'
@@ -220,11 +218,10 @@ _generate_swap_visitor = {
 }
 
 def _generator_swap(nodes):
-    pnodes = ProcessedNodes(nodes)
     for node in nodes:
         fun = _generate_swap_visitor.get(type(node))
         if fun:
-            yield fun(pnodes, node)
+            yield fun(node)
 
 header = """\
 #ifndef _PROPHY_GENERATED_{0}_HPP

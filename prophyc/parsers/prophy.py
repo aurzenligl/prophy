@@ -127,21 +127,21 @@ def struct_def(state, tail):
                     value = str(array.tail[0].tail[0])
                     validate_constdecl_exists(state, value)
                     validate_value_positive(state, value)
-                    yield StructMember(name, type_, True, None, value, False)
+                    yield StructMember(name, type_, size = value)
                 elif array.head == 'dynamic_array':
-                    yield StructMember('num_of_' + name, 'u32', None, None, None, False)
-                    yield StructMember(name, type_, True, 'num_of_' + name, None, False)
+                    yield StructMember('num_of_' + name, 'u32')
+                    yield StructMember(name, type_, bound = 'num_of_' + name)
                 elif array.head == 'limited_array':
                     value = str(array.tail[0].tail[0])
                     validate_constdecl_exists(state, value)
                     validate_value_positive(state, value)
-                    yield StructMember('num_of_' + name, 'u32', None, None, None, False)
-                    yield StructMember(name, type_, True, 'num_of_' + name, value, False)
+                    yield StructMember('num_of_' + name, 'u32')
+                    yield StructMember(name, type_, bound = 'num_of_' + name, size = value)
                 else:
                     validate_greedy_field_last(last_index, index, name)
-                    yield StructMember(name, type_, True, None, None, False)
+                    yield StructMember(name, type_, unlimited = True)
             else:
-                yield StructMember(name, type_, None, None, None, optional)
+                yield StructMember(name, type_, optional = optional)
 
     name = str(tail[0].tail[0])
     validate_decl_not_defined(state, name)

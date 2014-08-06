@@ -4,7 +4,6 @@ import sys
 import os
 
 from prophyc import options
-from prophyc import model_sort
 
 def get_basename(filename):
     return os.path.splitext(os.path.basename(filename))[0]
@@ -51,7 +50,9 @@ def main():
             patches = patch.parse(opts.patch)
             patch.patch(nodes, patches)
 
-        model_sort.model_sort(nodes)
+        model.topological_sort(nodes)
+        model.cross_reference(nodes)
+        model.evaluate_kinds(nodes)
         for serializer in serializers:
             serializer.serialize(nodes, basename)
 

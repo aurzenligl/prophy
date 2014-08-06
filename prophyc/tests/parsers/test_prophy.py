@@ -67,11 +67,10 @@ struct test
     u32 y;
 };
 """
-
     assert parse(content) == [
         model.Struct('test', [
-            model.StructMember('x', 'u32', None, None, None, False),
-            model.StructMember('y', 'u32', None, None, None, False)
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u32')
         ])
     ]
 
@@ -89,9 +88,9 @@ struct test
     assert parse(content) == [
         model.Constant('max', '5'),
         model.Struct('test', [
-            model.StructMember('x', 'u32', True, None, '3', False),
-            model.StructMember('y', 'u32', True, None, 'max', False),
-            model.StructMember('z', 'byte', True, None, '10', False)
+            model.StructMember('x', 'u32', size = '3'),
+            model.StructMember('y', 'u32', size = 'max'),
+            model.StructMember('z', 'byte', size = '10')
         ])
     ]
 
@@ -108,10 +107,10 @@ struct test
     assert parse(content) == [
         model.Typedef('x_t', 'u32'),
         model.Struct('test', [
-            model.StructMember('num_of_x', 'u32', None, None, None, False),
-            model.StructMember('x', 'x_t', True, 'num_of_x', None, False),
-            model.StructMember('num_of_y', 'u32', None, None, None, False),
-            model.StructMember('y', 'byte', True, 'num_of_y', None, False)
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'x_t', bound = 'num_of_x'),
+            model.StructMember('num_of_y', 'u32'),
+            model.StructMember('y', 'byte', bound = 'num_of_y')
         ])
     ]
 
@@ -133,10 +132,10 @@ struct test
             model.EnumMember('size', '10')
         ]),
         model.Struct('test', [
-            model.StructMember('num_of_x', 'u32', None, None, None, False),
-            model.StructMember('x', 'u32', True, 'num_of_x', '5', False),
-            model.StructMember('num_of_y', 'u32', None, None, None, False),
-            model.StructMember('y', 'u32', True, 'num_of_y', 'size', False)
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u32', bound = 'num_of_x', size = '5'),
+            model.StructMember('num_of_y', 'u32'),
+            model.StructMember('y', 'u32', bound = 'num_of_y', size = 'size')
         ])
     ]
 
@@ -150,7 +149,7 @@ struct test
 
     assert parse(content) == [
         model.Struct('test', [
-            model.StructMember('x', 'u32', True, None, None, False)
+            model.StructMember('x', 'u32', unlimited = True)
         ])
     ]
 
@@ -164,7 +163,7 @@ struct test
 
     assert parse(content) == [
         model.Struct('test', [
-            model.StructMember('x', 'u32', None, None, None, True)
+            model.StructMember('x', 'u32', optional = True)
         ])
     ]
 
@@ -201,8 +200,8 @@ struct z { float a; double b; };
         model.Typedef('x', 'r32'),
         model.Typedef('y', 'r64'),
         model.Struct('z', [
-            model.StructMember('a', 'r32', None, None, None, False),
-            model.StructMember('b', 'r64', None, None, None, False)
+            model.StructMember('a', 'r32'),
+            model.StructMember('b', 'r64')
         ])
     ]
 

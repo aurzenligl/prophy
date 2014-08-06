@@ -1,16 +1,24 @@
 from prophyc import model
 from prophyc.generators.cpp import CppGenerator
 
+def process_nodes(nodes):
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+
 def generate_definitions(nodes):
+    process_nodes(nodes)
     return CppGenerator().generate_definitions(nodes)
 
 def generate_swap(nodes):
+    process_nodes(nodes)
     return CppGenerator().generate_swap(nodes)
 
 def generate_hpp(nodes, basename):
+    process_nodes(nodes)
     return CppGenerator().serialize_string_hpp(nodes, basename)
 
 def generate_cpp(nodes, basename):
+    process_nodes(nodes)
     return CppGenerator().serialize_string_cpp(nodes, basename)
 
 def test_definitions_includes():
@@ -57,10 +65,10 @@ enum EEnum
 """
 
 def test_definitions_struct():
-    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8", None, None, None, False)),
-                                     (model.StructMember("b", "i64", None, None, None, False)),
-                                     (model.StructMember("c", "r32", None, None, None, False)),
-                                     (model.StructMember("d", "TTypeX", None, None, None, False))])]
+    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8")),
+                                     (model.StructMember("b", "i64")),
+                                     (model.StructMember("c", "r32")),
+                                     (model.StructMember("d", "TTypeX"))])]
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -73,8 +81,8 @@ struct Struct
 """
 
 def test_definitions_struct_with_dynamic_array():
-    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems", None, None, None, False),
-                                     model.StructMember("a", "u8", True, "tmpName", None, False)])]
+    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems"),
+                                     model.StructMember("a", "u8", bound = "tmpName")])]
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -85,7 +93,7 @@ struct Struct
 """
 
 def test_definitions_struct_with_fixed_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", True, None, "NUM_OF_ARRAY_ELEMS", False)])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", size = "NUM_OF_ARRAY_ELEMS")])]
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -95,8 +103,8 @@ struct Struct
 """
 
 def test_definitions_struct_with_limited_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8", None, None, None, False),
-                                     model.StructMember("a", "u8", True, "a_len", "NUM_OF_ARRAY_ELEMS", False)])]
+    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8"),
+                                     model.StructMember("a", "u8", bound = "a_len", size = "NUM_OF_ARRAY_ELEMS")])]
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -107,7 +115,7 @@ struct Struct
 """
 
 def test_definitions_struct_with_byte():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", False, None, None, None)])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte")])]
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -117,7 +125,7 @@ struct Struct
 """
 
 def test_definitions_struct_with_byte_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", True, None, None, None)])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", unlimited = True)])]
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -129,12 +137,12 @@ struct Struct
 def test_definitions_struct_many_arrays():
     nodes = [
         model.Struct("ManyArrays", [
-            model.StructMember("num_of_a", "u8", None, None, None, False),
-            model.StructMember("a", "u8", True, "num_of_a", None, False),
-            model.StructMember("num_of_b", "u8", None, None, None, False),
-            model.StructMember("b", "u8", True, "num_of_b", None, False),
-            model.StructMember("num_of_c", "u8", None, None, None, False),
-            model.StructMember("c", "u8", True, "num_of_c", None, False)
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a"),
+            model.StructMember("num_of_b", "u8"),
+            model.StructMember("b", "u8", bound = "num_of_b"),
+            model.StructMember("num_of_c", "u8"),
+            model.StructMember("c", "u8", bound = "num_of_c")
         ])
     ]
 
@@ -161,10 +169,10 @@ struct ManyArrays
 def test_definitions_struct_many_arrays_mixed():
     nodes = [
         model.Struct("ManyArraysMixed", [
-            model.StructMember("num_of_a", "u8", None, None, None, False),
-            model.StructMember("num_of_b", "u8", None, None, None, False),
-            model.StructMember("a", "u8", True, "num_of_a", None, False),
-            model.StructMember("b", "u8", True, "num_of_b", None, False)
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("num_of_b", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a"),
+            model.StructMember("b", "u8", bound = "num_of_b")
         ])
     ]
 
@@ -185,13 +193,13 @@ struct ManyArraysMixed
 def test_definitions_struct_with_dynamic_fields():
     nodes = [
         model.Struct("Dynamic", [
-            model.StructMember("num_of_a", "u8", None, None, None, False),
-            model.StructMember("a", "u8", True, "num_of_a", None, False)
+            model.StructMember("num_of_a", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_a")
         ]),
         model.Struct("X", [
-            model.StructMember("a", "u8", None, None, None, False),
-            model.StructMember("b", "Dynamic", None, None, None, False),
-            model.StructMember("c", "u8", None, None, None, False)
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "Dynamic"),
+            model.StructMember("c", "u8")
         ])
     ]
 
@@ -217,7 +225,7 @@ struct X
 def test_definitions_struct_with_optional_field():
     nodes = [
         model.Struct("Struct", [
-            (model.StructMember("a", "u8", None, None, None, True))
+            (model.StructMember("a", "u8", optional = True))
         ])
     ]
 
@@ -266,8 +274,8 @@ def test_definitions_newlines():
              model.Typedef("e", "f"),
              model.Constant("CONST_B", "0"),
              model.Constant("CONST_C", "0"),
-             model.Struct("A", [model.StructMember("a", "u32", False, None, None, None)]),
-             model.Struct("B", [model.StructMember("b", "u32", False, None, None, None)])]
+             model.Struct("A", [model.StructMember("a", "u32")]),
+             model.Struct("B", [model.StructMember("b", "u32")])]
 
     assert generate_definitions(nodes) == """\
 typedef b a;
@@ -317,7 +325,7 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_fixed_element():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("a", "u8", None, None, None, False))
+            (model.StructMember("a", "u8"))
         ])
     ]
 
@@ -333,8 +341,8 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_optional_element():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("x", "u32", None, None, None, True)),
-            (model.StructMember("y", "Y", None, None, None, True))
+            (model.StructMember("x", "u32", optional = True)),
+            (model.StructMember("y", "Y", optional = True))
         ])
     ]
 
@@ -378,7 +386,7 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_fixed_array_of_fixed_elements():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("x", "u16", True, None, 5, False))
+            (model.StructMember("x", "u16", size = 5))
         ])
     ]
 
@@ -394,8 +402,8 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_limited_array_of_fixed_elements():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("num_of_x", "u16", False, None, None, False)),
-            (model.StructMember("x", "Y", True, "num_of_x", 3, False))
+            (model.StructMember("num_of_x", "u16")),
+            (model.StructMember("x", "Y", bound = "num_of_x", size = 3))
         ])
     ]
 
@@ -412,8 +420,8 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_dynamic_array_of_fixed_elements():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("num_of_x", "u32", None, None, None, False)),
-            (model.StructMember("x", "u16", True, "num_of_x", None, False))
+            (model.StructMember("num_of_x", "u32")),
+            (model.StructMember("x", "u16", bound = "num_of_x"))
         ])
     ]
 
@@ -429,11 +437,11 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_greedy_array():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("x", "u8", None, None, None, False)),
-            (model.StructMember("y", "Y", True, None, None, False))
+            (model.StructMember("x", "u8")),
+            (model.StructMember("y", "Y", unlimited = True))
         ]),
         model.Struct("Z", [
-            (model.StructMember("z", "X", None, None, None, False))
+            (model.StructMember("z", "X"))
         ])
     ]
 
@@ -455,11 +463,11 @@ Z* swap<Z>(Z* payload)
 def test_swap_struct_with_dynamic_element():
     nodes = [
         model.Struct("Dynamic", [
-            (model.StructMember("num_of_x", "u32", None, None, None, False)),
-            (model.StructMember("x", "u16", True, "num_of_x", None, False))
+            (model.StructMember("num_of_x", "u32")),
+            (model.StructMember("x", "u16", bound = "num_of_x"))
         ]),
         model.Struct("X", [
-            (model.StructMember("a", "Dynamic", None, None, None, False))
+            (model.StructMember("a", "Dynamic"))
         ])
     ]
 
@@ -481,12 +489,12 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_dynamic_array_of_dynamic_elements():
     nodes = [
         model.Struct("Y", [
-            (model.StructMember("num_of_x", "u32", None, None, None, False)),
-            (model.StructMember("x", "u16", True, "num_of_x", None, False))
+            (model.StructMember("num_of_x", "u32")),
+            (model.StructMember("x", "u16", bound = "num_of_x"))
         ]),
         model.Struct("X", [
-            (model.StructMember("num_of_x", "u32", None, None, None, False)),
-            (model.StructMember("x", "Y", True, "num_of_x", None, False))
+            (model.StructMember("num_of_x", "u32")),
+            (model.StructMember("x", "Y", bound = "num_of_x"))
         ])
     ]
 
@@ -509,12 +517,12 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_many_arrays():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("num_of_x", "u32", None, None, None, False)),
-            (model.StructMember("x", "u32", True, "num_of_x", None, False)),
-            (model.StructMember("num_of_y", "u32", None, None, None, False)),
-            (model.StructMember("y", "u32", True, "num_of_y", None, False)),
-            (model.StructMember("num_of_z", "u32", None, None, None, False)),
-            (model.StructMember("z", "u32", True, "num_of_z", None, False))
+            (model.StructMember("num_of_x", "u32")),
+            (model.StructMember("x", "u32", bound = "num_of_x")),
+            (model.StructMember("num_of_y", "u32")),
+            (model.StructMember("y", "u32", bound = "num_of_y")),
+            (model.StructMember("num_of_z", "u32")),
+            (model.StructMember("z", "u32", bound = "num_of_z"))
         ])
     ]
 
@@ -544,10 +552,10 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_many_arrays_passing_numbering_fields():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("num_of_x", "u32", None, None, None, False)),
-            (model.StructMember("num_of_y", "u32", None, None, None, False)),
-            (model.StructMember("x", "u32", True, "num_of_x", None, False)),
-            (model.StructMember("y", "u32", True, "num_of_y", None, False))
+            (model.StructMember("num_of_x", "u32")),
+            (model.StructMember("num_of_y", "u32")),
+            (model.StructMember("x", "u32", bound = "num_of_x")),
+            (model.StructMember("y", "u32", bound = "num_of_y"))
         ])
     ]
 
@@ -570,12 +578,12 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_many_arrays_passing_numbering_fields_heavily():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("num_of_a", "u32", None, None, None, False)),
-            (model.StructMember("num_of_b", "u32", None, None, None, False)),
-            (model.StructMember("b", "u16", True, "num_of_b", None, False)),
-            (model.StructMember("num_of_c", "u32", None, None, None, False)),
-            (model.StructMember("c", "u16", True, "num_of_c", None, False)),
-            (model.StructMember("a", "u16", True, "num_of_a", None, False))
+            (model.StructMember("num_of_a", "u32")),
+            (model.StructMember("num_of_b", "u32")),
+            (model.StructMember("b", "u16", bound = "num_of_b")),
+            (model.StructMember("num_of_c", "u32")),
+            (model.StructMember("c", "u16", bound = "num_of_c")),
+            (model.StructMember("a", "u16", bound = "num_of_a"))
         ])
     ]
 
@@ -605,10 +613,10 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_dynamic_field_and_tail_fixed():
     nodes = [
         model.Struct("X", [
-            (model.StructMember("num_of_x", "u8", None, None, None, False)),
-            (model.StructMember("x", "u8", True, "num_of_x", None, False)),
-            (model.StructMember("y", "u32", None, None, None, False)),
-            (model.StructMember("z", "u64", None, None, None, False))
+            (model.StructMember("num_of_x", "u8")),
+            (model.StructMember("x", "u8", bound = "num_of_x")),
+            (model.StructMember("y", "u32")),
+            (model.StructMember("z", "u64"))
         ])
     ]
 
@@ -632,13 +640,13 @@ X* swap<X>(X* payload)
 def test_swap_struct_with_many_dynamic_fields():
     nodes = [
         model.Struct("Y", [
-            (model.StructMember("num_of_x", "u32", None, None, None, False)),
-            (model.StructMember("x", "u16", True, "num_of_x", None, False))
+            (model.StructMember("num_of_x", "u32")),
+            (model.StructMember("x", "u16", bound = "num_of_x"))
         ]),
         model.Struct("X", [
-            (model.StructMember("x", "Y", None, None, None, False)),
-            (model.StructMember("y", "Y", None, None, None, False)),
-            (model.StructMember("z", "Y", None, None, None, False))
+            (model.StructMember("x", "Y")),
+            (model.StructMember("y", "Y")),
+            (model.StructMember("z", "Y"))
         ])
     ]
 
@@ -693,7 +701,7 @@ namespace prophy
 def test_generate_file():
     nodes = [
         model.Struct("Struct", [
-            (model.StructMember("a", "u8", None, None, None, False))
+            (model.StructMember("a", "u8"))
         ])
     ]
 
