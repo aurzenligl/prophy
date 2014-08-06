@@ -97,7 +97,7 @@ def test_insert_field():
 
     patch.patch(nodes, patches)
 
-    assert [model.Struct('MySdtruct', [model.StructMember('field1', 'u32'),
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
                                       model.StructMember('additional1', 'u8'),
                                       model.StructMember('field2', 'u32'),
                                       model.StructMember('additional2', 'u16'),
