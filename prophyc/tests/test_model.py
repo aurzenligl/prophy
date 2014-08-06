@@ -22,3 +22,55 @@ MyStruct
     UU e<...>
     UUUU* f
 """
+
+
+def test_cross_reference_structs():
+    nodes = [
+        model.Struct("A", [
+            model.StructMember("a", "u8")
+        ]),
+        model.Struct("B", [
+            model.StructMember("a", "A"),
+            model.StructMember("b", "u8")
+        ]),
+        model.Struct("C", [
+            model.StructMember("a", "A"),
+            model.StructMember("b", "B"),
+            model.StructMember("c", "NON_EXISTENT")
+        ]),
+        model.Struct("D", [
+            model.StructMember("a", "A"),
+            model.StructMember("b", "B"),
+            model.StructMember("c", "C")
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    definition_names = [[x.definition.name if x.definition else None for x in y.members] for y in nodes]
+    assert definition_names == [
+        [None],
+        ['A', None],
+        ['A', 'B', None],
+        ['A', 'B', 'C']
+    ]
+
+def test_cross_reference_typedef():
+    nodes = [
+        model.Struct("A", [
+            model.StructMember("a", "u8")
+        ]),
+        model.Typedef("B", "A"),
+        model.Struct("C", [
+            model.StructMember("a", "A"),
+            model.StructMember("b", "B")
+        ]),
+        model.Typedef("D", "B"),
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[1].definition.name == "A"
+    assert nodes[2].members[1].definition.definition.name == "A"
+    assert nodes[3].definition.name == "B"
+    assert nodes[3].definition.definition.name == "A"

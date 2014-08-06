@@ -12,6 +12,7 @@ class Typedef(object):
     def __init__(self, name, type):
         self.name = name
         self.type = type
+        self.definition = None
 
     def __cmp__(self, other):
         return cmp(other.__dict__, self.__dict__)
@@ -44,6 +45,7 @@ class StructMember(object):
         self.bound = bound
         self.size = size
         self.optional = optional
+        self.definition = None
 
     def __cmp__(self, other):
         return cmp(other.__dict__, self.__dict__)
@@ -62,3 +64,14 @@ class StructMember(object):
 
 Union = namedtuple("Union", ["name", "members"])
 UnionMember = namedtuple("UnionMember", ["name", "type", "discriminator"])
+
+
+def cross_reference(nodes):
+    types = {node.name: node for node in nodes}
+    def do_cross_reference(symbol):
+        symbol.definition = types.get(symbol.type)
+    for node in nodes:
+        if isinstance(node, Typedef):
+            do_cross_reference(node)
+        elif isinstance(node, Struct):
+            map(do_cross_reference, node.members)
