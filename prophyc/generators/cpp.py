@@ -1,7 +1,6 @@
 import os
 
 from prophyc import model
-from prophyc.model_process import StructKind, ProcessedNodes
 
 primitive_types = {
     'u8': 'uint8_t',
@@ -112,10 +111,10 @@ def _generator_def(nodes):
         yield prepend_newline * '\n' + _generate_def_visitor[type(node)](node) + '\n'
         last_node = node
 
-def _generate_swap_struct(pnodes, struct):
+def _generate_swap_struct(struct):
     def gen_member(member, delimiters = []):
         if member.array:
-            is_dynamic = pnodes.get_kind(member) == StructKind.DYNAMIC
+            is_dynamic = member.kind == model.Kind.DYNAMIC
             swap_mode = 'dynamic' if is_dynamic else 'fixed'
             if member.bound:
                 bound = member.bound
@@ -134,13 +133,13 @@ def _generate_swap_struct(pnodes, struct):
             return preamble + 'swap(&payload->{0})'.format(member.name)
 
     def gen_last_member(name, last_mem, delimiters = []):
-        if pnodes.is_unlimited(last_mem):
+        if last_mem.kind == model.Kind.UNLIMITED or last_mem.greedy:
             return 'return cast<{0}*>({1}payload->{2});\n'.format(
                 name,
                 '' if last_mem.array else '&',
                 last_mem.name
             )
-        elif pnodes.is_dynamic(last_mem):
+        elif last_mem.kind == model.Kind.DYNAMIC or last_mem.dynamic:
             return 'return cast<{0}*>({1});\n'.format(
                 name,
                 gen_member(last_mem, delimiters)
@@ -194,11 +193,11 @@ def _generate_swap_struct(pnodes, struct):
                                   _indent(members, 4),
                                   ''.join(', size_t {0}'.format(x) for x in delimiters))
 
-    main, parts = pnodes.partition(struct.members)
+    main, parts = model.partition(struct.members)
     return '\n'.join([gen_part(i + 2, part) for i, part in enumerate(parts)] +
                      [gen_main(main, parts)])
 
-def _generate_swap_union(pnodes, union):
+def _generate_swap_union(union):
     return ('template <>\n'
             '{0}* swap<{0}>({0}* payload)\n'
             '{{\n'
@@ -219,11 +218,10 @@ _generate_swap_visitor = {
 }
 
 def _generator_swap(nodes):
-    pnodes = ProcessedNodes(nodes)
     for node in nodes:
         fun = _generate_swap_visitor.get(type(node))
         if fun:
-            yield fun(pnodes, node)
+            yield fun(node)
 
 header = """\
 #ifndef _PROPHY_GENERATED_{0}_HPP

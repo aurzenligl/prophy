@@ -99,8 +99,8 @@ def test_evaluate_kinds_arrays():
         model.Kind.FIXED,
         model.Kind.FIXED,
         model.Kind.FIXED,
-        model.Kind.DYNAMIC,
-        model.Kind.UNLIMITED,
+        model.Kind.FIXED,
+        model.Kind.FIXED,
     ]
 
 def test_evaluate_kinds_struct_records():
@@ -132,8 +132,8 @@ def test_evaluate_kinds_struct_records():
     assert [x.kind for x in nodes[2].members] == [
         model.Kind.DYNAMIC,
         model.Kind.FIXED,
-        model.Kind.DYNAMIC,
-        model.Kind.UNLIMITED,
+        model.Kind.FIXED,
+        model.Kind.FIXED,
     ]
 
 def test_evaluate_kinds_with_typedefs():

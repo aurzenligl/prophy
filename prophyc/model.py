@@ -96,32 +96,35 @@ def cross_reference(nodes):
 
 def evaluate_kinds(nodes):
     """ Prerequisite to calculate kinds is to cross reference nodes. """
-    def evaluate_node_kind(node):
+    def lookup_node_kind(node):
         if isinstance(node, Typedef):
             while isinstance(node, Typedef):
                 node = node.definition
-            return evaluate_node_kind(node)
+            return lookup_node_kind(node)
         elif isinstance(node, Struct):
             return node.kind
         else:
             return Kind.FIXED
     def evaluate_member_kind(member):
-        if member.greedy:
-            return Kind.UNLIMITED
-        elif member.dynamic:
-            return Kind.DYNAMIC
-        elif member.definition is None:
-            return Kind.FIXED
+        if member.definition:
+            return lookup_node_kind(member.definition)
         else:
-            return evaluate_node_kind(member.definition)
+            return Kind.FIXED
+    def evaluate_struct_kind(node):
+        if node.members:
+            if node.members[-1].greedy:
+                return Kind.UNLIMITED
+            elif any(x.dynamic for x in node.members):
+                return  Kind.DYNAMIC
+            else:
+                return  max(x.kind for x in node.members)
+        else:
+            return Kind.FIXED
     for node in nodes:
         if isinstance(node, Struct):
             for member in node.members:
                 member.kind = evaluate_member_kind(member)
-            if node.members:
-                node.kind = max(x.kind for x in node.members)
-            else:
-                node.kind = Kind.FIXED
+            node.kind = evaluate_struct_kind(node)
 
 def partition(members):
     main = []
@@ -129,7 +132,7 @@ def partition(members):
     current = main
     for member in members[:-1]:
         current.append(member)
-        if member.kind == Kind.DYNAMIC:
+        if member.kind == Kind.DYNAMIC or member.dynamic:
             current = []
             parts.append(current)
     if members:
