@@ -52,6 +52,8 @@ def main():
             patch.patch(nodes, patches)
 
         model_sort.model_sort(nodes)
+        model.cross_reference(nodes)
+        model.evaluate_kinds(nodes)
         for serializer in serializers:
             serializer.serialize(nodes, basename)
 

@@ -19,7 +19,6 @@ class Typedef(object):
     def __init__(self, name, type):
         self.name = name
         self.type = type
-        self.definition = None
 
     def __cmp__(self, other):
         return cmp(other.__dict__, self.__dict__)
@@ -32,7 +31,6 @@ class Struct(object):
     def __init__(self, name, members):
         self.name = name
         self.members = members
-        self.kind = None
 
     def __cmp__(self, other):
         return cmp(other.__dict__, self.__dict__)
@@ -53,8 +51,6 @@ class StructMember(object):
         self.bound = bound
         self.size = size
         self.optional = optional
-        self.definition = None
-        self.kind = None
 
     def __cmp__(self, other):
         return cmp(other.__dict__, self.__dict__)
@@ -85,6 +81,7 @@ UnionMember = namedtuple("UnionMember", ["name", "type", "discriminator"])
 """ Following functions process model. """
 
 def cross_reference(nodes):
+    """Adds definition reference to Typedef and StructMember."""
     types = {node.name: node for node in nodes}
     def do_cross_reference(symbol):
         symbol.definition = types.get(symbol.type)
@@ -95,7 +92,7 @@ def cross_reference(nodes):
             map(do_cross_reference, node.members)
 
 def evaluate_kinds(nodes):
-    """ Prerequisite to calculate kinds is to cross reference nodes. """
+    """Adds kind to Struct and StructMember. Requires cross referenced nodes."""
     def lookup_node_kind(node):
         if isinstance(node, Typedef):
             while isinstance(node, Typedef):
