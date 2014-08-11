@@ -6,7 +6,7 @@ class Kind:
     DYNAMIC = 1
     UNLIMITED = 2
 
-""" Model consists of 5 kinds of symbols:
+""" Model consists of 6 kinds of symbols:
 Includes, Constants, Enums, Typedefs, Structs, Unions. """
 
 Include = namedtuple("Include", ["name"])
