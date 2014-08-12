@@ -12,21 +12,21 @@ class ParseError(Exception): pass
 
 class Lexer(object):
 
+    keywords = (
+        "const", "enum", "typedef", "struct", "union",
+        "u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64",
+        "float", "double", "bytes"
+    )
+
+    tokens = tuple([t.upper() for t in keywords]) + (
+        "ID", "CONST8", "CONST10", "CONST16",
+        # [ ] { } < >
+        "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "LT", "GT",
+        # ; :  * = , ...
+        "SEMI", "COLON", "STAR", "EQUALS", "COMMA", "DOTS"
+    )
+
     def __init__(self, **kwargs):
-        self.keywords = (
-            "const", "enum", "typedef", "struct", "union",
-            "u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64",
-            "float", "double", "bytes"
-        )
-
-        self.tokens = tuple([t.upper() for t in self.keywords]) + (
-            "ID", "CONST8", "CONST10", "CONST16",
-            # [ ] { } < >
-            "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "LT", "GT",
-            # ; :  * = , ...
-            "SEMI", "COLON", "STAR", "EQUALS", "COMMA", "DOTS"
-        )
-
         self.lexer = lex.lex(module = self, **kwargs)
 
     def t_ID(self, t):
