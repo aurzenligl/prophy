@@ -21,17 +21,17 @@ const CONST_D = -1;
         model.Constant("CONST_D", "-1")
     ]
 
-#def test_typedefs_parsing():
-#    content = """\
-#typedef u32 x;
-#typedef x y;
-#"""
-#
-#    assert parse(content) == [
-#        model.Typedef("x", "u32"),
-#        model.Typedef("y", "x")
-#    ]
-#
+def test_typedefs_parsing():
+    content = """\
+typedef u32 x;
+typedef x y;
+"""
+
+    assert parse(content) == [
+        model.Typedef("x", "u32"),
+        model.Typedef("y", "x")
+    ]
+
 #def test_enums_parsing():
 #    content = """\
 #enum enum_t

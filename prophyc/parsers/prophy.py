@@ -96,9 +96,19 @@ class Parser(object):
         self.typedecls = {}
         self.constdecls = {}
 
-    def validate_decl_not_defined(self, name):
+    _builtin_types = ["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "r32", "r64", "byte"]
+    _sanitizer_rules = {'float': 'r32', 'double': 'r64'}
+
+    def _sanitize_type(self, name):
+        return self._sanitizer_rules.get(name, name)
+
+    def _validate_decl_not_defined(self, name):
         if name in self.typedecls or name in self.constdecls:
             raise ParseError("Name '{}' redefined".format(name))
+
+    def _validate_typedecl_exists(self, type_):
+        if type_ not in self._builtin_types and type_ not in self.typedecls:
+            raise ParseError("Type '{}' was not declared".format(type_))
 
     def p_specification(self, t):
         '''specification : definition_list'''
@@ -118,7 +128,7 @@ class Parser(object):
         '''constant_def : CONST ID EQUALS constant SEMI'''
         name = t[2]
         value = t[4]
-        self.validate_decl_not_defined(name)
+        self._validate_decl_not_defined(name)
 
         node = Constant(name, value)
         self.constdecls[name] = node
@@ -144,7 +154,15 @@ class Parser(object):
         '''enum_member : ID EQUALS value'''
 
     def p_typedef_def(self, t):
-        '''typedef_def : TYPEDEF type_spec SEMI'''
+        '''typedef_def : TYPEDEF type_spec ID SEMI'''
+        type_ = self._sanitize_type(t[2])
+        name = t[3]
+        self._validate_decl_not_defined(name)
+        self._validate_typedecl_exists(type_)
+
+        node = Typedef(name, type_)
+        self.typedecls[name] = node
+        self.nodes.append(node)
 
     def p_struct_def(self, t):
         '''struct_def : STRUCT ID struct_body SEMI'''
@@ -196,6 +214,7 @@ class Parser(object):
                      | FLOAT
                      | DOUBLE
                      | ID'''
+        t[0] = t[1]
 
     def p_value(self, t):
         '''value : constant
@@ -214,31 +233,6 @@ def _is_int(s):
     except ValueError:
         return False
 
-builtins = {
-    'u8': 'u8',
-    'u16': 'u16',
-    'u32': 'u32',
-    'u64': 'u64',
-    'i8': 'i8',
-    'i16': 'i16',
-    'i32': 'i32',
-    'i64': 'i64',
-    'float': 'r32',
-    'r32': 'r32',
-    'double': 'r64',
-    'r64': 'r64',
-    'byte': 'byte'
-}
-
-#State = namedtuple('State', ['typedecls', 'constdecls'])
-
-def validate_decl_not_defined(state, name):
-    if name in state.typedecls or name in state.constdecls:
-        raise Exception("Name '{}' redefined".format(name))
-
-def validate_typedecl_exists(state, type_):
-    if type_ not in builtins and type_ not in state.typedecls:
-        raise Exception("Type '{}' was not declared".format(type_))
 
 def validate_constdecl_exists(state, value):
     if not _is_int(value) and value not in state.constdecls:
@@ -260,33 +254,11 @@ def validate_greedy_field_last(last_index, index, name):
     if index != last_index:
         raise Exception("Greedy array field '{}' not last".format(name))
 
-def get_type_specifier(tree):
-    return builtins.get(tree.head, str(tree.tail[0]))
-
 def get_struct_type_specifier(tree):
     if tree.head == 'bytes':
         return 'byte'
     else:
         return get_type_specifier(tree)
-
-#def constant_def(state, tail):
-#    name = str(tail[0].tail[0])
-#    value = str(tail[1].tail[0])
-#    validate_decl_not_defined(state, name)
-#
-#    node = Constant(name, value)
-#    state.constdecls[name] = node
-#    return node
-
-def typedef_def(state, tail):
-    type_ = get_type_specifier(tail[0])
-    name = str(tail[1].tail[0])
-    validate_decl_not_defined(state, name)
-    validate_typedecl_exists(state, type_)
-
-    node = Typedef(name, type_)
-    state.typedecls[name] = node
-    return node
 
 def enum_def(state, tail):
     def enumerator_def(tree):
@@ -372,22 +344,10 @@ def union_def(state, tail):
     state.typedecls[name] = node
     return node
 
-#symbols = {
-#    'constant_def': constant_def,
-#    'typedef_def': typedef_def,
-#    'enum_def': enum_def,
-#    'struct_def': struct_def,
-#    'union_def': union_def
-#}
-
 def build_model(string_):
     lexer = Lexer()
     parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
     return parser.parse(string_)
-
-    #out = get_grammar().parse(string_)
-    #state = State({}, {})
-    #return [symbols[tree.head](state, tree.tail) for tree in out.tail]
 
 class ProphyParser(object):
 
