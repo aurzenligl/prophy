@@ -1,10 +1,12 @@
 import os
-from collections import namedtuple
+import tempfile
 
 import ply.lex as lex
 import ply.yacc as yacc
 
 from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember
+
+PROPHY_DIR = os.path.join(tempfile.gettempdir(), 'prophy')
 
 class ParseError(Exception): pass
 
@@ -380,7 +382,7 @@ def union_def(state, tail):
 
 def build_model(string_):
     lexer = Lexer()
-    parser = Parser(lexer.tokens, lexer.lexer, debug = 0)
+    parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
     return parser.parse(string_)
 
     #out = get_grammar().parse(string_)
