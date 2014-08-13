@@ -131,11 +131,8 @@ class Parser(object):
 
     def p_constant_def(self, t):
         '''constant_def : CONST unique_id EQUALS constant SEMI'''
-        name = t[2]
-        value = t[4]
-
-        node = Constant(name, value)
-        self.constdecls[name] = node
+        node = Constant(t[2], t[4])
+        self.constdecls[t[2]] = node
         self.nodes.append(node)
 
     def p_constant(self, t):
@@ -146,10 +143,8 @@ class Parser(object):
 
     def p_enum_def(self, t):
         '''enum_def : ENUM unique_id enum_body SEMI'''
-        name = t[2]
-
-        node = Enum(name, t[3])
-        self.typedecls[name] = node
+        node = Enum(t[2], t[3])
+        self.typedecls[t[2]] = node
         self.nodes.append(node)
 
     def p_enum_body(self, t):
@@ -172,11 +167,8 @@ class Parser(object):
 
     def p_typedef_def(self, t):
         '''typedef_def : TYPEDEF type_spec unique_id SEMI'''
-        type_ = t[2]
-        name = t[3]
-
-        node = Typedef(name, type_)
-        self.typedecls[name] = node
+        node = Typedef(t[3], t[2])
+        self.typedecls[t[3]] = node
         self.nodes.append(node)
 
     def p_struct_def(self, t):
@@ -204,51 +196,37 @@ class Parser(object):
 
     def p_struct_member_1(self, t):
         '''struct_member : type_spec ID'''
-        type_ = t[1]
-        name = t[2]
-        t[0] = [StructMember(name, type_)]
+        t[0] = [StructMember(t[2], t[1])]
 
     def p_struct_member_2(self, t):
         '''struct_member : bytes ID LBRACKET positive_value RBRACKET
                          | type_spec ID LBRACKET positive_value RBRACKET'''
-        type_ = t[1]
-        name = t[2]
-        size = t[4]
-        t[0] = [StructMember(name, type_, size = size)]
+        t[0] = [StructMember(t[2], t[1], size = t[4])]
 
     def p_struct_member_3(self, t):
         '''struct_member : bytes ID LT GT
                          | type_spec ID LT GT'''
-        type_ = t[1]
-        name = t[2]
         t[0] = [
-            StructMember('num_of_' + name, 'u32'),
-            StructMember(name, type_, bound = 'num_of_' + name)
+            StructMember('num_of_' + t[2], 'u32'),
+            StructMember(t[2], t[1], bound = 'num_of_' + t[2])
         ]
 
     def p_struct_member_4(self, t):
         '''struct_member : bytes ID LT positive_value GT
                          | type_spec ID LT positive_value GT'''
-        type_ = t[1]
-        name = t[2]
-        size = t[4]
         t[0] = [
-            StructMember('num_of_' + name, 'u32'),
-            StructMember(name, type_, bound = 'num_of_' + name, size = size)
+            StructMember('num_of_' + t[2], 'u32'),
+            StructMember(t[2], t[1], bound = 'num_of_' + t[2], size = t[4])
         ]
 
     def p_struct_member_5(self, t):
         '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
-        type_ = t[1]
-        name = t[2]
-        t[0] = [StructMember(name, type_, unlimited = True)]
+        t[0] = [StructMember(t[2], t[1], unlimited = True)]
 
     def p_struct_member_6(self, t):
         '''struct_member : type_spec STAR ID'''
-        type_ = t[1]
-        name = t[3]
-        t[0] = [StructMember(name, type_, optional = True)]
+        t[0] = [StructMember(t[3], t[1], optional = True)]
 
     def p_bytes(self, t):
         '''bytes : BYTES'''
