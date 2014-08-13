@@ -99,18 +99,12 @@ class Parser(object):
         self.typedecls = {}
         self.constdecls = {}
 
-    _builtin_types = ["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "r32", "r64", "byte"]
-    _sanitizer_rules = {'float': 'r32', 'double': 'r64', 'bytes': 'byte'}
-
-    def _sanitize_type(self, type_):
-        return self._sanitizer_rules.get(type_, type_)
-
     def _validate_decl_not_defined(self, name):
         if name in self.typedecls or name in self.constdecls:
             raise ParseError("Name '{}' redefined".format(name))
 
     def _validate_typedecl_exists(self, type_):
-        if type_ not in self._builtin_types and type_ not in self.typedecls:
+        if type_ not in self.typedecls:
             raise ParseError("Type '{}' was not declared".format(type_))
 
     def p_specification(self, t):
@@ -170,10 +164,9 @@ class Parser(object):
 
     def p_typedef_def(self, t):
         '''typedef_def : TYPEDEF type_spec ID SEMI'''
-        type_ = self._sanitize_type(t[2])
+        type_ = t[2]
         name = t[3]
         self._validate_decl_not_defined(name)
-        self._validate_typedecl_exists(type_)
 
         node = Typedef(name, type_)
         self.typedecls[name] = node
@@ -205,18 +198,16 @@ class Parser(object):
 
     def p_struct_member_1(self, t):
         '''struct_member : type_spec ID'''
-        type_ = self._sanitize_type(t[1])
+        type_ = t[1]
         name = t[2]
-        self._validate_typedecl_exists(type_)
         t[0] = [StructMember(name, type_)]
 
     def p_struct_member_2(self, t):
         '''struct_member : BYTES ID LBRACKET value RBRACKET
                          | type_spec ID LBRACKET value RBRACKET'''
-        type_ = self._sanitize_type(t[1])
+        type_ = t[1]
         name = t[2]
         size = t[4]
-        self._validate_typedecl_exists(type_)
         self._validate_constdecl_exists(size)
         self._validate_value_positive(size)
         t[0] = [StructMember(name, type_, size = size)]
@@ -224,9 +215,8 @@ class Parser(object):
     def p_struct_member_3(self, t):
         '''struct_member : BYTES ID LT GT
                          | type_spec ID LT GT'''
-        type_ = self._sanitize_type(t[1])
+        type_ = t[1]
         name = t[2]
-        self._validate_typedecl_exists(type_)
         t[0] = [
             StructMember('num_of_' + name, 'u32'),
             StructMember(name, type_, bound = 'num_of_' + name)
@@ -235,10 +225,9 @@ class Parser(object):
     def p_struct_member_4(self, t):
         '''struct_member : BYTES ID LT value GT
                          | type_spec ID LT value GT'''
-        type_ = self._sanitize_type(t[1])
+        type_ = t[1]
         name = t[2]
         size = t[4]
-        self._validate_typedecl_exists(type_)
         self._validate_constdecl_exists(size)
         self._validate_value_positive(size)
         t[0] = [
@@ -249,16 +238,14 @@ class Parser(object):
     def p_struct_member_5(self, t):
         '''struct_member : BYTES ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
-        type_ = self._sanitize_type(t[1])
+        type_ = t[1]
         name = t[2]
-        self._validate_typedecl_exists(type_)
         t[0] = [StructMember(name, type_, unlimited = True)]
 
     def p_struct_member_6(self, t):
         '''struct_member : type_spec STAR ID'''
-        type_ = self._sanitize_type(t[1])
+        type_ = t[1]
         name = t[3]
-        self._validate_typedecl_exists(type_)
         t[0] = [StructMember(name, type_, optional = True)]
 
     def p_union_def(self, t):
@@ -274,7 +261,7 @@ class Parser(object):
     def p_union_member(self, t):
         '''union_member : value COLON type_spec ID'''
 
-    def p_type_spec(self, t):
+    def p_type_spec_1(self, t):
         '''type_spec : U8
                      | U16
                      | U32
@@ -282,11 +269,22 @@ class Parser(object):
                      | I8
                      | I16
                      | I32
-                     | I64
-                     | FLOAT
-                     | DOUBLE
-                     | ID'''
+                     | I64'''
         t[0] = t[1]
+
+    def p_type_spec_2(self, t):
+        '''type_spec : FLOAT'''
+        t[0] = 'r32'
+
+    def p_type_spec_3(self, t):
+        '''type_spec : DOUBLE'''
+        t[0] = 'r64'
+
+    def p_type_spec_4(self, t):
+        '''type_spec : ID'''
+        type_ = t[1]
+        self._validate_typedecl_exists(type_)
+        t[0] = type_
 
     def p_value(self, t):
         '''value : constant
