@@ -98,79 +98,79 @@ struct test
         ])
     ]
 
-#def test_structs_with_dynamic_array_parsing():
-#    content = """\
-#typedef u32 x_t;
-#struct test
-#{
-#    x_t x<>;
-#    bytes y<>;
-#};
-#"""
-#
-#    assert parse(content) == [
-#        model.Typedef('x_t', 'u32'),
-#        model.Struct('test', [
-#            model.StructMember('num_of_x', 'u32'),
-#            model.StructMember('x', 'x_t', bound = 'num_of_x'),
-#            model.StructMember('num_of_y', 'u32'),
-#            model.StructMember('y', 'byte', bound = 'num_of_y')
-#        ])
-#    ]
-#
-#def test_structs_with_limited_array_parsing():
-#    content = """\
-#enum sizes
-#{
-#    size = 10
-#};
-#struct test
-#{
-#    u32 x<5>;
-#    u32 y<size>;
-#};
-#"""
-#
-#    assert parse(content) == [
-#        model.Enum('sizes', [
-#            model.EnumMember('size', '10')
-#        ]),
-#        model.Struct('test', [
-#            model.StructMember('num_of_x', 'u32'),
-#            model.StructMember('x', 'u32', bound = 'num_of_x', size = '5'),
-#            model.StructMember('num_of_y', 'u32'),
-#            model.StructMember('y', 'u32', bound = 'num_of_y', size = 'size')
-#        ])
-#    ]
-#
-#def test_structs_with_greedy_array_parsing():
-#    content = """\
-#struct test
-#{
-#    u32 x<...>;
-#};
-#"""
-#
-#    assert parse(content) == [
-#        model.Struct('test', [
-#            model.StructMember('x', 'u32', unlimited = True)
-#        ])
-#    ]
-#
-#def test_structs_with_optional_field():
-#    content = """\
-#struct test
-#{
-#    u32* x;
-#};
-#"""
-#
-#    assert parse(content) == [
-#        model.Struct('test', [
-#            model.StructMember('x', 'u32', optional = True)
-#        ])
-#    ]
-#
+def test_structs_with_dynamic_array_parsing():
+    content = """\
+typedef u32 x_t;
+struct test
+{
+    x_t x<>;
+    bytes y<>;
+};
+"""
+
+    assert parse(content) == [
+        model.Typedef('x_t', 'u32'),
+        model.Struct('test', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'x_t', bound = 'num_of_x'),
+            model.StructMember('num_of_y', 'u32'),
+            model.StructMember('y', 'byte', bound = 'num_of_y')
+        ])
+    ]
+
+def test_structs_with_limited_array_parsing():
+    content = """\
+enum sizes
+{
+    size = 10
+};
+struct test
+{
+    u32 x<5>;
+    u32 y<size>;
+};
+"""
+
+    assert parse(content) == [
+        model.Enum('sizes', [
+            model.EnumMember('size', '10')
+        ]),
+        model.Struct('test', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u32', bound = 'num_of_x', size = '5'),
+            model.StructMember('num_of_y', 'u32'),
+            model.StructMember('y', 'u32', bound = 'num_of_y', size = 'size')
+        ])
+    ]
+
+def test_structs_with_greedy_array_parsing():
+    content = """\
+struct test
+{
+    u32 x<...>;
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('x', 'u32', unlimited = True)
+        ])
+    ]
+
+def test_structs_with_optional_field():
+    content = """\
+struct test
+{
+    u32* x;
+};
+"""
+
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('x', 'u32', optional = True)
+        ])
+    ]
+
 #def test_unions_parsing():
 #    content = """\
 #const three = 3;
