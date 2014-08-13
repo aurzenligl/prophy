@@ -32,31 +32,31 @@ typedef x y;
         model.Typedef("y", "x")
     ]
 
-#def test_enums_parsing():
-#    content = """\
-#enum enum_t
-#{
-#    enum_t_1 = 1,
-#    enum_t_2 = 2,
-#    enum_t_3 = enum_t_2
-#};
-#enum enum2_t
-#{
-#    enum2_t_1 = enum_t_3
-#};
-#"""
-#
-#    assert parse(content) == [
-#        model.Enum('enum_t', [
-#            model.EnumMember('enum_t_1', '1'),
-#            model.EnumMember('enum_t_2', '2'),
-#            model.EnumMember('enum_t_3', 'enum_t_2')
-#        ]),
-#        model.Enum('enum2_t', [
-#            model.EnumMember('enum2_t_1', 'enum_t_3')
-#        ])
-#    ]
-#
+def test_enums_parsing():
+    content = """\
+enum enum_t
+{
+    enum_t_1 = 1,
+    enum_t_2 = 2,
+    enum_t_3 = enum_t_2
+};
+enum enum2_t
+{
+    enum2_t_1 = enum_t_3
+};
+"""
+
+    assert parse(content) == [
+        model.Enum('enum_t', [
+            model.EnumMember('enum_t_1', '1'),
+            model.EnumMember('enum_t_2', '2'),
+            model.EnumMember('enum_t_3', 'enum_t_2')
+        ]),
+        model.Enum('enum2_t', [
+            model.EnumMember('enum2_t_1', 'enum_t_3')
+        ])
+    ]
+
 #def test_structs_parsing():
 #    content = """\
 #struct test

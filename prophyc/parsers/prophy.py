@@ -145,16 +145,28 @@ class Parser(object):
 
     def p_enum_def(self, t):
         '''enum_def : ENUM ID enum_body SEMI'''
+        name = t[2]
+        self._validate_decl_not_defined(name)
+
+        node = Enum(name, t[3])
+        self.typedecls[name] = node
+        self.nodes.append(node)
 
     def p_enum_body(self, t):
         '''enum_body : LBRACE enum_member_list RBRACE'''
+        t[0] = t[2]
 
-    def p_enum_member_list(self, t):
-        '''enum_member_list : enum_member COMMA enum_member_list
-                            | enum_member'''
+    def p_enum_member_list_1(self, t):
+        '''enum_member_list : enum_member COMMA enum_member_list'''
+        t[0] = [t[1]] + t[3]
+
+    def p_enum_member_list_2(self, t):
+        '''enum_member_list : enum_member'''
+        t[0] = [t[1]]
 
     def p_enum_member(self, t):
         '''enum_member : ID EQUALS value'''
+        t[0] = EnumMember(t[1], t[3])
 
     def p_typedef_def(self, t):
         '''typedef_def : TYPEDEF type_spec ID SEMI'''
@@ -222,6 +234,7 @@ class Parser(object):
     def p_value(self, t):
         '''value : constant
                  | ID'''
+        t[0] = t[1]
 
     def p_empty(self, t):
         '''empty :'''
@@ -262,24 +275,6 @@ def get_struct_type_specifier(tree):
         return 'byte'
     else:
         return get_type_specifier(tree)
-
-def enum_def(state, tail):
-    def enumerator_def(tree):
-        name = str(tree.tail[0].tail[0])
-        value = str(tree.tail[1].tail[0])
-        validate_decl_not_defined(state, name)
-        validate_constdecl_exists(state, value)
-
-        member = EnumMember(name, value)
-        state.constdecls[name] = member
-        return member
-
-    name = str(tail[0].tail[0])
-    validate_decl_not_defined(state, name)
-
-    node = Enum(name, [enumerator_def(tree) for tree in tail[1].tail])
-    state.typedecls[name] = node
-    return node
 
 def struct_def(state, tail):
     def field_def(tail):
