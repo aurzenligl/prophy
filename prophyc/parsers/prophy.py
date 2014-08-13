@@ -209,7 +209,7 @@ class Parser(object):
         t[0] = [StructMember(name, type_)]
 
     def p_struct_member_2(self, t):
-        '''struct_member : BYTES ID LBRACKET positive_value RBRACKET
+        '''struct_member : bytes ID LBRACKET positive_value RBRACKET
                          | type_spec ID LBRACKET positive_value RBRACKET'''
         type_ = t[1]
         name = t[2]
@@ -217,7 +217,7 @@ class Parser(object):
         t[0] = [StructMember(name, type_, size = size)]
 
     def p_struct_member_3(self, t):
-        '''struct_member : BYTES ID LT GT
+        '''struct_member : bytes ID LT GT
                          | type_spec ID LT GT'''
         type_ = t[1]
         name = t[2]
@@ -227,7 +227,7 @@ class Parser(object):
         ]
 
     def p_struct_member_4(self, t):
-        '''struct_member : BYTES ID LT positive_value GT
+        '''struct_member : bytes ID LT positive_value GT
                          | type_spec ID LT positive_value GT'''
         type_ = t[1]
         name = t[2]
@@ -238,7 +238,7 @@ class Parser(object):
         ]
 
     def p_struct_member_5(self, t):
-        '''struct_member : BYTES ID LT DOTS GT
+        '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
         type_ = t[1]
         name = t[2]
@@ -249,6 +249,10 @@ class Parser(object):
         type_ = t[1]
         name = t[3]
         t[0] = [StructMember(name, type_, optional = True)]
+
+    def p_bytes(self, t):
+        '''bytes : BYTES'''
+        t[0] = 'byte'
 
     def p_union_def(self, t):
         '''union_def : UNION ID union_body SEMI'''

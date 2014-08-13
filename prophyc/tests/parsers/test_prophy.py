@@ -72,26 +72,32 @@ struct test
         ])
     ]
 
-#def test_structs_with_fixed_array_parsing():
-#    content = """\
-#const max = 5;
-#struct test
-#{
-#    u32 x[3];
-#    u32 y[max];
-#    bytes z[10];
-#};
-#"""
-#
-#    assert parse(content) == [
-#        model.Constant('max', '5'),
-#        model.Struct('test', [
-#            model.StructMember('x', 'u32', size = '3'),
-#            model.StructMember('y', 'u32', size = 'max'),
-#            model.StructMember('z', 'byte', size = '10')
-#        ])
-#    ]
-#
+def test_structs_with_fixed_array_parsing():
+    content = """\
+const max = 5;
+struct test
+{
+    u32 x[3];
+    u32 y[max];
+    bytes z[10];
+};
+"""
+
+    xx=  model.Struct('test', [
+            model.StructMember('x', 'u32', size = '3'),
+            model.StructMember('y', 'u32', size = 'max'),
+            model.StructMember('z', 'byte', size = '10')
+        ])
+
+    assert parse(content) == [
+        model.Constant('max', '5'),
+        model.Struct('test', [
+            model.StructMember('x', 'u32', size = '3'),
+            model.StructMember('y', 'u32', size = 'max'),
+            model.StructMember('z', 'byte', size = '10')
+        ])
+    ]
+
 #def test_structs_with_dynamic_array_parsing():
 #    content = """\
 #typedef u32 x_t;
