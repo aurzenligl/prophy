@@ -109,7 +109,11 @@ class Parser(object):
 
     def _validate_constdecl_exists(self, value):
         if value not in self.constdecls:
-            raise Exception("Constant '{}' was not declared".format(value))
+            raise ParseError("Constant '{}' was not declared".format(value))
+
+    def _validate_value_positive(self, value):
+        if int(value) <= 0:
+            raise ParseError("Array size '{}' must be positive".format(value))
 
     def p_specification(self, t):
         '''specification : definition_list'''
@@ -299,7 +303,7 @@ class Parser(object):
     def p_positive_constant(self, t):
         '''positive_constant : constant'''
         const = t[1]
-        self._validate_value_positive(size)
+        self._validate_value_positive(const)
         t[0] = const
 
     def p_positive_value(self, t):
@@ -316,19 +320,7 @@ class Parser(object):
         '''empty :'''
 
     def p_error(self, t):
-        print "Syntax error in input!", "'{}'".format(t.value), 'line', t.lineno
-
-def _is_int(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
-def validate_value_positive(state, value):
-    if _is_int(value) and int(value) <= 0:
-        raise Exception("Array size '{}' must be positive".format(value))
+        raise ParseError("Syntax error in input! '{}' line {}").format(t.value, t.lineno)
 
 def validate_field_name_not_defined(names, name):
     if name in names:
@@ -341,12 +333,6 @@ def validate_value_not_defined(values, value):
 def validate_greedy_field_last(last_index, index, name):
     if index != last_index:
         raise Exception("Greedy array field '{}' not last".format(name))
-
-def get_struct_type_specifier(tree):
-    if tree.head == 'bytes':
-        return 'byte'
-    else:
-        return get_type_specifier(tree)
 
 def union_def(state, tail):
     def arm_def(tree, names = set(), values = set()):
