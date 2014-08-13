@@ -8,6 +8,9 @@ from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMem
 
 PROPHY_DIR = os.path.join(tempfile.gettempdir(), 'prophy')
 
+if not os.path.exists(PROPHY_DIR):
+    os.makedirs(PROPHY_DIR)
+
 class ParseError(Exception): pass
 
 class Lexer(object):
