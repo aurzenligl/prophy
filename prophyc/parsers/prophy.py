@@ -100,10 +100,10 @@ class Parser(object):
         self.constdecls = {}
 
     _builtin_types = ["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "r32", "r64", "byte"]
-    _sanitizer_rules = {'float': 'r32', 'double': 'r64'}
+    _sanitizer_rules = {'float': 'r32', 'double': 'r64', 'bytes': 'byte'}
 
-    def _sanitize_type(self, name):
-        return self._sanitizer_rules.get(name, name)
+    def _sanitize_type(self, type_):
+        return self._sanitizer_rules.get(type_, type_)
 
     def _validate_decl_not_defined(self, name):
         if name in self.typedecls or name in self.constdecls:
@@ -181,28 +181,85 @@ class Parser(object):
 
     def p_struct_def(self, t):
         '''struct_def : STRUCT ID struct_body SEMI'''
+        name = t[2]
+        self._validate_decl_not_defined(name)
+
+        node = Struct(name, t[3])
+        self.typedecls[name] = node
+        self.nodes.append(node)
 
     def p_struct_body(self, t):
         '''struct_body : LBRACE struct_member_list RBRACE'''
+        t[0] = t[2]
+        """ TODO """
+        # validate_field_name_not_defined(names, name)
+        # validate_greedy_field_last(last_index, index, name)
 
-    def p_struct_member_list(self, t):
-        '''struct_member_list : struct_member SEMI struct_member_list
-                              | struct_member SEMI'''
+    def p_struct_member_list_1(self, t):
+        '''struct_member_list : struct_member SEMI struct_member_list'''
+        t[0] = t[1] + t[3]
 
-    def p_struct_member(self, t):
-        '''struct_member : BYTES ID optional_array_spec
-                         | type_spec ID optional_array_spec
-                         | type_spec STAR ID'''
+    def p_struct_member_list_2(self, t):
+        '''struct_member_list : struct_member SEMI'''
+        t[0] = t[1]
 
-    def p_optional_array_spec(self, t):
-        '''optional_array_spec : array_spec
-                               | empty'''
+    def p_struct_member_1(self, t):
+        '''struct_member : type_spec ID'''
+        type_ = self._sanitize_type(t[1])
+        name = t[2]
+        self._validate_typedecl_exists(type_)
+        t[0] = [StructMember(name, type_)]
 
-    def p_array_spec(self, t):
-        '''array_spec : LBRACKET value RBRACKET
-                      | LT value GT
-                      | LT DOTS GT
-                      | LT GT'''
+    def p_struct_member_2(self, t):
+        '''struct_member : BYTES ID LBRACKET value RBRACKET
+                         | type_spec ID LBRACKET value RBRACKET'''
+        type_ = self._sanitize_type(t[1])
+        name = t[2]
+        size = t[4]
+        self._validate_typedecl_exists(type_)
+        self._validate_constdecl_exists(size)
+        self._validate_value_positive(size)
+        t[0] = [StructMember(name, type_, size = size)]
+
+    def p_struct_member_3(self, t):
+        '''struct_member : BYTES ID LT GT
+                         | type_spec ID LT GT'''
+        type_ = self._sanitize_type(t[1])
+        name = t[2]
+        self._validate_typedecl_exists(type_)
+        t[0] = [
+            StructMember('num_of_' + name, 'u32'),
+            StructMember(name, type_, bound = 'num_of_' + name)
+        ]
+
+    def p_struct_member_4(self, t):
+        '''struct_member : BYTES ID LT value GT
+                         | type_spec ID LT value GT'''
+        type_ = self._sanitize_type(t[1])
+        name = t[2]
+        size = t[4]
+        self._validate_typedecl_exists(type_)
+        self._validate_constdecl_exists(size)
+        self._validate_value_positive(size)
+        t[0] = [
+            StructMember('num_of_' + name, 'u32'),
+            StructMember(name, type_, bound = 'num_of_' + name, size = size)
+        ]
+
+    def p_struct_member_5(self, t):
+        '''struct_member : BYTES ID LT DOTS GT
+                         | type_spec ID LT DOTS GT'''
+        type_ = self._sanitize_type(t[1])
+        name = t[2]
+        self._validate_typedecl_exists(type_)
+        t[0] = [StructMember(name, type_, unlimited = True)]
+
+    def p_struct_member_6(self, t):
+        '''struct_member : type_spec STAR ID'''
+        type_ = self._sanitize_type(t[1])
+        name = t[3]
+        self._validate_typedecl_exists(type_)
+        t[0] = [StructMember(name, type_, optional = True)]
 
     def p_union_def(self, t):
         '''union_def : UNION ID union_body SEMI'''
@@ -275,52 +332,6 @@ def get_struct_type_specifier(tree):
         return 'byte'
     else:
         return get_type_specifier(tree)
-
-def struct_def(state, tail):
-    def field_def(tail):
-        names = set()
-        last_index = len(tail) - 1
-        for index, tree in enumerate(tail):
-            type_ = get_struct_type_specifier(tree.tail[0])
-            if tree.tail[1].head == 'optional':
-                optional = True
-                name = str(tree.tail[2].tail[0])
-            else:
-                optional = False
-                name = str(tree.tail[1].tail[0])
-
-            validate_field_name_not_defined(names, name)
-            validate_typedecl_exists(state, type_)
-            names.add(name)
-
-            if len(tree.tail) > 2 and not optional:
-                array = tree.tail[2]
-                if array.head == 'fixed_array':
-                    value = str(array.tail[0].tail[0])
-                    validate_constdecl_exists(state, value)
-                    validate_value_positive(state, value)
-                    yield StructMember(name, type_, size = value)
-                elif array.head == 'dynamic_array':
-                    yield StructMember('num_of_' + name, 'u32')
-                    yield StructMember(name, type_, bound = 'num_of_' + name)
-                elif array.head == 'limited_array':
-                    value = str(array.tail[0].tail[0])
-                    validate_constdecl_exists(state, value)
-                    validate_value_positive(state, value)
-                    yield StructMember('num_of_' + name, 'u32')
-                    yield StructMember(name, type_, bound = 'num_of_' + name, size = value)
-                else:
-                    validate_greedy_field_last(last_index, index, name)
-                    yield StructMember(name, type_, unlimited = True)
-            else:
-                yield StructMember(name, type_, optional = optional)
-
-    name = str(tail[0].tail[0])
-    validate_decl_not_defined(state, name)
-
-    node = Struct(name, [x for x in field_def(tail[1].tail)])
-    state.typedecls[name] = node
-    return node
 
 def union_def(state, tail):
     def arm_def(tree, names = set(), values = set()):

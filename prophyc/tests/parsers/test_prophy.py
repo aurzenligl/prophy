@@ -57,21 +57,21 @@ enum enum2_t
         ])
     ]
 
-#def test_structs_parsing():
-#    content = """\
-#struct test
-#{
-#    u32 x;
-#    u32 y;
-#};
-#"""
-#    assert parse(content) == [
-#        model.Struct('test', [
-#            model.StructMember('x', 'u32'),
-#            model.StructMember('y', 'u32')
-#        ])
-#    ]
-#
+def test_structs_parsing():
+    content = """\
+struct test
+{
+    u32 x;
+    u32 y;
+};
+"""
+    assert parse(content) == [
+        model.Struct('test', [
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u32')
+        ])
+    ]
+
 #def test_structs_with_fixed_array_parsing():
 #    content = """\
 #const max = 5;
