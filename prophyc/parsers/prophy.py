@@ -107,6 +107,10 @@ class Parser(object):
         if type_ not in self.typedecls:
             raise ParseError("Type '{}' was not declared".format(type_))
 
+    def _validate_constdecl_exists(self, value):
+        if value not in self.constdecls:
+            raise Exception("Constant '{}' was not declared".format(value))
+
     def p_specification(self, t):
         '''specification : definition_list'''
 
@@ -122,10 +126,9 @@ class Parser(object):
                       | union_def'''
 
     def p_constant_def(self, t):
-        '''constant_def : CONST ID EQUALS constant SEMI'''
+        '''constant_def : CONST unique_id EQUALS constant SEMI'''
         name = t[2]
         value = t[4]
-        self._validate_decl_not_defined(name)
 
         node = Constant(name, value)
         self.constdecls[name] = node
@@ -138,9 +141,8 @@ class Parser(object):
         t[0] = t[1]
 
     def p_enum_def(self, t):
-        '''enum_def : ENUM ID enum_body SEMI'''
+        '''enum_def : ENUM unique_id enum_body SEMI'''
         name = t[2]
-        self._validate_decl_not_defined(name)
 
         node = Enum(name, t[3])
         self.typedecls[name] = node
@@ -160,22 +162,22 @@ class Parser(object):
 
     def p_enum_member(self, t):
         '''enum_member : ID EQUALS value'''
-        t[0] = EnumMember(t[1], t[3])
+        member = EnumMember(t[1], t[3])
+        self.constdecls[t[1]] = member
+        t[0] = member
 
     def p_typedef_def(self, t):
-        '''typedef_def : TYPEDEF type_spec ID SEMI'''
+        '''typedef_def : TYPEDEF type_spec unique_id SEMI'''
         type_ = t[2]
         name = t[3]
-        self._validate_decl_not_defined(name)
 
         node = Typedef(name, type_)
         self.typedecls[name] = node
         self.nodes.append(node)
 
     def p_struct_def(self, t):
-        '''struct_def : STRUCT ID struct_body SEMI'''
+        '''struct_def : STRUCT unique_id struct_body SEMI'''
         name = t[2]
-        self._validate_decl_not_defined(name)
 
         node = Struct(name, t[3])
         self.typedecls[name] = node
@@ -203,13 +205,11 @@ class Parser(object):
         t[0] = [StructMember(name, type_)]
 
     def p_struct_member_2(self, t):
-        '''struct_member : BYTES ID LBRACKET value RBRACKET
-                         | type_spec ID LBRACKET value RBRACKET'''
+        '''struct_member : BYTES ID LBRACKET positive_value RBRACKET
+                         | type_spec ID LBRACKET positive_value RBRACKET'''
         type_ = t[1]
         name = t[2]
         size = t[4]
-        self._validate_constdecl_exists(size)
-        self._validate_value_positive(size)
         t[0] = [StructMember(name, type_, size = size)]
 
     def p_struct_member_3(self, t):
@@ -223,13 +223,11 @@ class Parser(object):
         ]
 
     def p_struct_member_4(self, t):
-        '''struct_member : BYTES ID LT value GT
-                         | type_spec ID LT value GT'''
+        '''struct_member : BYTES ID LT positive_value GT
+                         | type_spec ID LT positive_value GT'''
         type_ = t[1]
         name = t[2]
         size = t[4]
-        self._validate_constdecl_exists(size)
-        self._validate_value_positive(size)
         t[0] = [
             StructMember('num_of_' + name, 'u32'),
             StructMember(name, type_, bound = 'num_of_' + name, size = size)
@@ -286,9 +284,32 @@ class Parser(object):
         self._validate_typedecl_exists(type_)
         t[0] = type_
 
+    def p_unique_id(self, t):
+        '''unique_id : ID'''
+        name = t[1]
+        self._validate_decl_not_defined(name)
+        t[0] = name
+
+    def p_constant_id(self, t):
+        '''constant_id : ID'''
+        const = t[1]
+        self._validate_constdecl_exists(const)
+        t[0] = const
+
+    def p_positive_constant(self, t):
+        '''positive_constant : constant'''
+        const = t[1]
+        self._validate_value_positive(size)
+        t[0] = const
+
+    def p_positive_value(self, t):
+        '''positive_value : positive_constant
+                          | constant_id'''
+        t[0] = t[1]
+
     def p_value(self, t):
         '''value : constant
-                 | ID'''
+                 | constant_id'''
         t[0] = t[1]
 
     def p_empty(self, t):
@@ -304,10 +325,6 @@ def _is_int(s):
     except ValueError:
         return False
 
-
-def validate_constdecl_exists(state, value):
-    if not _is_int(value) and value not in state.constdecls:
-        raise Exception("Constant '{}' was not declared".format(value))
 
 def validate_value_positive(state, value):
     if _is_int(value) and int(value) <= 0:
