@@ -78,8 +78,8 @@ class Lexer(object):
         t.lexer.lineno += 1
 
     def t_error(self, t):
-        print "Illegal character %s at %d type %s" % (repr(t.value[0]), t.lexer.lineno, t.type)
         t.lexer.skip(1)
+        raise ParseError("Illegal character {} at {} type {}".format(repr(t.value[0]), t.lexer.lineno, t.type))
 
 class Parser(object):
 
