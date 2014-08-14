@@ -69,7 +69,7 @@ class Lexer(object):
     t_COMMA = r','
     t_DOTS = r'\.\.\.'
 
-    t_ignore  = ' \t'
+    t_ignore  = ' \t\r'
 
     def t_newline(self, t):
         r'\n+'
@@ -87,7 +87,7 @@ class Lexer(object):
         t.lexer.skip(1)
         line = self.lexer.lineno
         col = get_column(self.lexer.lexdata, t.lexpos)
-        raise ParseError(":{}:{} error: illegal token '{}'".format(line, col, t.value))
+        raise ParseError(":{}:{} error: illegal character '{}'".format(line, col, t.value[0]))
 
 class Parser(object):
 
@@ -106,10 +106,6 @@ class Parser(object):
         self.nodes = []
         self.typedecls = {}
         self.constdecls = {}
-
-    def _validate_decl_not_defined(self, name):
-        if name in self.typedecls or name in self.constdecls:
-            raise ParseError("Name '{}' redefined".format(name))
 
     def _validate_typedecl_exists(self, type_):
         if type_ not in self.typedecls:
@@ -289,7 +285,9 @@ class Parser(object):
     def p_unique_id(self, t):
         '''unique_id : ID'''
         name = t[1]
-        self._validate_decl_not_defined(name)
+        if name in self.typedecls or name in self.constdecls:
+            raise ParseError(":{}:{} error: name '{}' redefined".format(
+                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), name))
         t[0] = name
 
     def p_constant_id(self, t):

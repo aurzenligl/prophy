@@ -215,7 +215,7 @@ struct z { float a; double b; };
 def test_lexer_error():
     with pytest.raises(ParseError) as e:
         parse('const ?')
-    assert ":1:7 error: illegal token '?'" == e.value.message
+    assert ":1:7 error: illegal character '?'" == e.value.message
 
 def test_syntax_error():
     with pytest.raises(ParseError) as e:
@@ -227,31 +227,31 @@ def test_unexpected_end_of_input():
         parse('const CONST = 0')
     assert ":1:15 error: unexpected end of input" == e.value.message
 
-#def test_no_error_with_newlines():
-#    assert len(parse('\nconst CONST1 = 0;\n\r\nconst CONST2 = 0;\n')) == 2
-#
-#def test_no_error_with_comments():
-#    assert len(parse("""\
-#const CONST1 = 0; // ajisja /* */
-#const CONST2 = 0; //// ajisja
-#// odkosd
-#// const CONST3 = 0;
-#/*
-#const CONST4 = 0; /// ajisja
-#*/
-#const CONST5 = 0;
-#""")) == 3
-#
-#def test_error_constant_text_value():
-#    with pytest.raises(ParseError) as e:
-#        parse('const CONST_X = wrong;')
-#    assert "Syntax error in input at 'wrong'" in e.value.message
-#
-#def test_error_constant_redefined():
-#    with pytest.raises(Exception) as e:
-#        parse('const CONST = 1; const CONST_DIFFERENT = 1; const CONST = 1;')
-#    assert "Name 'CONST' redefined" in e.value.message
-#
+def test_no_error_with_newlines():
+    assert len(parse('\nconst CONST1 = 0;\n\r\nconst CONST2 = 0;\n')) == 2
+
+def test_no_error_with_comments():
+    assert len(parse("""\
+const CONST1 = 0; // ajisja /* */
+const CONST2 = 0; //// ajisja
+// odkosd
+// const CONST3 = 0;
+/*
+const CONST4 = 0; /// ajisja
+*/
+const CONST5 = 0;
+""")) == 3
+
+def test_error_constant_text_value():
+    with pytest.raises(ParseError) as e:
+        parse('const CONST_X = wrong;')
+    assert ":1:17 error: syntax error at 'wrong'" == e.value.message
+
+def test_error_constant_redefined():
+    with pytest.raises(ParseError) as e:
+        parse('const CONST = 1; const CONST_DIFFERENT = 1; const CONST = 1;')
+    assert ":1:51 error: name 'CONST' redefined" in e.value.message
+
 #def test_error_constant_builtin_as_identifier():
 #    with pytest.raises(ParseError) as e:
 #        parse('const u32 = 0;')
