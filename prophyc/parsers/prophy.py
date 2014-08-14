@@ -99,6 +99,7 @@ class Parser(object):
 
     def parse(self, data):
         self._clear_data()
+        self.lexer.lineno = 1
         self.yacc.parse(data)
         return self.nodes
 
@@ -335,9 +336,10 @@ def validate_greedy_field_last(last_index, index, name):
     if index != last_index:
         raise Exception("Greedy array field '{}' not last".format(name))
 
+lexer = Lexer()
+parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
+
 def build_model(string_):
-    lexer = Lexer()
-    parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
     return parser.parse(string_)
 
 class ProphyParser(object):
