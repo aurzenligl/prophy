@@ -107,10 +107,6 @@ class Parser(object):
         self.typedecls = {}
         self.constdecls = {}
 
-    def _validate_typedecl_exists(self, type_):
-        if type_ not in self.typedecls:
-            raise ParseError("Type '{}' was not declared".format(type_))
-
     def _validate_constdecl_exists(self, value):
         if value not in self.constdecls:
             raise ParseError("Constant '{}' was not declared".format(value))
@@ -279,7 +275,9 @@ class Parser(object):
     def p_type_spec_4(self, t):
         '''type_spec : ID'''
         type_ = t[1]
-        self._validate_typedecl_exists(type_)
+        if type_ not in self.typedecls:
+            raise ParseError(":{}:{} error: type '{}' was not declared".format(
+                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), type_))
         t[0] = type_
 
     def p_unique_id(self, t):

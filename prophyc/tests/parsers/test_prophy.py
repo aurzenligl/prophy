@@ -252,24 +252,24 @@ def test_error_constant_redefined():
         parse('const CONST = 1; const CONST_DIFFERENT = 1; const CONST = 1;')
     assert ":1:51 error: name 'CONST' redefined" in e.value.message
 
-#def test_error_constant_builtin_as_identifier():
-#    with pytest.raises(ParseError) as e:
-#        parse('const u32 = 0;')
-#    assert "Syntax error in input at 'u32 '" in e.value.message
-#    with pytest.raises(ParseError) as e:
-#        parse('const bytes = 0;')
-#    assert "Syntax error in input at 'bytes '" in e.value.message
-#
-#def test_error_typedef_redefined():
-#    with pytest.raises(Exception) as e:
-#        parse('typedef u32 x; typedef u32 x;')
-#    assert "Name 'x' redefined" in e.value.message
-#
-#def test_error_typedef_type_not_declared():
-#    with pytest.raises(Exception) as e:
-#        parse('typedef x y;')
-#    assert "Type 'x' was not declared" in e.value.message
-#
+def test_error_constant_builtin_as_identifier():
+    with pytest.raises(ParseError) as e:
+        parse('const u32 = 0;')
+    assert ":1:7 error: syntax error at 'u32'" in e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('const bytes = 0;')
+    assert ":1:7 error: syntax error at 'bytes'" in e.value.message
+
+def test_error_typedef_redefined():
+    with pytest.raises(ParseError) as e:
+        parse('typedef u32 x; typedef u32 x;')
+    assert ":1:28 error: name 'x' redefined" in e.value.message
+
+def test_error_typedef_type_not_declared():
+    with pytest.raises(ParseError) as e:
+        parse('typedef x y;')
+    assert ":1:9 error: type 'x' was not declared" in e.value.message
+
 #def test_error_typedef_builtin_as_identifier():
 #    with pytest.raises(ParseError) as e:
 #        parse('typedef bytes x;')
