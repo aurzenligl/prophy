@@ -193,27 +193,27 @@ union test
         ])
     ]
 
-#def test_floats_parsing():
-#    content = """\
-#typedef float x;
-#typedef double y;
-#struct z { float a; double b; };
-#"""
-#
-#    assert parse(content) == [
-#        model.Typedef('x', 'r32'),
-#        model.Typedef('y', 'r64'),
-#        model.Struct('z', [
-#            model.StructMember('a', 'r32'),
-#            model.StructMember('b', 'r64')
-#        ])
-#    ]
-#
-#def test_error_lack_of_semicolon():
-#    with pytest.raises(ParseError) as e:
-#        parse('const CONST = 0')
-#    assert "Could not create parse tree!" in e.value.message
-#
+def test_floats_parsing():
+    content = """\
+typedef float x;
+typedef double y;
+struct z { float a; double b; };
+"""
+
+    assert parse(content) == [
+        model.Typedef('x', 'r32'),
+        model.Typedef('y', 'r64'),
+        model.Struct('z', [
+            model.StructMember('a', 'r32'),
+            model.StructMember('b', 'r64')
+        ])
+    ]
+
+def test_error_lack_of_semicolon():
+    with pytest.raises(ParseError) as e:
+        parse('const CONST = 0')
+    assert ":1:15 error: unexpected end of input" == e.value.message
+
 #def test_error_newline_in_type_definition():
 #    with pytest.raises(ParseError) as e:
 #        parse('const \nCONST = 0;')

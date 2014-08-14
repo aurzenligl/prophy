@@ -13,6 +13,12 @@ if not os.path.exists(PROPHY_DIR):
 
 class ParseError(Exception): pass
 
+def get_column(input, pos):
+    last_cr = input.rfind('\n', 0, pos)
+    if last_cr < 0:
+        last_cr = 0
+    return (pos - last_cr) + 1
+
 class Lexer(object):
 
     keywords = (
@@ -310,7 +316,14 @@ class Parser(object):
         '''empty :'''
 
     def p_error(self, t):
-        raise ParseError("Syntax error in input! '{}' line {}".format(t.value, t.lineno))
+        if t:
+            line = self.lexer.lineno
+            col = get_column(self.lexer.lexdata, t.lexpos)
+            raise ParseError(":{}:{} error: syntax error at '{}'".format(line, col, t.value))
+        else:
+            line = self.lexer.lineno
+            col = get_column(self.lexer.lexdata, len(self.lexer.lexdata) - 1)
+            raise ParseError(":{}:{} error: unexpected end of input".format(line, col))
 
 def validate_field_name_not_defined(names, name):
     if name in names:
