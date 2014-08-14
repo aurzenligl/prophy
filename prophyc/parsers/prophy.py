@@ -173,18 +173,15 @@ class Parser(object):
 
     def p_struct_def(self, t):
         '''struct_def : STRUCT unique_id struct_body SEMI'''
-        name = t[2]
-
-        node = Struct(name, t[3])
-        self.typedecls[name] = node
+        node = Struct(t[2], t[3])
+        self.typedecls[t[2]] = node
         self.nodes.append(node)
+        # validate_field_name_not_defined(names, name)
+        # validate_greedy_field_last(last_index, index, name)
 
     def p_struct_body(self, t):
         '''struct_body : LBRACE struct_member_list RBRACE'''
         t[0] = t[2]
-        """ TODO """
-        # validate_field_name_not_defined(names, name)
-        # validate_greedy_field_last(last_index, index, name)
 
     def p_struct_member_list_1(self, t):
         '''struct_member_list : struct_member SEMI struct_member_list'''
@@ -233,17 +230,28 @@ class Parser(object):
         t[0] = 'byte'
 
     def p_union_def(self, t):
-        '''union_def : UNION ID union_body SEMI'''
+        '''union_def : UNION unique_id union_body SEMI'''
+        node = Union(t[2], t[3])
+        self.typedecls[t[2]] = node
+        self.nodes.append(node)
+        #validate_field_name_not_defined(names, name)
+        #validate_value_not_defined(values, value)
 
     def p_union_body(self, t):
         '''union_body : LBRACE union_member_list RBRACE'''
+        t[0] = t[2]
 
-    def p_union_member_list(self, t):
-        '''union_member_list : union_member SEMI union_member_list
-                             | union_member SEMI'''
+    def p_union_member_list_1(self, t):
+        '''union_member_list : union_member SEMI union_member_list'''
+        t[0] = [t[1]] + t[3]
+
+    def p_union_member_list_2(self, t):
+        '''union_member_list : union_member SEMI'''
+        t[0] = [t[1]]
 
     def p_union_member(self, t):
         '''union_member : value COLON type_spec ID'''
+        t[0] = UnionMember(t[4], t[3], t[1])
 
     def p_type_spec_1(self, t):
         '''type_spec : U8
@@ -302,7 +310,7 @@ class Parser(object):
         '''empty :'''
 
     def p_error(self, t):
-        raise ParseError("Syntax error in input! '{}' line {}").format(t.value, t.lineno)
+        raise ParseError("Syntax error in input! '{}' line {}".format(t.value, t.lineno))
 
 def validate_field_name_not_defined(names, name):
     if name in names:
@@ -315,26 +323,6 @@ def validate_value_not_defined(values, value):
 def validate_greedy_field_last(last_index, index, name):
     if index != last_index:
         raise Exception("Greedy array field '{}' not last".format(name))
-
-def union_def(state, tail):
-    def arm_def(tree, names = set(), values = set()):
-        value = str(tree.tail[0].tail[0])
-        type_ = get_type_specifier(tree.tail[1])
-        name = str(tree.tail[2].tail[0])
-        validate_typedecl_exists(state, type_)
-        validate_constdecl_exists(state, value)
-        validate_field_name_not_defined(names, name)
-        validate_value_not_defined(values, value)
-        values.add(value)
-        names.add(name)
-        return UnionMember(name, type_, value)
-
-    name = str(tail[0].tail[0])
-    validate_decl_not_defined(state, name)
-
-    node = Union(name, [arm_def(x) for x in tail[1].tail])
-    state.typedecls[name] = node
-    return node
 
 def build_model(string_):
     lexer = Lexer()

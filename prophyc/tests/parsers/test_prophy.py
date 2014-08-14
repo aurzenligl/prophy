@@ -171,28 +171,28 @@ struct test
         ])
     ]
 
-#def test_unions_parsing():
-#    content = """\
-#const three = 3;
-#typedef u32 z_t;
-#union test
-#{
-#    1: u32 x;
-#    2: u32 y;
-#    three: z_t z;
-#};
-#"""
-#
-#    assert parse(content) == [
-#        model.Constant('three', '3'),
-#        model.Typedef('z_t', 'u32'),
-#        model.Union('test', [
-#            model.UnionMember('x', 'u32', '1'),
-#            model.UnionMember('y', 'u32', '2'),
-#            model.UnionMember('z', 'z_t', 'three')
-#        ])
-#    ]
-#
+def test_unions_parsing():
+    content = """\
+const three = 3;
+typedef u32 z_t;
+union test
+{
+    1: u32 x;
+    2: u32 y;
+    three: z_t z;
+};
+"""
+
+    assert parse(content) == [
+        model.Constant('three', '3'),
+        model.Typedef('z_t', 'u32'),
+        model.Union('test', [
+            model.UnionMember('x', 'u32', '1'),
+            model.UnionMember('y', 'u32', '2'),
+            model.UnionMember('z', 'z_t', 'three')
+        ])
+    ]
+
 #def test_floats_parsing():
 #    content = """\
 #typedef float x;
