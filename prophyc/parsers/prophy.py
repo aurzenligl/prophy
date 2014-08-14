@@ -85,7 +85,9 @@ class Lexer(object):
 
     def t_error(self, t):
         t.lexer.skip(1)
-        raise ParseError("Illegal character {} at {} type {}".format(repr(t.value[0]), t.lexer.lineno, t.type))
+        line = self.lexer.lineno
+        col = get_column(self.lexer.lexdata, t.lexpos)
+        raise ParseError(":{}:{} error: illegal token '{}'".format(line, col, t.value))
 
 class Parser(object):
 

@@ -209,16 +209,21 @@ struct z { float a; double b; };
         ])
     ]
 
-def test_error_lack_of_semicolon():
+def test_lexer_error():
+    with pytest.raises(ParseError) as e:
+        parse('const ?')
+    assert ":1:7 error: illegal token '?'" == e.value.message
+
+def test_syntax_error():
+    with pytest.raises(ParseError) as e:
+        parse('const CONST badtoken')
+    assert ":1:13 error: syntax error at 'badtoken'" == e.value.message
+
+def test_unexpected_end_of_input():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 0')
     assert ":1:15 error: unexpected end of input" == e.value.message
 
-#def test_error_newline_in_type_definition():
-#    with pytest.raises(ParseError) as e:
-#        parse('const \nCONST = 0;')
-#    assert "Syntax error in input at '\n'" in e.value.message
-#
 #def test_no_error_with_newlines():
 #    assert len(parse('\nconst CONST1 = 0;\n\r\nconst CONST2 = 0;\n')) == 2
 #
