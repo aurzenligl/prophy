@@ -21,6 +21,9 @@ const CONST_D = -1;
         model.Constant("CONST_D", "-1")
     ]
 
+def test_constant_with_newline():
+    assert parse("const \nCONST = 0;") == [model.Constant("CONST", "0")]
+
 def test_typedefs_parsing():
     content = """\
 typedef u32 x;
