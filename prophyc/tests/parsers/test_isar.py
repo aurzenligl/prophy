@@ -301,7 +301,11 @@ def test_union_parsing():
     nodes = parse(xml)
 
     assert ["Union"] == [node.name for node in nodes]
-    assert [("a", "A", "0"), ("b", "B", "1"), ("c", "C", "5")] == nodes[0].members
+    assert nodes[0].members == [
+        model.UnionMember("a", "A", "0"),
+        model.UnionMember("b", "B", "1"),
+        model.UnionMember("c", "C", "5")
+    ]
 
 def test_empty_elemens_parsing():
     xml = """\
