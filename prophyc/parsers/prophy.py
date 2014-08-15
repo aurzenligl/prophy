@@ -11,7 +11,10 @@ PROPHY_DIR = os.path.join(tempfile.gettempdir(), 'prophy')
 if not os.path.exists(PROPHY_DIR):
     os.makedirs(PROPHY_DIR)
 
-class ParseError(Exception): pass
+class ParseError(Exception):
+    def __init__(self, errors):
+        Exception.__init__(self, "parsing error")
+        self.errors = errors
 
 def get_column(input, pos):
     return pos - input.rfind('\n', 0, pos)
@@ -34,6 +37,9 @@ class Lexer(object):
 
     def __init__(self, **kwargs):
         self.lexer = lex.lex(module = self, **kwargs)
+
+    def _lexer_error(self, message, line, pos):
+        None
 
     def t_ID(self, t):
         r'[A-Za-z][A-Za-z0-9_]*'
@@ -82,31 +88,30 @@ class Lexer(object):
 
     def t_error(self, t):
         t.lexer.skip(1)
-        line = t.lexer.lineno
-        col = get_column(t.lexer.lexdata, t.lexpos)
-        raise ParseError(":{}:{} error: illegal character '{}'".format(line, col, t.value[0]))
+        self._lexer_error("illegal character '{}'".format(t.value[0]), t.lexer.lineno, t.lexpos)
 
 class Parser(object):
 
     def __init__(self, tokens, lexer, **kwargs):
-        self._clear_data()
+        self._init_parse_data()
         self.tokens = tokens
         self.lexer = lexer
         self.yacc = yacc.yacc(module = self, **kwargs)
 
     def parse(self, data):
-        self._clear_data()
+        self._init_parse_data()
         self.lexer.lineno = 1
         self.yacc.parse(data)
         return self.nodes
 
-    def _clear_data(self):
+    def _init_parse_data(self):
         self.nodes = []
         self.typedecls = {}
         self.constdecls = {}
+        self.errors = []
 
     def _parser_error(self, message, line, pos):
-        raise ParseError(":{}:{} error: {}".format(
+        self.errors.append(":{}:{} error: {}".format(
             line,
             get_column(self.lexer.lexdata, pos),
             message
@@ -367,9 +372,13 @@ class Parser(object):
 
 lexer = Lexer()
 parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
+lexer._lexer_error = parser._parser_error
 
 def build_model(string_):
-    return parser.parse(string_)
+    parser.parse(string_)
+    if parser.errors:
+        raise ParseError(parser.errors)
+    return parser.nodes
 
 class ProphyParser(object):
 

@@ -215,17 +215,17 @@ struct z { float a; double b; };
 def test_lexer_error():
     with pytest.raises(ParseError) as e:
         parse('const ?')
-    assert ":1:7 error: illegal character '?'" == e.value.message
+    assert ":1:7 error: illegal character '?'" == e.value.errors[0]
 
 def test_syntax_error():
     with pytest.raises(ParseError) as e:
         parse('const CONST badtoken')
-    assert ":1:13 error: syntax error at 'badtoken'" == e.value.message
+    assert ":1:13 error: syntax error at 'badtoken'" == e.value.errors[0]
 
 def test_unexpected_end_of_input():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 0')
-    assert ":1:15 error: unexpected end of input" == e.value.message
+    assert ":1:15 error: unexpected end of input" == e.value.errors[0]
 
 def test_no_error_with_newlines():
     assert len(parse('\nconst CONST1 = 0;\n\r\nconst CONST2 = 0;\n')) == 2
@@ -245,65 +245,65 @@ const CONST5 = 0;
 def test_error_constant_text_value():
     with pytest.raises(ParseError) as e:
         parse('const CONST_X = wrong;')
-    assert ":1:17 error: syntax error at 'wrong'" == e.value.message
+    assert ":1:17 error: syntax error at 'wrong'" == e.value.errors[0]
 
 def test_error_constant_redefined():
     with pytest.raises(ParseError) as e:
         parse('const CONST = 1; const CONST_DIFFERENT = 1; const CONST = 1;')
-    assert ":1:51 error: name 'CONST' redefined" == e.value.message
+    assert ":1:51 error: name 'CONST' redefined" == e.value.errors[0]
 
 def test_error_constant_builtin_as_identifier():
     with pytest.raises(ParseError) as e:
         parse('const u32 = 0;')
-    assert ":1:7 error: syntax error at 'u32'" == e.value.message
+    assert ":1:7 error: syntax error at 'u32'" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('const bytes = 0;')
-    assert ":1:7 error: syntax error at 'bytes'" == e.value.message
+    assert ":1:7 error: syntax error at 'bytes'" == e.value.errors[0]
 
 def test_error_typedef_redefined():
     with pytest.raises(ParseError) as e:
         parse('typedef u32 x; typedef u32 x;')
-    assert ":1:28 error: name 'x' redefined" == e.value.message
+    assert ":1:28 error: name 'x' redefined" == e.value.errors[0]
 
 def test_error_typedef_type_not_declared():
     with pytest.raises(ParseError) as e:
         parse('typedef x y;')
-    assert ":1:9 error: type 'x' was not declared" == e.value.message
+    assert ":1:9 error: type 'x' was not declared" == e.value.errors[0]
 
 def test_error_typedef_builtin_as_identifier():
     with pytest.raises(ParseError) as e:
         parse('typedef bytes x;')
-    assert ":1:9 error: syntax error at 'bytes'" == e.value.message
+    assert ":1:9 error: syntax error at 'bytes'" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('typedef u32 bytes;')
-    assert ":1:13 error: syntax error at 'bytes'" == e.value.message
+    assert ":1:13 error: syntax error at 'bytes'" == e.value.errors[0]
 
 def test_error_enum_builtin_as_identifier():
     with pytest.raises(ParseError) as e:
         parse('enum u32 { enum_t_1 = 1 };')
-    assert ":1:6 error: syntax error at 'u32'" == e.value.message
+    assert ":1:6 error: syntax error at 'u32'" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('enum enum_t { u32 = 1 };')
-    assert ":1:15 error: syntax error at 'u32'" == e.value.message
+    assert ":1:15 error: syntax error at 'u32'" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('enum enum_t { enum_t_1 = u32 };')
-    assert ":1:26 error: syntax error at 'u32'" == e.value.message
+    assert ":1:26 error: syntax error at 'u32'" == e.value.errors[0]
 
 def test_error_enum_redefined():
     with pytest.raises(ParseError) as e:
         parse('const enum_t = 10; enum enum_t { enum_t_1 = 1 };')
-    assert ":1:25 error: name 'enum_t' redefined" == e.value.message
+    assert ":1:25 error: name 'enum_t' redefined" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('const enum_t_1 = 10; enum enum_t { enum_t_1 = 1 };')
-    assert ":1:36 error: name 'enum_t_1' redefined" == e.value.message
+    assert ":1:36 error: name 'enum_t_1' redefined" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('enum enum_t { enum_t_1 = 1 }; const enum_t_1 = 10; ')
-    assert ":1:37 error: name 'enum_t_1' redefined" == e.value.message
+    assert ":1:37 error: name 'enum_t_1' redefined" == e.value.errors[0]
 
 def test_error_enum_constant_not_declared():
     with pytest.raises(ParseError) as e:
         parse('enum enum_t { enum_t_1 = unknown };')
-    assert ":1:26 error: constant 'unknown' was not declared" == e.value.message
+    assert ":1:26 error: constant 'unknown' was not declared" == e.value.errors[0]
 
 def test_no_error_enum_comment():
     assert len(parse('enum enum_t { enum_t_1 = 1, /* xxx */ enum_t_2 = 2 };')) == 1
@@ -311,15 +311,15 @@ def test_no_error_enum_comment():
 def test_error_struct_redefined():
     with pytest.raises(ParseError) as e:
         parse('const test = 10; struct test { u32 x; };')
-    assert ":1:25 error: name 'test' redefined" == e.value.message
+    assert ":1:25 error: name 'test' redefined" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x; }; struct test { u32 x; };')
-    assert ":1:32 error: name 'test' redefined" == e.value.message
+    assert ":1:32 error: name 'test' redefined" == e.value.errors[0]
 
 def test_error_struct_empty():
     with pytest.raises(ParseError) as e:
         parse('struct test {};')
-    assert ":1:14 error: syntax error at '}'" == e.value.message
+    assert ":1:14 error: syntax error at '}'" == e.value.errors[0]
 
 def test_error_struct_repeated_field_names():
     with pytest.raises(ParseError) as e:
@@ -329,7 +329,7 @@ struct test
     u32 x;
     u32 x;
 };""")
-    assert ":4:9 error: field 'x' redefined" == e.value.message
+    assert ":4:9 error: field 'x' redefined" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse("""\
 struct test
@@ -337,7 +337,7 @@ struct test
     u32 num_of_x;
     u32 x<>;
 };""")
-    assert ":4:9 error: field 'num_of_x' redefined" == e.value.message
+    assert ":4:9 error: field 'num_of_x' redefined" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse("""\
 struct test
@@ -345,7 +345,7 @@ struct test
     u32 x<>;
     u32 num_of_x;
 };""")
-    assert ":4:9 error: field 'num_of_x' redefined" == e.value.message
+    assert ":4:9 error: field 'num_of_x' redefined" == e.value.errors[0]
 
 def test_no_error_struct_comments_between_newlines():
     assert len(parse('struct test { u32 x; /* \n u32 y; \n */ \n u32 z; };')) == 1
@@ -354,58 +354,71 @@ def test_no_error_struct_comments_between_newlines():
 def test_error_struct_field_type_not_declared():
     with pytest.raises(ParseError) as e:
         parse('struct test { unknown x; };')
-    assert ":1:15 error: type 'unknown' was not declared" == e.value.message
+    assert ":1:15 error: type 'unknown' was not declared" == e.value.errors[0]
 
 def test_error_struct_array_size_not_declared():
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x[unknown]; };')
-    assert ":1:21 error: constant 'unknown' was not declared" == e.value.message
+    assert ":1:21 error: constant 'unknown' was not declared" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x<unknown>; };')
-    assert ":1:21 error: constant 'unknown' was not declared" == e.value.message
+    assert ":1:21 error: constant 'unknown' was not declared" == e.value.errors[0]
 
 def test_error_struct_array_size_cannot_be_negative():
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x[-1]; };')
-    assert ":1:21 error: array size '-1' non-positive" == e.value.message
+    assert ":1:21 error: array size '-1' non-positive" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x<0>; };')
-    assert ":1:21 error: array size '0' non-positive" == e.value.message
+    assert ":1:21 error: array size '0' non-positive" == e.value.errors[0]
 
 def test_error_struct_greedy_field_is_not_the_last_one():
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x<...>; u32 y; };')
-    assert ":1:19 error: greedy array field 'x' not last" == e.value.message
+    assert ":1:19 error: greedy array field 'x' not last" == e.value.errors[0]
 
 def test_error_union_redefined():
     with pytest.raises(ParseError) as e:
         parse('const test = 10; union test { 1: u32 x; };')
-    assert ":1:24 error: name 'test' redefined" == e.value.message
+    assert ":1:24 error: name 'test' redefined" == e.value.errors[0]
     with pytest.raises(ParseError) as e:
         parse('union test { 1: u32 x; }; union test { 1: u32 x; };')
-    assert ":1:33 error: name 'test' redefined" == e.value.message
+    assert ":1:33 error: name 'test' redefined" == e.value.errors[0]
 
 def test_error_union_empty():
     with pytest.raises(ParseError) as e:
         parse('union test {};')
-    assert ":1:13 error: syntax error at '}'" == e.value.message
+    assert ":1:13 error: syntax error at '}'" == e.value.errors[0]
 
 def test_error_union_repeated_arm_name():
     with pytest.raises(ParseError) as e:
         parse('union test { 1: u32 x; 2: u32 x; };')
-    assert ":1:31 error: field 'x' redefined" == e.value.message
+    assert ":1:31 error: field 'x' redefined" == e.value.errors[0]
 
 def test_error_union_repeated_arm_discriminator():
     with pytest.raises(ParseError) as e:
         parse('union test { 1: u32 x; 1: u32 y; };')
-    assert ":1:31 error: duplicate discriminator value '1'" == e.value.message
+    assert ":1:31 error: duplicate discriminator value '1'" == e.value.errors[0]
 
 def test_error_union_field_type_not_declared():
     with pytest.raises(ParseError) as e:
         parse('union test { 1: dontknow x };')
-    assert ":1:17 error: type 'dontknow' was not declared" == e.value.message
+    assert ":1:17 error: type 'dontknow' was not declared" == e.value.errors[0]
 
 def test_error_union_discriminator_not_declared():
-    with pytest.raises(Exception) as e:
+    with pytest.raises(ParseError) as e:
         parse('union test { unknown: u32 x; };')
-    assert ":1:14 error: constant 'unknown' was not declared" in e.value.message
+    assert ":1:14 error: constant 'unknown' was not declared" == e.value.errors[0]
+
+def test_multiple_errors():
+    with pytest.raises(ParseError) as e:
+        parse("""\
+struct X { u32 x; u32 x; };
+union Y { unknown: u32 x; };
+const Z 2;
+""")
+    assert e.value.errors == [
+        ":1:23 error: field 'x' redefined",
+        ":2:11 error: constant 'unknown' was not declared",
+        ":3:9 error: syntax error at '2'"
+    ]
