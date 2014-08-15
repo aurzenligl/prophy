@@ -108,10 +108,6 @@ class Parser(object):
         self.typedecls = {}
         self.constdecls = {}
 
-    def _validate_constdecl_exists(self, value):
-        if value not in self.constdecls:
-            raise ParseError("Constant '{}' was not declared".format(value))
-
     def _validate_value_positive(self, value):
         if int(value) <= 0:
             raise ParseError("Array size '{}' must be positive".format(value))
@@ -161,7 +157,7 @@ class Parser(object):
         t[0] = [t[1]]
 
     def p_enum_member(self, t):
-        '''enum_member : ID EQUALS value'''
+        '''enum_member : unique_id EQUALS value'''
         member = EnumMember(t[1], t[3])
         self.constdecls[t[1]] = member
         t[0] = member
@@ -292,7 +288,9 @@ class Parser(object):
     def p_constant_id(self, t):
         '''constant_id : ID'''
         const = t[1]
-        self._validate_constdecl_exists(const)
+        if const not in self.constdecls:
+            raise ParseError(":{}:{} error: constant '{}' was not declared".format(
+                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), const))
         t[0] = const
 
     def p_positive_constant(self, t):
