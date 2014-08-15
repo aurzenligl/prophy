@@ -105,6 +105,14 @@ class Parser(object):
         self.typedecls = {}
         self.constdecls = {}
 
+    def _parser_check(self, condition, message, line, pos):
+        if not condition:
+            raise ParseError(":{}:{} error: {}".format(
+                line,
+                get_column(self.lexer.lexdata, pos),
+                message
+            ))
+
     def p_specification(self, t):
         '''specification : definition_list'''
 
@@ -160,14 +168,18 @@ class Parser(object):
 
         fieldnames = set()
         for member, line, pos in t[3]:
-            if member.name in fieldnames:
-                raise ParseError(":{}:{} error: field '{}' redefined".format(
-                    line, get_column(t.lexer.lexdata, pos), member.name))
+            self._parser_check(
+                member.name not in fieldnames,
+                "field '{}' redefined".format(member.name),
+                line, pos
+            )
             fieldnames.add(member.name)
         for member, line, pos in t[3][:-1]:
-            if member.greedy:
-                raise ParseError(":{}:{} error: greedy array field '{}' not last".format(
-                    line, get_column(t.lexer.lexdata, pos), member.name))
+            self._parser_check(
+                not member.greedy,
+                "greedy array field '{}' not last".format(member.name),
+                line, pos
+            )
 
         node = Struct(t[2], [x for x, _, _ in t[3]])
         self.typedecls[t[2]] = node
@@ -228,15 +240,19 @@ class Parser(object):
 
         fieldnames = set()
         for member, line, pos in t[3]:
-            if member.name in fieldnames:
-                raise ParseError(":{}:{} error: field '{}' redefined".format(
-                    line, get_column(t.lexer.lexdata, pos), member.name))
+            self._parser_check(
+                member.name not in fieldnames,
+                "field '{}' redefined".format(member.name),
+                line, pos
+            )
             fieldnames.add(member.name)
         discriminatorvalues = set()
         for member, line, pos in t[3]:
-            if member.discriminator in discriminatorvalues:
-                raise ParseError(":{}:{} error: duplicate discriminator value '{}'".format(
-                    line, get_column(t.lexer.lexdata, pos), member.discriminator))
+            self._parser_check(
+                member.discriminator not in discriminatorvalues,
+                "duplicate discriminator value '{}'".format(member.discriminator),
+                line, pos
+            )
             discriminatorvalues.add(member.discriminator)
 
         node = Union(t[2], [x for x, _, _ in t[3]])
@@ -280,37 +296,41 @@ class Parser(object):
 
     def p_type_spec_4(self, t):
         '''type_spec : ID'''
-        type_ = t[1]
-        if type_ not in self.typedecls:
-            raise ParseError(":{}:{} error: type '{}' was not declared".format(
-                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), type_))
-        t[0] = type_
+        self._parser_check(
+            t[1] in self.typedecls,
+            "type '{}' was not declared".format(t[1]),
+            t.lineno(1), t.lexpos(1)
+        )
+        t[0] = t[1]
 
     def p_unique_id(self, t):
         '''unique_id : ID'''
-        name = t[1]
-        if name in self.typedecls or name in self.constdecls:
-            raise ParseError(":{}:{} error: name '{}' redefined".format(
-                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), name))
-        t[0] = name
+        self._parser_check(
+            t[1] not in self.typedecls and t[1] not in self.constdecls,
+            "name '{}' redefined".format(t[1]),
+            t.lineno(1), t.lexpos(1)
+        )
+        t[0] = t[1]
 
     def p_constant_id(self, t):
         '''constant_id : ID'''
-        const = t[1]
-        if const not in self.constdecls:
-            raise ParseError(":{}:{} error: constant '{}' was not declared".format(
-                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), const))
-        t[0] = const
+        self._parser_check(
+            t[1] in self.constdecls,
+            "constant '{}' was not declared".format(t[1]),
+            t.lineno(1), t.lexpos(1)
+        )
+        t[0] = t[1]
 
     def p_positive_constant(self, t):
         '''positive_constant : CONST10
                              | CONST8
                              | CONST16'''
-        const = t[1]
-        if int(const) <= 0:
-            raise ParseError(":{}:{} error: array size '{}' non-positive".format(
-                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), const))
-        t[0] = const
+        self._parser_check(
+            int(t[1]) > 0,
+            "array size '{}' non-positive".format(t[1]),
+            t.lineno(1), t.lexpos(1)
+        )
+        t[0] = t[1]
 
     def p_constant(self, t):
         '''constant : CONST10
