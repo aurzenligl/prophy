@@ -95,6 +95,25 @@ class StructMember(object):
 Union = namedtuple("Union", ["name", "members"])
 UnionMember = namedtuple("UnionMember", ["name", "type", "discriminator"])
 
+class UnionMember(object):
+
+    def __init__(self, name, type, discriminator,
+                 definition = None):
+        self.name = name
+        self.type = type
+        self.discriminator = discriminator
+
+        self.definition = definition
+        self.kind = evaluate_member_kind(self)
+
+    def __cmp__(self, other):
+        return (cmp(self.name, other.name) or
+                cmp(self.type, other.type) or
+                cmp(self.discriminator, other.discriminator))
+
+    def __repr__(self):
+        return '{0}: {1} {2}'.format(self.discriminator, self.type, self.name)
+
 """ Following functions process model. """
 
 def topological_sort(nodes):

@@ -23,6 +23,16 @@ MyStruct
     UUUU* f
 """
 
+def test_union_repr():
+    union = model.Union("MyStruct", [
+        model.UnionMember("a", "u8", 1),
+        model.UnionMember("b", "u16", 2),
+        model.UnionMember("c", "u32", 3)
+    ])
+    assert str(union.members[0]) == "1: u8 a"
+    assert str(union.members[1]) == "2: u16 b"
+    assert str(union.members[2]) == "3: u32 c"
+
 def test_model_sort_enums():
     nodes = [model.Typedef("B", "A"),
              model.Typedef("C", "A"),
