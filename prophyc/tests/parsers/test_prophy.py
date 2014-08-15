@@ -474,15 +474,15 @@ struct Y3 { X3 x; };
 
 def test_error_struct_non_last_field_has_unlimited_kind():
     with pytest.raises(ParseError) as e:
-        parse("""\
-struct X
-{
-    u32 x<...>;
-};
-struct Y
-{
-    X x;
-    u32 y;
-};
-""")
-    assert ":7:7 error: greedy array field 'x' not last" == e.value.errors[0]
+        parse("struct X { u32 x<...>; }; struct Y { X x; u32 y; };")
+    assert ":1:40 error: greedy array field 'x' not last" == e.value.errors[0]
+
+def test_error_union_member_has_dynamic_kind():
+    with pytest.raises(ParseError) as e:
+        parse("struct X { u32 x<>; }; union Y { 0: X x; };")
+    assert ":1:39 error: dynamic union arm 'x'" == e.value.errors[0]
+
+def test_error_union_member_has_unlimited_kind():
+    with pytest.raises(ParseError) as e:
+        parse("struct X { u32 x<...>; }; union Y { 0: X x; };")
+    assert ":1:42 error: dynamic union arm 'x'" == e.value.errors[0]

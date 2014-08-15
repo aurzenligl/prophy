@@ -264,6 +264,12 @@ class Parser(object):
                 line, pos
             )
             discriminatorvalues.add(member.discriminator)
+        for member, line, pos in t[3]:
+            self._parser_check(
+                member.kind == Kind.FIXED,
+                "dynamic union arm '{}'".format(member.name),
+                line, pos
+            )
 
         node = Union(t[2], [x for x, _, _ in t[3]])
         self.typedecls[t[2]] = node
@@ -283,7 +289,7 @@ class Parser(object):
 
     def p_union_member(self, t):
         '''union_member : value COLON type_spec ID'''
-        t[0] = (UnionMember(t[4], t[3][0], t[1]), t.lineno(4), t.lexpos(4))
+        t[0] = (UnionMember(t[4], t[3][0], t[1], definition = t[3][1]), t.lineno(4), t.lexpos(4))
 
     def p_type_spec_1(self, t):
         '''type_spec : U8
