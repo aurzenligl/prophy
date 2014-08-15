@@ -14,10 +14,7 @@ if not os.path.exists(PROPHY_DIR):
 class ParseError(Exception): pass
 
 def get_column(input, pos):
-    last_cr = input.rfind('\n', 0, pos)
-    if last_cr < 0:
-        last_cr = 0
-    return (pos - last_cr) + 1
+    return pos - input.rfind('\n', 0, pos)
 
 class Lexer(object):
 
@@ -170,10 +167,17 @@ class Parser(object):
 
     def p_struct_def(self, t):
         '''struct_def : STRUCT unique_id struct_body SEMI'''
-        node = Struct(t[2], t[3])
+
+        fieldnames = set()
+        for member, line, pos in t[3]:
+            if member.name in fieldnames:
+                raise ParseError(":{}:{} error: field '{}' redefined".format(
+                    line, get_column(self.lexer.lexdata, pos), member.name))
+            fieldnames.add(member.name)
+
+        node = Struct(t[2], [x for x, _, _ in t[3]])
         self.typedecls[t[2]] = node
         self.nodes.append(node)
-        # validate_field_name_not_defined(names, name)
         # validate_greedy_field_last(last_index, index, name)
 
     def p_struct_body(self, t):
@@ -190,37 +194,37 @@ class Parser(object):
 
     def p_struct_member_1(self, t):
         '''struct_member : type_spec ID'''
-        t[0] = [StructMember(t[2], t[1])]
+        t[0] = [(StructMember(t[2], t[1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_2(self, t):
         '''struct_member : bytes ID LBRACKET positive_value RBRACKET
                          | type_spec ID LBRACKET positive_value RBRACKET'''
-        t[0] = [StructMember(t[2], t[1], size = t[4])]
+        t[0] = [(StructMember(t[2], t[1], size = t[4]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_3(self, t):
         '''struct_member : bytes ID LT GT
                          | type_spec ID LT GT'''
         t[0] = [
-            StructMember('num_of_' + t[2], 'u32'),
-            StructMember(t[2], t[1], bound = 'num_of_' + t[2])
+            (StructMember('num_of_' + t[2], 'u32'), t.lineno(2), t.lexpos(2)),
+            (StructMember(t[2], t[1], bound = 'num_of_' + t[2]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_4(self, t):
         '''struct_member : bytes ID LT positive_value GT
                          | type_spec ID LT positive_value GT'''
         t[0] = [
-            StructMember('num_of_' + t[2], 'u32'),
-            StructMember(t[2], t[1], bound = 'num_of_' + t[2], size = t[4])
+            (StructMember('num_of_' + t[2], 'u32'), t.lineno(2), t.lexpos(2)),
+            (StructMember(t[2], t[1], bound = 'num_of_' + t[2], size = t[4]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_5(self, t):
         '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
-        t[0] = [StructMember(t[2], t[1], unlimited = True)]
+        t[0] = [(StructMember(t[2], t[1], unlimited = True), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_6(self, t):
         '''struct_member : type_spec STAR ID'''
-        t[0] = [StructMember(t[3], t[1], optional = True)]
+        t[0] = [(StructMember(t[3], t[1], optional = True), t.lineno(3), t.lexpos(3))]
 
     def p_bytes(self, t):
         '''bytes : BYTES'''
@@ -321,10 +325,6 @@ class Parser(object):
             line = self.lexer.lineno
             col = get_column(self.lexer.lexdata, len(self.lexer.lexdata) - 1)
             raise ParseError(":{}:{} error: unexpected end of input".format(line, col))
-
-def validate_field_name_not_defined(names, name):
-    if name in names:
-        raise Exception("Field '{}' redefined".format(name))
 
 def validate_value_not_defined(values, value):
     if value in values:

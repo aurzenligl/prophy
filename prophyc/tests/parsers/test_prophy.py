@@ -305,27 +305,48 @@ def test_error_enum_constant_not_declared():
         parse('enum enum_t { enum_t_1 = unknown };')
     assert ":1:26 error: constant 'unknown' was not declared" == e.value.message
 
-#def test_no_error_enum_comment():
-#    assert len(parse('enum enum_t { enum_t_1 = 1, /* xxx */ enum_t_2 = 2 };')) == 1
-#
-#def test_error_struct_redefined():
-#    with pytest.raises(Exception) as e:
-#        parse('const test = 10; struct test { u32 x; };')
-#    assert "Name 'test' redefined" in e.value.message
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { u32 x; }; struct test { u32 x; };')
-#    assert "Name 'test' redefined" in e.value.message
-#
-#def test_error_struct_empty():
-#    with pytest.raises(ParseError) as e:
-#        parse('struct test {};')
-#    assert "Syntax error in input at '}'" in e.value.message
-#
-#def test_error_struct_repeated_field_names():
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { u32 x; u32 x; };')
-#    assert "Field 'x' redefined" in e.value.message
-#
+def test_no_error_enum_comment():
+    assert len(parse('enum enum_t { enum_t_1 = 1, /* xxx */ enum_t_2 = 2 };')) == 1
+
+def test_error_struct_redefined():
+    with pytest.raises(ParseError) as e:
+        parse('const test = 10; struct test { u32 x; };')
+    assert ":1:25 error: name 'test' redefined" == e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 x; }; struct test { u32 x; };')
+    assert ":1:32 error: name 'test' redefined" == e.value.message
+
+def test_error_struct_empty():
+    with pytest.raises(ParseError) as e:
+        parse('struct test {};')
+    assert ":1:14 error: syntax error at '}'" == e.value.message
+
+def test_error_struct_repeated_field_names():
+    with pytest.raises(ParseError) as e:
+        parse("""\
+struct test
+{
+    u32 x;
+    u32 x;
+};""")
+    assert ":4:9 error: field 'x' redefined" == e.value.message
+    with pytest.raises(ParseError) as e:
+        parse("""\
+struct test
+{
+    u32 num_of_x;
+    u32 x<>;
+};""")
+    assert ":4:9 error: field 'num_of_x' redefined" == e.value.message
+    with pytest.raises(ParseError) as e:
+        parse("""\
+struct test
+{
+    u32 x<>;
+    u32 num_of_x;
+};""")
+    assert ":4:9 error: field 'num_of_x' redefined" == e.value.message
+
 #def test_no_error_struct_comments_between_newlines():
 #    assert len(parse('struct test { u32 x; /* \n u32 y; \n */ \n u32 z; };')) == 1
 #    assert len(parse('struct test { u32 x; // xxxx \n u32 y; \n // u32 z; \n };')) == 1
