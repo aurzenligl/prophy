@@ -4,6 +4,8 @@ long_description = open('README.rst').read()
 
 setup(name = 'prophy',
       packages = find_packages(),
+      requires = ['ply'],
+      install_requires = ['ply'],
       include_package_data = True,
       entry_points = {
           'console_scripts': [
