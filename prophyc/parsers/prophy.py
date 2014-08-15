@@ -105,13 +105,16 @@ class Parser(object):
         self.typedecls = {}
         self.constdecls = {}
 
+    def _parser_error(self, message, line, pos):
+        raise ParseError(":{}:{} error: {}".format(
+            line,
+            get_column(self.lexer.lexdata, pos),
+            message
+        ))
+
     def _parser_check(self, condition, message, line, pos):
         if not condition:
-            raise ParseError(":{}:{} error: {}".format(
-                line,
-                get_column(self.lexer.lexdata, pos),
-                message
-            ))
+            self._parser_error(message, line, pos)
 
     def p_specification(self, t):
         '''specification : definition_list'''
@@ -353,13 +356,14 @@ class Parser(object):
 
     def p_error(self, t):
         if t:
+            message = "syntax error at '{}'".format(t.value)
             line = t.lexer.lineno
-            col = get_column(t.lexer.lexdata, t.lexpos)
-            raise ParseError(":{}:{} error: syntax error at '{}'".format(line, col, t.value))
+            pos = t.lexpos
         else:
+            message = "unexpected end of input"
             line = self.lexer.lineno
-            col = get_column(self.lexer.lexdata, len(self.lexer.lexdata) - 1)
-            raise ParseError(":{}:{} error: unexpected end of input".format(line, col))
+            pos = len(self.lexer.lexdata) - 1
+        self._parser_error(message, line, pos)
 
 lexer = Lexer()
 parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
