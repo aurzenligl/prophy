@@ -82,8 +82,8 @@ class Lexer(object):
 
     def t_error(self, t):
         t.lexer.skip(1)
-        line = self.lexer.lineno
-        col = get_column(self.lexer.lexdata, t.lexpos)
+        line = t.lexer.lineno
+        col = get_column(t.lexer.lexdata, t.lexpos)
         raise ParseError(":{}:{} error: illegal character '{}'".format(line, col, t.value[0]))
 
 class Parser(object):
@@ -162,13 +162,16 @@ class Parser(object):
         for member, line, pos in t[3]:
             if member.name in fieldnames:
                 raise ParseError(":{}:{} error: field '{}' redefined".format(
-                    line, get_column(self.lexer.lexdata, pos), member.name))
+                    line, get_column(t.lexer.lexdata, pos), member.name))
             fieldnames.add(member.name)
+        for member, line, pos in t[3][:-1]:
+            if member.greedy:
+                raise ParseError(":{}:{} error: greedy array field '{}' not last".format(
+                    line, get_column(t.lexer.lexdata, pos), member.name))
 
         node = Struct(t[2], [x for x, _, _ in t[3]])
         self.typedecls[t[2]] = node
         self.nodes.append(node)
-        # validate_greedy_field_last(last_index, index, name)
 
     def p_struct_body(self, t):
         '''struct_body : LBRACE struct_member_list RBRACE'''
@@ -268,7 +271,7 @@ class Parser(object):
         type_ = t[1]
         if type_ not in self.typedecls:
             raise ParseError(":{}:{} error: type '{}' was not declared".format(
-                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), type_))
+                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), type_))
         t[0] = type_
 
     def p_unique_id(self, t):
@@ -276,7 +279,7 @@ class Parser(object):
         name = t[1]
         if name in self.typedecls or name in self.constdecls:
             raise ParseError(":{}:{} error: name '{}' redefined".format(
-                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), name))
+                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), name))
         t[0] = name
 
     def p_constant_id(self, t):
@@ -284,7 +287,7 @@ class Parser(object):
         const = t[1]
         if const not in self.constdecls:
             raise ParseError(":{}:{} error: constant '{}' was not declared".format(
-                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), const))
+                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), const))
         t[0] = const
 
     def p_positive_constant(self, t):
@@ -294,7 +297,7 @@ class Parser(object):
         const = t[1]
         if int(const) <= 0:
             raise ParseError(":{}:{} error: array size '{}' non-positive".format(
-                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), const))
+                t.lineno(1), get_column(t.lexer.lexdata, t.lexpos(1)), const))
         t[0] = const
 
     def p_constant(self, t):
@@ -318,8 +321,8 @@ class Parser(object):
 
     def p_error(self, t):
         if t:
-            line = self.lexer.lineno
-            col = get_column(self.lexer.lexdata, t.lexpos)
+            line = t.lexer.lineno
+            col = get_column(t.lexer.lexdata, t.lexpos)
             raise ParseError(":{}:{} error: syntax error at '{}'".format(line, col, t.value))
         else:
             line = self.lexer.lineno
@@ -329,10 +332,6 @@ class Parser(object):
 def validate_value_not_defined(values, value):
     if value in values:
         raise Exception("Value '{}' redefined".format(value))
-
-def validate_greedy_field_last(last_index, index, name):
-    if index != last_index:
-        raise Exception("Greedy array field '{}' not last".format(name))
 
 lexer = Lexer()
 parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)

@@ -372,11 +372,11 @@ def test_error_struct_array_size_cannot_be_negative():
         parse('struct test { u32 x<0>; };')
     assert ":1:21 error: array size '0' non-positive" == e.value.message
 
-#def test_error_struct_greedy_field_is_not_the_last_one():
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { u32 x<...>; u32 y; };')
-#    assert "Greedy array field 'x' not last" in e.value.message
-#
+def test_error_struct_greedy_field_is_not_the_last_one():
+    with pytest.raises(Exception) as e:
+        parse('struct test { u32 x<...>; u32 y; };')
+    assert ":1:19 error: greedy array field 'x' not last" in e.value.message
+
 #def test_error_union_redefined():
 #    with pytest.raises(Exception) as e:
 #        parse('const test = 10; union test { 1: u32 x; };')
