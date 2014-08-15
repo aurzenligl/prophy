@@ -37,8 +37,11 @@ class Struct(object):
         self.name = name
         self.members = members
 
+        self.kind = evaluate_struct_kind(self)
+
     def __cmp__(self, other):
-        return cmp(other.__dict__, self.__dict__)
+        return (cmp(self.name, other.name) or
+                cmp(self.members, other.members))
 
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
@@ -48,7 +51,7 @@ class StructMember(object):
     def __init__(self, name, type,
                  bound = None, size = None,
                  unlimited = False, optional = False,
-                 **kwargs):
+                 definition = None):
         assert(sum((bool(bound or size), unlimited, optional)) <= 1)
 
         self.name = name
@@ -57,8 +60,9 @@ class StructMember(object):
         self.bound = bound
         self.size = size
         self.optional = optional
-        if 'definition' in kwargs:
-            self.definition = kwargs['definition']
+
+        self.definition = definition
+        self.kind = evaluate_member_kind(self)
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
@@ -147,32 +151,32 @@ def cross_reference(nodes):
         elif isinstance(node, Struct):
             map(do_cross_reference, node.members)
 
+def evaluate_node_kind(node):
+    if isinstance(node, Typedef):
+        while isinstance(node, Typedef):
+            node = node.definition
+        return evaluate_node_kind(node)
+    elif isinstance(node, Struct):
+        return node.kind
+    else:
+        return Kind.FIXED
+def evaluate_struct_kind(node):
+    if node.members:
+        if node.members[-1].greedy:
+            return Kind.UNLIMITED
+        elif any(x.dynamic for x in node.members):
+            return  Kind.DYNAMIC
+        else:
+            return  max(x.kind for x in node.members)
+    else:
+        return Kind.FIXED
+def evaluate_member_kind(member):
+    if member.definition:
+        return evaluate_node_kind(member.definition)
+    else:
+        return Kind.FIXED
 def evaluate_kinds(nodes):
     """Adds kind to Struct and StructMember. Requires cross referenced nodes."""
-    def lookup_node_kind(node):
-        if isinstance(node, Typedef):
-            while isinstance(node, Typedef):
-                node = node.definition
-            return lookup_node_kind(node)
-        elif isinstance(node, Struct):
-            return node.kind
-        else:
-            return Kind.FIXED
-    def evaluate_member_kind(member):
-        if member.definition:
-            return lookup_node_kind(member.definition)
-        else:
-            return Kind.FIXED
-    def evaluate_struct_kind(node):
-        if node.members:
-            if node.members[-1].greedy:
-                return Kind.UNLIMITED
-            elif any(x.dynamic for x in node.members):
-                return  Kind.DYNAMIC
-            else:
-                return  max(x.kind for x in node.members)
-        else:
-            return Kind.FIXED
     for node in nodes:
         if isinstance(node, Struct):
             for member in node.members:

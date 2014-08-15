@@ -449,3 +449,25 @@ struct Y
     assert members[5].definition == None
     assert type(members[6].definition) == model.Typedef
     assert type(members[7].definition) == model.Typedef
+
+def test_struct_kinds():
+    structs = parse("""\
+struct X1 { u32 x; };
+struct X2 { u32 x<>; };
+struct X3 { u32 x<...>; };
+struct Y1 { X1 x; };
+struct Y2 { X2 x; };
+struct Y3 { X3 x; };
+""")
+    assert structs[0].kind == model.Kind.FIXED
+    assert structs[1].kind == model.Kind.DYNAMIC
+    assert structs[2].kind == model.Kind.UNLIMITED
+    assert structs[3].kind == model.Kind.FIXED
+    assert structs[4].kind == model.Kind.DYNAMIC
+    assert structs[5].kind == model.Kind.UNLIMITED
+    assert structs[0].members[0].kind == model.Kind.FIXED
+    assert structs[1].members[0].kind == model.Kind.FIXED
+    assert structs[2].members[0].kind == model.Kind.FIXED
+    assert structs[3].members[0].kind == model.Kind.FIXED
+    assert structs[4].members[0].kind == model.Kind.DYNAMIC
+    assert structs[5].members[0].kind == model.Kind.UNLIMITED
