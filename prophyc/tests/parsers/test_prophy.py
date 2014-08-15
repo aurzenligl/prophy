@@ -373,33 +373,33 @@ def test_error_struct_array_size_cannot_be_negative():
     assert ":1:21 error: array size '0' non-positive" == e.value.message
 
 def test_error_struct_greedy_field_is_not_the_last_one():
-    with pytest.raises(Exception) as e:
+    with pytest.raises(ParseError) as e:
         parse('struct test { u32 x<...>; u32 y; };')
-    assert ":1:19 error: greedy array field 'x' not last" in e.value.message
+    assert ":1:19 error: greedy array field 'x' not last" == e.value.message
 
-#def test_error_union_redefined():
-#    with pytest.raises(Exception) as e:
-#        parse('const test = 10; union test { 1: u32 x; };')
-#    assert "Name 'test' redefined" in e.value.message
-#    with pytest.raises(Exception) as e:
-#        parse('union test { 1: u32 x; }; union test { 1: u32 x; };')
-#    assert "Name 'test' redefined" in e.value.message
-#
-#def test_error_union_empty():
-#    with pytest.raises(ParseError) as e:
-#        parse('union test {};')
-#    assert "Syntax error in input at '}'" in e.value.message
-#
-#def test_error_union_repeated_arm_name():
-#    with pytest.raises(Exception) as e:
-#        parse('union test { 1: u32 x; 2: u32 x; };')
-#    assert "Field 'x' redefined" in e.value.message
-#
-#def test_error_union_repeated_arm_discriminator():
-#    with pytest.raises(Exception) as e:
-#        parse('union test { 1: u32 x; 2: u32 x; };')
-#    assert "Field 'x' redefined" in e.value.message
-#
+def test_error_union_redefined():
+    with pytest.raises(ParseError) as e:
+        parse('const test = 10; union test { 1: u32 x; };')
+    assert ":1:24 error: name 'test' redefined" == e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('union test { 1: u32 x; }; union test { 1: u32 x; };')
+    assert ":1:33 error: name 'test' redefined" == e.value.message
+
+def test_error_union_empty():
+    with pytest.raises(ParseError) as e:
+        parse('union test {};')
+    assert ":1:13 error: syntax error at '}'" == e.value.message
+
+def test_error_union_repeated_arm_name():
+    with pytest.raises(ParseError) as e:
+        parse('union test { 1: u32 x; 2: u32 x; };')
+    assert ":1:31 error: field 'x' redefined" == e.value.message
+
+def test_error_union_repeated_arm_discriminator():
+    with pytest.raises(ParseError) as e:
+        parse('union test { 1: u32 x; 1: u32 y; };')
+    assert ":1:31 error: duplicate discriminator value '1'" == e.value.message
+
 #def test_error_union_field_type_not_declared():
 #    with pytest.raises(Exception) as e:
 #        parse('union test { 1: u32 x; 1: u32 y; };')

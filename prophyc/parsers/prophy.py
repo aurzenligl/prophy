@@ -225,11 +225,23 @@ class Parser(object):
 
     def p_union_def(self, t):
         '''union_def : UNION unique_id union_body SEMI'''
-        node = Union(t[2], t[3])
+
+        fieldnames = set()
+        for member, line, pos in t[3]:
+            if member.name in fieldnames:
+                raise ParseError(":{}:{} error: field '{}' redefined".format(
+                    line, get_column(t.lexer.lexdata, pos), member.name))
+            fieldnames.add(member.name)
+        discriminatorvalues = set()
+        for member, line, pos in t[3]:
+            if member.discriminator in discriminatorvalues:
+                raise ParseError(":{}:{} error: duplicate discriminator value '{}'".format(
+                    line, get_column(t.lexer.lexdata, pos), member.discriminator))
+            discriminatorvalues.add(member.discriminator)
+
+        node = Union(t[2], [x for x, _, _ in t[3]])
         self.typedecls[t[2]] = node
         self.nodes.append(node)
-        #validate_field_name_not_defined(names, name)
-        #validate_value_not_defined(values, value)
 
     def p_union_body(self, t):
         '''union_body : LBRACE union_member_list RBRACE'''
@@ -245,7 +257,7 @@ class Parser(object):
 
     def p_union_member(self, t):
         '''union_member : value COLON type_spec ID'''
-        t[0] = UnionMember(t[4], t[3], t[1])
+        t[0] = (UnionMember(t[4], t[3], t[1]), t.lineno(4), t.lexpos(4))
 
     def p_type_spec_1(self, t):
         '''type_spec : U8
@@ -328,10 +340,6 @@ class Parser(object):
             line = self.lexer.lineno
             col = get_column(self.lexer.lexdata, len(self.lexer.lexdata) - 1)
             raise ParseError(":{}:{} error: unexpected end of input".format(line, col))
-
-def validate_value_not_defined(values, value):
-    if value in values:
-        raise Exception("Value '{}' redefined".format(value))
 
 lexer = Lexer()
 parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
