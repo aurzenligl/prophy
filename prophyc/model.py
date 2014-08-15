@@ -18,12 +18,15 @@ EnumMember = namedtuple("EnumMember", ["name", "value"])
 
 class Typedef(object):
 
-    def __init__(self, name, type):
+    def __init__(self, name, type, **kwargs):
         self.name = name
         self.type = type
+        if 'definition' in kwargs:
+            self.definition = kwargs['definition']
 
     def __cmp__(self, other):
-        return cmp(other.__dict__, self.__dict__)
+        return (cmp(self.name, other.name) or
+                cmp(self.type, other.type))
 
     def __repr__(self):
         return '{0} {1}'.format(self.type, self.name)
@@ -44,7 +47,8 @@ class StructMember(object):
 
     def __init__(self, name, type,
                  bound = None, size = None,
-                 unlimited = False, optional = False):
+                 unlimited = False, optional = False,
+                 **kwargs):
         assert(sum((bool(bound or size), unlimited, optional)) <= 1)
 
         self.name = name
@@ -53,9 +57,16 @@ class StructMember(object):
         self.bound = bound
         self.size = size
         self.optional = optional
+        if 'definition' in kwargs:
+            self.definition = kwargs['definition']
 
     def __cmp__(self, other):
-        return cmp(other.__dict__, self.__dict__)
+        return (cmp(self.name, other.name) or
+                cmp(self.type, other.type) or
+                cmp(self.array, other.array) or
+                cmp(self.bound, other.bound) or
+                cmp(self.size, other.size) or
+                cmp(self.optional, other.optional))
 
     def __repr__(self):
         fmts = {

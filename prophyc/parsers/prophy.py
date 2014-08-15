@@ -169,7 +169,7 @@ class Parser(object):
 
     def p_typedef_def(self, t):
         '''typedef_def : TYPEDEF type_spec unique_id SEMI'''
-        node = Typedef(t[3], t[2])
+        node = Typedef(t[3], t[2][0], definition = t[2][1])
         self.typedecls[t[3]] = node
         self.nodes.append(node)
 
@@ -209,41 +209,41 @@ class Parser(object):
 
     def p_struct_member_1(self, t):
         '''struct_member : type_spec ID'''
-        t[0] = [(StructMember(t[2], t[1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(StructMember(t[2], t[1][0], definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_2(self, t):
         '''struct_member : bytes ID LBRACKET positive_value RBRACKET
                          | type_spec ID LBRACKET positive_value RBRACKET'''
-        t[0] = [(StructMember(t[2], t[1], size = t[4]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(StructMember(t[2], t[1][0], size = t[4], definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_3(self, t):
         '''struct_member : bytes ID LT GT
                          | type_spec ID LT GT'''
         t[0] = [
-            (StructMember('num_of_' + t[2], 'u32'), t.lineno(2), t.lexpos(2)),
-            (StructMember(t[2], t[1], bound = 'num_of_' + t[2]), t.lineno(2), t.lexpos(2))
+            (StructMember('num_of_' + t[2], 'u32', definition = None), t.lineno(2), t.lexpos(2)),
+            (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], definition = t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_4(self, t):
         '''struct_member : bytes ID LT positive_value GT
                          | type_spec ID LT positive_value GT'''
         t[0] = [
-            (StructMember('num_of_' + t[2], 'u32'), t.lineno(2), t.lexpos(2)),
-            (StructMember(t[2], t[1], bound = 'num_of_' + t[2], size = t[4]), t.lineno(2), t.lexpos(2))
+            (StructMember('num_of_' + t[2], 'u32', definition = None), t.lineno(2), t.lexpos(2)),
+            (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], size = t[4], definition = t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_5(self, t):
         '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
-        t[0] = [(StructMember(t[2], t[1], unlimited = True), t.lineno(2), t.lexpos(2))]
+        t[0] = [(StructMember(t[2], t[1][0], unlimited = True, definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_6(self, t):
         '''struct_member : type_spec STAR ID'''
-        t[0] = [(StructMember(t[3], t[1], optional = True), t.lineno(3), t.lexpos(3))]
+        t[0] = [(StructMember(t[3], t[1][0], optional = True, definition = t[1][1]), t.lineno(3), t.lexpos(3))]
 
     def p_bytes(self, t):
         '''bytes : BYTES'''
-        t[0] = 'byte'
+        t[0] = ('byte', None)
 
     def p_union_def(self, t):
         '''union_def : UNION unique_id union_body SEMI'''
@@ -283,7 +283,7 @@ class Parser(object):
 
     def p_union_member(self, t):
         '''union_member : value COLON type_spec ID'''
-        t[0] = (UnionMember(t[4], t[3], t[1]), t.lineno(4), t.lexpos(4))
+        t[0] = (UnionMember(t[4], t[3][0], t[1]), t.lineno(4), t.lexpos(4))
 
     def p_type_spec_1(self, t):
         '''type_spec : U8
@@ -294,15 +294,15 @@ class Parser(object):
                      | I16
                      | I32
                      | I64'''
-        t[0] = t[1]
+        t[0] = (t[1], None)
 
     def p_type_spec_2(self, t):
         '''type_spec : FLOAT'''
-        t[0] = 'r32'
+        t[0] = ('r32', None)
 
     def p_type_spec_3(self, t):
         '''type_spec : DOUBLE'''
-        t[0] = 'r64'
+        t[0] = ('r64', None)
 
     def p_type_spec_4(self, t):
         '''type_spec : ID'''
@@ -311,7 +311,7 @@ class Parser(object):
             "type '{}' was not declared".format(t[1]),
             t.lineno(1), t.lexpos(1)
         )
-        t[0] = t[1]
+        t[0] = (t[1], self.typedecls.get(t[1]))
 
     def p_unique_id(self, t):
         '''unique_id : ID'''

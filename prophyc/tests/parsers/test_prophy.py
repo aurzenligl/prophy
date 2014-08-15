@@ -422,3 +422,30 @@ const Z 2;
         ":2:11 error: constant 'unknown' was not declared",
         ":3:9 error: syntax error at '2'"
     ]
+
+def test_typedef_cross_referenced_definition():
+    typedef = parse("struct X { u32 x; }; typedef X Y;")[1]
+    assert type(typedef.definition) == model.Struct
+    assert typedef.definition.name == 'X'
+
+def test_struct_member_cross_referenced_definition():
+    members = parse("""\
+typedef u32 X;
+struct Y
+{
+    X x1;
+    X* x2;
+    X x3[1];
+    X x5<1>;
+    X x4<>;
+    X x6<...>;
+};
+""")[1].members
+    assert type(members[0].definition) == model.Typedef
+    assert type(members[1].definition) == model.Typedef
+    assert type(members[2].definition) == model.Typedef
+    assert members[3].definition == None
+    assert type(members[4].definition) == model.Typedef
+    assert members[5].definition == None
+    assert type(members[6].definition) == model.Typedef
+    assert type(members[7].definition) == model.Typedef
