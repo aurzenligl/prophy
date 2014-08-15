@@ -98,20 +98,22 @@ class Parser(object):
         self.lexer = lexer
         self.yacc = yacc.yacc(module = self, **kwargs)
 
-    def parse(self, data):
-        self._init_parse_data()
+    def parse(self, input, parse_error_prefix):
+        self._init_parse_data(parse_error_prefix)
         self.lexer.lineno = 1
-        self.yacc.parse(data)
+        self.yacc.parse(input)
         return self.nodes
 
-    def _init_parse_data(self):
+    def _init_parse_data(self, parse_error_prefix = ""):
         self.nodes = []
         self.typedecls = {}
         self.constdecls = {}
         self.errors = []
+        self.parse_error_prefix = parse_error_prefix
 
     def _parser_error(self, message, line, pos):
-        self.errors.append(":{}:{} error: {}".format(
+        self.errors.append("{}:{}:{} error: {}".format(
+            self.parse_error_prefix,
             line,
             get_column(self.lexer.lexdata, pos),
             message
@@ -374,16 +376,16 @@ lexer = Lexer()
 parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
 lexer._lexer_error = parser._parser_error
 
-def build_model(string_):
-    parser.parse(string_)
+def build_model(input, parse_error_prefix):
+    parser.parse(input, parse_error_prefix)
     if parser.errors:
         raise ParseError(parser.errors)
     return parser.nodes
 
 class ProphyParser(object):
 
-    def parse_string(self, string_):
-        return build_model(string_)
+    def parse_string(self, input):
+        return build_model(input, "")
 
     def parse(self, filename):
-        return build_model(open(filename).read())
+        return build_model(open(filename).read(), os.path.split(filename)[1])
