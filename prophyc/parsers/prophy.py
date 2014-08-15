@@ -105,10 +105,6 @@ class Parser(object):
         self.typedecls = {}
         self.constdecls = {}
 
-    def _validate_value_positive(self, value):
-        if int(value) <= 0:
-            raise ParseError("Array size '{}' must be positive".format(value))
-
     def p_specification(self, t):
         '''specification : definition_list'''
 
@@ -128,12 +124,6 @@ class Parser(object):
         node = Constant(t[2], t[4])
         self.constdecls[t[2]] = node
         self.nodes.append(node)
-
-    def p_constant(self, t):
-        '''constant : CONST10
-                    | CONST8
-                    | CONST16'''
-        t[0] = t[1]
 
     def p_enum_def(self, t):
         '''enum_def : ENUM unique_id enum_body SEMI'''
@@ -298,10 +288,20 @@ class Parser(object):
         t[0] = const
 
     def p_positive_constant(self, t):
-        '''positive_constant : constant'''
+        '''positive_constant : CONST10
+                             | CONST8
+                             | CONST16'''
         const = t[1]
-        self._validate_value_positive(const)
+        if int(const) <= 0:
+            raise ParseError(":{}:{} error: array size '{}' non-positive".format(
+                t.lineno(1), get_column(self.lexer.lexdata, t.lexpos(1)), const))
         t[0] = const
+
+    def p_constant(self, t):
+        '''constant : CONST10
+                    | CONST8
+                    | CONST16'''
+        t[0] = t[1]
 
     def p_positive_value(self, t):
         '''positive_value : positive_constant

@@ -347,31 +347,31 @@ struct test
 };""")
     assert ":4:9 error: field 'num_of_x' redefined" == e.value.message
 
-#def test_no_error_struct_comments_between_newlines():
-#    assert len(parse('struct test { u32 x; /* \n u32 y; \n */ \n u32 z; };')) == 1
-#    assert len(parse('struct test { u32 x; // xxxx \n u32 y; \n // u32 z; \n };')) == 1
-#
-#def test_error_struct_field_type_not_declared():
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { unknown x; };')
-#    assert "Type 'unknown' was not declared" in e.value.message
-#
-#def test_error_struct_array_size_not_declared():
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { u32 x[unknown]; };')
-#    assert "Constant 'unknown' was not declared" in e.value.message
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { u32 x<unknown>; };')
-#    assert "Constant 'unknown' was not declared" in e.value.message
-#
-#def test_error_struct_array_size_cannot_be_negative():
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { u32 x[-1]; };')
-#    assert "Array size '-1' must be positive" in e.value.message
-#    with pytest.raises(Exception) as e:
-#        parse('struct test { u32 x<0>; };')
-#    assert "Array size '0' must be positive" in e.value.message
-#
+def test_no_error_struct_comments_between_newlines():
+    assert len(parse('struct test { u32 x; /* \n u32 y; \n */ \n u32 z; };')) == 1
+    assert len(parse('struct test { u32 x; // xxxx \n u32 y; \n // u32 z; \n };')) == 1
+
+def test_error_struct_field_type_not_declared():
+    with pytest.raises(ParseError) as e:
+        parse('struct test { unknown x; };')
+    assert ":1:15 error: type 'unknown' was not declared" == e.value.message
+
+def test_error_struct_array_size_not_declared():
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 x[unknown]; };')
+    assert ":1:21 error: constant 'unknown' was not declared" == e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 x<unknown>; };')
+    assert ":1:21 error: constant 'unknown' was not declared" == e.value.message
+
+def test_error_struct_array_size_cannot_be_negative():
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 x[-1]; };')
+    assert ":1:21 error: array size '-1' non-positive" == e.value.message
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 x<0>; };')
+    assert ":1:21 error: array size '0' non-positive" == e.value.message
+
 #def test_error_struct_greedy_field_is_not_the_last_one():
 #    with pytest.raises(Exception) as e:
 #        parse('struct test { u32 x<...>; u32 y; };')
