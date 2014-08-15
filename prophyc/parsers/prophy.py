@@ -4,7 +4,7 @@ import tempfile
 import ply.lex as lex
 import ply.yacc as yacc
 
-from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember
+from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind
 
 PROPHY_DIR = os.path.join(tempfile.gettempdir(), 'prophy')
 
@@ -186,7 +186,7 @@ class Parser(object):
             fieldnames.add(member.name)
         for member, line, pos in t[3][:-1]:
             self._parser_check(
-                not member.greedy,
+                not member.greedy and member.kind != Kind.UNLIMITED,
                 "greedy array field '{}' not last".format(member.name),
                 line, pos
             )

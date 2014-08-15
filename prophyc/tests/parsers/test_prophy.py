@@ -471,3 +471,18 @@ struct Y3 { X3 x; };
     assert structs[3].members[0].kind == model.Kind.FIXED
     assert structs[4].members[0].kind == model.Kind.DYNAMIC
     assert structs[5].members[0].kind == model.Kind.UNLIMITED
+
+def test_error_struct_non_last_field_has_unlimited_kind():
+    with pytest.raises(ParseError) as e:
+        parse("""\
+struct X
+{
+    u32 x<...>;
+};
+struct Y
+{
+    X x;
+    u32 y;
+};
+""")
+    assert ":7:7 error: greedy array field 'x' not last" == e.value.errors[0]
