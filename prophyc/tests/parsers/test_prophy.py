@@ -400,12 +400,12 @@ def test_error_union_repeated_arm_discriminator():
         parse('union test { 1: u32 x; 1: u32 y; };')
     assert ":1:31 error: duplicate discriminator value '1'" == e.value.message
 
-#def test_error_union_field_type_not_declared():
-#    with pytest.raises(Exception) as e:
-#        parse('union test { 1: u32 x; 1: u32 y; };')
-#    assert "Value '1' redefined" in e.value.message
-#
-#def test_error_union_discriminator_size_not_declared():
-#    with pytest.raises(Exception) as e:
-#        parse('union test { unknown: u32 x; };')
-#    assert "Constant 'unknown' was not declared" in e.value.message
+def test_error_union_field_type_not_declared():
+    with pytest.raises(ParseError) as e:
+        parse('union test { 1: dontknow x };')
+    assert ":1:17 error: type 'dontknow' was not declared" == e.value.message
+
+def test_error_union_discriminator_not_declared():
+    with pytest.raises(Exception) as e:
+        parse('union test { unknown: u32 x; };')
+    assert ":1:14 error: constant 'unknown' was not declared" in e.value.message
