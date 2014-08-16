@@ -1,5 +1,4 @@
 include CHANGELOG
 include LICENSE
 include README.rst
-include prophyc/parsers/prophy.g
 recursive-include prophy_cpp/include *

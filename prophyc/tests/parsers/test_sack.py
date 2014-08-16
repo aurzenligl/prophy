@@ -1,7 +1,8 @@
 import os
 import tempfile
-
 import pytest
+
+from prophyc import model
 
 def parse(content, suffix = '.hpp'):
     from prophyc.parsers.sack import SackParser
@@ -30,11 +31,13 @@ struct X
     uint32_t c;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("X", [("a", "u32", None, None, None, None),
-                   ("b", "u32", None, None, None, None),
-                   ("c", "u32", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Struct("X", [
+            model.StructMember("a", "u32"),
+            model.StructMember("b", "u32"),
+            model.StructMember("c", "u32")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_ints():
@@ -59,23 +62,25 @@ struct X
     bool r;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("X", [("a", "u8", None, None, None, None),
-                   ("b", "u16", None, None, None, None),
-                   ("c", "u32", None, None, None, None),
-                   ("d", "u64", None, None, None, None),
-                   ("e", "i8", None, None, None, None),
-                   ("f", "i16", None, None, None, None),
-                   ("g", "i32", None, None, None, None),
-                   ("h", "i64", None, None, None, None),
-                   ("i", "u8", None, None, None, None),
-                   ("j", "i8", None, None, None, None),
-                   ("k", "i8", None, None, None, None),
-                   ("n", "u32", None, None, None, None),
-                   ("o", "r32", None, None, None, None),
-                   ("p", "r64", None, None, None, None),
-                   ("r", "u32", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Struct("X", [
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "u16"),
+            model.StructMember("c", "u32"),
+            model.StructMember("d", "u64"),
+            model.StructMember("e", "i8"),
+            model.StructMember("f", "i16"),
+            model.StructMember("g", "i32"),
+            model.StructMember("h", "i64"),
+            model.StructMember("i", "u8"),
+            model.StructMember("j", "i8"),
+            model.StructMember("k", "i8"),
+            model.StructMember("n", "u32"),
+            model.StructMember("o", "r32"),
+            model.StructMember("p", "r64"),
+            model.StructMember("r", "u32")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_nested_typedefs():
@@ -88,9 +93,7 @@ struct X
     i_really_do a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("X", [("a", "i32", None, None, None, None)])] == nodes
+    assert parse(hpp) == [model.Struct("X", [model.StructMember("a", "i32")])]
 
 @pytest.clang_installed
 def test_typedefed_struct():
@@ -105,10 +108,10 @@ struct X
     OldStruct a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("OldStruct", [("a", "u32", None, None, None, None)]),
-            ("X", [("a", "OldStruct", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Struct("OldStruct", [model.StructMember("a", "u32")]),
+        model.Struct("X", [model.StructMember("a", "OldStruct")])
+    ]
 
 @pytest.clang_installed
 def test_namespaced_struct():
@@ -129,10 +132,10 @@ struct X
     m::n::Namespaced a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("m__n__Namespaced", [("a", "u32", None, None, None, None)]),
-            ("X", [("a", "m__n__Namespaced", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Struct("m__n__Namespaced", [model.StructMember("a", "u32")]),
+        model.Struct("X", [model.StructMember("a", "m__n__Namespaced")])
+    ]
 
 @pytest.clang_installed
 def test_array():
@@ -143,9 +146,7 @@ struct X
     uint32_t a[4];
 };
 """
-    nodes = parse(hpp)
-
-    assert [("X", [("a", "u32", True, None, 4, None)])] == nodes
+    assert parse(hpp) == [model.Struct("X", [model.StructMember("a", "u32", size = 4)])]
 
 @pytest.clang_installed
 def test_enum():
@@ -161,12 +162,16 @@ struct X
     Enum a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("Enum", [("Enum_One", "1"),
-                      ("Enum_Two", "2"),
-                      ("Enum_Three", "3")]),
-            ("X", [("a", "Enum", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Enum")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_typedefed_enum():
@@ -182,12 +187,16 @@ struct X
     Enum a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("Enum", [("Enum_One", "1"),
-                      ("Enum_Two", "2"),
-                      ("Enum_Three", "3")]),
-            ("X", [("a", "Enum", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Enum")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_namespaced_enum():
@@ -209,12 +218,16 @@ struct X
     m::n::Enum a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("m__n__Enum", [("Enum_One", "1"),
-                            ("Enum_Two", "2"),
-                            ("Enum_Three", "3")]),
-            ("X", [("a", "m__n__Enum", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Enum("m__n__Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "m__n__Enum")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_enum_with_negative_one_values():
@@ -230,12 +243,16 @@ struct X
     Enum a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("Enum", [("Enum_MinusOne", "0xFFFFFFFF"),
-                      ("Enum_MinusTwo", "0xFFFFFFFE"),
-                      ("Enum_MinusThree", "0xFFFFFFFD")]),
-            ("X", [("a", "Enum", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Enum("Enum", [
+            model.EnumMember("Enum_MinusOne", "0xFFFFFFFF"),
+            model.EnumMember("Enum_MinusTwo", "0xFFFFFFFE"),
+            model.EnumMember("Enum_MinusThree", "0xFFFFFFFD")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Enum")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_multiple_enums():
@@ -253,14 +270,18 @@ struct X
     Enum c;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("Enum", [("Enum_One", "1"),
-                      ("Enum_Two", "2"),
-                      ("Enum_Three", "3")]),
-            ("X", [("a", "Enum", None, None, None, None),
-                   ("b", "Enum", None, None, None, None),
-                   ("c", "Enum", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Enum"),
+            model.StructMember("b", "Enum"),
+            model.StructMember("c", "Enum")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_c_enum():
@@ -276,12 +297,16 @@ struct X
     Enum a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("Enum", [("Enum_One", "1"),
-                      ("Enum_Two", "2"),
-                      ("Enum_Three", "3")]),
-            ("X", [("a", "Enum", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Enum")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_union():
@@ -298,12 +323,16 @@ struct X
     Union a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("Union", [("a", "u8", "0"),
-                       ("b", "u16", "1"),
-                       ("c", "u32", "2")]),
-            ("X", [("a", "Union", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Union("Union", [
+            model.UnionMember("a", "u8", "0"),
+            model.UnionMember("b", "u16", "1"),
+            model.UnionMember("c", "u32", "2")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Union")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_typedefed_union():
@@ -318,10 +347,14 @@ struct X
     Union a;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("Union", [("a", "u8", "0")]),
-            ("X", [("a", "Union", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Union("Union", [
+            model.UnionMember("a", "u8", "0")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "Union")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_multiple_structs():
@@ -341,12 +374,18 @@ struct Z
     Y b;
 };
 """
-    nodes = parse(hpp)
-
-    assert [("X", [("a", "u8", None, None, None, None)]),
-            ("Y", [("a", "X", None, None, None, None)]),
-            ("Z", [("a", "X", None, None, None, None),
-                   ("b", "Y", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Struct("X", [
+            model.StructMember("a", "u8")
+        ]),
+        model.Struct("Y", [
+            model.StructMember("a", "X")
+        ]),
+        model.Struct("Z", [
+            model.StructMember("a", "X"),
+            model.StructMember("b", "Y")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_class_template():
@@ -363,7 +402,6 @@ struct X
     A<int, 3> a;
 };
 """
-    nodes = parse(hpp)
 
     """ I have no idea how to access class template members [A::a in example],
         having cursor to structure field typed as template class (instantiation) [X::a in example].
@@ -371,8 +409,12 @@ struct X
         workaround anyway and - in longer run - removal, I'll leave a stub implementation which
         returns no members """
 
-    assert [("A__int__3__", []),
-            ("X", [("a", "A__int__3__", None, None, None, None)])] == nodes
+    assert parse(hpp) == [
+        model.Struct("A__int__3__", []),
+        model.Struct("X", [
+            model.StructMember("a", "A__int__3__")
+        ])
+    ]
 
 @pytest.clang_installed
 def test_c_struct():
@@ -389,9 +431,7 @@ typedef struct X X;
 }
 #endif
 """
-    nodes = parse(hpp)
-
-    assert [("X", [("x", "i32", None, None, None, None)])] == nodes
+    assert parse(hpp) == [model.Struct("X", [model.StructMember("x", "i32")])]
 
 @pytest.clang_installed
 def test_struct_with_anonymous_struct():
@@ -404,12 +444,15 @@ struct X
     } a[3];
 };
 """
-    nodes = parse(hpp)
-
     Anonymous = contains_cmp("X__anonymous__struct__at__")
-
-    assert [(Anonymous, [("b", "i8", None, None, None, None)]),
-            ("X", [("a", Anonymous, True, None, 3, None)])] == nodes
+    assert parse(hpp) == [
+        model.Struct(Anonymous, [
+            model.StructMember("b", "i8")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", Anonymous, size = 3)
+        ])
+    ]
 
 @pytest.clang_installed
 def test_struct_with_incomplete_array():
@@ -419,9 +462,7 @@ struct X
     char b[];
 };
 """
-    nodes = parse(hpp)
-
-    assert [('X', [('b', 'i8', None, None, None, None)])] == nodes
+    assert parse(hpp) == [model.Struct('X', [model.StructMember('b', 'i8')])]
 
 @pytest.clang_installed
 def test_struct_with_incomplete_array_in_file_with_hyphen():
@@ -443,9 +484,7 @@ def test_forward_declared_struct():
     hpp = """\
 struct X;
 """
-    nodes = parse(hpp)
-
-    assert nodes == []
+    assert parse(hpp) == []
 
 @pytest.clang_installed
 def test_omit_bitfields():
@@ -458,7 +497,4 @@ typedef struct X
     unsigned  : 5;
 };
 """
-
-    nodes = parse(hpp)
-
-    assert nodes == [('X', [])]
+    assert parse(hpp) == [model.Struct('X', [])]

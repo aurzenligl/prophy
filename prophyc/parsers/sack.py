@@ -79,7 +79,7 @@ class Builder(object):
         type_name = self._build_field_type_name(cursor.type)
         array_len = self._get_field_array_len(cursor.type)
         is_array = None if array_len is None else True
-        return model.StructMember(name, type_name, is_array, None, array_len, None)
+        return model.StructMember(name, type_name, size = array_len)
 
     def _build_union_member(self, cursor, disc):
         name = cursor.spelling

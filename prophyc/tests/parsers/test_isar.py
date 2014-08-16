@@ -43,18 +43,18 @@ def test_typedefs_primitive_type_parsing():
     <typedef name="j" primitiveType="64 bit float"/>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("a", "u8"),
-            ("b", "u16"),
-            ("c", "u32"),
-            ("d", "u64"),
-            ("e", "i8"),
-            ("f", "i16"),
-            ("g", "i32"),
-            ("h", "i64"),
-            ("i", "r32"),
-            ("j", "r64")] == nodes
+    assert parse(xml) == [
+        model.Typedef("a", "u8"),
+        model.Typedef("b", "u16"),
+        model.Typedef("c", "u32"),
+        model.Typedef("d", "u64"),
+        model.Typedef("e", "i8"),
+        model.Typedef("f", "i16"),
+        model.Typedef("g", "i32"),
+        model.Typedef("h", "i64"),
+        model.Typedef("i", "r32"),
+        model.Typedef("j", "r64")
+    ]
 
 def test_typedefs_parsing():
     xml = """\
@@ -62,9 +62,7 @@ def test_typedefs_parsing():
     <typedef name="TILoveTypedefs_ALot" type="MyType"/>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("TILoveTypedefs_ALot", "MyType")] == nodes
+    assert parse(xml) == [model.Typedef("TILoveTypedefs_ALot", "MyType")]
 
 def test_enums_parsing():
     xml = """\
@@ -93,14 +91,15 @@ def test_struct_parsing():
     </struct>
 </x>
 """
-    nodes = parse(xml)
 
-    assert 1 == len(nodes)
-    assert "Struct" == nodes[0].name
-    assert [("a", "u8", None, None, None, False),
-            ("b", "i64", None, None, None, False),
-            ("c", "r32", None, None, None, False),
-            ("d", "TTypeX", None, None, None, False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("Struct", [
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "i64"),
+            model.StructMember("c", "r32"),
+            model.StructMember("d", "TTypeX")
+        ])
+    ]
 
 def test_struct_parsing_with_constant():
     xml = """\
@@ -112,10 +111,10 @@ def test_struct_parsing_with_constant():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [model.Constant("THE_CONSTANT", "0"),
-            model.Struct("Struct", [model.StructMember("a", "u8", None, None, None, False)])] == nodes
+    assert parse(xml) == [
+        model.Constant("THE_CONSTANT", "0"),
+        model.Struct("Struct", [model.StructMember("a", "u8")])
+    ]
 
 def test_struct_parsing_dynamic_array():
     xml = """\
@@ -127,10 +126,12 @@ def test_struct_parsing_dynamic_array():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("x_len", "u32", None, None, None, False),
-            ("x", "TTypeX", True, "x_len", None, False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("StructWithDynamic", [
+            model.StructMember("x_len", "u32"),
+            model.StructMember("x", "TTypeX", bound = "x_len")
+        ])
+    ]
 
 def test_struct_parsing_static_array():
     xml = """\
@@ -142,9 +143,11 @@ def test_struct_parsing_static_array():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("y", "TTypeY", True, None, "NUM_OF_Y", False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("StructWithStatic", [
+            model.StructMember("y", "TTypeY", size = "NUM_OF_Y")
+        ])
+    ]
 
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
@@ -156,10 +159,12 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("x_len", "TNumberOfItems", None, None, None, False),
-            ("x", "TTypeX", True, "x_len", None, False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("StructX", [
+            model.StructMember("x_len", "TNumberOfItems"),
+            model.StructMember("x", "TTypeX", bound = "x_len")
+        ])
+    ]
 
 def test_struct_parsing_dynamic_array_with_named_sizer():
     xml = """\
@@ -171,10 +176,12 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("numOfX", "u32", None, None, None, False),
-            ("x", "TTypeX", True, "numOfX", None, False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("StructX", [
+            model.StructMember("numOfX", "u32"),
+            model.StructMember("x", "TTypeX", bound = "numOfX")
+        ])
+    ]
 
 def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     xml = """\
@@ -186,10 +193,12 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("numOfX", "TSize", None, None, None, False),
-            ("x", "TTypeX", True, "numOfX", None, False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("StructX", [
+            model.StructMember("numOfX", "TSize"),
+            model.StructMember("x", "TTypeX", bound = "numOfX")
+        ])
+    ]
 
 def test_struct_parsing_limited_array():
     xml = """\
@@ -201,10 +210,12 @@ def test_struct_parsing_limited_array():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("x_len", "u32", None, None, None, False),
-            ("x", "TTypeX", True, "x_len", "3", False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("StructX", [
+            model.StructMember("x_len", "u32"),
+            model.StructMember("x", "TTypeX", bound = "x_len", size = "3")
+        ])
+    ]
 
 def test_struct_parsing_with_optional():
     xml = """\
@@ -214,10 +225,11 @@ def test_struct_parsing_with_optional():
     </struct>
 </x>
 """
-
-    nodes = parse(xml)
-
-    assert [("a", "u8", None, None, None, True)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("Struct", [
+            model.StructMember("a", "u8", optional = True)
+        ])
+    ]
 
 def test_struct_parsing_with_optional_array():
     xml = """\
@@ -229,11 +241,13 @@ def test_struct_parsing_with_optional_array():
     </struct>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("has_a", "u32", None, None, None, False),
-            ("a_len", "u32", None, None, None, False),
-            ("a", "A", True, "a_len", "5", False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("X", [
+            model.StructMember("has_a", "u32"),
+            model.StructMember("a_len", "u32"),
+            model.StructMember("a", "A", bound = "a_len", size = "5")
+        ])
+    ]
 
 def test_message_parsing():
     xml = """\
@@ -243,9 +257,11 @@ def test_message_parsing():
     </message>
 </x>
 """
-    nodes = parse(xml)
-
-    assert [("x", "TTypeX", None, None, None, False)] == nodes[0].members
+    assert parse(xml) == [
+        model.Struct("MsgX", [
+            model.StructMember("x", "TTypeX")
+        ])
+    ]
 
 def test_struct_and_message_with_dynamic_array_parsing():
     xml = """\
@@ -261,13 +277,16 @@ def test_struct_and_message_with_dynamic_array_parsing():
         </member>
     </message>
 </x>"""
-
-    nodes = parse(xml)
-
-    assert [('a_len', 'u32', None, None, None, False),
-            ('a', 'A', True, 'a_len', '5', False)] == nodes[0].members
-    assert [('b_len', 'u32', None, None, None, False),
-            ('b', 'B', True, 'b_len', None, False)] == nodes[1].members
+    assert parse(xml) == [
+        model.Struct("X", [
+            model.StructMember("a_len", "u32"),
+            model.StructMember("a", "A", bound = "a_len", size = "5")
+        ]),
+        model.Struct("Y", [
+            model.StructMember("b_len", "u32"),
+            model.StructMember("b", "B", bound = "b_len")
+        ])
+    ]
 
 def test_union_parsing():
     xml = """\
@@ -282,7 +301,11 @@ def test_union_parsing():
     nodes = parse(xml)
 
     assert ["Union"] == [node.name for node in nodes]
-    assert [("a", "A", "0"), ("b", "B", "1"), ("c", "C", "5")] == nodes[0].members
+    assert nodes[0].members == [
+        model.UnionMember("a", "A", "0"),
+        model.UnionMember("b", "B", "1"),
+        model.UnionMember("c", "C", "5")
+    ]
 
 def test_empty_elemens_parsing():
     xml = """\
@@ -319,10 +342,7 @@ def test_primitive_types():
     <typedef name="r64" primitiveType="64 bit float"/>
 </xml>
 """
-
-    nodes = parse(xml)
-
-    assert nodes == [("ImNotAPrimitiveType", "u32")]
+    assert parse(xml) == [model.Typedef("ImNotAPrimitiveType", "u32")]
 
 def test_operator_expansion():
     assert expand_operators('bitMaskOr(1, 2)') == '((1) | (2))'

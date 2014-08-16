@@ -365,3 +365,20 @@ U* swap<U>(U* payload)
 
 } // namespace prophy
 """
+
+def test_prophy_parse_errors(tmpdir_cwd):
+    open("input.prophy", "w").write("""\
+struct X {};
+union Y {};
+constant
+""")
+
+    ret, out, err = call(["--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.prophy")])
+    assert ret == 1
+    assert out == ""
+    assert tr(err) == """\
+input.prophy:1:11 error: syntax error at '}'
+input.prophy:2:10 error: syntax error at '}'
+"""
+    assert not os.path.exists("input.py")
