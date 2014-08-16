@@ -24,7 +24,7 @@ def parse_options():
     parser.add_argument('input_files',
                         metavar = 'INPUT_FILE',
                         type = readable_file,
-                        nargs = '+',
+                        nargs = '*',
                         help = ('Prophy language, C++ or isar xml files with definitions of prophy '
                                 'messages. By default prophy language is assumed.'))
 
@@ -63,5 +63,9 @@ def parse_options():
                         metavar = 'OUT_DIR',
                         type = readable_dir,
                         help = 'Generate C++ header and source files.')
+
+    parser.add_argument('--version',
+                        action = 'store_true',
+                        help = 'Show version information and exit.')
 
     return parser.parse_args()

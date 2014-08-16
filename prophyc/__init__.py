@@ -5,6 +5,8 @@ import os
 
 from prophyc import options
 
+__version__ = '4.0'
+
 def get_basename(filename):
     return os.path.splitext(os.path.basename(filename))[0]
 
@@ -18,6 +20,13 @@ def module_exists(module_name):
 
 def main():
     opts = options.parse_options()
+
+    if opts.version:
+        print "prophyc {}".format(__version__)
+        sys.exit(0)
+
+    if not opts.input_files:
+        sys.exit("prophyc: error: missing input file")
 
     if opts.isar:
         from prophyc.parsers.isar import IsarParser
