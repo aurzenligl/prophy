@@ -20,6 +20,7 @@ def replace(data, format):
 
 def bump(leaf, format):
     filename = os.path.join(root, leaf)
+    assert os.path.exists(filename), "attempted to bump nonexistent file"
     with open(filename, "rb") as f:
         data = f.read()
     data = replace(data, format)
@@ -31,4 +32,8 @@ def bump(leaf, format):
 Specify files and version format strings to bump version in.
 """
 
-bump("setup.py", "version = 'NUM',")
+bump("setup.py", r"version = 'NUM',")
+bump("prophy/__init__.py", r"__version__ = 'NUM'")
+bump("prophy/tests/test_version.py", r"assert prophy.__version__ == 'NUM'")
+bump("prophyc/__init__.py", r"__version__ = 'NUM'")
+bump("prophyc/tests/test_prophyc.py", r"assert tr\(out\) == 'prophyc NUM\\n'")
