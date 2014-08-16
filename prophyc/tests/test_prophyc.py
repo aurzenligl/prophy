@@ -25,7 +25,7 @@ def call(args):
 def test_showing_version():
     ret, out, err = call(["--version"])
     assert ret == 0
-    assert tr(out) == "prophyc 0.4\n"
+    assert tr(out) == 'prophyc 0.4\n'
     assert err == ""
 
 def test_missing_input():
