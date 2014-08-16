@@ -21,3 +21,5 @@ from composite import union
 from composite import union_generator
 
 from exception import ProphyError
+
+__version__ = '0.4'
