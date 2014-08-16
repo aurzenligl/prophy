@@ -1,3 +1,10 @@
+0.4.1
+-----------------------------------
+- requirement on plyplus removed in favor of ply, which installs automatically
+- prophyc: parsing error checking and reporting improved
+- prophyc: version showing
+- prophy: version attribute
+
 0.4
 -----------------------------------
 - prophyc: dedicated input language based on xdr and thrift
