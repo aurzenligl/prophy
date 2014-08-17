@@ -1,6 +1,7 @@
 0.4.1
 -----------------------------------
-- requirement on plyplus removed in favor of ply, which installs automatically
+- installs dependencies automatically,
+  dependency on plyplus removed, plain ply used instead
 - prophyc: parsing error checking and reporting improved
 - prophyc: version showing
 - prophy: version attribute
