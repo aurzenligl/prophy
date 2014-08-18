@@ -4,6 +4,7 @@
   dependency on plyplus removed, plain ply used instead
 - prophyc: parsing error checking and reporting improved
 - prophyc: version showing
+- prophy: fixed array decoding error with array size bigger than 255
 - prophy: version attribute
 
 0.4
