@@ -22,11 +22,18 @@ def call(args):
     out, err = popen.communicate()
     return popen.returncode, out, err
 
+def test_showing_version():
+    ret, out, err = call(["--version"])
+    expected_version = '0.4.1'
+    assert ret == 0
+    assert tr(out) == 'prophyc {}\n'.format(expected_version)
+    assert err == ""
+
 def test_missing_input():
     ret, out, err = call([])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "prophyc: error: too few arguments\n"
+    assert tr(err) == "prophyc: error: missing input file\n"
 
 def test_no_output_directory(tmpdir_cwd):
     open("input.xml", "w").write("")
@@ -365,3 +372,20 @@ U* swap<U>(U* payload)
 
 } // namespace prophy
 """
+
+def test_prophy_parse_errors(tmpdir_cwd):
+    open("input.prophy", "w").write("""\
+struct X {};
+union Y {};
+constant
+""")
+
+    ret, out, err = call(["--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.prophy")])
+    assert ret == 1
+    assert out == ""
+    assert tr(err) == """\
+input.prophy:1:11 error: syntax error at '}'
+input.prophy:2:10 error: syntax error at '}'
+"""
+    assert not os.path.exists("input.py")

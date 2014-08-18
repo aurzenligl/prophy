@@ -69,7 +69,7 @@ class fixed_scalar_array(base_array):
         self._values[idx] = value
 
     def __setslice__(self, start, stop, values):
-        if len(self._values[start:stop]) is not len(values):
+        if len(self._values[start:stop]) != len(values):
             raise ProphyError("setting slice with different length collection")
         self._values[start:stop] = map(self._TYPE._check, values)
 

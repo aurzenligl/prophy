@@ -40,10 +40,10 @@ def _generate_struct_member(member):
         prefixed_type = "%s.optional(%s)" % (libname, prefixed_type)
     if member.array:
         elem_strs = []
-        if member.array_bound:
-            elem_strs.append("bound = '%s'" % member.array_bound)
-        if member.array_size:
-            elem_strs.append("size = %s" % member.array_size)
+        if member.bound:
+            elem_strs.append("bound = '%s'" % member.bound)
+        if member.size:
+            elem_strs.append("size = %s" % member.size)
         if member.type == 'byte':
             prefixed_type = '%s.bytes(%s)' % (libname, ', '.join(elem_strs))
         else:

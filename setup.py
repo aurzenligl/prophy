@@ -4,13 +4,15 @@ long_description = open('README.rst').read()
 
 setup(name = 'prophy',
       packages = find_packages(),
+      requires = ['ply'],
+      install_requires = ['ply'],
       include_package_data = True,
       entry_points = {
           'console_scripts': [
               'prophyc = prophyc:main'
           ]
       },
-      version = '0.4',
+      version = '0.4.1',
       description = 'prophy: fast data interchange format toolchain',
       long_description = long_description,
       author = 'Krzysztof Laskowski',
