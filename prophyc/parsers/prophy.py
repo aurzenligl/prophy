@@ -6,7 +6,7 @@ import ply.yacc as yacc
 
 from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind
 
-PROPHY_DIR = os.path.join(tempfile.gettempdir(), 'prophy')
+PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
 
 if not os.path.exists(PROPHY_DIR):
     os.makedirs(PROPHY_DIR)

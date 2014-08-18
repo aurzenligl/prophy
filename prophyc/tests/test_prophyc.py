@@ -22,11 +22,18 @@ def call(args):
     out, err = popen.communicate()
     return popen.returncode, out, err
 
+def test_showing_version():
+    ret, out, err = call(["--version"])
+    expected_version = '0.4.1'
+    assert ret == 0
+    assert tr(out) == 'prophyc {}\n'.format(expected_version)
+    assert err == ""
+
 def test_missing_input():
     ret, out, err = call([])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "prophyc: error: too few arguments\n"
+    assert tr(err) == "prophyc: error: missing input file\n"
 
 def test_no_output_directory(tmpdir_cwd):
     open("input.xml", "w").write("")
