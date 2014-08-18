@@ -32,8 +32,8 @@ def bump(leaf, format):
 Specify files and version format strings to bump version in.
 """
 
-bump("setup.py", r"version = 'NUM',")
-bump("prophy/__init__.py", r"__version__ = 'NUM'")
-bump("prophy/tests/test_version.py", r"assert prophy.__version__ == 'NUM'")
-bump("prophyc/__init__.py", r"__version__ = 'NUM'")
-bump("prophyc/tests/test_prophyc.py", r"assert tr\(out\) == 'prophyc NUM\\n'")
+bump("setup.py", "version = 'NUM',")
+bump("prophy/__init__.py", "__version__ = 'NUM'")
+bump("prophy/tests/test_version.py", "assert prophy.__version__ == 'NUM'")
+bump("prophyc/__init__.py", "__version__ = 'NUM'")
+bump("prophyc/tests/test_prophyc.py", "expected_version = 'NUM'")
