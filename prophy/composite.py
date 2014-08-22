@@ -369,7 +369,7 @@ def add_union_discriminator(cls):
     def setter(self, new_value):
         field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
         if field:
-            name, type, disc = field
+            _, _, disc, _ = field
             if disc != self._discriminator:
                 self._discriminator = disc
                 self._fields = {}
@@ -401,6 +401,10 @@ def add_union_composite(cls, name, type, disc):
     def setter(self, new_value):
         raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
+
+def extend_union_descriptor(cls, descriptor):
+    for i, (name, type, disc) in enumerate(descriptor):
+        descriptor[i] = (name, type, disc, get_encode_function(type))
 
 def get_discriminated_field(cls, discriminator):
     field = next((x for x in cls._descriptor if x[2] == discriminator), None)
@@ -459,8 +463,11 @@ class union_generator(type):
         attrs["__slots__"] = ["_fields", "_discriminator"]
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        descriptor = cls._descriptor
-        validate_union(descriptor)
-        add_union_attributes(cls, descriptor)
-        add_union_properties(cls, descriptor)
+        if not hasattr(cls, "_generated"):
+            cls._generated = True
+            descriptor = cls._descriptor
+            validate_union(descriptor)
+            add_union_attributes(cls, descriptor)
+            add_union_properties(cls, descriptor)
+            extend_union_descriptor(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)
