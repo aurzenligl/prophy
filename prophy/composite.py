@@ -66,14 +66,15 @@ def add_repeated(cls, name, tp):
         substitute_len_field(cls, cls._descriptor, name, tp)
 
 def add_scalar(cls, field_name, field_type):
-    def getter(self):
-        if field_type._OPTIONAL and field_name not in self._fields:
-            return None
-        return self._fields.get(field_name, field_type._DEFAULT)
-    def setter(self, new_value):
-        if field_type._OPTIONAL and new_value is None:
-            self._fields.pop(field_name, None)
-        else:
+    if field_type._OPTIONAL:
+        def getter(self):
+            return self._fields.get(field_name)
+        def setter(self, new_value):
+            self._fields[field_name] = None if new_value is None else field_type._check(new_value)
+    else:
+        def getter(self):
+            return self._fields.get(field_name, field_type._DEFAULT)
+        def setter(self, new_value):
             self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
     if field_type._BOUND:
