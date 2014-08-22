@@ -247,13 +247,6 @@ class struct(object):
         return out
 
     @staticmethod
-    def _get_padding_size(offset, alignment):
-        remainder = offset % alignment
-        if not remainder:
-            return 0
-        return alignment - remainder
-
-    @staticmethod
     def _get_padding(offset, alignment):
         remainder = offset % alignment
         if not remainder:
@@ -278,13 +271,13 @@ class struct(object):
         orig_data_size = len(data)
 
         for name, tp, _ in self._descriptor:
-            data = data[self._get_padding_size(orig_data_size - len(data), tp._ALIGNMENT):]
+            data = data[len(self._get_padding(orig_data_size - len(data), tp._ALIGNMENT)):]
             data = data[decode_field(self, name, tp, data, endianness, len_hints):]
             if tp._PARTIAL_ALIGNMENT:
-                data = data[self._get_padding_size(orig_data_size - len(data), tp._PARTIAL_ALIGNMENT):]
+                data = data[len(self._get_padding(orig_data_size - len(data), tp._PARTIAL_ALIGNMENT)):]
 
         if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            data = data[self._get_padding_size(orig_data_size - len(data), self._ALIGNMENT):]
+            data = data[len(self._get_padding(orig_data_size - len(data), self._ALIGNMENT)):]
 
         if terminal and data:
             raise ProphyError("not all bytes read")
@@ -302,9 +295,6 @@ class struct(object):
 
 class struct_packed(struct):
     __slots__ = []
-    @staticmethod
-    def _get_padding_size(offset, alignment):
-        return 0
     @staticmethod
     def _get_padding(offset, alignment):
         return ''
