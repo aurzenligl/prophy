@@ -133,32 +133,6 @@ def extend_descriptor(cls, descriptor):
     for i, (name, type) in enumerate(descriptor):
         descriptor[i] = (name, type, get_encode_function(type))
 
-def get_padding_size(struct_obj, offset, alignment):
-    if isinstance(struct_obj, struct_packed):
-        return 0
-    remainder = offset % alignment
-    if not remainder:
-        return 0
-    return alignment - remainder
-
-def get_padding(struct_obj, offset, alignment):
-    return '\x00' * get_padding_size(struct_obj, offset, alignment)
-
-def indent(lines, spaces):
-    return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
-
-def field_to_string(name, type, value):
-    if issubclass(type, container.base_array):
-        return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
-    elif issubclass(type, (struct, union)):
-        return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
-    elif issubclass(type, str):
-        return "%s: %s\n" % (name, repr(value))
-    elif issubclass(type, scalar.enum):
-        return "%s: %s\n" % (name, type._int_to_name[value])
-    else:
-        return "%s: %s\n" % (name, value)
-
 def get_encode_function(type):
     if type._OPTIONAL:
         type._encode = staticmethod(get_encode_function(type.__bases__[0]))
@@ -196,6 +170,32 @@ def encode_bytes(parent, type, value, endianness):
 
 def encode_scalar(parent, type, value, endianness):
     return type._encode(value, endianness)
+
+def get_padding_size(struct_obj, offset, alignment):
+    if isinstance(struct_obj, struct_packed):
+        return 0
+    remainder = offset % alignment
+    if not remainder:
+        return 0
+    return alignment - remainder
+
+def get_padding(struct_obj, offset, alignment):
+    return '\x00' * get_padding_size(struct_obj, offset, alignment)
+
+def indent(lines, spaces):
+    return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
+
+def field_to_string(name, type, value):
+    if issubclass(type, container.base_array):
+        return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
+    elif issubclass(type, (struct, union)):
+        return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
+    elif issubclass(type, str):
+        return "%s: %s\n" % (name, repr(value))
+    elif issubclass(type, scalar.enum):
+        return "%s: %s\n" % (name, type._int_to_name[value])
+    else:
+        return "%s: %s\n" % (name, value)
 
 def encode_field(parent, type, value, endianness):
     if type._OPTIONAL:
