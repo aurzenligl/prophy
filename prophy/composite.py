@@ -179,9 +179,6 @@ def get_padding_size(struct_obj, offset, alignment):
         return 0
     return alignment - remainder
 
-def get_padding(struct_obj, offset, alignment):
-    return '\x00' * get_padding_size(struct_obj, offset, alignment)
-
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
@@ -257,16 +254,23 @@ class struct(object):
                 out += field_to_string(name, tp, value)
         return out
 
+    @staticmethod
+    def _get_padding(offset, alignment):
+        remainder = offset % alignment
+        if not remainder:
+            return ''
+        return '\x00' * (alignment - remainder)
+
     def encode(self, endianness, terminal = True):
         data = ""
         for name, tp, encode_ in self._descriptor:
-            data += (get_padding(self, len(data), tp._ALIGNMENT) +
+            data += (self._get_padding(len(data), tp._ALIGNMENT) +
                      encode_(self, tp, getattr(self, name, None), endianness))
             if tp._PARTIAL_ALIGNMENT:
-                data += get_padding(self, len(data), tp._PARTIAL_ALIGNMENT)
+                data += self._get_padding(len(data), tp._PARTIAL_ALIGNMENT)
 
         if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            data += get_padding(self, len(data), self._ALIGNMENT)
+            data += self._get_padding(len(data), self._ALIGNMENT)
 
         return data
 
@@ -299,6 +303,9 @@ class struct(object):
 
 class struct_packed(struct):
     __slots__ = []
+    @staticmethod
+    def _get_padding(offset, alignment):
+        return ''
 
 class struct_generator(type):
     def __new__(cls, name, bases, attrs):
