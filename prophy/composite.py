@@ -338,42 +338,42 @@ def add_union_attributes(cls, descriptor):
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
-    for name, type, disc in descriptor:
+    for field in descriptor:
+        name, type, disc, _ = field
         if issubclass(type, (struct, union)):
-            add_union_composite(cls, name, type, disc)
+            add_union_composite(cls, name, type, disc, field)
         else:
-            add_union_scalar(cls, name, type, disc)
+            add_union_scalar(cls, name, type, disc, field)
 
 def add_union_discriminator(cls):
     def getter(self):
-        return self._discriminator
+        return self._discriminator[2]
     def setter(self, new_value):
         field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
         if field:
-            _, _, disc, _ = field
-            if disc != self._discriminator:
-                self._discriminator = disc
+            if field != self._discriminator:
+                self._discriminator = field
                 self._fields = {}
         else:
             raise ProphyError("unknown discriminator")
     setattr(cls, "discriminator", property(getter, setter))
 
-def add_union_scalar(cls, name, type, disc):
+def add_union_scalar(cls, name, type, disc, field):
     def getter(self):
-        if self._discriminator is not disc:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator)
+        if self._discriminator is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminator[2])
         return self._fields.get(name, type._DEFAULT)
     def setter(self, new_value):
-        if self._discriminator is not disc:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator)
+        if self._discriminator is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminator[2])
         new_value = type._check(new_value)
         self._fields[name] = new_value
     setattr(cls, name, property(getter, setter))
 
-def add_union_composite(cls, name, type, disc):
+def add_union_composite(cls, name, type, disc, field):
     def getter(self):
-        if self._discriminator is not disc:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator)
+        if self._discriminator is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminator[2])
         value = self._fields.get(name)
         if value is None:
             value = type()
@@ -396,17 +396,17 @@ class union(object):
 
     def __init__(self):
         self._fields = {}
-        self._discriminator = self._descriptor[0][2]
+        self._discriminator = self._descriptor[0]
 
     def __str__(self):
-        name, tp, _, _ = get_discriminated_field(self, self._discriminator)
+        name, tp, _, _ = self._discriminator
         value = getattr(self, name)
         return field_to_string(name, tp, value)
 
     def encode(self, endianness, terminal = True):
-        name, tp, _, encode_ = get_discriminated_field(self, self._discriminator)
+        name, tp, _, encode_ = self._discriminator
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(self._discriminator, endianness) +
+        data = (self._discriminator_type._encode(self._discriminator[2], endianness) +
                 encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, '\x00')
 
@@ -416,7 +416,7 @@ class union(object):
         if not field:
             raise ProphyError("unknown discriminator")
         name, type, _, _ = field
-        self._discriminator = disc
+        self._discriminator = field
         bytes_read += decode_field(self, name, type, data[bytes_read:], endianness, {})
         if len(data) < self._SIZE:
             raise ProphyError("not enough bytes")
@@ -431,7 +431,7 @@ class union(object):
 
         self._fields.clear()
         self._discriminator = other._discriminator
-        name, type, _, _ = get_discriminated_field(self, self._discriminator)
+        name, type, _, _ = self._discriminator
         rhs = getattr(other, name)
         if issubclass(type, (struct, union)):
             lhs = getattr(self, name)
@@ -449,6 +449,6 @@ class union_generator(type):
             descriptor = cls._descriptor
             validate_union(descriptor)
             add_union_attributes(cls, descriptor)
-            add_union_properties(cls, descriptor)
             extend_union_descriptor(cls, descriptor)
+            add_union_properties(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)
