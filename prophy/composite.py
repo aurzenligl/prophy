@@ -161,7 +161,7 @@ def field_to_string(name, type, value):
 
 def get_encode_function(type):
     if type._OPTIONAL:
-        type._encode = get_encode_function(type.__bases__[0])
+        type._encode = staticmethod(get_encode_function(type.__bases__[0]))
         return encode_optional
     elif type._BOUND and issubclass(type, (int, long)):
         return encode_array_delimiter
@@ -280,7 +280,7 @@ class struct(object):
         data = ""
         for name, tp, encode_ in self._descriptor:
             data += (get_padding(self, len(data), tp._ALIGNMENT) +
-                     encode_field(self, tp, getattr(self, name, None), endianness))
+                     encode_(self, tp, getattr(self, name, None), endianness))
             if tp._PARTIAL_ALIGNMENT:
                 data += get_padding(self, len(data), tp._PARTIAL_ALIGNMENT)
 
