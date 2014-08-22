@@ -81,21 +81,24 @@ def add_scalar(cls, field_name, field_type):
         substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_composite(cls, name, tp):
-    def getter(self):
-        if tp._OPTIONAL and name not in self._fields:
-            return None
-        if name not in self._fields:
-            value = tp()
-            self._fields[name] = value
-            return value
-        else:
+    if tp._OPTIONAL:
+        def getter(self):
             return self._fields.get(name)
-    def setter(self, new_value):
-        if tp._OPTIONAL and new_value is True:
-            self._fields[name] = tp()
-        elif tp._OPTIONAL and new_value is None:
-            self._fields.pop(name, None)
-        else:
+        def setter(self, new_value):
+            if new_value is True:
+                self._fields[name] = tp()
+            elif new_value is None:
+                self._fields.pop(name, None)
+            else:
+                raise ProphyError("assignment to composite field not allowed")
+    else:
+        def getter(self):
+            value = self._fields.get(name)
+            if value:
+                return value
+            else:
+                return self._fields.setdefault(name, tp())
+        def setter(self, new_value):
             raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
 
