@@ -347,12 +347,12 @@ def add_union_properties(cls, descriptor):
 
 def add_union_discriminator(cls):
     def getter(self):
-        return self._discriminator[2]
+        return self._discriminated[2]
     def setter(self, new_value):
         field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
         if field:
-            if field != self._discriminator:
-                self._discriminator = field
+            if field != self._discriminated:
+                self._discriminated = field
                 self._fields = {}
         else:
             raise ProphyError("unknown discriminator")
@@ -360,20 +360,20 @@ def add_union_discriminator(cls):
 
 def add_union_scalar(cls, name, type, disc, field):
     def getter(self):
-        if self._discriminator is not field:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator[2])
+        if self._discriminated is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         return self._fields.get(name, type._DEFAULT)
     def setter(self, new_value):
-        if self._discriminator is not field:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator[2])
+        if self._discriminated is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         new_value = type._check(new_value)
         self._fields[name] = new_value
     setattr(cls, name, property(getter, setter))
 
 def add_union_composite(cls, name, type, disc, field):
     def getter(self):
-        if self._discriminator is not field:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator[2])
+        if self._discriminated is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         value = self._fields.get(name)
         if value is None:
             value = type()
@@ -396,17 +396,17 @@ class union(object):
 
     def __init__(self):
         self._fields = {}
-        self._discriminator = self._descriptor[0]
+        self._discriminated = self._descriptor[0]
 
     def __str__(self):
-        name, tp, _, _ = self._discriminator
+        name, tp, _, _ = self._discriminated
         value = getattr(self, name)
         return field_to_string(name, tp, value)
 
     def encode(self, endianness, terminal = True):
-        name, tp, _, encode_ = self._discriminator
+        name, tp, disc, encode_ = self._discriminated
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(self._discriminator[2], endianness) +
+        data = (self._discriminator_type._encode(disc, endianness) +
                 encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, '\x00')
 
@@ -416,7 +416,7 @@ class union(object):
         if not field:
             raise ProphyError("unknown discriminator")
         name, type, _, _ = field
-        self._discriminator = field
+        self._discriminated = field
         bytes_read += decode_field(self, name, type, data[bytes_read:], endianness, {})
         if len(data) < self._SIZE:
             raise ProphyError("not enough bytes")
@@ -430,8 +430,8 @@ class union(object):
             return
 
         self._fields.clear()
-        self._discriminator = other._discriminator
-        name, type, _, _ = self._discriminator
+        self._discriminated = other._discriminated
+        name, type, _, _ = self._discriminated
         rhs = getattr(other, name)
         if issubclass(type, (struct, union)):
             lhs = getattr(self, name)
@@ -441,7 +441,7 @@ class union(object):
 
 class union_generator(type):
     def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = ["_fields", "_discriminator"]
+        attrs["__slots__"] = ["_fields", "_discriminated"]
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
         if not hasattr(cls, "_generated"):
