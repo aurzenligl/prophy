@@ -43,9 +43,6 @@ def add_padding(cls, descriptor):
     paddings = map(Padder(), sizes, alignments)
     cls._SIZE += sum(paddings)
 
-def add_null_padding(descriptor):
-    pass
-
 def add_properties(cls, descriptor):
     for name, tp in descriptor:
         if issubclass(tp, container.base_array):
@@ -132,6 +129,10 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     descriptor[index] = (name, container_len)
     delattr(cls, name)
 
+def extend_descriptor(cls, descriptor):
+    for i, (name, type) in enumerate(descriptor):
+        descriptor[i] = (name, type, get_encode_function(type))
+
 def get_padding_size(struct_obj, offset, alignment):
     if isinstance(struct_obj, struct_packed):
         return 0
@@ -157,6 +158,44 @@ def field_to_string(name, type, value):
         return "%s: %s\n" % (name, type._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
+
+def get_encode_function(type):
+    if type._OPTIONAL:
+        type._encode = get_encode_function(type.__bases__[0])
+        return encode_optional
+    elif type._BOUND and issubclass(type, (int, long)):
+        return encode_array_delimiter
+    elif issubclass(type, container.base_array):
+        return encode_array
+    elif issubclass(type, (struct, union)):
+        return encode_composite
+    elif issubclass(type, str):
+        return encode_bytes
+    else:
+        return encode_scalar
+
+def encode_optional(parent, type, value, endianness):
+    if value is None:
+        return (type._optional_type._encode(False, endianness) +
+                "\x00" * type._SIZE)
+    else:
+        return (type._optional_type._encode(True, endianness) +
+                type._encode(parent, type.__bases__[0], value, endianness))
+
+def encode_array_delimiter(parent, type, value, endianness):
+    return type._encode(len(getattr(parent, type._BOUND)), endianness)
+
+def encode_array(parent, type, value, endianness):
+    return value.encode(endianness)
+
+def encode_composite(parent, type, value, endianness):
+    return value.encode(endianness, terminal = False)
+
+def encode_bytes(parent, type, value, endianness):
+    return type._encode(value)
+
+def encode_scalar(parent, type, value, endianness):
+    return type._encode(value, endianness)
 
 def encode_field(parent, type, value, endianness):
     if type._OPTIONAL:
@@ -231,7 +270,7 @@ class struct(object):
 
     def __str__(self):
         out = ""
-        for name, tp in self._descriptor:
+        for name, tp, _ in self._descriptor:
             value = getattr(self, name, None)
             if value is not None:
                 out += field_to_string(name, tp, value)
@@ -239,7 +278,7 @@ class struct(object):
 
     def encode(self, endianness, terminal = True):
         data = ""
-        for name, tp in self._descriptor:
+        for name, tp, encode_ in self._descriptor:
             data += (get_padding(self, len(data), tp._ALIGNMENT) +
                      encode_field(self, tp, getattr(self, name, None), endianness))
             if tp._PARTIAL_ALIGNMENT:
@@ -254,7 +293,7 @@ class struct(object):
         len_hints = {}
         orig_data_size = len(data)
 
-        for name, tp in self._descriptor:
+        for name, tp, _ in self._descriptor:
             data = data[get_padding_size(self, orig_data_size - len(data), tp._ALIGNMENT):]
             data = data[decode_field(self, name, tp, data, endianness, len_hints):]
             if tp._PARTIAL_ALIGNMENT:
@@ -293,6 +332,7 @@ class struct_generator(type):
             if not issubclass(cls, struct_packed):
                 add_padding(cls, descriptor)
             add_properties(cls, descriptor)
+            extend_descriptor(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 
 def validate_union(descriptor):
