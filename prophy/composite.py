@@ -197,25 +197,6 @@ def field_to_string(name, type, value):
     else:
         return "%s: %s\n" % (name, value)
 
-def encode_field(parent, type, value, endianness):
-    if type._OPTIONAL:
-        if value is None:
-            return (type._optional_type._encode(False, endianness) +
-                    "\x00" * type._SIZE)
-        else:
-            return (type._optional_type._encode(True, endianness) +
-                    encode_field(parent, type.__bases__[0], value, endianness))
-    if type._BOUND and issubclass(type, (int, long)):
-        return type._encode(len(getattr(parent, type._BOUND)), endianness)
-    elif issubclass(type, container.base_array):
-        return value.encode(endianness)
-    elif issubclass(type, (struct, union)):
-        return value.encode(endianness, terminal = False)
-    elif issubclass(type, str):
-        return type._encode(value)
-    else:
-        return type._encode(value, endianness)
-
 def decode_field(parent, name, type, data, endianness, len_hints):
     if type._OPTIONAL:
         value, size = type._optional_type._decode(data, endianness)
@@ -408,7 +389,7 @@ def extend_union_descriptor(cls, descriptor):
 
 def get_discriminated_field(cls, discriminator):
     field = next((x for x in cls._descriptor if x[2] == discriminator), None)
-    return field[:2] if field else None
+    return field
 
 class union(object):
     __slots__ = []
@@ -418,15 +399,15 @@ class union(object):
         self._discriminator = self._descriptor[0][2]
 
     def __str__(self):
-        name, tp = get_discriminated_field(self, self._discriminator)
+        name, tp, _, _ = get_discriminated_field(self, self._discriminator)
         value = getattr(self, name)
         return field_to_string(name, tp, value)
 
     def encode(self, endianness, terminal = True):
-        name, tp = get_discriminated_field(self, self._discriminator)
+        name, tp, _, encode_ = get_discriminated_field(self, self._discriminator)
         value = getattr(self, name)
         data = (self._discriminator_type._encode(self._discriminator, endianness) +
-                encode_field(self, tp, value, endianness))
+                encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, '\x00')
 
     def decode(self, data, endianness, terminal = True):
@@ -434,7 +415,7 @@ class union(object):
         field = get_discriminated_field(self, disc)
         if not field:
             raise ProphyError("unknown discriminator")
-        name, type = field
+        name, type, _, _ = field
         self._discriminator = disc
         bytes_read += decode_field(self, name, type, data[bytes_read:], endianness, {})
         if len(data) < self._SIZE:
@@ -450,7 +431,7 @@ class union(object):
 
         self._fields.clear()
         self._discriminator = other._discriminator
-        name, type = get_discriminated_field(self, self._discriminator)
+        name, type, _, _ = get_discriminated_field(self, self._discriminator)
         rhs = getattr(other, name)
         if issubclass(type, (struct, union)):
             lhs = getattr(self, name)
