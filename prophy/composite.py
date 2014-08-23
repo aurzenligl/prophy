@@ -135,7 +135,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
 def extend_descriptor(cls, descriptor):
     for i, (name, type) in enumerate(descriptor):
-        descriptor[i] = (name, type, get_encode_function(type))
+        descriptor[i] = (name, type, get_encode_function(type), get_decode_function(type))
 
 def get_encode_function(type):
     if type._OPTIONAL:
@@ -190,6 +190,51 @@ def field_to_string(name, type, value):
     else:
         return "%s: %s\n" % (name, value)
 
+def get_decode_function(type):
+    if type._OPTIONAL:
+        type._decode = staticmethod(get_decode_function(type.__bases__[0]))
+        return decode_optional
+    elif type._BOUND and issubclass(type, (int, long)):
+        return decode_array_delimiter
+    elif issubclass(type, container.base_array):
+        return decode_array
+    elif issubclass(type, (struct, union)):
+        return decode_composite
+    elif issubclass(type, str):
+        return decode_bytes
+    else:
+        return decode_scalar
+
+def decode_optional(parent, name, type, data, endianness, len_hints):
+    value, size = type._optional_type._decode(data, endianness)
+    if value:
+        setattr(parent, name, True)
+        return size + type._decode(parent, name, type.__bases__[0], data[size:], endianness, len_hints)
+    else:
+        setattr(parent, name, None)
+        return size + type._SIZE
+
+def decode_array_delimiter(parent, name, type, data, endianness, len_hints):
+    value, size = type._decode(data, endianness)
+    len_hints[type._BOUND] = value
+    return size
+
+def decode_array(parent, name, type, data, endianness, len_hints):
+    return getattr(parent, name).decode(data, endianness, len_hints.get(name))
+
+def decode_composite(parent, name, type, data, endianness, len_hints):
+    return getattr(parent, name).decode(data, endianness, terminal = False)
+
+def decode_bytes(parent, name, type, data, endianness, len_hints):
+    value, size = type._decode(data, len_hints.get(name))
+    setattr(parent, name, value)
+    return size
+
+def decode_scalar(parent, name, type, data, endianness, len_hints):
+    value, size = type._decode(data, endianness)
+    setattr(parent, name, value)
+    return size
+
 def decode_field(parent, name, type, data, endianness, len_hints):
     if type._OPTIONAL:
         value, size = type._optional_type._decode(data, endianness)
@@ -199,6 +244,10 @@ def decode_field(parent, name, type, data, endianness, len_hints):
         else:
             setattr(parent, name, None)
             return size + type._SIZE
+    elif type._BOUND and issubclass(type, (int, long)):
+        value, size = type._decode(data, endianness)
+        len_hints[type._BOUND] = value
+        return size
     elif issubclass(type, container.base_array):
         return getattr(parent, name).decode(data, endianness, len_hints.get(name))
     elif issubclass(type, (struct, union)):
@@ -209,10 +258,7 @@ def decode_field(parent, name, type, data, endianness, len_hints):
         return size
     else:
         value, size = type._decode(data, endianness)
-        if type._BOUND:
-            len_hints[type._BOUND] = value
-        else:
-            setattr(parent, name, value)
+        setattr(parent, name, value)
         return size
 
 def validate_copy_from(lhs, rhs):
@@ -244,7 +290,7 @@ class struct(object):
 
     def __str__(self):
         out = ""
-        for name, tp, _ in self._descriptor:
+        for name, tp, _, _ in self._descriptor:
             value = getattr(self, name, None)
             if value is not None:
                 out += field_to_string(name, tp, value)
@@ -259,7 +305,7 @@ class struct(object):
 
     def encode(self, endianness, terminal = True):
         data = ""
-        for name, tp, encode_ in self._descriptor:
+        for name, tp, encode_, _ in self._descriptor:
             data += (self._get_padding(len(data), tp._ALIGNMENT) +
                      encode_(self, tp, getattr(self, name, None), endianness))
             if tp._PARTIAL_ALIGNMENT:
@@ -274,7 +320,7 @@ class struct(object):
         len_hints = {}
         orig_data_size = len(data)
 
-        for name, tp, _ in self._descriptor:
+        for name, tp, _, decode_ in self._descriptor:
             data = data[len(self._get_padding(orig_data_size - len(data), tp._ALIGNMENT)):]
             data = data[decode_field(self, name, tp, data, endianness, len_hints):]
             if tp._PARTIAL_ALIGNMENT:
@@ -342,7 +388,7 @@ def add_union_attributes(cls, descriptor):
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
     for field in descriptor:
-        name, type, disc, _ = field
+        name, type, disc, _, _ = field
         if issubclass(type, (struct, union)):
             add_union_composite(cls, name, type, disc, field)
         else:
@@ -388,7 +434,7 @@ def add_union_composite(cls, name, type, disc, field):
 
 def extend_union_descriptor(cls, descriptor):
     for i, (name, type, disc) in enumerate(descriptor):
-        descriptor[i] = (name, type, disc, get_encode_function(type))
+        descriptor[i] = (name, type, disc, get_encode_function(type), get_decode_function(type))
 
 def get_discriminated_field(cls, discriminator):
     field = next((x for x in cls._descriptor if x[2] == discriminator), None)
@@ -402,12 +448,12 @@ class union(object):
         self._discriminated = self._descriptor[0]
 
     def __str__(self):
-        name, tp, _, _ = self._discriminated
+        name, tp, _, _, _ = self._discriminated
         value = getattr(self, name)
         return field_to_string(name, tp, value)
 
     def encode(self, endianness, terminal = True):
-        name, tp, disc, encode_ = self._discriminated
+        name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
         data = (self._discriminator_type._encode(disc, endianness) +
                 encode_(self, tp, value, endianness))
@@ -418,7 +464,7 @@ class union(object):
         field = get_discriminated_field(self, disc)
         if not field:
             raise ProphyError("unknown discriminator")
-        name, type, _, _ = field
+        name, type, _, _, decode_ = field
         self._discriminated = field
         bytes_read += decode_field(self, name, type, data[bytes_read:], endianness, {})
         if len(data) < self._SIZE:
@@ -434,7 +480,7 @@ class union(object):
 
         self._fields.clear()
         self._discriminated = other._discriminated
-        name, type, _, _ = self._discriminated
+        name, type, _, _, _ = self._discriminated
         rhs = getattr(other, name)
         if issubclass(type, (struct, union)):
             lhs = getattr(self, name)
