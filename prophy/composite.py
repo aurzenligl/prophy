@@ -164,7 +164,7 @@ def encode_array_delimiter(parent, type, value, endianness):
     return type._encode(len(getattr(parent, type._BOUND)), endianness)
 
 def encode_array(parent, type, value, endianness):
-    return value.encode(endianness)
+    return value._encode_impl(endianness)
 
 def encode_composite(parent, type, value, endianness):
     return value.encode(endianness, terminal = False)
@@ -174,21 +174,6 @@ def encode_bytes(parent, type, value, endianness):
 
 def encode_scalar(parent, type, value, endianness):
     return type._encode(value, endianness)
-
-def indent(lines, spaces):
-    return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
-
-def field_to_string(name, type, value):
-    if issubclass(type, container.base_array):
-        return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
-    elif issubclass(type, (struct, union)):
-        return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
-    elif issubclass(type, str):
-        return "%s: %s\n" % (name, repr(value))
-    elif issubclass(type, scalar.enum):
-        return "%s: %s\n" % (name, type._int_to_name[value])
-    else:
-        return "%s: %s\n" % (name, value)
 
 def get_decode_function(type):
     if type._OPTIONAL:
@@ -220,7 +205,7 @@ def decode_array_delimiter(parent, name, type, data, pos, endianness, len_hints)
     return size
 
 def decode_array(parent, name, type, data, pos, endianness, len_hints):
-    return getattr(parent, name).decode(data, pos, endianness, len_hints.get(name))
+    return getattr(parent, name)._decode_impl(data, pos, endianness, len_hints.get(name))
 
 def decode_composite(parent, name, type, data, pos, endianness, len_hints):
     return getattr(parent, name)._decode_impl(data, pos, endianness, terminal = False)
@@ -234,6 +219,21 @@ def decode_scalar(parent, name, type, data, pos, endianness, len_hints):
     value, size = type._decode(data, pos, endianness)
     setattr(parent, name, value)
     return size
+
+def indent(lines, spaces):
+    return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
+
+def field_to_string(name, type, value):
+    if issubclass(type, container.base_array):
+        return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
+    elif issubclass(type, (struct, union)):
+        return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
+    elif issubclass(type, str):
+        return "%s: %s\n" % (name, repr(value))
+    elif issubclass(type, scalar.enum):
+        return "%s: %s\n" % (name, type._int_to_name[value])
+    else:
+        return "%s: %s\n" % (name, value)
 
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):

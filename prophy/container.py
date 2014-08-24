@@ -76,10 +76,10 @@ class fixed_scalar_array(base_array):
     def __eq__(self, other):
         return scalar_array_eq(self, other)
 
-    def encode(self, endianness):
+    def _encode_impl(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self)
 
-    def decode(self, data, pos, endianness, _):
+    def _decode_impl(self, data, pos, endianness, _):
         self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len(self))
         return size
 
@@ -129,10 +129,10 @@ class bound_scalar_array(base_array):
     def __eq__(self, other):
         return scalar_array_eq(self, other)
 
-    def encode(self, endianness):
+    def _encode_impl(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
 
-    def decode(self, data, pos, endianness, len_hint):
+    def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
             raise ProphyError("too few bytes to decode array")
         self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len_hint)
@@ -149,10 +149,10 @@ class fixed_composite_array(base_array):
     def __eq__(self, other):
         return composite_array_eq(self, other)
 
-    def encode(self, endianness):
+    def _encode_impl(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self)
 
-    def decode(self, data, pos, endianness, _):
+    def _decode_impl(self, data, pos, endianness, _):
         cursor = 0
         for elem in self:
             cursor += elem._decode_impl(data, pos + cursor, endianness, terminal = False)
@@ -192,10 +192,10 @@ class bound_composite_array(base_array):
     def __eq__(self, other):
         return composite_array_eq(self, other)
 
-    def encode(self, endianness):
+    def _encode_impl(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, "\x00")
 
-    def decode(self, data, pos, endianness, len_hint):
+    def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
             raise ProphyError("too few bytes to decode array")
         del self[:]
