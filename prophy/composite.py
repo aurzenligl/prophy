@@ -235,32 +235,6 @@ def decode_scalar(parent, name, type, data, endianness, len_hints):
     setattr(parent, name, value)
     return size
 
-def decode_field(parent, name, type, data, endianness, len_hints):
-    if type._OPTIONAL:
-        value, size = type._optional_type._decode(data, endianness)
-        if value:
-            setattr(parent, name, True)
-            return size + decode_field(parent, name, type.__bases__[0], data[size:], endianness, len_hints)
-        else:
-            setattr(parent, name, None)
-            return size + type._SIZE
-    elif type._BOUND and issubclass(type, (int, long)):
-        value, size = type._decode(data, endianness)
-        len_hints[type._BOUND] = value
-        return size
-    elif issubclass(type, container.base_array):
-        return getattr(parent, name).decode(data, endianness, len_hints.get(name))
-    elif issubclass(type, (struct, union)):
-        return getattr(parent, name).decode(data, endianness, terminal = False)
-    elif issubclass(type, str):
-        value, size = type._decode(data, len_hints.get(name))
-        setattr(parent, name, value)
-        return size
-    else:
-        value, size = type._decode(data, endianness)
-        setattr(parent, name, value)
-        return size
-
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):
         raise TypeError("Parameter to copy_from must be instance of same class.")
@@ -322,7 +296,7 @@ class struct(object):
 
         for name, tp, _, decode_ in self._descriptor:
             data = data[len(self._get_padding(orig_data_size - len(data), tp._ALIGNMENT)):]
-            data = data[decode_field(self, name, tp, data, endianness, len_hints):]
+            data = data[decode_(self, name, tp, data, endianness, len_hints):]
             if tp._PARTIAL_ALIGNMENT:
                 data = data[len(self._get_padding(orig_data_size - len(data), tp._PARTIAL_ALIGNMENT)):]
 
@@ -466,7 +440,7 @@ class union(object):
             raise ProphyError("unknown discriminator")
         name, type, _, _, decode_ = field
         self._discriminated = field
-        bytes_read += decode_field(self, name, type, data[bytes_read:], endianness, {})
+        bytes_read += decode_(self, name, type, data[bytes_read:], endianness, {})
         if len(data) < self._SIZE:
             raise ProphyError("not enough bytes")
         if terminal and len(data) > self._SIZE:
