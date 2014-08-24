@@ -1,14 +1,14 @@
 import composite
 from exception import ProphyError
 
-def decode_scalar_array(tp, data, endianness, count):
+def decode_scalar_array(tp, data, pos, endianness, count):
     if count is None:
-        items, remainder = divmod(len(data), tp._SIZE)
+        items, remainder = divmod(len(data) - pos, tp._SIZE)
         count = items + bool(remainder)
     cursor = 0
     values = []
     for _ in xrange(count):
-        value, size = tp._decode(data[cursor:], endianness)
+        value, size = tp._decode(data, pos + cursor, endianness)
         cursor += size
         values.append(value)
     return values, cursor
@@ -79,8 +79,8 @@ class fixed_scalar_array(base_array):
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self)
 
-    def decode(self, data, endianness, _):
-        self[:], size = decode_scalar_array(self._TYPE, data, endianness, len(self))
+    def decode(self, data, pos, endianness, _):
+        self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len(self))
         return size
 
 class bound_scalar_array(base_array):
@@ -132,10 +132,10 @@ class bound_scalar_array(base_array):
     def encode(self, endianness):
         return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
 
-    def decode(self, data, endianness, len_hint):
-        if self._SIZE > len(data):
+    def decode(self, data, pos, endianness, len_hint):
+        if self._SIZE > (len(data) - pos):
             raise ProphyError("too few bytes to decode array")
-        self[:], size = decode_scalar_array(self._TYPE, data, endianness, len_hint)
+        self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len_hint)
         return max(size, self._SIZE)
 
 class fixed_composite_array(base_array):
@@ -152,10 +152,10 @@ class fixed_composite_array(base_array):
     def encode(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self)
 
-    def decode(self, data, endianness, _):
+    def decode(self, data, pos, endianness, _):
         cursor = 0
         for elem in self:
-            cursor += elem.decode(data[cursor:], endianness, terminal = False)
+            cursor += elem._decode_impl(data, pos + cursor, endianness, terminal = False)
         return cursor
 
 class bound_composite_array(base_array):
@@ -195,17 +195,17 @@ class bound_composite_array(base_array):
     def encode(self, endianness):
         return "".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, "\x00")
 
-    def decode(self, data, endianness, len_hint):
-        if self._SIZE > len(data):
+    def decode(self, data, pos, endianness, len_hint):
+        if self._SIZE > (len(data) - pos):
             raise ProphyError("too few bytes to decode array")
         del self[:]
         cursor = 0
         if not self._SIZE and not self._BOUND:
-            while cursor < len(data):
-                cursor += self.add().decode(data[cursor:], endianness, terminal = False)
+            while (pos + cursor) < len(data):
+                cursor += self.add()._decode_impl(data, pos + cursor, endianness, terminal = False)
         else:
             for _ in xrange(len_hint):
-                cursor += self.add().decode(data[cursor:], endianness, terminal = False)
+                cursor += self.add()._decode_impl(data, pos + cursor, endianness, terminal = False)
         return max(cursor, self._SIZE)
 
 def array(type, **kwargs):

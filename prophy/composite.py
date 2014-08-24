@@ -120,8 +120,8 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
             return tp._encode(value + bound_shift, endianness)
 
         @staticmethod
-        def _decode(data, endianness):
-            value, size = tp._decode(data, endianness)
+        def _decode(data, pos, endianness):
+            value, size = tp._decode(data, pos, endianness)
             array_guard = 65536
             if value > array_guard:
                 raise ProphyError("decoded array length over %s" % array_guard)
@@ -205,33 +205,33 @@ def get_decode_function(type):
     else:
         return decode_scalar
 
-def decode_optional(parent, name, type, data, endianness, len_hints):
-    value, size = type._optional_type._decode(data, endianness)
+def decode_optional(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._optional_type._decode(data, pos, endianness)
     if value:
         setattr(parent, name, True)
-        return size + type._decode(parent, name, type.__bases__[0], data[size:], endianness, len_hints)
+        return size + type._decode(parent, name, type.__bases__[0], data, pos + size, endianness, len_hints)
     else:
         setattr(parent, name, None)
         return size + type._SIZE
 
-def decode_array_delimiter(parent, name, type, data, endianness, len_hints):
-    value, size = type._decode(data, endianness)
+def decode_array_delimiter(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._decode(data, pos, endianness)
     len_hints[type._BOUND] = value
     return size
 
-def decode_array(parent, name, type, data, endianness, len_hints):
-    return getattr(parent, name).decode(data, endianness, len_hints.get(name))
+def decode_array(parent, name, type, data, pos, endianness, len_hints):
+    return getattr(parent, name).decode(data, pos, endianness, len_hints.get(name))
 
-def decode_composite(parent, name, type, data, endianness, len_hints):
-    return getattr(parent, name).decode(data, endianness, terminal = False)
+def decode_composite(parent, name, type, data, pos, endianness, len_hints):
+    return getattr(parent, name)._decode_impl(data, pos, endianness, terminal = False)
 
-def decode_bytes(parent, name, type, data, endianness, len_hints):
-    value, size = type._decode(data, len_hints.get(name))
+def decode_bytes(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._decode(data, pos, len_hints.get(name))
     setattr(parent, name, value)
     return size
 
-def decode_scalar(parent, name, type, data, endianness, len_hints):
-    value, size = type._decode(data, endianness)
+def decode_scalar(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._decode(data, pos, endianness)
     setattr(parent, name, value)
     return size
 
@@ -291,22 +291,25 @@ class struct(object):
         return data
 
     def decode(self, data, endianness, terminal = True):
+        return self._decode_impl(data, 0, endianness, terminal)
+
+    def _decode_impl(self, data, pos, endianness, terminal):
         len_hints = {}
-        orig_data_size = len(data)
+        start_pos = pos
 
         for name, tp, _, decode_ in self._descriptor:
-            data = data[len(self._get_padding(orig_data_size - len(data), tp._ALIGNMENT)):]
-            data = data[decode_(self, name, tp, data, endianness, len_hints):]
+            pos += len(self._get_padding(pos, tp._ALIGNMENT))
+            pos += decode_(self, name, tp, data, pos, endianness, len_hints)
             if tp._PARTIAL_ALIGNMENT:
-                data = data[len(self._get_padding(orig_data_size - len(data), tp._PARTIAL_ALIGNMENT)):]
+                pos += len(self._get_padding(pos, tp._PARTIAL_ALIGNMENT))
 
         if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            data = data[len(self._get_padding(orig_data_size - len(data), self._ALIGNMENT)):]
+            pos += len(self._get_padding(pos, self._ALIGNMENT))
 
-        if terminal and data:
+        if terminal and pos < len(data):
             raise ProphyError("not all bytes read")
 
-        return orig_data_size - len(data)
+        return pos - start_pos
 
     def copy_from(self, other):
         validate_copy_from(self, other)
@@ -434,16 +437,19 @@ class union(object):
         return data.ljust(self._SIZE, '\x00')
 
     def decode(self, data, endianness, terminal = True):
-        disc, bytes_read = self._discriminator_type._decode(data, endianness)
+        return self._decode_impl(data, 0, endianness, terminal)
+
+    def _decode_impl(self, data, pos, endianness, terminal):
+        disc, bytes_read = self._discriminator_type._decode(data, pos, endianness)
         field = get_discriminated_field(self, disc)
         if not field:
             raise ProphyError("unknown discriminator")
         name, type, _, _, decode_ = field
         self._discriminated = field
-        bytes_read += decode_(self, name, type, data[bytes_read:], endianness, {})
-        if len(data) < self._SIZE:
+        bytes_read += decode_(self, name, type, data, pos + bytes_read, endianness, {})
+        if (len(data) - pos) < self._SIZE:
             raise ProphyError("not enough bytes")
-        if terminal and len(data) > self._SIZE:
+        if terminal and (len(data) - pos) > self._SIZE:
             raise ProphyError("not all bytes read")
         return self._SIZE
 
