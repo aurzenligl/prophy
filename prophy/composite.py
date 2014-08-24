@@ -273,9 +273,15 @@ class struct(object):
     @staticmethod
     def _get_padding(offset, alignment):
         remainder = offset % alignment
-        if not remainder:
+        if remainder:
+            return '\x00' * (alignment - remainder)
+        else:
             return ''
-        return '\x00' * (alignment - remainder)
+
+    @staticmethod
+    def _get_padding_size(offset, alignment):
+        remainder = offset % alignment
+        return alignment - remainder if remainder else 0
 
     def encode(self, endianness, terminal = True):
         data = ""
@@ -290,21 +296,21 @@ class struct(object):
 
         return data
 
-    def decode(self, data, endianness, terminal = True):
-        return self._decode_impl(data, 0, endianness, terminal)
+    def decode(self, data, endianness):
+        return self._decode_impl(data, 0, endianness, terminal = True)
 
     def _decode_impl(self, data, pos, endianness, terminal):
         len_hints = {}
         start_pos = pos
 
         for name, tp, _, decode_ in self._descriptor:
-            pos += len(self._get_padding(pos, tp._ALIGNMENT))
+            pos += self._get_padding_size(pos, tp._ALIGNMENT)
             pos += decode_(self, name, tp, data, pos, endianness, len_hints)
             if tp._PARTIAL_ALIGNMENT:
-                pos += len(self._get_padding(pos, tp._PARTIAL_ALIGNMENT))
+                pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
         if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            pos += len(self._get_padding(pos, self._ALIGNMENT))
+            pos += self._get_padding_size(pos, self._ALIGNMENT)
 
         if terminal and pos < len(data):
             raise ProphyError("not all bytes read")
@@ -325,6 +331,9 @@ class struct_packed(struct):
     @staticmethod
     def _get_padding(offset, alignment):
         return ''
+    @staticmethod
+    def _get_padding_size(offset, alignment):
+        return 0
 
 class struct_generator(type):
     def __new__(cls, name, bases, attrs):
@@ -436,8 +445,8 @@ class union(object):
                 encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, '\x00')
 
-    def decode(self, data, endianness, terminal = True):
-        return self._decode_impl(data, 0, endianness, terminal)
+    def decode(self, data, endianness):
+        return self._decode_impl(data, 0, endianness, terminal = True)
 
     def _decode_impl(self, data, pos, endianness, terminal):
         disc, bytes_read = self._discriminator_type._decode(data, pos, endianness)
