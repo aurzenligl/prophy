@@ -1,6 +1,3 @@
-prophy
-======
-
 ``prophy`` is a statically typed, binary, unpacked serialization protocol.
 
 Having this message definition::
