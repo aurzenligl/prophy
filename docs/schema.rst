@@ -1,7 +1,7 @@
-Schema
---------
+Schema language
+-----------------
 
-``prophy`` schema features following built-in types:
+Prophy schema features following built-in types:
 
 - ``i8``, signed 1-byte integer,
 - ``i16``, signed 2-byte integer,
@@ -14,16 +14,16 @@ Schema
 - ``float``, 32-bit floating number,
 - ``double``, 64-bit floating double-precision number,
 
-``prophy`` allows to define constants::
+Prophy allows to define constants::
 
     const MY_MIN = -1
     const MY_MAX = 0xFFF
 
-Typedefs::
+typedefs::
 
     typedef u32 my_new_int;
 
-Enums::
+enums::
 
     enum MyEnum
     {
@@ -32,7 +32,7 @@ Enums::
         MyEnum_3 = 3
     }
 
-Structs::
+structs::
 
     struct MyStruct
     {
@@ -96,4 +96,4 @@ Discriminated unions, which may have hardcoded numbers, constants or enumerators
         3: SomeType c;
     };
 
-Currently there are no includes or namespaces in the schema language.
+Currently there are no includes or namespaces in the language.

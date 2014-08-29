@@ -1,7 +1,7 @@
 prophy: fast serialization protocol
 ===================================
 
-``prophy`` is a statically typed, binary, unpacked serialization protocol.
+Prophy is a statically typed, binary, unpacked serialization protocol.
 
 It has a language, compiler and runtime libraries and is similar to:
 
@@ -16,8 +16,10 @@ User documentation:
 .. toctree::
    :maxdepth: 2
 
-   setup
+   installation
    schema
    encoding
-   compiler
-   extensions
+   examples
+   python_codec
+   cpp_raw_codec
+   other_schemas
