@@ -37,20 +37,77 @@ Signed types treat most significant bit as sign bit following U2 encoding rules.
 Array
 ==========
 
+Array is a sequence of elements of the same type.
+Elements may be numeric types, structs or unions.
+
+.. note ::
+    Dynamic struct may not be held in fixed or limited array.
+
+.. note ::
+    Unlimited struct may not be held in any array.
+
+There are so much as 4 different types of arrays in Prophy.
+
 Fixed array
 ------------
+
+Fixed array has fixed number of elements, hence fixed size on wire. This array::
+
+    u16 x[4];
+
+with elements set to 1, 2, 3 and 4 would encode as::
+
+    01 00 02 00 03 00 04 00
 
 Dynamic array
 --------------
 
+Dynamic array has varying number of elements
+counted by 32-bit unsigned delimiter. This one::
+
+    u16 x<>;
+
+with 2 elements set to 1 and 2 encodes as::
+
+    02 00 00 00 01 00 02 00
+
 Limited array
 ---------------
+
+A combination of fixed and dynamic one.
+Delimited by an element counter, has fixed size on wire.
+This requires it to have an upper limit. Such array::
+
+    u16 x<4>;
+
+with 2 elements set to 1 and 2 encodes as::
+
+    02 00 00 00 01 00 02 00 00 00 00 00
 
 Greedy array
 --------------
 
-Struct array
-===============
+Variable element array without element counter. This one::
+
+    u16 x<...>;
+
+with 2 elements set to 1 and 2 encodes as::
+
+    01 00 02 00
+
+.. note ::
+    Greedy array can be used only in the last field of struct.
+    Such struct may also be only the last field of any other struct.
+
+Bytes
+---------
+
+Bytes field is an array of bytes, which can be handled by codec
+in more effective way than array of u8. Wire-format, however,
+is the same.
+
+Struct
+============
 
 A sequence of fields which get serialized in order. Following struct::
 
