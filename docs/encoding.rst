@@ -218,7 +218,28 @@ and with field not set would encode as::
     00 00 00 00 00 00 00 00
 
 .. note ::
-    Optional field may not contain unlimited or dynamic struct.
+    Optional field may not contain unlimited nor dynamic struct.
 
 Union
 =================
+
+Union has fixed size, related to its largest arm size.
+It encodes single arm prepended by a field discriminator encoded
+as a 32-bit integer. This union::
+
+    union X
+    {
+        0: u8 x;
+        1: u16 y;
+    };
+
+with first arm discriminated and set to 1 encodes as::
+
+    00 00 00 00 01 [00 00 00]
+
+and with second arm discriminated and set to 2 encodes as::
+
+    01 00 00 00 02 00 [00 00]
+
+.. note ::
+    Union arm may not contain unlimited nor dynamic struct, nor array.
