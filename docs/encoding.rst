@@ -10,6 +10,12 @@ Prophy ensures that each field in message is aligned.
 This allows to manipulate message directly in serialized buffer
 and contributes to encoding speed.
 
+There are constraints related to array, struct and union
+composability pointed out in this section's notes.
+
+If not stated otherwise all following examples will have numbers
+encoded in little endian for the sake of brevity.
+
 Numeric types
 ====================
 
@@ -29,10 +35,6 @@ enum                2a 00 00 00              00 00 00 2a
 ==================  =======================  =======================
 
 Signed types treat most significant bit as sign bit following U2 encoding rules.
-
-.. note ::
-    All following examples will have numbers encoded
-    in little endian for the sake of brevity.
 
 Array
 ==========
@@ -103,7 +105,7 @@ Bytes
 ---------
 
 Bytes field is an array of bytes, which can be handled by codec
-in more effective way than array of u8. Wire-format, however,
+in more effective way than an array of u8. Wire format, however,
 is the same.
 
 Struct
@@ -167,14 +169,56 @@ with fields set to 1, (2, 3, 4) and 5 encodes as::
 Dynamic struct
 ----------------
 
-Dynamic struct padding
--------------------------
+Struct which contains dynamic arrays directly or indirectly
+becomes dynamic itself - its wire representation size varies.
+
+It also means its dynamic arrays padding is related to
+number of their elements. Example illustrates::
+
+    struct X
+    {
+        bytes x<>;
+        bytes y<>;
+    };
+
+with fields set to (1,) and (1, 2, 3) would give::
+
+    01 00 00 00 01 00 00 00 03 00 00 00 01 02 03 00
+
+.. note ::
+    Dynamic struct may not be held in fixed or limited array.
 
 Unlimited struct
 -------------------
 
-Optional struct field
--------------------------
+Struct which contains greedy array or unlimited struct
+in the last field becomes an unlimited struct.
+
+.. note ::
+    Unlimited struct may not be held in any array.
+
+Optional field
+------------------
+
+Optional struct field has fixed size on wire.
+It's prepended by a boolean value encoded as a 32-bit integer.
+If field is not set, it's filled with zeroes up to size. This one::
+
+    struct X
+    {
+        u16* x;
+    };
+
+with field set to 1 would encode as::
+
+    01 00 00 00 01 00 00 00
+
+and with field not set would encode as::
+
+    00 00 00 00 00 00 00 00
+
+.. note ::
+    Optional field may not contain unlimited or dynamic struct.
 
 Union
 =================
