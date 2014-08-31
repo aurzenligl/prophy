@@ -1,3 +1,5 @@
+.. _python:
+
 Python codec
 ===============
 
@@ -41,7 +43,7 @@ Packed mode
 ----------------
 
 Python generated message descriptors may be altered
-to inhibit padding by inheriting from `struct_packed` instead of `struct`.
+to inhibit padding by inheriting from ``struct_packed`` instead of ``struct``.
 Following message would be encoded as 6 bytes::
 
     class PackedMessage(prophy.struct_packed):
@@ -49,3 +51,6 @@ Following message would be encoded as 6 bytes::
         _descriptor = [('x', prophy.u8),
                        ('y', prophy.u32),
                        ('z', prophy.u8)]
+
+.. warning::
+    Mixing ``struct_packed`` with nested ``struct`` and otherwise yields undefined behavior.
