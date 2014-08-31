@@ -138,7 +138,7 @@ unsigned discriminators at the beginning of each field::
 Discriminators may be literals or references to constants or enumerators.
 
 .. note::
-    Union arm cannot hold dynamic nor unlimited struct, not array.
+    Union arm cannot hold dynamic nor unlimited struct, nor array.
 
 Limitations
 -------------
