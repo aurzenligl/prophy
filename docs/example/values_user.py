@@ -17,11 +17,11 @@ obj.updated_values = '\x0e'
 print x
 
 # this is how data can be encoded
-data = x.encode('>')
+data = x.encode('<')
 
 from binascii import hexlify
 
 print hexlify(data)
 
 # this is how data can be decoded
-x.decode(data, '>')
+x.decode(data, '<')

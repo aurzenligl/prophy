@@ -27,6 +27,5 @@ struct Object
 struct Values
 {
     u32 transaction_id;
-    u64* timestamp;
     Object objects<>;
 };
