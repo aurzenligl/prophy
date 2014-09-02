@@ -43,9 +43,6 @@ def add_padding(cls, descriptor):
     paddings = map(Padder(), sizes, alignments)
     cls._SIZE += sum(paddings)
 
-def add_null_padding(descriptor):
-    pass
-
 def add_properties(cls, descriptor):
     for name, tp in descriptor:
         if issubclass(tp, container.base_array):
@@ -69,35 +66,39 @@ def add_repeated(cls, name, tp):
         substitute_len_field(cls, cls._descriptor, name, tp)
 
 def add_scalar(cls, field_name, field_type):
-    def getter(self):
-        if field_type._OPTIONAL and field_name not in self._fields:
-            return None
-        return self._fields.get(field_name, field_type._DEFAULT)
-    def setter(self, new_value):
-        if field_type._OPTIONAL and new_value is None:
-            self._fields.pop(field_name, None)
-        else:
+    if field_type._OPTIONAL:
+        def getter(self):
+            return self._fields.get(field_name)
+        def setter(self, new_value):
+            self._fields[field_name] = None if new_value is None else field_type._check(new_value)
+    else:
+        def getter(self):
+            return self._fields.get(field_name, field_type._DEFAULT)
+        def setter(self, new_value):
             self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
     if field_type._BOUND:
         substitute_len_field(cls, cls._descriptor, field_name, field_type)
 
 def add_composite(cls, name, tp):
-    def getter(self):
-        if tp._OPTIONAL and name not in self._fields:
-            return None
-        if name not in self._fields:
-            value = tp()
-            self._fields[name] = value
-            return value
-        else:
+    if tp._OPTIONAL:
+        def getter(self):
             return self._fields.get(name)
-    def setter(self, new_value):
-        if tp._OPTIONAL and new_value is True:
-            self._fields[name] = tp()
-        elif tp._OPTIONAL and new_value is None:
-            self._fields.pop(name, None)
-        else:
+        def setter(self, new_value):
+            if new_value is True:
+                self._fields[name] = tp()
+            elif new_value is None:
+                self._fields.pop(name, None)
+            else:
+                raise ProphyError("assignment to composite field not allowed")
+    else:
+        def getter(self):
+            value = self._fields.get(name)
+            if value:
+                return value
+            else:
+                return self._fields.setdefault(name, tp())
+        def setter(self, new_value):
             raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
 
@@ -119,8 +120,8 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
             return tp._encode(value + bound_shift, endianness)
 
         @staticmethod
-        def _decode(data, endianness):
-            value, size = tp._decode(data, endianness)
+        def _decode(data, pos, endianness):
+            value, size = tp._decode(data, pos, endianness)
             array_guard = 65536
             if value > array_guard:
                 raise ProphyError("decoded array length over %s" % array_guard)
@@ -132,16 +133,92 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     descriptor[index] = (name, container_len)
     delattr(cls, name)
 
-def get_padding_size(struct_obj, offset, alignment):
-    if isinstance(struct_obj, struct_packed):
-        return 0
-    remainder = offset % alignment
-    if not remainder:
-        return 0
-    return alignment - remainder
+def extend_descriptor(cls, descriptor):
+    for i, (name, type) in enumerate(descriptor):
+        descriptor[i] = (name, type, get_encode_function(type), get_decode_function(type))
 
-def get_padding(struct_obj, offset, alignment):
-    return '\x00' * get_padding_size(struct_obj, offset, alignment)
+def get_encode_function(type):
+    if type._OPTIONAL:
+        type._encode = staticmethod(get_encode_function(type.__bases__[0]))
+        return encode_optional
+    elif type._BOUND and issubclass(type, (int, long)):
+        return encode_array_delimiter
+    elif issubclass(type, container.base_array):
+        return encode_array
+    elif issubclass(type, (struct, union)):
+        return encode_composite
+    elif issubclass(type, str):
+        return encode_bytes
+    else:
+        return encode_scalar
+
+def encode_optional(parent, type, value, endianness):
+    if value is None:
+        return (type._optional_type._encode(False, endianness) +
+                "\x00" * type._SIZE)
+    else:
+        return (type._optional_type._encode(True, endianness) +
+                type._encode(parent, type.__bases__[0], value, endianness))
+
+def encode_array_delimiter(parent, type, value, endianness):
+    return type._encode(len(getattr(parent, type._BOUND)), endianness)
+
+def encode_array(parent, type, value, endianness):
+    return value._encode_impl(endianness)
+
+def encode_composite(parent, type, value, endianness):
+    return value.encode(endianness, terminal = False)
+
+def encode_bytes(parent, type, value, endianness):
+    return type._encode(value)
+
+def encode_scalar(parent, type, value, endianness):
+    return type._encode(value, endianness)
+
+def get_decode_function(type):
+    if type._OPTIONAL:
+        type._decode = staticmethod(get_decode_function(type.__bases__[0]))
+        return decode_optional
+    elif type._BOUND and issubclass(type, (int, long)):
+        return decode_array_delimiter
+    elif issubclass(type, container.base_array):
+        return decode_array
+    elif issubclass(type, (struct, union)):
+        return decode_composite
+    elif issubclass(type, str):
+        return decode_bytes
+    else:
+        return decode_scalar
+
+def decode_optional(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._optional_type._decode(data, pos, endianness)
+    if value:
+        setattr(parent, name, True)
+        return size + type._decode(parent, name, type.__bases__[0], data, pos + size, endianness, len_hints)
+    else:
+        setattr(parent, name, None)
+        return size + type._SIZE
+
+def decode_array_delimiter(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._decode(data, pos, endianness)
+    len_hints[type._BOUND] = value
+    return size
+
+def decode_array(parent, name, type, data, pos, endianness, len_hints):
+    return getattr(parent, name)._decode_impl(data, pos, endianness, len_hints.get(name))
+
+def decode_composite(parent, name, type, data, pos, endianness, len_hints):
+    return getattr(parent, name)._decode_impl(data, pos, endianness, terminal = False)
+
+def decode_bytes(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._decode(data, pos, len_hints.get(name))
+    setattr(parent, name, value)
+    return size
+
+def decode_scalar(parent, name, type, data, pos, endianness, len_hints):
+    value, size = type._decode(data, pos, endianness)
+    setattr(parent, name, value)
+    return size
 
 def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
@@ -157,50 +234,6 @@ def field_to_string(name, type, value):
         return "%s: %s\n" % (name, type._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
-
-def encode_field(parent, type, value, endianness):
-    if type._OPTIONAL:
-        if value is None:
-            return (type._optional_type._encode(False, endianness) +
-                    "\x00" * type._SIZE)
-        else:
-            return (type._optional_type._encode(True, endianness) +
-                    encode_field(parent, type.__bases__[0], value, endianness))
-    if type._BOUND and issubclass(type, (int, long)):
-        return type._encode(len(getattr(parent, type._BOUND)), endianness)
-    elif issubclass(type, container.base_array):
-        return value.encode(endianness)
-    elif issubclass(type, (struct, union)):
-        return value.encode(endianness, terminal = False)
-    elif issubclass(type, str):
-        return type._encode(value)
-    else:
-        return type._encode(value, endianness)
-
-def decode_field(parent, name, type, data, endianness, len_hints):
-    if type._OPTIONAL:
-        value, size = type._optional_type._decode(data, endianness)
-        if value:
-            setattr(parent, name, True)
-            return size + decode_field(parent, name, type.__bases__[0], data[size:], endianness, len_hints)
-        else:
-            setattr(parent, name, None)
-            return size + type._SIZE
-    elif issubclass(type, container.base_array):
-        return getattr(parent, name).decode(data, endianness, len_hints.get(name))
-    elif issubclass(type, (struct, union)):
-        return getattr(parent, name).decode(data, endianness, terminal = False)
-    elif issubclass(type, str):
-        value, size = type._decode(data, len_hints.get(name))
-        setattr(parent, name, value)
-        return size
-    else:
-        value, size = type._decode(data, endianness)
-        if type._BOUND:
-            len_hints[type._BOUND] = value
-        else:
-            setattr(parent, name, value)
-        return size
 
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):
@@ -231,42 +264,58 @@ class struct(object):
 
     def __str__(self):
         out = ""
-        for name, tp in self._descriptor:
+        for name, tp, _, _ in self._descriptor:
             value = getattr(self, name, None)
             if value is not None:
                 out += field_to_string(name, tp, value)
         return out
 
+    @staticmethod
+    def _get_padding(offset, alignment):
+        remainder = offset % alignment
+        if remainder:
+            return '\x00' * (alignment - remainder)
+        else:
+            return ''
+
+    @staticmethod
+    def _get_padding_size(offset, alignment):
+        remainder = offset % alignment
+        return alignment - remainder if remainder else 0
+
     def encode(self, endianness, terminal = True):
         data = ""
-        for name, tp in self._descriptor:
-            data += (get_padding(self, len(data), tp._ALIGNMENT) +
-                     encode_field(self, tp, getattr(self, name, None), endianness))
+        for name, tp, encode_, _ in self._descriptor:
+            data += (self._get_padding(len(data), tp._ALIGNMENT) +
+                     encode_(self, tp, getattr(self, name, None), endianness))
             if tp._PARTIAL_ALIGNMENT:
-                data += get_padding(self, len(data), tp._PARTIAL_ALIGNMENT)
+                data += self._get_padding(len(data), tp._PARTIAL_ALIGNMENT)
 
         if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            data += get_padding(self, len(data), self._ALIGNMENT)
+            data += self._get_padding(len(data), self._ALIGNMENT)
 
         return data
 
-    def decode(self, data, endianness, terminal = True):
-        len_hints = {}
-        orig_data_size = len(data)
+    def decode(self, data, endianness):
+        return self._decode_impl(data, 0, endianness, terminal = True)
 
-        for name, tp in self._descriptor:
-            data = data[get_padding_size(self, orig_data_size - len(data), tp._ALIGNMENT):]
-            data = data[decode_field(self, name, tp, data, endianness, len_hints):]
+    def _decode_impl(self, data, pos, endianness, terminal):
+        len_hints = {}
+        start_pos = pos
+
+        for name, tp, _, decode_ in self._descriptor:
+            pos += self._get_padding_size(pos, tp._ALIGNMENT)
+            pos += decode_(self, name, tp, data, pos, endianness, len_hints)
             if tp._PARTIAL_ALIGNMENT:
-                data = data[get_padding_size(self, orig_data_size - len(data), tp._PARTIAL_ALIGNMENT):]
+                pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
         if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            data = data[get_padding_size(self, orig_data_size - len(data), self._ALIGNMENT):]
+            pos += self._get_padding_size(pos, self._ALIGNMENT)
 
-        if terminal and data:
+        if terminal and pos < len(data):
             raise ProphyError("not all bytes read")
 
-        return orig_data_size - len(data)
+        return pos - start_pos
 
     def copy_from(self, other):
         validate_copy_from(self, other)
@@ -279,6 +328,12 @@ class struct(object):
 
 class struct_packed(struct):
     __slots__ = []
+    @staticmethod
+    def _get_padding(offset, alignment):
+        return ''
+    @staticmethod
+    def _get_padding_size(offset, alignment):
+        return 0
 
 class struct_generator(type):
     def __new__(cls, name, bases, attrs):
@@ -293,6 +348,7 @@ class struct_generator(type):
             if not issubclass(cls, struct_packed):
                 add_padding(cls, descriptor)
             add_properties(cls, descriptor)
+            extend_descriptor(cls, descriptor)
         super(struct_generator, cls).__init__(name, bases, attrs)
 
 def validate_union(descriptor):
@@ -317,42 +373,42 @@ def add_union_attributes(cls, descriptor):
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
-    for name, type, disc in descriptor:
+    for field in descriptor:
+        name, type, disc, _, _ = field
         if issubclass(type, (struct, union)):
-            add_union_composite(cls, name, type, disc)
+            add_union_composite(cls, name, type, disc, field)
         else:
-            add_union_scalar(cls, name, type, disc)
+            add_union_scalar(cls, name, type, disc, field)
 
 def add_union_discriminator(cls):
     def getter(self):
-        return self._discriminator
+        return self._discriminated[2]
     def setter(self, new_value):
         field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
         if field:
-            name, type, disc = field
-            if disc != self._discriminator:
-                self._discriminator = disc
+            if field != self._discriminated:
+                self._discriminated = field
                 self._fields = {}
         else:
             raise ProphyError("unknown discriminator")
     setattr(cls, "discriminator", property(getter, setter))
 
-def add_union_scalar(cls, name, type, disc):
+def add_union_scalar(cls, name, type, disc, field):
     def getter(self):
-        if self._discriminator is not disc:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator)
+        if self._discriminated is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         return self._fields.get(name, type._DEFAULT)
     def setter(self, new_value):
-        if self._discriminator is not disc:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator)
+        if self._discriminated is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         new_value = type._check(new_value)
         self._fields[name] = new_value
     setattr(cls, name, property(getter, setter))
 
-def add_union_composite(cls, name, type, disc):
+def add_union_composite(cls, name, type, disc, field):
     def getter(self):
-        if self._discriminator is not disc:
-            raise ProphyError("currently field %s is discriminated" % self._discriminator)
+        if self._discriminated is not field:
+            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         value = self._fields.get(name)
         if value is None:
             value = type()
@@ -362,40 +418,47 @@ def add_union_composite(cls, name, type, disc):
         raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
 
+def extend_union_descriptor(cls, descriptor):
+    for i, (name, type, disc) in enumerate(descriptor):
+        descriptor[i] = (name, type, disc, get_encode_function(type), get_decode_function(type))
+
 def get_discriminated_field(cls, discriminator):
     field = next((x for x in cls._descriptor if x[2] == discriminator), None)
-    return field[:2] if field else None
+    return field
 
 class union(object):
     __slots__ = []
 
     def __init__(self):
         self._fields = {}
-        self._discriminator = self._descriptor[0][2]
+        self._discriminated = self._descriptor[0]
 
     def __str__(self):
-        name, tp = get_discriminated_field(self, self._discriminator)
+        name, tp, _, _, _ = self._discriminated
         value = getattr(self, name)
         return field_to_string(name, tp, value)
 
     def encode(self, endianness, terminal = True):
-        name, tp = get_discriminated_field(self, self._discriminator)
+        name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(self._discriminator, endianness) +
-                encode_field(self, tp, value, endianness))
+        data = (self._discriminator_type._encode(disc, endianness) +
+                encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, '\x00')
 
-    def decode(self, data, endianness, terminal = True):
-        disc, bytes_read = self._discriminator_type._decode(data, endianness)
+    def decode(self, data, endianness):
+        return self._decode_impl(data, 0, endianness, terminal = True)
+
+    def _decode_impl(self, data, pos, endianness, terminal):
+        disc, bytes_read = self._discriminator_type._decode(data, pos, endianness)
         field = get_discriminated_field(self, disc)
         if not field:
             raise ProphyError("unknown discriminator")
-        name, type = field
-        self._discriminator = disc
-        bytes_read += decode_field(self, name, type, data[bytes_read:], endianness, {})
-        if len(data) < self._SIZE:
+        name, type, _, _, decode_ = field
+        self._discriminated = field
+        bytes_read += decode_(self, name, type, data, pos + bytes_read, endianness, {})
+        if (len(data) - pos) < self._SIZE:
             raise ProphyError("not enough bytes")
-        if terminal and len(data) > self._SIZE:
+        if terminal and (len(data) - pos) > self._SIZE:
             raise ProphyError("not all bytes read")
         return self._SIZE
 
@@ -405,8 +468,8 @@ class union(object):
             return
 
         self._fields.clear()
-        self._discriminator = other._discriminator
-        name, type = get_discriminated_field(self, self._discriminator)
+        self._discriminated = other._discriminated
+        name, type, _, _, _ = self._discriminated
         rhs = getattr(other, name)
         if issubclass(type, (struct, union)):
             lhs = getattr(self, name)
@@ -416,11 +479,14 @@ class union(object):
 
 class union_generator(type):
     def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = ["_fields", "_discriminator"]
+        attrs["__slots__"] = ["_fields", "_discriminated"]
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
     def __init__(cls, name, bases, attrs):
-        descriptor = cls._descriptor
-        validate_union(descriptor)
-        add_union_attributes(cls, descriptor)
-        add_union_properties(cls, descriptor)
+        if not hasattr(cls, "_generated"):
+            cls._generated = True
+            descriptor = cls._descriptor
+            validate_union(descriptor)
+            add_union_attributes(cls, descriptor)
+            extend_union_descriptor(cls, descriptor)
+            add_union_properties(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)

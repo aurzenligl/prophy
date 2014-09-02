@@ -7,10 +7,10 @@ def numeric_decorator(cls, size, id):
         return struct.pack(endianness + id, value)
 
     @staticmethod
-    def decode(data, endianness):
-        if len(data) < size:
+    def decode(data, pos, endianness):
+        if (len(data) - pos) < size:
             raise ProphyError("too few bytes to decode integer")
-        value, = struct.unpack(endianness + id, data[:size])
+        value, = struct.unpack(endianness + id, data[pos : pos + size])
         return value, size
 
     cls._encode = encode
@@ -185,18 +185,18 @@ def bytes(**kwargs):
             return value.ljust(size, '\x00')
 
         @staticmethod
-        def _decode(data, len_hint):
-            if len(data) < size:
+        def _decode(data, pos, len_hint):
+            if (len(data) - pos) < size:
                 raise ProphyError("too few bytes to decode string")
             if size and not bound:
-                return data[:size], size
+                return data[pos:pos+size], size
             elif size and bound:
-                return data[:len_hint], size
+                return data[pos:pos+len_hint], size
             elif bound:
-                if len(data) < len_hint:
+                if (len(data) - pos) < len_hint:
                     raise ProphyError("too few bytes to decode string")
-                return data[:len_hint], len_hint
+                return data[pos:pos+len_hint], len_hint
             else:  # greedy
-                return data, len(data)
+                return data[pos:], (len(data) - pos)
 
     return _bytes

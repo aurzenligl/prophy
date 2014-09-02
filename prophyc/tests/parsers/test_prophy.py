@@ -86,12 +86,6 @@ struct test
 };
 """
 
-    xx=  model.Struct('test', [
-            model.StructMember('x', 'u32', size = '3'),
-            model.StructMember('y', 'u32', size = 'max'),
-            model.StructMember('z', 'byte', size = '10')
-        ])
-
     assert parse(content) == [
         model.Constant('max', '5'),
         model.Struct('test', [

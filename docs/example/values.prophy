@@ -1,0 +1,31 @@
+struct Keys
+{
+    u32 key_a;
+    u32 key_b;
+    u32 key_c;
+};
+
+struct Nodes
+{
+    u32 nodes<3>;
+};
+
+union Token
+{
+    0: u32 id;
+    1: Keys keys;
+    2: Nodes nodes;
+};
+
+struct Object
+{
+    Token token;
+    i64 values<>;
+    bytes updated_values<>;
+};
+
+struct Values
+{
+    u32 transaction_id;
+    Object objects<>;
+};

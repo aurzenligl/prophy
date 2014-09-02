@@ -171,7 +171,7 @@ def test_container_len_attributes():
                        ("b_len", prophy.u8),
                        ("b", prophy.array(prophy.u8, bound = "b_len"))]
 
-    assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp in S._descriptor]
+    assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp, _, _ in S._descriptor]
 
 def test_struct_static_attributes():
     class S(prophy.struct_packed):
@@ -357,7 +357,7 @@ def test_struct_partially_padded():
                        ("z", prophy.u64)]
 
     assert X._ALIGNMENT == 8
-    assert [tp._PARTIAL_ALIGNMENT for _, tp in X._descriptor] == [None, 8, None, None]
+    assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in X._descriptor] == [None, 8, None, None]
 
     class Y(prophy.struct):
         __metaclass__ = prophy.struct_generator
@@ -368,7 +368,7 @@ def test_struct_partially_padded():
                        ("z", prophy.u64)]
 
     assert Y._ALIGNMENT == 8
-    assert [tp._PARTIAL_ALIGNMENT for _, tp in Y._descriptor] == [None, 4, None, 8, None]
+    assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in Y._descriptor] == [None, 4, None, 8, None]
 
 def test_bytes_partially_padded():
     class Y(prophy.struct):
@@ -380,7 +380,7 @@ def test_bytes_partially_padded():
                        ("z", prophy.u64)]
 
     assert Y._ALIGNMENT == 8
-    assert [tp._PARTIAL_ALIGNMENT for _, tp in Y._descriptor] == [None, 4, None, 8, None]
+    assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in Y._descriptor] == [None, 4, None, 8, None]
 
 def test_empty_struct():
     class E(prophy.struct):
