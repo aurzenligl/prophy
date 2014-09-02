@@ -32,7 +32,7 @@ Enumerators can be accessed::
         Test1_3 = 3
     };
 
-.. code::
+::
 
     >>> import test
     >>> test.Test1_1
@@ -45,7 +45,7 @@ Structs can be instantiated, written or read and encoded or decoded::
         u32 a;
     };
 
-.. code::
+::
 
     >>> import test
     >>> x = test.Test2()
@@ -66,7 +66,7 @@ Struct enum field can be set by value or name, name can be extracted from it::
         Test1 a;
     };
 
-.. code::
+::
 
     >>> import test
     >>> x = test.Test3()
@@ -84,7 +84,7 @@ Arrays (all kinds) may be indexed, sliced and iterated::
         i32 a[3];
     };
 
-.. code::
+::
 
     >>> import test
     >>> x = test.Test4()
@@ -106,7 +106,7 @@ Arrays of structs or unions can add new elements or be extended by iterables of 
         Test2 a<>;
     };
 
-.. code::
+::
 
     >>> import test
     >>> x = test.Test5()
@@ -134,7 +134,7 @@ Optional struct fields may be set or cleared by setting with True and None::
         Test2* b;
     };
 
-.. code::
+::
 
     >>> import test
     >>> x = test.Test6()
@@ -159,7 +159,7 @@ Union arm is chosen by setting discriminator with arm number or name::
         1: Test2 b;
     };
 
-.. code::
+::
 
     >>> import test
     >>> x = test.Test7()

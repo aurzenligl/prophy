@@ -18,6 +18,8 @@ composability pointed out in this section's notes.
 If not stated otherwise all following examples will have numbers
 encoded in little endian for the sake of brevity.
 
+.. _encoding_numeric_types:
+
 Numeric types
 ====================
 
@@ -125,6 +127,8 @@ with fields set to 1 and 2 will yield::
 
     01 00 02 00
 
+.. _encoding_struct_padding:
+
 Struct padding
 -----------------
 
@@ -168,6 +172,8 @@ with fields set to 1, (2, 3, 4) and 5 encodes as::
 
     01 [00] 02 [00] 03 00 04 [00] 05 [00]
 
+.. _encoding_dynamic_struct:
+
 Dynamic struct
 ----------------
 
@@ -185,7 +191,7 @@ number of their elements. Example illustrates::
 
 with fields set to (1,) and (1, 2, 3) would give::
 
-    01 00 00 00 01 00 00 00 03 00 00 00 01 02 03 00
+    01 00 00 00 01 [00 00 00] 03 00 00 00 01 02 03 [00]
 
 .. note ::
     Dynamic struct may not be held in fixed or limited array.

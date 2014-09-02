@@ -36,3 +36,11 @@ union Test7
     0: u32 a;
     1: Test2 b;
 };
+
+struct Test8
+{
+    i32 a[3];
+    i32 b<>;
+    i32 c<3>;
+    i32 d<...>;
+};
