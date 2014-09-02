@@ -167,3 +167,24 @@ def test_fixed_array_decode_size_over_255():
     x = X()
     x.decode('\x01' * 300, '<')
     assert len(x.x) == 300
+
+def test_fixed_array_decode_multiple_scalar_arrays():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('x', prophy.array(prophy.u8, size = 1)),
+                       ('y', prophy.array(prophy.u8, size = 1)),
+                       ('z', prophy.array(prophy.u8, size = 1))]
+    x = X()
+    x.decode('\x00\x00\x00', '<')
+
+def test_fixed_array_decode_multiple_composite_arrays():
+    class Y(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('x', prophy.u8)]
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('x', prophy.array(Y, size = 1)),
+                       ('y', prophy.array(Y, size = 1)),
+                       ('z', prophy.array(Y, size = 1))]
+    x = X()
+    x.decode('\x00\x00\x00', '<')
