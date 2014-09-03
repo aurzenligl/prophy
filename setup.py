@@ -12,8 +12,8 @@ setup(name = 'prophy',
               'prophyc = prophyc:main'
           ]
       },
-      version = '0.4.1',
-      description = 'prophy: fast data interchange format toolchain',
+      version = '0.4.2',
+      description = 'prophy: fast serialization protocol',
       long_description = long_description,
       author = 'Krzysztof Laskowski',
       author_email = 'krzysztof.laskowski@nsn.com',

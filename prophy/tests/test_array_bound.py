@@ -246,3 +246,18 @@ value {
         x.decode("\x00\x00\x00", ">")
     with pytest.raises(Exception):
         x.decode("\x00\x00\x00\x00\x00", ">")
+
+def test_bound_composite_array_decode_multiple():
+    class Y(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('x', prophy.u8)]
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('num_of_x', prophy.u8),
+                       ('x', prophy.array(Y, bound = 'num_of_x')),
+                       ('num_of_y', prophy.u8),
+                       ('y', prophy.array(Y, bound = 'num_of_y')),
+                       ('num_of_z', prophy.u8),
+                       ('z', prophy.array(Y, bound = 'num_of_z'))]
+    x = X()
+    x.decode('\x01\x00\x01\x00\x01\x00', '<')
