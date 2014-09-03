@@ -195,7 +195,7 @@ C++ raw basics
 In this tutorial we'll do following things:
 
   - write a simple .prophy file,
-  - use compiler to generate Python codec,
+  - use compiler to generate C++ raw codec,
   - use this codec to write and read data.
 
 Prophy file
