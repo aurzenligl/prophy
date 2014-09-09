@@ -28,7 +28,7 @@
 
 using namespace testing;
 
-TEST(generated, Composite)
+TEST(generated_raw, Composite)
 {
     data x(
         "\x01\x00\x00\x02"
@@ -44,7 +44,7 @@ TEST(generated, Composite)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, CompositeDynamicArray)
+TEST(generated_raw, CompositeDynamicArray)
 {
     data x(
         "\x00\x00\x00\x03"
@@ -64,7 +64,7 @@ TEST(generated, CompositeDynamicArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, CompositeFixedArray)
+TEST(generated_raw, CompositeFixedArray)
 {
     data x(
         "\x01\x00\x00\x02"
@@ -82,7 +82,7 @@ TEST(generated, CompositeFixedArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, CompositeGreedyArray)
+TEST(generated_raw, CompositeGreedyArray)
 {
     data x(
         "\x00\x01"
@@ -107,7 +107,7 @@ TEST(generated, CompositeGreedyArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, CompositeLimitedArray)
+TEST(generated_raw, CompositeLimitedArray)
 {
     data x(
         "\x00\x02"
@@ -127,7 +127,7 @@ TEST(generated, CompositeLimitedArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ConstantTypedefEnum)
+TEST(generated_raw, ConstantTypedefEnum)
 {
     data x(
         "\x00\x01"
@@ -149,7 +149,7 @@ TEST(generated, ConstantTypedefEnum)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, DynamicComposite)
+TEST(generated_raw, DynamicComposite)
 {
     data x(
         "\x00\x00\x00\x03"
@@ -167,7 +167,7 @@ TEST(generated, DynamicComposite)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, DynamicCompositeComposite)
+TEST(generated_raw, DynamicCompositeComposite)
 {
     data x(
         "\x00\x00\x00\x03"
@@ -195,7 +195,7 @@ TEST(generated, DynamicCompositeComposite)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, DynamicCompositeDynamicArray)
+TEST(generated_raw, DynamicCompositeDynamicArray)
 {
     data x(
         "\x00\x02\xab\xcd"
@@ -219,7 +219,7 @@ TEST(generated, DynamicCompositeDynamicArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, DynamicCompositeGreedyArray)
+TEST(generated_raw, DynamicCompositeGreedyArray)
 {
     data x(
         "\x00\x01\xab\xcd"
@@ -246,7 +246,7 @@ TEST(generated, DynamicCompositeGreedyArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ManyArrays)
+TEST(generated_raw, ManyArrays)
 {
     data x(
         "\x00\x00\x00\x05"
@@ -276,7 +276,7 @@ TEST(generated, ManyArrays)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ManyArraysMixed)
+TEST(generated_raw, ManyArraysMixed)
 {
     data x(
         "\x00\x00\x00\x05"
@@ -298,7 +298,7 @@ TEST(generated, ManyArraysMixed)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ManyArraysMixedHeavily)
+TEST(generated_raw, ManyArraysMixedHeavily)
 {
     data x(
         "\x00\x00\x00\x01"
@@ -328,7 +328,7 @@ TEST(generated, ManyArraysMixedHeavily)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ManyArraysPadding)
+TEST(generated_raw, ManyArraysPadding)
 {
     data x(
         "\x01\x00\x00\x00"
@@ -356,7 +356,7 @@ TEST(generated, ManyArraysPadding)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ManyArraysTailFixed)
+TEST(generated_raw, ManyArraysTailFixed)
 {
     data x(
         "\x02\x02\x03\x00"
@@ -380,7 +380,7 @@ TEST(generated, ManyArraysTailFixed)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ManyDynamic)
+TEST(generated_raw, ManyDynamic)
 {
     data x(
         "\x00\x00\x00\x01"
@@ -406,7 +406,7 @@ TEST(generated, ManyDynamic)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, Optional)
+TEST(generated_raw, Optional)
 {
     data x(
         "\x00\x00\x00\x01"
@@ -428,7 +428,7 @@ TEST(generated, Optional)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, Optional_not_set)
+TEST(generated_raw, Optional_not_set)
 {
     data x(
         "\x00\x00\x00\x00"
@@ -450,7 +450,7 @@ TEST(generated, Optional_not_set)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, Scalar)
+TEST(generated_raw, Scalar)
 {
     data x(
         "\x01\x00\x00\x02",
@@ -464,7 +464,7 @@ TEST(generated, Scalar)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ScalarDynamicArray)
+TEST(generated_raw, ScalarDynamicArray)
 {
     data x(
         "\x00\x00\x00\x03"
@@ -482,7 +482,7 @@ TEST(generated, ScalarDynamicArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ScalarFixedArray)
+TEST(generated_raw, ScalarFixedArray)
 {
     data x(
         "\x00\x02"
@@ -500,7 +500,7 @@ TEST(generated, ScalarFixedArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ScalarGreedyArray)
+TEST(generated_raw, ScalarGreedyArray)
 {
     data x(
         "\x00\x08\xab\xcd"
@@ -521,7 +521,7 @@ TEST(generated, ScalarGreedyArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, ScalarLimitedArray)
+TEST(generated_raw, ScalarLimitedArray)
 {
     data x(
         "\x00\x00\x00\x02"
@@ -539,7 +539,7 @@ TEST(generated, ScalarLimitedArray)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, Union_a)
+TEST(generated_raw, Union_a)
 {
     data x(
         "\x00\x00\x00\x01"
@@ -559,7 +559,7 @@ TEST(generated, Union_a)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, Union_b)
+TEST(generated_raw, Union_b)
 {
     data x(
         "\x00\x00\x00\x02"
@@ -579,7 +579,7 @@ TEST(generated, Union_b)
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated, Union_c)
+TEST(generated_raw, Union_c)
 {
     data x(
         "\x00\x00\x00\x03"
