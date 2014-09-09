@@ -101,21 +101,21 @@ struct Y
 
 TEST(prophy, calculates_alignment)
 {
-    EXPECT_EQ(8, prophy::raw::alignment<X>::value);
-    EXPECT_EQ(2, prophy::raw::alignment<Y>::value);
+    EXPECT_EQ(8, prophy::raw::detail::alignment<X>::value);
+    EXPECT_EQ(2, prophy::raw::detail::alignment<Y>::value);
 }
 
 TEST(prophy, aligns_pointers)
 {
-    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<X*>(uintptr_t(0)))));
-    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<X*>(uintptr_t(1)))));
-    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<X*>(uintptr_t(3)))));
-    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<X*>(uintptr_t(7)))));
-    EXPECT_EQ(16, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<X*>(uintptr_t(9)))));
+    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<X*>(uintptr_t(0)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<X*>(uintptr_t(1)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<X*>(uintptr_t(3)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<X*>(uintptr_t(7)))));
+    EXPECT_EQ(16, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<X*>(uintptr_t(9)))));
 
-    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<Y*>(uintptr_t(0)))));
-    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<Y*>(uintptr_t(1)))));
-    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::raw::align(reinterpret_cast<Y*>(uintptr_t(2)))));
+    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<Y*>(uintptr_t(0)))));
+    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<Y*>(uintptr_t(1)))));
+    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::raw::detail::align(reinterpret_cast<Y*>(uintptr_t(2)))));
 }
 
 TEST(prophy, casts_pointers_ensuring_alignment)
