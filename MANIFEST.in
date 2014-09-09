@@ -1,4 +1,3 @@
 include CHANGELOG
 include LICENSE
 include README.rst
-recursive-include prophy_cpp/include *

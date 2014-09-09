@@ -1,0 +1,46 @@
+enum Test1
+{
+    Test1_1 = 1,
+    Test1_2 = 2,
+    Test1_3 = 3
+};
+
+struct Test2
+{
+    u32 a;
+};
+
+struct Test3
+{
+    Test1 a;
+};
+
+struct Test4
+{
+    i32 a[3];
+};
+
+struct Test5
+{
+    Test2 a<>;
+};
+
+struct Test6
+{
+    u32* a;
+    Test2* b;
+};
+
+union Test7
+{
+    0: u32 a;
+    1: Test2 b;
+};
+
+struct Test8
+{
+    i32 a[3];
+    i32 b<>;
+    i32 c<3>;
+    i32 d<...>;
+};
