@@ -1,5 +1,5 @@
-#ifndef _PROPHY_DETAIL_UTILS_HPP
-#define _PROPHY_DETAIL_UTILS_HPP
+#ifndef _PROPHY_DETAIL_ALIGN_HPP
+#define _PROPHY_DETAIL_ALIGN_HPP
 
 #include <stdint.h>
 
@@ -26,28 +26,7 @@ inline Tp* align(Tp* ptr)
     return reinterpret_cast<Tp*>((reinterpret_cast<uintptr_t>(ptr) + mask) & ~uintptr_t(mask));
 }
 
-template <class T, class U>
-class is_convertible
-{
-    class big_t { char dummy[2]; };
-    static char test(U);
-    static big_t test(...);
-    static T make();
-public:
-    enum { value = sizeof(test(make())) == sizeof(char) };
-};
-
-template <bool, class T = void>
-struct enable_if
-{};
-
-template <class T>
-struct enable_if<true, T>
-{
-    typedef T type;
-};
-
 } // namespace detail
 } // namespace prophy
 
-#endif  /* _PROPHY_DETAIL_UTILS_HPP */
+#endif  /* _PROPHY_DETAIL_ALIGN_HPP */

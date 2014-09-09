@@ -3,7 +3,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <prophy/detail/utils.hpp>
+#include <prophy/detail/align.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {
