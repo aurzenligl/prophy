@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 template <>
 Optional* swap<Optional>(Optional* payload)
@@ -15,5 +13,4 @@ Optional* swap<Optional>(Optional* payload)
     return payload + 1;
 }
 
-} // namespace raw
 } // namespace prophy

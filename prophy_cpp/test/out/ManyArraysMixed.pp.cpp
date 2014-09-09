@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 inline ManyArraysMixed::part2* swap(ManyArraysMixed::part2* payload, size_t num_of_y)
 {
@@ -19,5 +17,4 @@ ManyArraysMixed* swap<ManyArraysMixed>(ManyArraysMixed* payload)
     return cast<ManyArraysMixed*>(swap(part2, payload->num_of_y));
 }
 
-} // namespace raw
 } // namespace prophy

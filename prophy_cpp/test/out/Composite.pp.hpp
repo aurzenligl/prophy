@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_Composite_HPP
 #define _PROPHY_GENERATED_Composite_HPP
 
-#include <prophy/raw/prophy.hpp>
+#include <prophy/prophy.hpp>
 
 #include "Scalar.pp.hpp"
 

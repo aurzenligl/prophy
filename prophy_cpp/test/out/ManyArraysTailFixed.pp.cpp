@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 inline ManyArraysTailFixed::part2* swap(ManyArraysTailFixed::part2* payload)
 {
@@ -20,5 +18,4 @@ ManyArraysTailFixed* swap<ManyArraysTailFixed>(ManyArraysTailFixed* payload)
     return cast<ManyArraysTailFixed*>(swap(part2));
 }
 
-} // namespace raw
 } // namespace prophy

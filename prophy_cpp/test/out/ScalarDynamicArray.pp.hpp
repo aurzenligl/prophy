@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_ScalarDynamicArray_HPP
 #define _PROPHY_GENERATED_ScalarDynamicArray_HPP
 
-#include <prophy/raw/prophy.hpp>
+#include <prophy/prophy.hpp>
 
 struct ScalarDynamicArray
 {

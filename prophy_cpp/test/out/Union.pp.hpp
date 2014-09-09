@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_Union_HPP
 #define _PROPHY_GENERATED_Union_HPP
 
-#include <prophy/raw/prophy.hpp>
+#include <prophy/prophy.hpp>
 
 #include "Composite.pp.hpp"
 

@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 inline ManyArraysPaddingInner::part2* swap(ManyArraysPaddingInner::part2* payload)
 {
@@ -33,5 +31,4 @@ ManyArraysPadding* swap<ManyArraysPadding>(ManyArraysPadding* payload)
     return cast<ManyArraysPadding*>(swap(&payload->y));
 }
 
-} // namespace raw
 } // namespace prophy

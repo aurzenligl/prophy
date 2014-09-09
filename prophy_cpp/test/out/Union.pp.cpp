@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 template <>
 Union* swap<Union>(Union* payload)
@@ -19,5 +17,4 @@ Union* swap<Union>(Union* payload)
     return payload + 1;
 }
 
-} // namespace raw
 } // namespace prophy

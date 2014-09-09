@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 template <>
 ManyDynamicHelper* swap<ManyDynamicHelper>(ManyDynamicHelper* payload)
@@ -30,5 +28,4 @@ ManyDynamic* swap<ManyDynamic>(ManyDynamic* payload)
     return cast<ManyDynamic*>(swap(part3));
 }
 
-} // namespace raw
 } // namespace prophy

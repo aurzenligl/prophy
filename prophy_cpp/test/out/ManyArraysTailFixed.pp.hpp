@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_ManyArraysTailFixed_HPP
 #define _PROPHY_GENERATED_ManyArraysTailFixed_HPP
 
-#include <prophy/raw/prophy.hpp>
+#include <prophy/prophy.hpp>
 
 struct ManyArraysTailFixed
 {

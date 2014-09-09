@@ -1,11 +1,9 @@
-#ifndef _PROPHY_RAW_DETAIL_UTILS_HPP
-#define _PROPHY_RAW_DETAIL_UTILS_HPP
+#ifndef _PROPHY_DETAIL_UTILS_HPP
+#define _PROPHY_DETAIL_UTILS_HPP
 
 #include <stdint.h>
 
 namespace prophy
-{
-namespace raw
 {
 namespace detail
 {
@@ -50,7 +48,6 @@ struct enable_if<true, T>
 };
 
 } // namespace detail
-} // namespace raw
 } // namespace prophy
 
-#endif  /* _PROPHY_RAW_DETAIL_UTILS_HPP */
+#endif  /* _PROPHY_DETAIL_UTILS_HPP */

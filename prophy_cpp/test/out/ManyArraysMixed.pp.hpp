@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_ManyArraysMixed_HPP
 #define _PROPHY_GENERATED_ManyArraysMixed_HPP
 
-#include <prophy/raw/prophy.hpp>
+#include <prophy/prophy.hpp>
 
 struct ManyArraysMixed
 {

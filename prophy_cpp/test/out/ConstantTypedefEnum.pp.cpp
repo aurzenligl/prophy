@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 template <>
 ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum* payload)
@@ -14,5 +12,4 @@ ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum* payload)
     return payload + 1;
 }
 
-} // namespace raw
 } // namespace prophy

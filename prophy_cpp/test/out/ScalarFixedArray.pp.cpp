@@ -2,8 +2,6 @@
 
 namespace prophy
 {
-namespace raw
-{
 
 template <>
 ScalarFixedArray* swap<ScalarFixedArray>(ScalarFixedArray* payload)
@@ -12,5 +10,4 @@ ScalarFixedArray* swap<ScalarFixedArray>(ScalarFixedArray* payload)
     return payload + 1;
 }
 
-} // namespace raw
 } // namespace prophy

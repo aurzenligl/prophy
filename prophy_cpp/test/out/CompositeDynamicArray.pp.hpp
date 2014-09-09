@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_CompositeDynamicArray_HPP
 #define _PROPHY_GENERATED_CompositeDynamicArray_HPP
 
-#include <prophy/raw/prophy.hpp>
+#include <prophy/prophy.hpp>
 
 #include "Scalar.pp.hpp"
 
