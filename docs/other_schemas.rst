@@ -52,6 +52,8 @@ There are following patch rules:
   may have varying number of elements - up to limit - but it
   always has fixed size.
 
+.. _other_schemas_sack:
+
 Sack schema
 ------------
 

@@ -12,7 +12,7 @@ setup(name = 'prophy',
               'prophyc = prophyc:main'
           ]
       },
-      version = '0.4.1',
+      version = '0.4.2',
       description = 'prophy: fast serialization protocol',
       long_description = long_description,
       author = 'Krzysztof Laskowski',
