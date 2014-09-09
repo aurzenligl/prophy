@@ -2,6 +2,8 @@
 
 namespace prophy
 {
+namespace raw
+{
 
 template <>
 CompositeFixedArray* swap<CompositeFixedArray>(CompositeFixedArray* payload)
@@ -10,4 +12,5 @@ CompositeFixedArray* swap<CompositeFixedArray>(CompositeFixedArray* payload)
     return payload + 1;
 }
 
+} // namespace raw
 } // namespace prophy

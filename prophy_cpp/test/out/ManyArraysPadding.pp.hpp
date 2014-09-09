@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_ManyArraysPadding_HPP
 #define _PROPHY_GENERATED_ManyArraysPadding_HPP
 
-#include <prophy/prophy.hpp>
+#include <prophy/raw/prophy.hpp>
 
 struct ManyArraysPaddingInner
 {

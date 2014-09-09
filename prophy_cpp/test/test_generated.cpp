@@ -38,7 +38,7 @@ TEST(generated, Composite)
         "\x01\x00\x02\x00"
     );
 
-    Composite* next = prophy::swap(reinterpret_cast<Composite*>(x.input.data()));
+    Composite* next = prophy::raw::swap(reinterpret_cast<Composite*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 8);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -58,7 +58,7 @@ TEST(generated, CompositeDynamicArray)
         "\x03\x00\x03\x00"
     );
 
-    CompositeDynamicArray* next = prophy::swap(reinterpret_cast<CompositeDynamicArray*>(x.input.data()));
+    CompositeDynamicArray* next = prophy::raw::swap(reinterpret_cast<CompositeDynamicArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -76,7 +76,7 @@ TEST(generated, CompositeFixedArray)
         "\x01\x00\x02\x00"
     );
 
-    CompositeFixedArray* next = prophy::swap(reinterpret_cast<CompositeFixedArray*>(x.input.data()));
+    CompositeFixedArray* next = prophy::raw::swap(reinterpret_cast<CompositeFixedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -98,9 +98,9 @@ TEST(generated, CompositeGreedyArray)
         "\x02\x00\x02\x00"
     );
 
-    CompositeGreedyArray* next = prophy::swap(reinterpret_cast<CompositeGreedyArray*>(x.input.data()));
-    Composite* past_end = prophy::swap_n_fixed(
-        prophy::cast<Composite*>(next), 2);
+    CompositeGreedyArray* next = prophy::raw::swap(reinterpret_cast<CompositeGreedyArray*>(x.input.data()));
+    Composite* past_end = prophy::raw::swap_n_fixed(
+        prophy::raw::cast<Composite*>(next), 2);
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 2);
     EXPECT_EQ(byte_distance(x.input.data(), past_end), 18);
@@ -121,7 +121,7 @@ TEST(generated, CompositeLimitedArray)
         "\xab\xcd\xef\xba"
     );
 
-    CompositeLimitedArray* next = prophy::swap(reinterpret_cast<CompositeLimitedArray*>(x.input.data()));
+    CompositeLimitedArray* next = prophy::raw::swap(reinterpret_cast<CompositeLimitedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 14);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -143,7 +143,7 @@ TEST(generated, ConstantTypedefEnum)
         "\x01\x00\x00\x00"
     );
 
-    ConstantTypedefEnum* next = prophy::swap(reinterpret_cast<ConstantTypedefEnum*>(x.input.data()));
+    ConstantTypedefEnum* next = prophy::raw::swap(reinterpret_cast<ConstantTypedefEnum*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -161,7 +161,7 @@ TEST(generated, DynamicComposite)
         "\x03\x00\xab\xcd"
     );
 
-    DynamicComposite* next = prophy::swap(reinterpret_cast<DynamicComposite*>(x.input.data()));
+    DynamicComposite* next = prophy::raw::swap(reinterpret_cast<DynamicComposite*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -189,7 +189,7 @@ TEST(generated, DynamicCompositeComposite)
         "\x06\x00\x07\x00"
     );
 
-    DynamicCompositeComposite* next = prophy::swap(reinterpret_cast<DynamicCompositeComposite*>(x.input.data()));
+    DynamicCompositeComposite* next = prophy::raw::swap(reinterpret_cast<DynamicCompositeComposite*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 32);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -213,7 +213,7 @@ TEST(generated, DynamicCompositeDynamicArray)
         "\x03\x00\xab\xcd"
     );
 
-    DynamicCompositeDynamicArray* next = prophy::swap(reinterpret_cast<DynamicCompositeDynamicArray*>(x.input.data()));
+    DynamicCompositeDynamicArray* next = prophy::raw::swap(reinterpret_cast<DynamicCompositeDynamicArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 24);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -237,9 +237,9 @@ TEST(generated, DynamicCompositeGreedyArray)
         "\x03\x00\xab\xcd"
     );
 
-    DynamicCompositeGreedyArray* next = prophy::swap(reinterpret_cast<DynamicCompositeGreedyArray*>(x.input.data()));
-    DynamicComposite* past_end = prophy::swap_n_dynamic(
-        prophy::cast<DynamicComposite*>(next), 2);
+    DynamicCompositeGreedyArray* next = prophy::raw::swap(reinterpret_cast<DynamicCompositeGreedyArray*>(x.input.data()));
+    DynamicComposite* past_end = prophy::raw::swap_n_dynamic(
+        prophy::raw::cast<DynamicComposite*>(next), 2);
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 4);
     EXPECT_EQ(byte_distance(x.input.data(), past_end), 24);
@@ -270,7 +270,7 @@ TEST(generated, ManyArrays)
         "\x03\x00\x00\x00\x00\x00\x00\x00"
     );
 
-    ManyArrays* next = prophy::swap(reinterpret_cast<ManyArrays*>(x.input.data()));
+    ManyArrays* next = prophy::raw::swap(reinterpret_cast<ManyArrays*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 48);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -292,7 +292,7 @@ TEST(generated, ManyArraysMixed)
         "\x01\x00\x02\x00"
     );
 
-    ManyArraysMixed* next = prophy::swap(reinterpret_cast<ManyArraysMixed*>(x.input.data()));
+    ManyArraysMixed* next = prophy::raw::swap(reinterpret_cast<ManyArraysMixed*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -322,7 +322,7 @@ TEST(generated, ManyArraysMixedHeavily)
         "\x09\x00\xab\xcd"
     );
 
-    ManyArraysMixedHeavily* next = prophy::swap(reinterpret_cast<ManyArraysMixedHeavily*>(x.input.data()));
+    ManyArraysMixedHeavily* next = prophy::raw::swap(reinterpret_cast<ManyArraysMixedHeavily*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 36);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -350,7 +350,7 @@ TEST(generated, ManyArraysPadding)
         "\x00\x00\x00\x00"
     );
 
-    ManyArraysPadding* next = prophy::swap(reinterpret_cast<ManyArraysPadding*>(x.input.data()));
+    ManyArraysPadding* next = prophy::raw::swap(reinterpret_cast<ManyArraysPadding*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 32);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -374,7 +374,7 @@ TEST(generated, ManyArraysTailFixed)
         "\x00\x00\x00\x00"
     );
 
-    ManyArraysTailFixed* next = prophy::swap(reinterpret_cast<ManyArraysTailFixed*>(x.input.data()));
+    ManyArraysTailFixed* next = prophy::raw::swap(reinterpret_cast<ManyArraysTailFixed*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 24);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -400,7 +400,7 @@ TEST(generated, ManyDynamic)
         "\x06\x00\xab\xcd"
     );
 
-    ManyDynamic* next = prophy::swap(reinterpret_cast<ManyDynamic*>(x.input.data()));
+    ManyDynamic* next = prophy::raw::swap(reinterpret_cast<ManyDynamic*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 28);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -422,7 +422,7 @@ TEST(generated, Optional)
         "\x04\x00\x05\x00"
     );
 
-    Optional* next = prophy::swap(reinterpret_cast<Optional*>(x.input.data()));
+    Optional* next = prophy::raw::swap(reinterpret_cast<Optional*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 20);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -444,7 +444,7 @@ TEST(generated, Optional_not_set)
         "\xab\xcd\xef\xab"
     );
 
-    Optional* next = prophy::swap(reinterpret_cast<Optional*>(x.input.data()));
+    Optional* next = prophy::raw::swap(reinterpret_cast<Optional*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 20);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -458,7 +458,7 @@ TEST(generated, Scalar)
         "\x01\x00\x02\x00"
     );
 
-    Scalar* next = prophy::swap(reinterpret_cast<Scalar*>(x.input.data()));
+    Scalar* next = prophy::raw::swap(reinterpret_cast<Scalar*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 4);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -476,7 +476,7 @@ TEST(generated, ScalarDynamicArray)
         "\x07\x00\xab\xcd"
     );
 
-    ScalarDynamicArray* next = prophy::swap(reinterpret_cast<ScalarDynamicArray*>(x.input.data()));
+    ScalarDynamicArray* next = prophy::raw::swap(reinterpret_cast<ScalarDynamicArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -494,7 +494,7 @@ TEST(generated, ScalarFixedArray)
         "\x02\x00"
     );
 
-    ScalarFixedArray* next = prophy::swap(reinterpret_cast<ScalarFixedArray*>(x.input.data()));
+    ScalarFixedArray* next = prophy::raw::swap(reinterpret_cast<ScalarFixedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 6);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -512,9 +512,9 @@ TEST(generated, ScalarGreedyArray)
         "\x02\x00\x00\x00"
     );
 
-    ScalarGreedyArray* next = prophy::swap(reinterpret_cast<ScalarGreedyArray*>(x.input.data()));
-    uint32_t* past_end = prophy::swap_n_fixed(
-        prophy::cast<uint32_t*>(next), 2);
+    ScalarGreedyArray* next = prophy::raw::swap(reinterpret_cast<ScalarGreedyArray*>(x.input.data()));
+    uint32_t* past_end = prophy::raw::swap_n_fixed(
+        prophy::raw::cast<uint32_t*>(next), 2);
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 4);
     EXPECT_EQ(byte_distance(x.input.data(), past_end), 12);
@@ -533,7 +533,7 @@ TEST(generated, ScalarLimitedArray)
         "\xab\xcd\xef\xba"
     );
 
-    ScalarLimitedArray* next = prophy::swap(reinterpret_cast<ScalarLimitedArray*>(x.input.data()));
+    ScalarLimitedArray* next = prophy::raw::swap(reinterpret_cast<ScalarLimitedArray*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -553,7 +553,7 @@ TEST(generated, Union_a)
         "\x00\x00\x00\x00"
     );
 
-    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
+    Union* next = prophy::raw::swap(reinterpret_cast<Union*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -573,7 +573,7 @@ TEST(generated, Union_b)
         "\x00\x00\x00\x00"
     );
 
-    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
+    Union* next = prophy::raw::swap(reinterpret_cast<Union*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
@@ -593,7 +593,7 @@ TEST(generated, Union_c)
         "\x03\x00\x04\x00"
     );
 
-    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
+    Union* next = prophy::raw::swap(reinterpret_cast<Union*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));

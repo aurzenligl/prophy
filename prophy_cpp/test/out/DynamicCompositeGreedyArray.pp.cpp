@@ -2,6 +2,8 @@
 
 namespace prophy
 {
+namespace raw
+{
 
 template <>
 DynamicCompositeGreedyArray* swap<DynamicCompositeGreedyArray>(DynamicCompositeGreedyArray* payload)
@@ -10,4 +12,5 @@ DynamicCompositeGreedyArray* swap<DynamicCompositeGreedyArray>(DynamicCompositeG
     return cast<DynamicCompositeGreedyArray*>(payload->y);
 }
 
+} // namespace raw
 } // namespace prophy

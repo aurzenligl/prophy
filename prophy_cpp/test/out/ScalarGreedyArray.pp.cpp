@@ -2,6 +2,8 @@
 
 namespace prophy
 {
+namespace raw
+{
 
 template <>
 ScalarGreedyArray* swap<ScalarGreedyArray>(ScalarGreedyArray* payload)
@@ -10,4 +12,5 @@ ScalarGreedyArray* swap<ScalarGreedyArray>(ScalarGreedyArray* payload)
     return cast<ScalarGreedyArray*>(payload->y);
 }
 
+} // namespace raw
 } // namespace prophy

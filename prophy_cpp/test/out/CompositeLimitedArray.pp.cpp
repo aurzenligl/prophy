@@ -2,6 +2,8 @@
 
 namespace prophy
 {
+namespace raw
+{
 
 template <>
 CompositeLimitedArray* swap<CompositeLimitedArray>(CompositeLimitedArray* payload)
@@ -11,4 +13,5 @@ CompositeLimitedArray* swap<CompositeLimitedArray>(CompositeLimitedArray* payloa
     return payload + 1;
 }
 
+} // namespace raw
 } // namespace prophy

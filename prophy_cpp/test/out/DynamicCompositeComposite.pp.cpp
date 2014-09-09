@@ -2,6 +2,8 @@
 
 namespace prophy
 {
+namespace raw
+{
 
 inline DynamicCompositeComposite::part2* swap(DynamicCompositeComposite::part2* payload)
 {
@@ -16,4 +18,5 @@ DynamicCompositeComposite* swap<DynamicCompositeComposite>(DynamicCompositeCompo
     return cast<DynamicCompositeComposite*>(swap(part2));
 }
 
+} // namespace raw
 } // namespace prophy

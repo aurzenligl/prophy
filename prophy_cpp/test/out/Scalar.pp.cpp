@@ -2,6 +2,8 @@
 
 namespace prophy
 {
+namespace raw
+{
 
 template <>
 Scalar* swap<Scalar>(Scalar* payload)
@@ -11,4 +13,5 @@ Scalar* swap<Scalar>(Scalar* payload)
     return payload + 1;
 }
 
+} // namespace raw
 } // namespace prophy

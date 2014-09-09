@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_DynamicCompositeGreedyArray_HPP
 #define _PROPHY_GENERATED_DynamicCompositeGreedyArray_HPP
 
-#include <prophy/prophy.hpp>
+#include <prophy/raw/prophy.hpp>
 
 #include "DynamicComposite.pp.hpp"
 

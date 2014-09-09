@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_ConstantTypedefEnum_HPP
 #define _PROPHY_GENERATED_ConstantTypedefEnum_HPP
 
-#include <prophy/prophy.hpp>
+#include <prophy/raw/prophy.hpp>
 
 enum { CONSTANT = 3 };
 

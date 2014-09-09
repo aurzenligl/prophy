@@ -1,10 +1,12 @@
-#ifndef _PROPHY_PROPHY_HPP
-#define _PROPHY_PROPHY_HPP
+#ifndef _PROPHY_RAW_PROPHY_HPP
+#define _PROPHY_RAW_PROPHY_HPP
 
 #include <stddef.h>
 #include <stdint.h>
 
 namespace prophy
+{
+namespace raw
 {
 
 typedef uint32_t bool_t;
@@ -133,6 +135,7 @@ inline Tp* swap_n_dynamic(Tp* first, size_t n)
     return first;
 }
 
+} // namespace raw
 } // namespace prophy
 
-#endif  /* _PROPHY_PROPHY_HPP */
+#endif  /* _PROPHY_RAW_PROPHY_HPP */

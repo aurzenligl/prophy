@@ -2,6 +2,8 @@
 
 namespace prophy
 {
+namespace raw
+{
 
 template <>
 CompositeDynamicArray* swap<CompositeDynamicArray>(CompositeDynamicArray* payload)
@@ -10,4 +12,5 @@ CompositeDynamicArray* swap<CompositeDynamicArray>(CompositeDynamicArray* payloa
     return cast<CompositeDynamicArray*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
 
+} // namespace raw
 } // namespace prophy

@@ -1,7 +1,7 @@
 #ifndef _PROPHY_GENERATED_ScalarFixedArray_HPP
 #define _PROPHY_GENERATED_ScalarFixedArray_HPP
 
-#include <prophy/prophy.hpp>
+#include <prophy/raw/prophy.hpp>
 
 struct ScalarFixedArray
 {
