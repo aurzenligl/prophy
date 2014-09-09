@@ -20,10 +20,17 @@ struct alignment
 };
 
 template <typename Tp>
-inline Tp* align(Tp* ptr)
+inline Tp* align_ptr(Tp* ptr)
 {
     enum { mask = alignment<Tp>::value - 1 };
     return reinterpret_cast<Tp*>((reinterpret_cast<uintptr_t>(ptr) + mask) & ~uintptr_t(mask));
+}
+
+template <size_t Alignment>
+inline uint8_t* align(uint8_t* ptr)
+{
+    enum { mask = Alignment - 1 };
+    return reinterpret_cast<uint8_t*>((reinterpret_cast<uintptr_t>(ptr) + mask) & ~uintptr_t(mask));
 }
 
 } // namespace detail

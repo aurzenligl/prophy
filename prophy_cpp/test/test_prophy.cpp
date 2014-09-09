@@ -107,15 +107,25 @@ TEST(prophy, calculates_alignment)
 
 TEST(prophy, aligns_pointers)
 {
-    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<X*>(uintptr_t(0)))));
-    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<X*>(uintptr_t(1)))));
-    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<X*>(uintptr_t(3)))));
-    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<X*>(uintptr_t(7)))));
-    EXPECT_EQ(16, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<X*>(uintptr_t(9)))));
+    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<X*>(uintptr_t(0)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<X*>(uintptr_t(1)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<X*>(uintptr_t(3)))));
+    EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<X*>(uintptr_t(7)))));
+    EXPECT_EQ(16, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<X*>(uintptr_t(9)))));
 
-    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<Y*>(uintptr_t(0)))));
-    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<Y*>(uintptr_t(1)))));
-    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::detail::align(reinterpret_cast<Y*>(uintptr_t(2)))));
+    EXPECT_EQ(0, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<Y*>(uintptr_t(0)))));
+    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<Y*>(uintptr_t(1)))));
+    EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::detail::align_ptr(reinterpret_cast<Y*>(uintptr_t(2)))));
+}
+
+TEST(prophy, aligns_uint8_pointers)
+{
+    uint8_t* ptr = reinterpret_cast<uint8_t*>(uintptr_t(10));
+
+    EXPECT_EQ(0, prophy::detail::align<2>(ptr) - ptr);
+    EXPECT_EQ(2, prophy::detail::align<4>(ptr) - ptr);
+    EXPECT_EQ(6, prophy::detail::align<8>(ptr) - ptr);
+    EXPECT_EQ(6, prophy::detail::align<16>(ptr) - ptr);
 }
 
 TEST(prophy, casts_pointers_ensuring_alignment)

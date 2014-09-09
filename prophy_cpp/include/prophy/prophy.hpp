@@ -14,7 +14,7 @@ typedef uint32_t bool_t;
 template <typename To, typename From>
 inline To cast(From from)
 {
-    return detail::align(static_cast<To>(static_cast<void*>(from)));
+    return detail::align_ptr(static_cast<To>(static_cast<void*>(from)));
 }
 
 inline void swap(uint8_t*)
