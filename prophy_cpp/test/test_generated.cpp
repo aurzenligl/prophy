@@ -75,3 +75,79 @@ TEST(generated, BuiltinGreedy)
     EXPECT_EQ(8, size);
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00", 8), std::string(data, 0, size));
 }
+
+TEST(generated, Fixcomp)
+{
+    std::string data(1024, 0);
+
+    Fixcomp x;
+    x.x.x = 1;
+    x.x.y = 2;
+    x.y.x = 3;
+    x.y.y = 4;
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(16, size);
+    EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 16), std::string(data, 0, size));
+}
+
+TEST(generated, FixcompFixed)
+{
+    std::string data(1024, 0);
+
+    FixcompFixed x;
+    x.x[0].x = 1;
+    x.x[0].y = 2;
+    x.x[1].x = 3;
+    x.x[1].y = 4;
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(16, size);
+    EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 16), std::string(data, 0, size));
+}
+
+TEST(generated, FixcompDynamic)
+{
+    std::string data(1024, 0);
+
+    FixcompDynamic x;
+    x.x.resize(2);
+    x.x[0].x = 1;
+    x.x[0].y = 2;
+    x.x[1].x = 3;
+    x.x[1].y = 4;
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(20, size);
+    EXPECT_EQ(std::string("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 20), std::string(data, 0, size));
+}
+
+TEST(generated, FixcompLimited)
+{
+    std::string data(1024, 0);
+
+    FixcompLimited x;
+    x.x.resize(1);
+    x.x[0].x = 1;
+    x.x[0].y = 2;
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(20, size);
+    EXPECT_EQ(std::string("\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 20), std::string(data, 0, size));
+}
+
+TEST(generated, FixcompGreedy)
+{
+    std::string data(1024, 0);
+
+    FixcompGreedy x;
+    x.x.resize(2);
+    x.x[0].x = 1;
+    x.x[0].y = 2;
+    x.x[1].x = 3;
+    x.x[1].y = 4;
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(16, size);
+    EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 16), std::string(data, 0, size));
+}

@@ -62,4 +62,60 @@ struct BuiltinGreedy
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
+struct Fixcomp
+{
+    enum { encoded_byte_size = 16 };
+
+    Builtin x;
+    Builtin y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct FixcompFixed
+{
+    enum { encoded_byte_size = 16 };
+
+    Builtin x[2];
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct FixcompDynamic
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<Builtin> x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct FixcompLimited
+{
+    enum { encoded_byte_size = 20 };
+
+    std::vector<Builtin> x; /// limit 2
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct FixcompGreedy
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<Builtin> x; /// greedy
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
 #endif  /* _PROPHY_GENERATED_Array_HPP */
