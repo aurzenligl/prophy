@@ -88,7 +88,9 @@ TEST(generated, Fixcomp)
     size_t size = x.encode(data.begin().base());
 
     EXPECT_EQ(16, size);
-    EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 16), std::string(data, 0, size));
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
+            16), std::string(data, 0, size));
 }
 
 TEST(generated, FixcompFixed)
@@ -103,7 +105,9 @@ TEST(generated, FixcompFixed)
     size_t size = x.encode(data.begin().base());
 
     EXPECT_EQ(16, size);
-    EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 16), std::string(data, 0, size));
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
+            16), std::string(data, 0, size));
 }
 
 TEST(generated, FixcompDynamic)
@@ -119,7 +123,9 @@ TEST(generated, FixcompDynamic)
     size_t size = x.encode(data.begin().base());
 
     EXPECT_EQ(20, size);
-    EXPECT_EQ(std::string("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 20), std::string(data, 0, size));
+    EXPECT_EQ(std::string(
+            "\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
+            20), std::string(data, 0, size));
 }
 
 TEST(generated, FixcompLimited)
@@ -133,7 +139,9 @@ TEST(generated, FixcompLimited)
     size_t size = x.encode(data.begin().base());
 
     EXPECT_EQ(20, size);
-    EXPECT_EQ(std::string("\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 20), std::string(data, 0, size));
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            20), std::string(data, 0, size));
 }
 
 TEST(generated, FixcompGreedy)
@@ -149,5 +157,43 @@ TEST(generated, FixcompGreedy)
     size_t size = x.encode(data.begin().base());
 
     EXPECT_EQ(16, size);
-    EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00", 16), std::string(data, 0, size));
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
+            16), std::string(data, 0, size));
+}
+
+TEST(generated, Dyncomp)
+{
+    std::string data(1024, 0);
+
+    Dyncomp x;
+    x.x.x.push_back(1);
+    x.x.x.push_back(2);
+    x.x.x.push_back(3);
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(16, size);
+    EXPECT_EQ(std::string(
+            "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00",
+            16), std::string(data, 0, size));
+}
+
+TEST(generated, DyncompDynamic)
+{
+    std::string data(1024, 0);
+
+    DyncompDynamic x;
+    x.x.resize(2);
+    x.x[0].x.push_back(1);
+    x.x[0].x.push_back(2);
+    x.x[0].x.push_back(3);
+    x.x[1].x.push_back(4);
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(28, size);
+    EXPECT_EQ(std::string(
+            "\x02\x00\x00\x00"
+            "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
+            "\x01\x00\x00\x00\x04\x00\x00\x00",
+            28), std::string(data, 0, size));
 }

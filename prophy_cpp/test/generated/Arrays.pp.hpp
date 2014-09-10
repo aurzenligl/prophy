@@ -118,4 +118,26 @@ struct FixcompGreedy
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
+struct Dyncomp
+{
+    enum { encoded_byte_size = -1 };
+
+    BuiltinDynamic x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct DyncompDynamic
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<BuiltinDynamic> x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
 #endif  /* _PROPHY_GENERATED_Array_HPP */
