@@ -43,7 +43,8 @@ size_t BuiltinLimited::encode(void* data) const
 {
     uint8_t* pos = static_cast<uint8_t*>(data);
     pos = do_encode<E>(pos, uint32_t(std::min(x.size(), size_t(2))));
-    pos = do_encode<E>(pos, x.data(), std::min(x.size(), size_t(2)));
+    do_encode<E>(pos, x.data(), std::min(x.size(), size_t(2)));
+    pos = pos + 8;
     return pos - static_cast<uint8_t*>(data);
 }
 
