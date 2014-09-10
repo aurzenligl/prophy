@@ -23,10 +23,45 @@ struct codec_traits<char>
 };
 
 template <>
+struct codec_traits<int8_t>
+{
+    enum { is_composite = false };
+    enum { size = 1 };
+};
+
+template <>
+struct codec_traits<int16_t>
+{
+    enum { is_composite = false };
+    enum { size = 2 };
+};
+
+template <>
+struct codec_traits<int32_t>
+{
+    enum { is_composite = false };
+    enum { size = 4 };
+};
+
+template <>
+struct codec_traits<int64_t>
+{
+    enum { is_composite = false };
+    enum { size = 8 };
+};
+
+template <>
 struct codec_traits<uint8_t>
 {
     enum { is_composite = false };
     enum { size = 1 };
+};
+
+template <>
+struct codec_traits<uint16_t>
+{
+    enum { is_composite = false };
+    enum { size = 2 };
 };
 
 template <>
@@ -37,7 +72,7 @@ struct codec_traits<uint32_t>
 };
 
 template <>
-struct codec_traits<int64_t>
+struct codec_traits<uint64_t>
 {
     enum { is_composite = false };
     enum { size = 8 };
