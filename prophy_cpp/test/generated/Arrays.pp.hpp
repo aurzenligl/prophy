@@ -1,5 +1,5 @@
-#ifndef _PROPHY_GENERATED_Array_HPP
-#define _PROPHY_GENERATED_Array_HPP
+#ifndef _PROPHY_GENERATED_Arrays_HPP
+#define _PROPHY_GENERATED_Arrays_HPP
 
 #include <stdint.h>
 #include <string>
@@ -140,4 +140,4 @@ struct DyncompDynamic
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
-#endif  /* _PROPHY_GENERATED_Array_HPP */
+#endif  /* _PROPHY_GENERATED_Arrays_HPP */
