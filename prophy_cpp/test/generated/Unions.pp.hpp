@@ -45,7 +45,7 @@ struct BuiltinOptional
 
 struct FixcompOptional
 {
-    enum { encoded_byte_size = 8 };
+    enum { encoded_byte_size = 12 };
 
     bool has_x;
     Builtin x;
