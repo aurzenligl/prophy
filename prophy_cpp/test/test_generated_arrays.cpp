@@ -5,7 +5,7 @@
 
 using namespace testing;
 
-TEST(generated, Builtin)
+TEST(generated_arrays, Builtin)
 {
     std::string data(1024, 0);
 
@@ -18,7 +18,7 @@ TEST(generated, Builtin)
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00", 8), std::string(data, 0, size));
 }
 
-TEST(generated, BuiltinFixed)
+TEST(generated_arrays, BuiltinFixed)
 {
     std::string data(1024, 0);
 
@@ -31,7 +31,7 @@ TEST(generated, BuiltinFixed)
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00", 8), std::string(data, 0, size));
 }
 
-TEST(generated, BuiltinDynamic)
+TEST(generated_arrays, BuiltinDynamic)
 {
     std::string data(1024, 0);
 
@@ -44,7 +44,7 @@ TEST(generated, BuiltinDynamic)
     EXPECT_EQ(std::string("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00", 12), std::string(data, 0, size));
 }
 
-TEST(generated, BuiltinLimited)
+TEST(generated_arrays, BuiltinLimited)
 {
     std::string data(1024, 0);
 
@@ -63,7 +63,7 @@ TEST(generated, BuiltinLimited)
     EXPECT_EQ(std::string("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00", 12), std::string(data, 0, size));
 }
 
-TEST(generated, BuiltinGreedy)
+TEST(generated_arrays, BuiltinGreedy)
 {
     std::string data(1024, 0);
 
@@ -76,7 +76,7 @@ TEST(generated, BuiltinGreedy)
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00", 8), std::string(data, 0, size));
 }
 
-TEST(generated, Fixcomp)
+TEST(generated_arrays, Fixcomp)
 {
     std::string data(1024, 0);
 
@@ -93,7 +93,7 @@ TEST(generated, Fixcomp)
             16), std::string(data, 0, size));
 }
 
-TEST(generated, FixcompFixed)
+TEST(generated_arrays, FixcompFixed)
 {
     std::string data(1024, 0);
 
@@ -110,7 +110,7 @@ TEST(generated, FixcompFixed)
             16), std::string(data, 0, size));
 }
 
-TEST(generated, FixcompDynamic)
+TEST(generated_arrays, FixcompDynamic)
 {
     std::string data(1024, 0);
 
@@ -128,7 +128,7 @@ TEST(generated, FixcompDynamic)
             20), std::string(data, 0, size));
 }
 
-TEST(generated, FixcompLimited)
+TEST(generated_arrays, FixcompLimited)
 {
     std::string data(1024, 0);
 
@@ -144,7 +144,7 @@ TEST(generated, FixcompLimited)
             20), std::string(data, 0, size));
 }
 
-TEST(generated, FixcompGreedy)
+TEST(generated_arrays, FixcompGreedy)
 {
     std::string data(1024, 0);
 
@@ -162,7 +162,7 @@ TEST(generated, FixcompGreedy)
             16), std::string(data, 0, size));
 }
 
-TEST(generated, Dyncomp)
+TEST(generated_arrays, Dyncomp)
 {
     std::string data(1024, 0);
 
@@ -178,7 +178,7 @@ TEST(generated, Dyncomp)
             16), std::string(data, 0, size));
 }
 
-TEST(generated, DyncompDynamic)
+TEST(generated_arrays, DyncompDynamic)
 {
     std::string data(1024, 0);
 
