@@ -1,6 +1,5 @@
 #include <string>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include "generated/Arrays.pp.hpp"
 
 using namespace testing;
