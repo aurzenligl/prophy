@@ -196,3 +196,22 @@ TEST(generated_arrays, DyncompDynamic)
             "\x01\x00\x00\x00\x04\x00\x00\x00",
             28), std::string(data, 0, size));
 }
+
+TEST(generated_arrays, DyncompGreedy)
+{
+    std::string data(1024, 0);
+
+    DyncompGreedy x;
+    x.x.resize(2);
+    x.x[0].x.push_back(1);
+    x.x[0].x.push_back(2);
+    x.x[0].x.push_back(3);
+    x.x[1].x.push_back(4);
+    size_t size = x.encode(data.begin().base());
+
+    EXPECT_EQ(24, size);
+    EXPECT_EQ(std::string(
+            "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
+            "\x01\x00\x00\x00\x04\x00\x00\x00",
+            24), std::string(data, 0, size));
+}

@@ -140,4 +140,15 @@ struct DyncompDynamic
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
+struct DyncompGreedy
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<BuiltinDynamic> x; /// greedy
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
 #endif  /* _PROPHY_GENERATED_Arrays_HPP */

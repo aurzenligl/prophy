@@ -134,3 +134,13 @@ size_t DyncompDynamic::encode(void* data) const
 }
 
 template size_t DyncompDynamic::encode<native>(void* data) const;
+
+template <endianness E>
+size_t DyncompGreedy::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x.data(), x.size());
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t DyncompGreedy::encode<native>(void* data) const;
