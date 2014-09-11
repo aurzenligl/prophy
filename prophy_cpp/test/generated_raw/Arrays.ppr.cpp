@@ -40,4 +40,41 @@ raw::BuiltinGreedy* swap<raw::BuiltinGreedy>(raw::BuiltinGreedy* payload)
     return cast<raw::BuiltinGreedy*>(payload->y);
 }
 
+template <>
+raw::Fixcomp* swap<raw::Fixcomp>(raw::Fixcomp* payload)
+{
+    swap(&payload->a);
+    swap(&payload->b);
+    return payload + 1;
+}
+
+template <>
+raw::FixcompFixed* swap<raw::FixcompFixed>(raw::FixcompFixed* payload)
+{
+    swap_n_fixed(payload->a, 3);
+    return payload + 1;
+}
+
+template <>
+raw::FixcompDynamic* swap<raw::FixcompDynamic>(raw::FixcompDynamic* payload)
+{
+    swap(&payload->num_of_x);
+    return cast<raw::FixcompDynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
+}
+
+template <>
+raw::FixcompLimited* swap<raw::FixcompLimited>(raw::FixcompLimited* payload)
+{
+    swap(&payload->num_of_x);
+    swap_n_fixed(payload->x, payload->num_of_x);
+    return payload + 1;
+}
+
+template <>
+raw::FixcompGreedy* swap<raw::FixcompGreedy>(raw::FixcompGreedy* payload)
+{
+    swap(&payload->x);
+    return cast<raw::FixcompGreedy*>(payload->y);
+}
+
 } // namespace prophy

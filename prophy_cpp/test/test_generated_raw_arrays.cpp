@@ -73,3 +73,84 @@ TEST(generated_raw_arrays, BuiltinGreedy)
             "\x00\x00\x00\x01"
             "\x00\x00\x00\x02", 12), std::string(data, 0, 12));
 }
+
+TEST(generated_raw_arrays, Fixcomp)
+{
+    std::string data(
+            "\x01\x00\x00\x02"
+            "\x01\x00\x00\x02", 8);
+    Fixcomp* next = prophy::swap(reinterpret_cast<Fixcomp*>(data.begin().base()));
+
+    EXPECT_EQ(8, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x01\x00\x02\x00"
+            "\x01\x00\x02\x00", 8), std::string(data, 0, 8));
+}
+
+TEST(generated_raw_arrays, FixcompFixed)
+{
+    std::string data(
+            "\x01\x00\x00\x02"
+            "\x01\x00\x00\x02"
+            "\x01\x00\x00\x02", 12);
+    FixcompFixed* next = prophy::swap(reinterpret_cast<FixcompFixed*>(data.begin().base()));
+
+    EXPECT_EQ(12, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x01\x00\x02\x00"
+            "\x01\x00\x02\x00"
+            "\x01\x00\x02\x00", 12), std::string(data, 0, 12));
+}
+
+TEST(generated_raw_arrays, FixcompDynamic)
+{
+    std::string data(
+            "\x00\x00\x00\x03"
+            "\x01\x00\x00\x01"
+            "\x02\x00\x00\x02"
+            "\x03\x00\x00\x03", 16);
+    FixcompDynamic* next = prophy::swap(reinterpret_cast<FixcompDynamic*>(data.begin().base()));
+
+    EXPECT_EQ(16, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x03\x00\x00\x00"
+            "\x01\x00\x01\x00"
+            "\x02\x00\x02\x00"
+            "\x03\x00\x03\x00", 16), std::string(data, 0, 16));
+}
+
+TEST(generated_raw_arrays, FixcompLimited)
+{
+    std::string data(
+            "\x00\x02"
+            "\x01\x00\x00\x01"
+            "\x02\x00\x00\x02"
+            "\xab\xcd\xef\xba", 14);
+    FixcompLimited* next = prophy::swap(reinterpret_cast<FixcompLimited*>(data.begin().base()));
+
+    EXPECT_EQ(14, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x02\x00"
+            "\x01\x00\x01\x00"
+            "\x02\x00\x02\x00"
+            "\xab\xcd\xef\xba", 14), std::string(data, 0, 14));
+}
+
+TEST(generated_raw_arrays, FixcompGreedy)
+{
+    std::string data(
+            "\x00\x01"
+            "\x01\x00\x00\x01"
+            "\x02\x00\x00\x02"
+            "\x01\x00\x00\x01"
+            "\x02\x00\x00\x02", 18);
+    FixcompGreedy* next = prophy::swap(reinterpret_cast<FixcompGreedy*>(data.begin().base()));
+
+    EXPECT_EQ(2, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x01\x00"
+            "\x01\x00\x00\x01"
+            "\x02\x00\x00\x02"
+            "\x01\x00\x00\x01"
+            "\x02\x00\x00\x02", 18), std::string(data, 0, 18));
+}

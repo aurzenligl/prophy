@@ -35,6 +35,35 @@ struct BuiltinGreedy
     uint32_t y[1]; /// greedy array
 };
 
+struct Fixcomp
+{
+    Builtin a;
+    Builtin b;
+};
+
+struct FixcompFixed
+{
+    Builtin a[3];
+};
+
+struct FixcompDynamic
+{
+    uint32_t num_of_x;
+    Builtin x[1]; /// dynamic array, size in num_of_x
+};
+
+struct FixcompLimited
+{
+    uint16_t num_of_x;
+    Builtin x[3]; /// limited array, size in num_of_x
+};
+
+struct FixcompGreedy
+{
+    uint16_t x;
+    Builtin y[1]; /// greedy array
+};
+
 } // namespace raw
 
 #endif  /* _PROPHY_GENERATED_RAW_Arrays_HPP */

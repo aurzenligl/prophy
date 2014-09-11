@@ -2,11 +2,6 @@
 #include <gmock/gmock.h>
 
 #include "util.hpp"
-#include "generated_raw/Composite.pp.hpp"
-#include "generated_raw/CompositeDynamicArray.pp.hpp"
-#include "generated_raw/CompositeFixedArray.pp.hpp"
-#include "generated_raw/CompositeGreedyArray.pp.hpp"
-#include "generated_raw/CompositeLimitedArray.pp.hpp"
 #include "generated_raw/ConstantTypedefEnum.pp.hpp"
 #include "generated_raw/DynamicComposite.pp.hpp"
 #include "generated_raw/DynamicCompositeComposite.pp.hpp"
@@ -19,113 +14,9 @@
 #include "generated_raw/ManyArraysTailFixed.pp.hpp"
 #include "generated_raw/ManyDynamic.pp.hpp"
 #include "generated_raw/Optional.pp.hpp"
-#include "generated_raw/Scalar.pp.hpp"
-#include "generated_raw/ScalarDynamicArray.pp.hpp"
-#include "generated_raw/ScalarFixedArray.pp.hpp"
-#include "generated_raw/ScalarGreedyArray.pp.hpp"
-#include "generated_raw/ScalarLimitedArray.pp.hpp"
 #include "generated_raw/Union.pp.hpp"
 
 using namespace testing;
-
-TEST(generated_raw, Composite)
-{
-    data x(
-        "\x01\x00\x00\x02"
-        "\x01\x00\x00\x02",
-
-        "\x01\x00\x02\x00"
-        "\x01\x00\x02\x00"
-    );
-
-    Composite* next = prophy::swap(reinterpret_cast<Composite*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 8);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, CompositeDynamicArray)
-{
-    data x(
-        "\x00\x00\x00\x03"
-        "\x01\x00\x00\x01"
-        "\x02\x00\x00\x02"
-        "\x03\x00\x00\x03",
-
-        "\x03\x00\x00\x00"
-        "\x01\x00\x01\x00"
-        "\x02\x00\x02\x00"
-        "\x03\x00\x03\x00"
-    );
-
-    CompositeDynamicArray* next = prophy::swap(reinterpret_cast<CompositeDynamicArray*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, CompositeFixedArray)
-{
-    data x(
-        "\x01\x00\x00\x02"
-        "\x01\x00\x00\x02"
-        "\x01\x00\x00\x02",
-
-        "\x01\x00\x02\x00"
-        "\x01\x00\x02\x00"
-        "\x01\x00\x02\x00"
-    );
-
-    CompositeFixedArray* next = prophy::swap(reinterpret_cast<CompositeFixedArray*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, CompositeGreedyArray)
-{
-    data x(
-        "\x00\x01"
-        "\x01\x00\x00\x01"
-        "\x02\x00\x00\x02"
-        "\x01\x00\x00\x01"
-        "\x02\x00\x00\x02",
-
-        "\x01\x00"
-        "\x01\x00\x01\x00"
-        "\x02\x00\x02\x00"
-        "\x01\x00\x01\x00"
-        "\x02\x00\x02\x00"
-    );
-
-    CompositeGreedyArray* next = prophy::swap(reinterpret_cast<CompositeGreedyArray*>(x.input.data()));
-    Composite* past_end = prophy::swap_n_fixed(
-        prophy::cast<Composite*>(next), 2);
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 2);
-    EXPECT_EQ(byte_distance(x.input.data(), past_end), 18);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, CompositeLimitedArray)
-{
-    data x(
-        "\x00\x02"
-        "\x01\x00\x00\x01"
-        "\x02\x00\x00\x02"
-        "\xab\xcd\xef\xba",
-
-        "\x02\x00"
-        "\x01\x00\x01\x00"
-        "\x02\x00\x02\x00"
-        "\xab\xcd\xef\xba"
-    );
-
-    CompositeLimitedArray* next = prophy::swap(reinterpret_cast<CompositeLimitedArray*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 14);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
 
 TEST(generated_raw, ConstantTypedefEnum)
 {
@@ -447,95 +338,6 @@ TEST(generated_raw, Optional_not_set)
     Optional* next = prophy::swap(reinterpret_cast<Optional*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 20);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, Scalar)
-{
-    data x(
-        "\x01\x00\x00\x02",
-
-        "\x01\x00\x02\x00"
-    );
-
-    Scalar* next = prophy::swap(reinterpret_cast<Scalar*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 4);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, ScalarDynamicArray)
-{
-    data x(
-        "\x00\x00\x00\x03"
-        "\x00\x05\x00\x06"
-        "\x00\x07\xab\xcd",
-
-        "\x03\x00\x00\x00"
-        "\x05\x00\x06\x00"
-        "\x07\x00\xab\xcd"
-    );
-
-    ScalarDynamicArray* next = prophy::swap(reinterpret_cast<ScalarDynamicArray*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, ScalarFixedArray)
-{
-    data x(
-        "\x00\x02"
-        "\x00\x02"
-        "\x00\x02",
-
-        "\x02\x00"
-        "\x02\x00"
-        "\x02\x00"
-    );
-
-    ScalarFixedArray* next = prophy::swap(reinterpret_cast<ScalarFixedArray*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 6);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, ScalarGreedyArray)
-{
-    data x(
-        "\x00\x08\xab\xcd"
-        "\x00\x00\x00\x01"
-        "\x00\x00\x00\x02",
-
-        "\x08\x00\xab\xcd"
-        "\x01\x00\x00\x00"
-        "\x02\x00\x00\x00"
-    );
-
-    ScalarGreedyArray* next = prophy::swap(reinterpret_cast<ScalarGreedyArray*>(x.input.data()));
-    uint32_t* past_end = prophy::swap_n_fixed(
-        prophy::cast<uint32_t*>(next), 2);
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 4);
-    EXPECT_EQ(byte_distance(x.input.data(), past_end), 12);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, ScalarLimitedArray)
-{
-    data x(
-        "\x00\x00\x00\x02"
-        "\x00\x05\x00\x06"
-        "\xab\xcd\xef\xba",
-
-        "\x02\x00\x00\x00"
-        "\x05\x00\x06\x00"
-        "\xab\xcd\xef\xba"
-    );
-
-    ScalarLimitedArray* next = prophy::swap(reinterpret_cast<ScalarLimitedArray*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
