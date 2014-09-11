@@ -64,6 +64,23 @@ struct FixcompGreedy
     Builtin y[1]; /// greedy array
 };
 
+struct Dyncomp
+{
+    BuiltinDynamic x;
+};
+
+struct DyncompDynamic
+{
+    uint32_t num_of_x;
+    BuiltinDynamic x[1]; /// dynamic array, size in num_of_x
+};
+
+struct DyncompGreedy
+{
+    uint16_t x;
+    BuiltinDynamic y[1]; /// greedy array
+};
+
 } // namespace raw
 
 #endif  /* _PROPHY_GENERATED_RAW_Arrays_HPP */

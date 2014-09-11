@@ -3,9 +3,6 @@
 
 #include "util.hpp"
 #include "generated_raw/ConstantTypedefEnum.pp.hpp"
-#include "generated_raw/DynamicComposite.pp.hpp"
-#include "generated_raw/DynamicCompositeDynamicArray.pp.hpp"
-#include "generated_raw/DynamicCompositeGreedyArray.pp.hpp"
 #include "generated_raw/ManyArrays.pp.hpp"
 #include "generated_raw/ManyArraysMixed.pp.hpp"
 #include "generated_raw/ManyArraysMixedHeavily.pp.hpp"
@@ -36,75 +33,6 @@ TEST(generated_raw, ConstantTypedefEnum)
     ConstantTypedefEnum* next = prophy::swap(reinterpret_cast<ConstantTypedefEnum*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, DynamicComposite)
-{
-    data x(
-        "\x00\x00\x00\x03"
-        "\x00\x01\x00\x02"
-        "\x00\x03\xab\xcd",
-
-        "\x03\x00\x00\x00"
-        "\x01\x00\x02\x00"
-        "\x03\x00\xab\xcd"
-    );
-
-    DynamicComposite* next = prophy::swap(reinterpret_cast<DynamicComposite*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, DynamicCompositeDynamicArray)
-{
-    data x(
-        "\x00\x02\xab\xcd"
-        "\x00\x00\x00\x01"
-        "\x00\x01\xef\xab"
-        "\x00\x00\x00\x03"
-        "\x00\x01\x00\x02"
-        "\x00\x03\xab\xcd",
-
-        "\x02\x00\xab\xcd"
-        "\x01\x00\x00\x00"
-        "\x01\x00\xef\xab"
-        "\x03\x00\x00\x00"
-        "\x01\x00\x02\x00"
-        "\x03\x00\xab\xcd"
-    );
-
-    DynamicCompositeDynamicArray* next = prophy::swap(reinterpret_cast<DynamicCompositeDynamicArray*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 24);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, DynamicCompositeGreedyArray)
-{
-    data x(
-        "\x00\x01\xab\xcd"
-        "\x00\x00\x00\x01"
-        "\x00\x01\xef\xab"
-        "\x00\x00\x00\x03"
-        "\x00\x01\x00\x02"
-        "\x00\x03\xab\xcd",
-
-        "\x01\x00\xab\xcd"
-        "\x01\x00\x00\x00"
-        "\x01\x00\xef\xab"
-        "\x03\x00\x00\x00"
-        "\x01\x00\x02\x00"
-        "\x03\x00\xab\xcd"
-    );
-
-    DynamicCompositeGreedyArray* next = prophy::swap(reinterpret_cast<DynamicCompositeGreedyArray*>(x.input.data()));
-    DynamicComposite* past_end = prophy::swap_n_dynamic(
-        prophy::cast<DynamicComposite*>(next), 2);
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 4);
-    EXPECT_EQ(byte_distance(x.input.data(), past_end), 24);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 

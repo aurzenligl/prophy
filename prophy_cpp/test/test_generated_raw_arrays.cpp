@@ -154,3 +154,60 @@ TEST(generated_raw_arrays, FixcompGreedy)
             "\x01\x00\x00\x01"
             "\x02\x00\x00\x02", 18), std::string(data, 0, 18));
 }
+
+TEST(generated_raw_arrays, Dyncomp)
+{
+    std::string data(
+            "\x00\x00\x00\x03"
+            "\x00\x01\x00\x02"
+            "\x00\x03\xab\xcd", 12);
+    Dyncomp* next = prophy::swap(reinterpret_cast<Dyncomp*>(data.begin().base()));
+
+    EXPECT_EQ(12, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x03\x00\x00\x00"
+            "\x01\x00\x02\x00"
+            "\x03\x00\xab\xcd", 12), std::string(data, 0, 12));
+}
+
+TEST(generated_raw_arrays, DyncompDynamic)
+{
+    std::string data(
+            "\x00\x00\x00\x02"
+            "\x00\x00\x00\x01"
+            "\x00\x01\xef\xab"
+            "\x00\x00\x00\x03"
+            "\x00\x01\x00\x02"
+            "\x00\x03\xab\xcd", 24);
+    DyncompDynamic* next = prophy::swap(reinterpret_cast<DyncompDynamic*>(data.begin().base()));
+
+    EXPECT_EQ(24, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x02\x00\x00\x00"
+            "\x01\x00\x00\x00"
+            "\x01\x00\xef\xab"
+            "\x03\x00\x00\x00"
+            "\x01\x00\x02\x00"
+            "\x03\x00\xab\xcd", 24), std::string(data, 0, 24));
+}
+
+TEST(generated_raw_arrays, DyncompGreedy)
+{
+    std::string data(
+            "\x00\x01\xab\xcd"
+            "\x00\x00\x00\x01"
+            "\x00\x01\xef\xab"
+            "\x00\x00\x00\x03"
+            "\x00\x01\x00\x02"
+            "\x00\x03\xab\xcd", 24);
+    DyncompGreedy* next = prophy::swap(reinterpret_cast<DyncompGreedy*>(data.begin().base()));
+
+    EXPECT_EQ(4, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(
+            "\x01\x00\xab\xcd"
+            "\x00\x00\x00\x01"
+            "\x00\x01\xef\xab"
+            "\x00\x00\x00\x03"
+            "\x00\x01\x00\x02"
+            "\x00\x03\xab\xcd", 24), std::string(data, 0, 24));
+}

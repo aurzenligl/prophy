@@ -1,10 +1,12 @@
 #include "Arrays.ppr.hpp"
 
+using namespace raw;
+
 namespace prophy
 {
 
 template <>
-raw::Builtin* swap<raw::Builtin>(raw::Builtin* payload)
+Builtin* swap<Builtin>(Builtin* payload)
 {
     swap(&payload->a);
     swap(&payload->b);
@@ -12,21 +14,21 @@ raw::Builtin* swap<raw::Builtin>(raw::Builtin* payload)
 }
 
 template <>
-raw::BuiltinFixed* swap<raw::BuiltinFixed>(raw::BuiltinFixed* payload)
+BuiltinFixed* swap<BuiltinFixed>(BuiltinFixed* payload)
 {
     swap_n_fixed(payload->a, 3);
     return payload + 1;
 }
 
 template <>
-raw::BuiltinDynamic* swap<raw::BuiltinDynamic>(raw::BuiltinDynamic* payload)
+BuiltinDynamic* swap<BuiltinDynamic>(BuiltinDynamic* payload)
 {
     swap(&payload->num_of_x);
-    return cast<raw::BuiltinDynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
+    return cast<BuiltinDynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
 
 template <>
-raw::BuiltinLimited* swap<raw::BuiltinLimited>(raw::BuiltinLimited* payload)
+BuiltinLimited* swap<BuiltinLimited>(BuiltinLimited* payload)
 {
     swap(&payload->num_of_x);
     swap_n_fixed(payload->x, payload->num_of_x);
@@ -34,14 +36,14 @@ raw::BuiltinLimited* swap<raw::BuiltinLimited>(raw::BuiltinLimited* payload)
 }
 
 template <>
-raw::BuiltinGreedy* swap<raw::BuiltinGreedy>(raw::BuiltinGreedy* payload)
+BuiltinGreedy* swap<BuiltinGreedy>(BuiltinGreedy* payload)
 {
     swap(&payload->x);
-    return cast<raw::BuiltinGreedy*>(payload->y);
+    return cast<BuiltinGreedy*>(payload->y);
 }
 
 template <>
-raw::Fixcomp* swap<raw::Fixcomp>(raw::Fixcomp* payload)
+Fixcomp* swap<Fixcomp>(Fixcomp* payload)
 {
     swap(&payload->a);
     swap(&payload->b);
@@ -49,21 +51,21 @@ raw::Fixcomp* swap<raw::Fixcomp>(raw::Fixcomp* payload)
 }
 
 template <>
-raw::FixcompFixed* swap<raw::FixcompFixed>(raw::FixcompFixed* payload)
+FixcompFixed* swap<FixcompFixed>(FixcompFixed* payload)
 {
     swap_n_fixed(payload->a, 3);
     return payload + 1;
 }
 
 template <>
-raw::FixcompDynamic* swap<raw::FixcompDynamic>(raw::FixcompDynamic* payload)
+FixcompDynamic* swap<FixcompDynamic>(FixcompDynamic* payload)
 {
     swap(&payload->num_of_x);
-    return cast<raw::FixcompDynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
+    return cast<FixcompDynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
 
 template <>
-raw::FixcompLimited* swap<raw::FixcompLimited>(raw::FixcompLimited* payload)
+FixcompLimited* swap<FixcompLimited>(FixcompLimited* payload)
 {
     swap(&payload->num_of_x);
     swap_n_fixed(payload->x, payload->num_of_x);
@@ -71,10 +73,30 @@ raw::FixcompLimited* swap<raw::FixcompLimited>(raw::FixcompLimited* payload)
 }
 
 template <>
-raw::FixcompGreedy* swap<raw::FixcompGreedy>(raw::FixcompGreedy* payload)
+FixcompGreedy* swap<FixcompGreedy>(FixcompGreedy* payload)
 {
     swap(&payload->x);
-    return cast<raw::FixcompGreedy*>(payload->y);
+    return cast<FixcompGreedy*>(payload->y);
+}
+
+template <>
+Dyncomp* swap<Dyncomp>(Dyncomp* payload)
+{
+    return cast<Dyncomp*>(swap(&payload->x));
+}
+
+template <>
+DyncompDynamic* swap<DyncompDynamic>(DyncompDynamic* payload)
+{
+    swap(&payload->num_of_x);
+    return cast<DyncompDynamic*>(swap_n_dynamic(payload->x, payload->num_of_x));
+}
+
+template <>
+DyncompGreedy* swap<DyncompGreedy>(DyncompGreedy* payload)
+{
+    swap(&payload->x);
+    return cast<DyncompGreedy*>(payload->y);
 }
 
 } // namespace prophy
