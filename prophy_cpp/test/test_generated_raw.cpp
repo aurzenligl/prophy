@@ -4,7 +4,6 @@
 #include "util.hpp"
 #include "generated_raw/ConstantTypedefEnum.pp.hpp"
 #include "generated_raw/DynamicComposite.pp.hpp"
-#include "generated_raw/DynamicCompositeComposite.pp.hpp"
 #include "generated_raw/DynamicCompositeDynamicArray.pp.hpp"
 #include "generated_raw/DynamicCompositeGreedyArray.pp.hpp"
 #include "generated_raw/ManyArrays.pp.hpp"
@@ -55,34 +54,6 @@ TEST(generated_raw, DynamicComposite)
     DynamicComposite* next = prophy::swap(reinterpret_cast<DynamicComposite*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 12);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, DynamicCompositeComposite)
-{
-    data x(
-        "\x00\x00\x00\x03"
-        "\x00\x01\x00\x02"
-        "\x00\x03\xab\xcd"
-        "\x00\x00\x00\x04"
-        "\x00\x00\x00\x01"
-        "\x00\x05\xab\xcd"
-        "\x00\x00\x00\x02"
-        "\x00\x06\x00\x07",
-
-        "\x03\x00\x00\x00"
-        "\x01\x00\x02\x00"
-        "\x03\x00\xab\xcd"
-        "\x04\x00\x00\x00"
-        "\x01\x00\x00\x00"
-        "\x05\x00\xab\xcd"
-        "\x02\x00\x00\x00"
-        "\x06\x00\x07\x00"
-    );
-
-    DynamicCompositeComposite* next = prophy::swap(reinterpret_cast<DynamicCompositeComposite*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 32);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
