@@ -1,19 +1,13 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
-
 #include "util.hpp"
-#include "generated_raw/ManyArrays.pp.hpp"
-#include "generated_raw/ManyArraysMixed.pp.hpp"
-#include "generated_raw/ManyArraysMixedHeavily.pp.hpp"
-#include "generated_raw/ManyArraysPadding.pp.hpp"
-#include "generated_raw/ManyArraysTailFixed.pp.hpp"
-#include "generated_raw/ManyDynamic.pp.hpp"
+#include "generated_raw/Dynfields.ppr.hpp"
 
 using namespace testing;
+using namespace raw;
 
-TEST(generated_raw, ManyArrays)
+TEST(generated_raw_dynfields, Dynfields)
 {
-    data x(
+    test_swap<Dynfields>(
         "\x00\x00\x00\x05"
         "\x01\x02\x03\x04"
         "\x05\xab"
@@ -34,16 +28,11 @@ TEST(generated_raw, ManyArrays)
         "\x02\x00\x00\x00\x00\x00\x00\x00"
         "\x03\x00\x00\x00\x00\x00\x00\x00"
     );
-
-    ManyArrays* next = prophy::swap(reinterpret_cast<ManyArrays*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 48);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated_raw, ManyArraysMixed)
+TEST(generated_raw_dynfields, DynfieldsMixed)
 {
-    data x(
+    test_swap<DynfieldsMixed>(
         "\x00\x00\x00\x05"
         "\x00\x02"
         "\x01\x02\x03\x04"
@@ -56,16 +45,11 @@ TEST(generated_raw, ManyArraysMixed)
         "\x05\x00"
         "\x01\x00\x02\x00"
     );
-
-    ManyArraysMixed* next = prophy::swap(reinterpret_cast<ManyArraysMixed*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated_raw, ManyArraysMixedHeavily)
+TEST(generated_raw_dynfields, DynfieldsOverlapped)
 {
-    data x(
+    test_swap<DynfieldsOverlapped>(
         "\x00\x00\x00\x01"
         "\x00\x00\x00\x03"
         "\x00\x01\x00\x02"
@@ -86,16 +70,11 @@ TEST(generated_raw, ManyArraysMixedHeavily)
         "\x08\x00\xab\xcd"
         "\x09\x00\xab\xcd"
     );
-
-    ManyArraysMixedHeavily* next = prophy::swap(reinterpret_cast<ManyArraysMixedHeavily*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 36);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated_raw, ManyArraysPadding)
+TEST(generated_raw_dynfields, DynfieldsPadded)
 {
-    data x(
+    test_swap<DynfieldsPadded>(
         "\x01\x00\x00\x00"
         "\x00\x00\x00\x00"
         "\x02\x02\x03\x00"
@@ -114,16 +93,11 @@ TEST(generated_raw, ManyArraysPadding)
         "\x06\x00\x00\x00"
         "\x00\x00\x00\x00"
     );
-
-    ManyArraysPadding* next = prophy::swap(reinterpret_cast<ManyArraysPadding*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 32);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated_raw, ManyArraysTailFixed)
+TEST(generated_raw_dynfields, DynfieldsFixtail)
 {
-    data x(
+    test_swap<DynfieldsFixtail>(
         "\x02\x02\x03\x00"
         "\x00\x00\x00\x00"
         "\x00\x00\x00\x04"
@@ -138,16 +112,11 @@ TEST(generated_raw, ManyArraysTailFixed)
         "\x05\x00\x00\x00"
         "\x00\x00\x00\x00"
     );
-
-    ManyArraysTailFixed* next = prophy::swap(reinterpret_cast<ManyArraysTailFixed*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 24);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
 
-TEST(generated_raw, ManyDynamic)
+TEST(generated_raw_dynfields, DynfieldsComp)
 {
-    data x(
+    test_swap<DynfieldsComp>(
         "\x00\x00\x00\x01"
         "\x00\x01\xab\xcd"
         "\x00\x00\x00\x02"
@@ -164,9 +133,4 @@ TEST(generated_raw, ManyDynamic)
         "\x04\x00\x05\x00"
         "\x06\x00\xab\xcd"
     );
-
-    ManyDynamic* next = prophy::swap(reinterpret_cast<ManyDynamic*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 28);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }
