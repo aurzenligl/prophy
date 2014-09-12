@@ -2,7 +2,6 @@
 #define _TEST_UTIL_HPP
 
 #include <stdint.h>
-#include <string>
 #include <vector>
 #include <prophy/prophy.hpp>
 
