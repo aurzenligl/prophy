@@ -2,7 +2,6 @@
 #include <gmock/gmock.h>
 
 #include "util.hpp"
-#include "generated_raw/ConstantTypedefEnum.pp.hpp"
 #include "generated_raw/ManyArrays.pp.hpp"
 #include "generated_raw/ManyArraysMixed.pp.hpp"
 #include "generated_raw/ManyArraysMixedHeavily.pp.hpp"
@@ -13,28 +12,6 @@
 #include "generated_raw/Union.pp.hpp"
 
 using namespace testing;
-
-TEST(generated_raw, ConstantTypedefEnum)
-{
-    data x(
-        "\x00\x01"
-        "\x00\x02"
-        "\x00\x03"
-        "\x00\x04"
-        "\x00\x00\x00\x01",
-
-        "\x01\x00"
-        "\x02\x00"
-        "\x03\x00"
-        "\x04\x00"
-        "\x01\x00\x00\x00"
-    );
-
-    ConstantTypedefEnum* next = prophy::swap(reinterpret_cast<ConstantTypedefEnum*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 12);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
 
 TEST(generated_raw, ManyArrays)
 {

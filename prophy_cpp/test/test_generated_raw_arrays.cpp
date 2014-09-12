@@ -1,19 +1,9 @@
 #include <gtest/gtest.h>
-
+#include "util.hpp"
 #include "generated_raw/Arrays.ppr.hpp"
 
 using namespace testing;
 using namespace raw;
-
-template <class T, size_t N>
-static void test_swap(const char (&input) [N], const char (&expected) [N], size_t expected_size = N - 1)
-{
-    std::string input_(input, N - 1);
-    T* next = prophy::swap(reinterpret_cast<T*>(input_.begin().base()));
-
-    EXPECT_EQ(expected_size, reinterpret_cast<char*>(next) - input_.data());
-    EXPECT_EQ(std::string(expected, N - 1), std::string(input_, 0, N - 1));
-}
 
 TEST(generated_raw_arrays, Builtin)
 {

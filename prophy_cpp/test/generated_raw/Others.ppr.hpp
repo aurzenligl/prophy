@@ -1,7 +1,10 @@
-#ifndef _PROPHY_GENERATED_ConstantTypedefEnum_HPP
-#define _PROPHY_GENERATED_ConstantTypedefEnum_HPP
+#ifndef _PROPHY_GENERATED_RAW_Others_HPP
+#define _PROPHY_GENERATED_RAW_Others_HPP
 
 #include <prophy/prophy.hpp>
+
+namespace raw
+{
 
 enum { CONSTANT = 3 };
 
@@ -19,4 +22,6 @@ struct ConstantTypedefEnum
     Enum c;
 };
 
-#endif  /* _PROPHY_GENERATED_ConstantTypedefEnum_HPP */
+} // namespace raw
+
+#endif  /* _PROPHY_GENERATED_RAW_Others_HPP */

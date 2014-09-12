@@ -2,7 +2,19 @@
 #define _TEST_UTIL_HPP
 
 #include <stdint.h>
+#include <string>
 #include <vector>
+#include <prophy/prophy.hpp>
+
+template <class T, size_t N>
+void test_swap(const char (&input) [N], const char (&expected) [N], size_t expected_size = N - 1)
+{
+    std::string input_(input, N - 1);
+    T* next = prophy::swap(reinterpret_cast<T*>(input_.begin().base()));
+
+    EXPECT_EQ(expected_size, reinterpret_cast<char*>(next) - input_.data());
+    EXPECT_EQ(std::string(expected, N - 1), std::string(input_, 0, N - 1));
+}
 
 static union endianness_finder_t
 {

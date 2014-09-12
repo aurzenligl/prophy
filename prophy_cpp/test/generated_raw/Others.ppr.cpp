@@ -1,4 +1,6 @@
-#include "ConstantTypedefEnum.pp.hpp"
+#include "Others.ppr.hpp"
+
+using namespace raw;
 
 namespace prophy
 {
