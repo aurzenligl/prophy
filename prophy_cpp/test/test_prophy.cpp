@@ -1,9 +1,6 @@
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include <prophy/prophy.hpp>
-
-#include "util.hpp"
 
 using namespace testing;
 
@@ -133,106 +130,4 @@ TEST(prophy, casts_pointers_ensuring_alignment)
     EXPECT_EQ(8, reinterpret_cast<uintptr_t>(prophy::cast<X*>(reinterpret_cast<uint16_t*>(uintptr_t(2)))));
 
     EXPECT_EQ(2, reinterpret_cast<uintptr_t>(prophy::cast<Y*>(reinterpret_cast<uint8_t*>(uintptr_t(1)))));
-}
-
-struct DynamicFixedArray
-{
-    uint8_t num_of_x;
-    uint16_t x[1];
-};
-
-namespace prophy
-{
-template <>
-inline DynamicFixedArray* swap<DynamicFixedArray>(DynamicFixedArray* in)
-{
-    prophy::swap(&in->num_of_x);
-    return prophy::cast<DynamicFixedArray*>(prophy::swap_n_fixed(in->x, in->num_of_x));
-}
-}
-
-TEST(prophy, swaps_fixed_array)
-{
-    data x(
-        "\x05\x00"
-        "\x00\x01"
-        "\x00\x02"
-        "\x00\x03"
-        "\x00\x04"
-        "\x00\x05",
-
-        "\x05\x00"
-        "\x01\x00"
-        "\x02\x00"
-        "\x03\x00"
-        "\x04\x00"
-        "\x05\x00"
-    );
-
-    DynamicFixedArray* array = reinterpret_cast<DynamicFixedArray*>(x.input.data());
-
-    prophy::swap(array);
-
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-struct DynamicDynamicArray
-{
-    uint8_t num_of_x;
-    DynamicFixedArray x[1];
-};
-
-namespace prophy
-{
-template <>
-inline DynamicDynamicArray* swap<DynamicDynamicArray>(DynamicDynamicArray* in)
-{
-    prophy::swap(&in->num_of_x);
-    return prophy::cast<DynamicDynamicArray*>(prophy::swap_n_dynamic(in->x, in->num_of_x));
-}
-}
-
-TEST(prophy, swaps_dynamic_array)
-{
-    data x(
-        "\x03\x00"
-
-        "\x01\x00"
-        "\x00\x01"
-
-        "\x05\x00"
-        "\x00\x02"
-        "\x00\x03"
-        "\x00\x04"
-        "\x00\x05"
-        "\x00\x06"
-
-        "\x03\x00"
-        "\x00\x07"
-        "\x00\x08"
-        "\x00\x09",
-
-        "\x03\x00"
-
-        "\x01\x00"
-        "\x01\x00"
-
-        "\x05\x00"
-        "\x02\x00"
-        "\x03\x00"
-        "\x04\x00"
-        "\x05\x00"
-        "\x06\x00"
-
-        "\x03\x00"
-        "\x07\x00"
-        "\x08\x00"
-        "\x09\x00"
-    );
-
-    DynamicDynamicArray* array = reinterpret_cast<DynamicDynamicArray*>(x.input.data());
-
-    prophy::swap(array);
-
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
 }

@@ -1,6 +1,5 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include "generated/Unions.pp.hpp"
 
 using namespace testing;
