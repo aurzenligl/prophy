@@ -5,209 +5,200 @@
 using namespace testing;
 using namespace raw;
 
+template <class T, size_t N>
+static void test_swap(const char (&input) [N], const char (&expected) [N], size_t expected_size = N - 1)
+{
+    std::string input_(input, N - 1);
+    T* next = prophy::swap(reinterpret_cast<T*>(input_.begin().base()));
+
+    EXPECT_EQ(expected_size, reinterpret_cast<char*>(next) - input_.data());
+    EXPECT_EQ(std::string(expected, N - 1), std::string(input_, 0, N - 1));
+}
+
 TEST(generated_raw_arrays, Builtin)
 {
-    std::string data("\x01\x00\x00\x02", 4);
-    Builtin* next = prophy::swap(reinterpret_cast<Builtin*>(data.begin().base()));
-
-    EXPECT_EQ(4, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string("\x01\x00\x02\x00", 4), std::string(data, 0, 4));
+    test_swap<Builtin>(
+        "\x01\x00\x00\x02",
+        "\x01\x00\x02\x00"
+    );
 }
 
 TEST(generated_raw_arrays, BuiltinFixed)
 {
-    std::string data(
-            "\x00\x02"
-            "\x00\x02"
-            "\x00\x02", 6);
-    BuiltinFixed* next = prophy::swap(reinterpret_cast<BuiltinFixed*>(data.begin().base()));
+    test_swap<BuiltinFixed>(
+        "\x00\x02"
+        "\x00\x02"
+        "\x00\x02",
 
-    EXPECT_EQ(6, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x02\x00"
-            "\x02\x00"
-            "\x02\x00", 6), std::string(data, 0, 6));
+        "\x02\x00"
+        "\x02\x00"
+        "\x02\x00"
+    );
 }
 
 TEST(generated_raw_arrays, BuiltinDynamic)
 {
-    std::string data(
-            "\x00\x00\x00\x03"
-            "\x00\x05\x00\x06"
-            "\x00\x07\xab\xcd", 12);
-    BuiltinDynamic* next = prophy::swap(reinterpret_cast<BuiltinDynamic*>(data.begin().base()));
+    test_swap<BuiltinDynamic>(
+        "\x00\x00\x00\x03"
+        "\x00\x05\x00\x06"
+        "\x00\x07\xab\xcd",
 
-    EXPECT_EQ(12, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x03\x00\x00\x00"
-            "\x05\x00\x06\x00"
-            "\x07\x00\xab\xcd", 12), std::string(data, 0, 12));
+        "\x03\x00\x00\x00"
+        "\x05\x00\x06\x00"
+        "\x07\x00\xab\xcd"
+    );
 }
 
 TEST(generated_raw_arrays, BuiltinLimited)
 {
-    std::string data(
-            "\x00\x00\x00\x02"
-            "\x00\x05\x00\x06"
-            "\xab\xcd\xef\xba", 12);
-    BuiltinLimited* next = prophy::swap(reinterpret_cast<BuiltinLimited*>(data.begin().base()));
+    test_swap<BuiltinLimited>(
+        "\x00\x00\x00\x02"
+        "\x00\x05\x00\x06"
+        "\xab\xcd\xef\xba",
 
-    EXPECT_EQ(12, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x02\x00\x00\x00"
-            "\x05\x00\x06\x00"
-            "\xab\xcd\xef\xba", 12), std::string(data, 0, 12));
+        "\x02\x00\x00\x00"
+        "\x05\x00\x06\x00"
+        "\xab\xcd\xef\xba"
+    );
 }
 
 TEST(generated_raw_arrays, BuiltinGreedy)
 {
-    std::string data(
-            "\x00\x08\xab\xcd"
-            "\x00\x00\x00\x01"
-            "\x00\x00\x00\x02", 12);
-    BuiltinGreedy* next = prophy::swap(reinterpret_cast<BuiltinGreedy*>(data.begin().base()));
+    test_swap<BuiltinGreedy>(
+        "\x00\x08\xab\xcd"
+        "\x00\x00\x00\x01"
+        "\x00\x00\x00\x02",
 
-    EXPECT_EQ(4, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x08\x00\xab\xcd"
-            "\x00\x00\x00\x01"
-            "\x00\x00\x00\x02", 12), std::string(data, 0, 12));
+        "\x08\x00\xab\xcd"
+        "\x00\x00\x00\x01"
+        "\x00\x00\x00\x02",
+
+        4
+    );
 }
 
 TEST(generated_raw_arrays, Fixcomp)
 {
-    std::string data(
-            "\x01\x00\x00\x02"
-            "\x01\x00\x00\x02", 8);
-    Fixcomp* next = prophy::swap(reinterpret_cast<Fixcomp*>(data.begin().base()));
+    test_swap<Fixcomp>(
+        "\x01\x00\x00\x02"
+        "\x01\x00\x00\x02",
 
-    EXPECT_EQ(8, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x01\x00\x02\x00"
-            "\x01\x00\x02\x00", 8), std::string(data, 0, 8));
+        "\x01\x00\x02\x00"
+        "\x01\x00\x02\x00"
+    );
 }
 
 TEST(generated_raw_arrays, FixcompFixed)
 {
-    std::string data(
-            "\x01\x00\x00\x02"
-            "\x01\x00\x00\x02"
-            "\x01\x00\x00\x02", 12);
-    FixcompFixed* next = prophy::swap(reinterpret_cast<FixcompFixed*>(data.begin().base()));
+    test_swap<FixcompFixed>(
+        "\x01\x00\x00\x02"
+        "\x01\x00\x00\x02"
+        "\x01\x00\x00\x02",
 
-    EXPECT_EQ(12, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x01\x00\x02\x00"
-            "\x01\x00\x02\x00"
-            "\x01\x00\x02\x00", 12), std::string(data, 0, 12));
+        "\x01\x00\x02\x00"
+        "\x01\x00\x02\x00"
+        "\x01\x00\x02\x00"
+    );
 }
 
 TEST(generated_raw_arrays, FixcompDynamic)
 {
-    std::string data(
-            "\x00\x00\x00\x03"
-            "\x01\x00\x00\x01"
-            "\x02\x00\x00\x02"
-            "\x03\x00\x00\x03", 16);
-    FixcompDynamic* next = prophy::swap(reinterpret_cast<FixcompDynamic*>(data.begin().base()));
+    test_swap<FixcompDynamic>(
+        "\x00\x00\x00\x03"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02"
+        "\x03\x00\x00\x03",
 
-    EXPECT_EQ(16, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x03\x00\x00\x00"
-            "\x01\x00\x01\x00"
-            "\x02\x00\x02\x00"
-            "\x03\x00\x03\x00", 16), std::string(data, 0, 16));
+        "\x03\x00\x00\x00"
+        "\x01\x00\x01\x00"
+        "\x02\x00\x02\x00"
+        "\x03\x00\x03\x00"
+    );
 }
 
 TEST(generated_raw_arrays, FixcompLimited)
 {
-    std::string data(
-            "\x00\x02"
-            "\x01\x00\x00\x01"
-            "\x02\x00\x00\x02"
-            "\xab\xcd\xef\xba", 14);
-    FixcompLimited* next = prophy::swap(reinterpret_cast<FixcompLimited*>(data.begin().base()));
+    test_swap<FixcompLimited>(
+        "\x00\x02"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02"
+        "\xab\xcd\xef\xba",
 
-    EXPECT_EQ(14, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x02\x00"
-            "\x01\x00\x01\x00"
-            "\x02\x00\x02\x00"
-            "\xab\xcd\xef\xba", 14), std::string(data, 0, 14));
+        "\x02\x00"
+        "\x01\x00\x01\x00"
+        "\x02\x00\x02\x00"
+        "\xab\xcd\xef\xba"
+    );
 }
 
 TEST(generated_raw_arrays, FixcompGreedy)
 {
-    std::string data(
-            "\x00\x01"
-            "\x01\x00\x00\x01"
-            "\x02\x00\x00\x02"
-            "\x01\x00\x00\x01"
-            "\x02\x00\x00\x02", 18);
-    FixcompGreedy* next = prophy::swap(reinterpret_cast<FixcompGreedy*>(data.begin().base()));
+    test_swap<FixcompGreedy>(
+        "\x00\x01"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02",
 
-    EXPECT_EQ(2, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x01\x00"
-            "\x01\x00\x00\x01"
-            "\x02\x00\x00\x02"
-            "\x01\x00\x00\x01"
-            "\x02\x00\x00\x02", 18), std::string(data, 0, 18));
+        "\x01\x00"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02"
+        "\x01\x00\x00\x01"
+        "\x02\x00\x00\x02",
+
+        2
+    );
 }
 
 TEST(generated_raw_arrays, Dyncomp)
 {
-    std::string data(
-            "\x00\x00\x00\x03"
-            "\x00\x01\x00\x02"
-            "\x00\x03\xab\xcd", 12);
-    Dyncomp* next = prophy::swap(reinterpret_cast<Dyncomp*>(data.begin().base()));
+    test_swap<Dyncomp>(
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd",
 
-    EXPECT_EQ(12, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x03\x00\x00\x00"
-            "\x01\x00\x02\x00"
-            "\x03\x00\xab\xcd", 12), std::string(data, 0, 12));
+        "\x03\x00\x00\x00"
+        "\x01\x00\x02\x00"
+        "\x03\x00\xab\xcd"
+    );
 }
 
 TEST(generated_raw_arrays, DyncompDynamic)
 {
-    std::string data(
-            "\x00\x00\x00\x02"
-            "\x00\x00\x00\x01"
-            "\x00\x01\xef\xab"
-            "\x00\x00\x00\x03"
-            "\x00\x01\x00\x02"
-            "\x00\x03\xab\xcd", 24);
-    DyncompDynamic* next = prophy::swap(reinterpret_cast<DyncompDynamic*>(data.begin().base()));
+    test_swap<DyncompDynamic>(
+        "\x00\x00\x00\x02"
+        "\x00\x00\x00\x01"
+        "\x00\x01\xef\xab"
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd",
 
-    EXPECT_EQ(24, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x02\x00\x00\x00"
-            "\x01\x00\x00\x00"
-            "\x01\x00\xef\xab"
-            "\x03\x00\x00\x00"
-            "\x01\x00\x02\x00"
-            "\x03\x00\xab\xcd", 24), std::string(data, 0, 24));
+        "\x02\x00\x00\x00"
+        "\x01\x00\x00\x00"
+        "\x01\x00\xef\xab"
+        "\x03\x00\x00\x00"
+        "\x01\x00\x02\x00"
+        "\x03\x00\xab\xcd"
+    );
 }
 
 TEST(generated_raw_arrays, DyncompGreedy)
 {
-    std::string data(
-            "\x00\x01\xab\xcd"
-            "\x00\x00\x00\x01"
-            "\x00\x01\xef\xab"
-            "\x00\x00\x00\x03"
-            "\x00\x01\x00\x02"
-            "\x00\x03\xab\xcd", 24);
-    DyncompGreedy* next = prophy::swap(reinterpret_cast<DyncompGreedy*>(data.begin().base()));
+    test_swap<DyncompGreedy>(
+        "\x00\x01\xab\xcd"
+        "\x00\x00\x00\x01"
+        "\x00\x01\xef\xab"
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd",
 
-    EXPECT_EQ(4, reinterpret_cast<char*>(next) - data.data());
-    EXPECT_EQ(std::string(
-            "\x01\x00\xab\xcd"
-            "\x00\x00\x00\x01"
-            "\x00\x01\xef\xab"
-            "\x00\x00\x00\x03"
-            "\x00\x01\x00\x02"
-            "\x00\x03\xab\xcd", 24), std::string(data, 0, 24));
+        "\x01\x00\xab\xcd"
+        "\x00\x00\x00\x01"
+        "\x00\x01\xef\xab"
+        "\x00\x00\x00\x03"
+        "\x00\x01\x00\x02"
+        "\x00\x03\xab\xcd",
+
+        4
+    );
 }
