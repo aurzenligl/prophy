@@ -8,8 +8,6 @@
 #include "generated_raw/ManyArraysPadding.pp.hpp"
 #include "generated_raw/ManyArraysTailFixed.pp.hpp"
 #include "generated_raw/ManyDynamic.pp.hpp"
-#include "generated_raw/Optional.pp.hpp"
-#include "generated_raw/Union.pp.hpp"
 
 using namespace testing;
 
@@ -170,109 +168,5 @@ TEST(generated_raw, ManyDynamic)
     ManyDynamic* next = prophy::swap(reinterpret_cast<ManyDynamic*>(x.input.data()));
 
     EXPECT_EQ(byte_distance(x.input.data(), next), 28);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, Optional)
-{
-    data x(
-        "\x00\x00\x00\x01"
-        "\x00\x00\x00\x01"
-        "\x00\x00\x00\x01"
-        "\x02\x00\x00\x03"
-        "\x04\x00\x00\x05",
-
-        "\x01\x00\x00\x00"
-        "\x01\x00\x00\x00"
-        "\x01\x00\x00\x00"
-        "\x02\x00\x03\x00"
-        "\x04\x00\x05\x00"
-    );
-
-    Optional* next = prophy::swap(reinterpret_cast<Optional*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 20);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, Optional_not_set)
-{
-    data x(
-        "\x00\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\x00\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\xab\xcd\xef\xab",
-
-        "\x00\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\x00\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\xab\xcd\xef\xab"
-    );
-
-    Optional* next = prophy::swap(reinterpret_cast<Optional*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 20);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, Union_a)
-{
-    data x(
-        "\x00\x00\x00\x01"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x00\x00"
-        "\x00\x00\x00\x00",
-
-        "\x01\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x00\x00"
-        "\x00\x00\x00\x00"
-    );
-
-    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, Union_b)
-{
-    data x(
-        "\x00\x00\x00\x02"
-        "\xab\xcd\xef\xab"
-        "\x00\x00\x00\x00"
-        "\x00\x00\x00\x01",
-
-        "\x02\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x00\x00"
-        "\x00\x00\x00\x00"
-    );
-
-    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
-    EXPECT_THAT(x.input, ContainerEq(x.expected));
-}
-
-TEST(generated_raw, Union_c)
-{
-    data x(
-        "\x00\x00\x00\x03"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x00\x02"
-        "\x03\x00\x00\x04",
-
-        "\x03\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x02\x00"
-        "\x03\x00\x04\x00"
-    );
-
-    Union* next = prophy::swap(reinterpret_cast<Union*>(x.input.data()));
-
-    EXPECT_EQ(byte_distance(x.input.data(), next), 16);
     EXPECT_THAT(x.input, ContainerEq(x.expected));
 }

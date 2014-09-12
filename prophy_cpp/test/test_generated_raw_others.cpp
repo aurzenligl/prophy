@@ -5,7 +5,7 @@
 using namespace testing;
 using namespace raw;
 
-TEST(generated_raw_arrays, ConstantTypedefEnum)
+TEST(generated_raw_others, ConstantTypedefEnum)
 {
     test_swap<ConstantTypedefEnum>(
         "\x00\x01"

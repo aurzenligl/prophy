@@ -12,7 +12,7 @@ struct Union
 {
     enum { encoded_byte_size = 12 };
 
-    enum discriminator_t
+    enum _discriminator
     {
         discriminator_a = 1,
         discriminator_b = 2,
