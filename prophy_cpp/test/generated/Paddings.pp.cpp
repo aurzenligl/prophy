@@ -65,3 +65,59 @@ size_t EndpadGreedy::encode(void* data) const
 }
 
 template size_t EndpadGreedy::encode<native>(void* data) const;
+
+template <endianness E>
+size_t Scalarpad::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = pos + 1;
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t Scalarpad::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ScalarpadComppre_Helper::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ScalarpadComppre_Helper::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ScalarpadComppre::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = pos + 1;
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ScalarpadComppre::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ScalarpadComppost_Helper::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ScalarpadComppost_Helper::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ScalarpadComppost::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = pos + 1;
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ScalarpadComppost::encode<native>(void* data) const;

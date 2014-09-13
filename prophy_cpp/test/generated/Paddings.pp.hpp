@@ -64,4 +64,62 @@ struct EndpadGreedy
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
+struct Scalarpad
+{
+    enum { encoded_byte_size = 4 };
+
+    uint8_t x;
+    uint16_t y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ScalarpadComppre_Helper
+{
+    enum { encoded_byte_size = 1 };
+
+    uint8_t x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ScalarpadComppre
+{
+    enum { encoded_byte_size = 4 };
+
+    ScalarpadComppre_Helper x;
+    uint16_t y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ScalarpadComppost_Helper
+{
+    enum { encoded_byte_size = 2 };
+
+    uint16_t x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ScalarpadComppost
+{
+    enum { encoded_byte_size = 4 };
+
+    uint8_t x;
+    ScalarpadComppost_Helper y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
 #endif  /* _PROPHY_GENERATED_Paddings_HPP */
