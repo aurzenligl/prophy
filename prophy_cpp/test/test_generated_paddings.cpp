@@ -123,3 +123,73 @@ TEST(generated_paddings, ScalarpadComppost)
             "\x01" "\x00" "\x02\x00",
             size), std::string(data.data(), size));
 }
+
+TEST(generated_paddings, UnionpadOptionalboolpad)
+{
+    std::vector<char> data(1024);
+
+    UnionpadOptionalboolpad x;
+    x.x = 1;
+    x.has_y = true;
+    x.y = 2;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(12, size);
+    EXPECT_EQ(std::string(
+            "\x01" "\x00\x00\x00"
+            "\x01\x00\x00\x00"
+            "\x02" "\x00\x00\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, UnionpadOptionalvaluepad)
+{
+    std::vector<char> data(1024);
+
+    UnionpadOptionalvaluepad x;
+    x.has_x = true;
+    x.x = 2;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(16, size);
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00" "\x00\x00\x00\x00"
+            "\x02\x00\x00\x00\x00\x00\x00\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, UnionpadDiscpad)
+{
+    std::vector<char> data(1024);
+
+    UnionpadDiscpad x;
+    x.x = 1;
+    x.y.discriminator = UnionpadDiscpad_Helper::discriminator_a;
+    x.y.a = 2;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(12, size);
+    EXPECT_EQ(std::string(
+            "\x01" "\x00\x00\x00"
+            "\x01\x00\x00\x00"
+            "\x02" "\x00\x00\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, UnionpadArmpad)
+{
+    std::vector<char> data(1024);
+
+    UnionpadArmpad x;
+    x.x = 1;
+    x.y.discriminator = UnionpadArmpad_Helper::discriminator_a;
+    x.y.a = 2;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(24, size);
+    EXPECT_EQ(std::string(
+            "\x01" "\x00\x00\x00\x00\x00\x00\x00"
+            "\x01\x00\x00\x00" "\x00\x00\x00\x00"
+            "\x02" "\x00\x00\x00\x00\x00\x00\x00",
+            size), std::string(data.data(), size));
+}

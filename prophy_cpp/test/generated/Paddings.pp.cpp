@@ -121,3 +121,91 @@ size_t ScalarpadComppost::encode(void* data) const
 }
 
 template size_t ScalarpadComppost::encode<native>(void* data) const;
+
+template <endianness E>
+size_t UnionpadOptionalboolpad::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = pos + 3;
+    pos = do_encode<E>(pos, uint32_t(has_y));
+    pos = do_encode<E>(pos, y);
+    pos = pos + 3;
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t UnionpadOptionalboolpad::encode<native>(void* data) const;
+
+template <endianness E>
+size_t UnionpadOptionalvaluepad::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint32_t(has_x));
+    pos = pos + 4;
+    pos = do_encode<E>(pos, x);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t UnionpadOptionalvaluepad::encode<native>(void* data) const;
+
+template <endianness E>
+size_t UnionpadDiscpad_Helper::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint32_t(discriminator));
+    switch(discriminator)
+    {
+        case discriminator_a:
+            do_encode<E>(pos, a);
+            break;
+    }
+    pos = pos + 4;
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t UnionpadDiscpad_Helper::encode<native>(void* data) const;
+
+template <endianness E>
+size_t UnionpadDiscpad::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = pos + 3;
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t UnionpadDiscpad::encode<native>(void* data) const;
+
+template <endianness E>
+size_t UnionpadArmpad_Helper::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint32_t(discriminator));
+    pos = pos + 4;
+    switch(discriminator)
+    {
+        case discriminator_a:
+            do_encode<E>(pos, a);
+            break;
+        case discriminator_b:
+            do_encode<E>(pos, b);
+            break;
+    }
+    pos = pos + 8;
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t UnionpadArmpad_Helper::encode<native>(void* data) const;
+
+template <endianness E>
+size_t UnionpadArmpad::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = pos + 7;
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t UnionpadArmpad::encode<native>(void* data) const;

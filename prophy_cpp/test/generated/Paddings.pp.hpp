@@ -122,4 +122,93 @@ struct ScalarpadComppost
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
+struct UnionpadOptionalboolpad
+{
+    enum { encoded_byte_size = 12 };
+
+    uint8_t x;
+    bool has_y;
+    uint8_t y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct UnionpadOptionalvaluepad
+{
+    enum { encoded_byte_size = 16 };
+
+    bool has_x;
+    uint64_t x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct UnionpadDiscpad_Helper
+{
+    enum { encoded_byte_size = 8 };
+
+    enum _discriminator
+    {
+        discriminator_a = 1
+    } discriminator;
+
+    union
+    {
+        uint8_t a;
+    };
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct UnionpadDiscpad
+{
+    enum { encoded_byte_size = 16 };
+
+    uint8_t x;
+    UnionpadDiscpad_Helper y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct UnionpadArmpad_Helper
+{
+    enum { encoded_byte_size = 16 };
+
+    enum _discriminator
+    {
+        discriminator_a = 1,
+        discriminator_b = 2
+    } discriminator;
+
+    union
+    {
+        uint8_t a;
+        uint64_t b;
+    };
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct UnionpadArmpad
+{
+    enum { encoded_byte_size = 24 };
+
+    uint8_t x;
+    UnionpadArmpad_Helper y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
 #endif  /* _PROPHY_GENERATED_Paddings_HPP */
