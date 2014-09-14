@@ -209,3 +209,92 @@ size_t UnionpadArmpad::encode(void* data) const
 }
 
 template size_t UnionpadArmpad::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ArraypadCounter::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint8_t(x.size()));
+    pos = pos + 1;
+    pos = do_encode<E>(pos, x.data(), uint8_t(x.size()));
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ArraypadCounter::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ArraypadCounterSeparated::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint8_t(x.size()));
+    pos = pos + 3;
+    pos = do_encode<E>(pos, y);
+    pos = do_encode<E>(pos, x.data(), uint8_t(x.size()));
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ArraypadCounterSeparated::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ArraypadCounterAligns_Helper::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint16_t(x.size()));
+    pos = do_encode<E>(pos, x.data(), uint16_t(x.size()));
+    pos = align<2>(pos);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ArraypadCounterAligns_Helper::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ArraypadCounterAligns::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = pos + 1;
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ArraypadCounterAligns::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ArraypadFixed::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x);
+    pos = do_encode<E>(pos, y, 3);
+    pos = pos + 1;
+    pos = do_encode<E>(pos, z);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ArraypadFixed::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ArraypadDynamic::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint32_t(x.size()));
+    pos = do_encode<E>(pos, x.data(), x.size());
+    pos = align<4>(pos);
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ArraypadDynamic::encode<native>(void* data) const;
+
+template <endianness E>
+size_t ArraypadLimited::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, uint32_t(std::min(x.size(), size_t(2))));
+    do_encode<E>(pos, x.data(), std::min(x.size(), size_t(2)));
+    pos = pos + 2;
+    pos = pos + 2;
+    pos = do_encode<E>(pos, y);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t ArraypadLimited::encode<native>(void* data) const;

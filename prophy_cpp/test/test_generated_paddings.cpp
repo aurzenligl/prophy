@@ -193,3 +193,104 @@ TEST(generated_paddings, UnionpadArmpad)
             "\x02" "\x00\x00\x00\x00\x00\x00\x00",
             size), std::string(data.data(), size));
 }
+
+TEST(generated_paddings, ArraypadCounter)
+{
+    std::vector<char> data(1024);
+
+    ArraypadCounter x;
+    x.x.push_back(2);
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(4, size);
+    EXPECT_EQ(std::string(
+            "\x01" "\x00" "\x02\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, ArraypadCounterSeparated)
+{
+    std::vector<char> data(1024);
+
+    ArraypadCounterSeparated x;
+    x.y = 2;
+    x.x.push_back(3);
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(12, size);
+    EXPECT_EQ(std::string(
+            "\x01" "\x00\x00\x00"
+            "\x02\x00\x00\x00"
+            "\x03\x00\x00\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, ArraypadCounterAligns)
+{
+    std::vector<char> data(1024);
+
+    ArraypadCounterAligns x;
+    x.x = 1;
+    x.y.x.push_back(2);
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(6, size);
+    EXPECT_EQ(std::string(
+            "\x01" "\x00"
+            "\x01\x00\x02" "\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, ArraypadFixed)
+{
+    std::vector<char> data(1024);
+
+    ArraypadFixed x;
+    x.x = 1;
+    x.y[0] = 2;
+    x.y[1] = 3;
+    x.y[2] = 4;
+    x.z = 5;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(12, size);
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00"
+            "\x02\x03\x04" "\x00"
+            "\x05\x00\x00\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, ArraypadDynamic)
+{
+    std::vector<char> data(1024);
+
+    ArraypadDynamic x;
+    x.x.push_back(2);
+    x.y = 3;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(12, size);
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00"
+            "\x02" "\x00\x00\x00"
+            "\x03\x00\x00\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_paddings, ArraypadLimited)
+{
+    std::vector<char> data(1024);
+
+    ArraypadLimited x;
+    x.x.push_back(2);
+    x.y = 3;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(12, size);
+    EXPECT_EQ(std::string(
+            "\x01\x00\x00\x00"
+            "\x02" "\x00\x00\x00"
+            "\x03\x00\x00\x00",
+            size), std::string(data.data(), size));
+}

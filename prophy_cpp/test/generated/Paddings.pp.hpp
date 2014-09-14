@@ -211,4 +211,87 @@ struct UnionpadArmpad
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
+struct ArraypadCounter
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<uint16_t> x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ArraypadCounterSeparated
+{
+    enum { encoded_byte_size = -1 };
+
+    uint32_t y;
+    std::vector<uint32_t> x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ArraypadCounterAligns_Helper
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<uint8_t> x;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ArraypadCounterAligns
+{
+    enum { encoded_byte_size = -1 };
+
+    uint8_t x;
+    ArraypadCounterAligns_Helper y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ArraypadFixed
+{
+    enum { encoded_byte_size = 12 };
+
+    uint32_t x;
+    uint8_t y[3];
+    uint32_t z;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ArraypadDynamic
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<uint8_t> x;
+    uint32_t y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
+struct ArraypadLimited
+{
+    enum { encoded_byte_size = 12 };
+
+    std::vector<uint8_t> x; // limit 4
+    uint32_t y;
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
 #endif  /* _PROPHY_GENERATED_Paddings_HPP */
