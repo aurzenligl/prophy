@@ -23,3 +23,63 @@ TEST(generated_others, ConstantTypedefEnum)
             "\x01\x00\x00\x00",
             size), std::string(data.data(), size));
 }
+
+TEST(generated_others, BytesFixed)
+{
+    std::vector<char> data(1024);
+
+    BytesFixed x;
+    x.x[0] = 'a';
+    x.x[1] = 'b';
+    x.x[2] = 'c';
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(3, size);
+    EXPECT_EQ(std::string(
+            "abc",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_others, BytesDynamic)
+{
+    std::vector<char> data(1024);
+
+    BytesDynamic x;
+    x.x = "abcd";
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(8, size);
+    EXPECT_EQ(std::string(
+            "\x04\x00\x00\x00"
+            "abcd",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_others, BytesLimited)
+{
+    std::vector<char> data(1024);
+
+    BytesLimited x;
+    x.x = "ab";
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(8, size);
+    EXPECT_EQ(std::string(
+            "\x02\x00\x00\x00"
+            "ab\x00\x00",
+            size), std::string(data.data(), size));
+}
+
+TEST(generated_others, BytesGreedy)
+{
+    std::vector<char> data(1024);
+
+    BytesGreedy x;
+    x.x = "abcde";
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(5, size);
+    EXPECT_EQ(std::string(
+            "abcde",
+            size), std::string(data.data(), size));
+}
