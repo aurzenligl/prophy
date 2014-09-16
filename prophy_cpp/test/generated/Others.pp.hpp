@@ -32,7 +32,7 @@ struct BytesFixed
 {
     enum { encoded_byte_size = 3 };
 
-    char x[3];
+    uint8_t x[3];
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -43,7 +43,7 @@ struct BytesDynamic
 {
     enum { encoded_byte_size = -1 };
 
-    std::string x;
+    std::vector<uint8_t> x;
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -54,7 +54,7 @@ struct BytesLimited
 {
     enum { encoded_byte_size = 8 };
 
-    std::string x; // limit 4
+    std::vector<uint8_t> x; // limit 4
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -65,7 +65,7 @@ struct BytesGreedy
 {
     enum { encoded_byte_size = -1 };
 
-    std::string x; // greedy
+    std::vector<uint8_t> x; // greedy
 
     template <prophy::endianness E>
     size_t encode(void* data) const;

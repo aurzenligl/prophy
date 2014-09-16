@@ -5,6 +5,12 @@
 #include <vector>
 #include <prophy/prophy.hpp>
 
+template <size_t N>
+std::vector<uint8_t> genbytes(const char (&x) [N])
+{
+    return std::vector<uint8_t>(x, x + N - 1);
+}
+
 template <class T, size_t N>
 void test_swap(const char (&input) [N], const char (&expected) [N], size_t expected_size = N - 1)
 {

@@ -1,6 +1,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include "generated/Others.pp.hpp"
+#include "util.hpp"
 
 using namespace testing;
 
@@ -45,7 +46,7 @@ TEST(generated_others, BytesDynamic)
     std::vector<char> data(1024);
 
     BytesDynamic x;
-    x.x = "abcd";
+    x.x = genbytes("abcd");
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -60,7 +61,7 @@ TEST(generated_others, BytesLimited)
     std::vector<char> data(1024);
 
     BytesLimited x;
-    x.x = "ab";
+    x.x = genbytes("ab");
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -75,7 +76,7 @@ TEST(generated_others, BytesGreedy)
     std::vector<char> data(1024);
 
     BytesGreedy x;
-    x.x = "abcde";
+    x.x = genbytes("abcde");
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(5, size);
