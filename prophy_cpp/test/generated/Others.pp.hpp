@@ -23,6 +23,8 @@ struct ConstantTypedefEnum
     TU16 b;
     Enum c;
 
+    ConstantTypedefEnum(): a(), b(), c(Enum_One) { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -33,6 +35,8 @@ struct BytesFixed
     enum { encoded_byte_size = 3 };
 
     uint8_t x[3];
+
+    BytesFixed(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;

@@ -23,6 +23,8 @@ struct Union
     uint32_t b;
     Builtin c;
 
+    Union(): discriminator(discriminator_a), a(), b() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -35,6 +37,8 @@ struct BuiltinOptional
     bool has_x;
     uint32_t x;
 
+    BuiltinOptional(): has_x(), x() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -46,6 +50,8 @@ struct FixcompOptional
 
     bool has_x;
     Builtin x;
+
+    FixcompOptional(): has_x(), x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;

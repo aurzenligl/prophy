@@ -13,6 +13,8 @@ struct Endpad
     uint16_t x;
     uint8_t y;
 
+    Endpad(): x(), y() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -24,6 +26,8 @@ struct EndpadFixed
 
     uint32_t x;
     uint8_t y[3];
+
+    EndpadFixed(): x(), y() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -59,6 +63,8 @@ struct EndpadGreedy
     uint32_t x;
     std::vector<uint8_t> y; /// greedy
 
+    EndpadGreedy(): x() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -71,6 +77,8 @@ struct Scalarpad
     uint8_t x;
     uint16_t y;
 
+    Scalarpad(): x(), y() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -81,6 +89,8 @@ struct ScalarpadComppre_Helper
     enum { encoded_byte_size = 1 };
 
     uint8_t x;
+
+    ScalarpadComppre_Helper(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -94,6 +104,8 @@ struct ScalarpadComppre
     ScalarpadComppre_Helper x;
     uint16_t y;
 
+    ScalarpadComppre(): y() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -104,6 +116,8 @@ struct ScalarpadComppost_Helper
     enum { encoded_byte_size = 2 };
 
     uint16_t x;
+
+    ScalarpadComppost_Helper(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -116,6 +130,8 @@ struct ScalarpadComppost
 
     uint8_t x;
     ScalarpadComppost_Helper y;
+
+    ScalarpadComppost(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -130,6 +146,8 @@ struct UnionpadOptionalboolpad
     bool has_y;
     uint8_t y;
 
+    UnionpadOptionalboolpad(): x(), has_y(), y() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -141,6 +159,8 @@ struct UnionpadOptionalvaluepad
 
     bool has_x;
     uint64_t x;
+
+    UnionpadOptionalvaluepad(): has_x(), x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -156,10 +176,9 @@ struct UnionpadDiscpad_Helper
         discriminator_a = 1
     } discriminator;
 
-    union
-    {
-        uint8_t a;
-    };
+    uint8_t a;
+
+    UnionpadDiscpad_Helper(): discriminator(discriminator_a), a() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -172,6 +191,8 @@ struct UnionpadDiscpad
 
     uint8_t x;
     UnionpadDiscpad_Helper y;
+
+    UnionpadDiscpad(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -188,11 +209,10 @@ struct UnionpadArmpad_Helper
         discriminator_b = 2
     } discriminator;
 
-    union
-    {
-        uint8_t a;
-        uint64_t b;
-    };
+    uint8_t a;
+    uint64_t b;
+
+    UnionpadArmpad_Helper(): discriminator(discriminator_a), a(), b() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -205,6 +225,8 @@ struct UnionpadArmpad
 
     uint8_t x;
     UnionpadArmpad_Helper y;
+
+    UnionpadArmpad(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
@@ -229,6 +251,8 @@ struct ArraypadCounterSeparated
     uint32_t y;
     std::vector<uint32_t> x;
 
+    ArraypadCounterSeparated(): y() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -252,6 +276,8 @@ struct ArraypadCounterAligns
     uint8_t x;
     ArraypadCounterAligns_Helper y;
 
+    ArraypadCounterAligns(): x() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -265,6 +291,8 @@ struct ArraypadFixed
     uint8_t y[3];
     uint32_t z;
 
+    ArraypadFixed(): x(), y(), z() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -277,6 +305,8 @@ struct ArraypadDynamic
     std::vector<uint8_t> x;
     uint32_t y;
 
+    ArraypadDynamic(): y() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -288,6 +318,8 @@ struct ArraypadLimited
 
     std::vector<uint8_t> x; // limit 4
     uint32_t y;
+
+    ArraypadLimited(): y() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;

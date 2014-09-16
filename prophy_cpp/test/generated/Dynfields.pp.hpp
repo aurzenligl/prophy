@@ -14,6 +14,8 @@ struct Dynfields
     std::vector<uint16_t> y;
     uint64_t z;
 
+    Dynfields(): z() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -52,6 +54,8 @@ struct DynfieldsPartialpad_Helper
     uint8_t y;
     uint64_t z;
 
+    DynfieldsPartialpad_Helper(): y(), z() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -63,6 +67,8 @@ struct DynfieldsPartialpad
 
     uint8_t x;
     DynfieldsPartialpad_Helper y;
+
+    DynfieldsPartialpad(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;

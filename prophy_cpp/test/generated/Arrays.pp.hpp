@@ -13,6 +13,8 @@ struct Builtin
     uint32_t x;
     uint32_t y;
 
+    Builtin(): x(), y() { }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
     size_t encode(void* data) const { return encode<prophy::native>(data); }
@@ -23,6 +25,8 @@ struct BuiltinFixed
     enum { encoded_byte_size = 8 };
 
     uint32_t x[2];
+
+    BuiltinFixed(): x() { }
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
