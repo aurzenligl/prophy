@@ -21,6 +21,8 @@ size_t Dynfields::encode(void* data) const
 }
 
 template size_t Dynfields::encode<native>(void* data) const;
+template size_t Dynfields::encode<little>(void* data) const;
+template size_t Dynfields::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DynfieldsMixed::encode(void* data) const
@@ -36,6 +38,8 @@ size_t DynfieldsMixed::encode(void* data) const
 }
 
 template size_t DynfieldsMixed::encode<native>(void* data) const;
+template size_t DynfieldsMixed::encode<little>(void* data) const;
+template size_t DynfieldsMixed::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DynfieldsOverlapped::encode(void* data) const
@@ -53,6 +57,8 @@ size_t DynfieldsOverlapped::encode(void* data) const
 }
 
 template size_t DynfieldsOverlapped::encode<native>(void* data) const;
+template size_t DynfieldsOverlapped::encode<little>(void* data) const;
+template size_t DynfieldsOverlapped::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DynfieldsPartialpad_Helper::encode(void* data) const
@@ -68,6 +74,8 @@ size_t DynfieldsPartialpad_Helper::encode(void* data) const
 }
 
 template size_t DynfieldsPartialpad_Helper::encode<native>(void* data) const;
+template size_t DynfieldsPartialpad_Helper::encode<little>(void* data) const;
+template size_t DynfieldsPartialpad_Helper::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DynfieldsPartialpad::encode(void* data) const
@@ -80,6 +88,8 @@ size_t DynfieldsPartialpad::encode(void* data) const
 }
 
 template size_t DynfieldsPartialpad::encode<native>(void* data) const;
+template size_t DynfieldsPartialpad::encode<little>(void* data) const;
+template size_t DynfieldsPartialpad::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DynfieldsScalarpartialpad_Helper::encode(void* data) const
@@ -92,6 +102,8 @@ size_t DynfieldsScalarpartialpad_Helper::encode(void* data) const
 }
 
 template size_t DynfieldsScalarpartialpad_Helper::encode<native>(void* data) const;
+template size_t DynfieldsScalarpartialpad_Helper::encode<little>(void* data) const;
+template size_t DynfieldsScalarpartialpad_Helper::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DynfieldsScalarpartialpad::encode(void* data) const

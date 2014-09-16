@@ -16,6 +16,8 @@ size_t Builtin::encode(void* data) const
 }
 
 template size_t Builtin::encode<native>(void* data) const;
+template size_t Builtin::encode<little>(void* data) const;
+template size_t Builtin::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BuiltinFixed::encode(void* data) const
@@ -26,6 +28,8 @@ size_t BuiltinFixed::encode(void* data) const
 }
 
 template size_t BuiltinFixed::encode<native>(void* data) const;
+template size_t BuiltinFixed::encode<little>(void* data) const;
+template size_t BuiltinFixed::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BuiltinDynamic::encode(void* data) const
@@ -37,6 +41,8 @@ size_t BuiltinDynamic::encode(void* data) const
 }
 
 template size_t BuiltinDynamic::encode<native>(void* data) const;
+template size_t BuiltinDynamic::encode<little>(void* data) const;
+template size_t BuiltinDynamic::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BuiltinLimited::encode(void* data) const
@@ -49,6 +55,8 @@ size_t BuiltinLimited::encode(void* data) const
 }
 
 template size_t BuiltinLimited::encode<native>(void* data) const;
+template size_t BuiltinLimited::encode<little>(void* data) const;
+template size_t BuiltinLimited::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BuiltinGreedy::encode(void* data) const
@@ -59,6 +67,8 @@ size_t BuiltinGreedy::encode(void* data) const
 }
 
 template size_t BuiltinGreedy::encode<native>(void* data) const;
+template size_t BuiltinGreedy::encode<little>(void* data) const;
+template size_t BuiltinGreedy::encode<big>(void* data) const;
 
 template <endianness E>
 size_t Fixcomp::encode(void* data) const
@@ -70,6 +80,8 @@ size_t Fixcomp::encode(void* data) const
 }
 
 template size_t Fixcomp::encode<native>(void* data) const;
+template size_t Fixcomp::encode<little>(void* data) const;
+template size_t Fixcomp::encode<big>(void* data) const;
 
 template <endianness E>
 size_t FixcompFixed::encode(void* data) const
@@ -80,6 +92,8 @@ size_t FixcompFixed::encode(void* data) const
 }
 
 template size_t FixcompFixed::encode<native>(void* data) const;
+template size_t FixcompFixed::encode<little>(void* data) const;
+template size_t FixcompFixed::encode<big>(void* data) const;
 
 template <endianness E>
 size_t FixcompDynamic::encode(void* data) const
@@ -91,6 +105,8 @@ size_t FixcompDynamic::encode(void* data) const
 }
 
 template size_t FixcompDynamic::encode<native>(void* data) const;
+template size_t FixcompDynamic::encode<little>(void* data) const;
+template size_t FixcompDynamic::encode<big>(void* data) const;
 
 template <endianness E>
 size_t FixcompLimited::encode(void* data) const
@@ -103,6 +119,8 @@ size_t FixcompLimited::encode(void* data) const
 }
 
 template size_t FixcompLimited::encode<native>(void* data) const;
+template size_t FixcompLimited::encode<little>(void* data) const;
+template size_t FixcompLimited::encode<big>(void* data) const;
 
 template <endianness E>
 size_t FixcompGreedy::encode(void* data) const
@@ -113,6 +131,8 @@ size_t FixcompGreedy::encode(void* data) const
 }
 
 template size_t FixcompGreedy::encode<native>(void* data) const;
+template size_t FixcompGreedy::encode<little>(void* data) const;
+template size_t FixcompGreedy::encode<big>(void* data) const;
 
 template <endianness E>
 size_t Dyncomp::encode(void* data) const
@@ -123,6 +143,8 @@ size_t Dyncomp::encode(void* data) const
 }
 
 template size_t Dyncomp::encode<native>(void* data) const;
+template size_t Dyncomp::encode<little>(void* data) const;
+template size_t Dyncomp::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DyncompDynamic::encode(void* data) const
@@ -134,6 +156,8 @@ size_t DyncompDynamic::encode(void* data) const
 }
 
 template size_t DyncompDynamic::encode<native>(void* data) const;
+template size_t DyncompDynamic::encode<little>(void* data) const;
+template size_t DyncompDynamic::encode<big>(void* data) const;
 
 template <endianness E>
 size_t DyncompGreedy::encode(void* data) const
@@ -144,3 +168,5 @@ size_t DyncompGreedy::encode(void* data) const
 }
 
 template size_t DyncompGreedy::encode<native>(void* data) const;
+template size_t DyncompGreedy::encode<little>(void* data) const;
+template size_t DyncompGreedy::encode<big>(void* data) const;

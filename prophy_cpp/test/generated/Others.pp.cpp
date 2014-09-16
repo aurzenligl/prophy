@@ -17,6 +17,8 @@ size_t ConstantTypedefEnum::encode(void* data) const
 }
 
 template size_t ConstantTypedefEnum::encode<native>(void* data) const;
+template size_t ConstantTypedefEnum::encode<little>(void* data) const;
+template size_t ConstantTypedefEnum::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BytesFixed::encode(void* data) const
@@ -27,6 +29,8 @@ size_t BytesFixed::encode(void* data) const
 }
 
 template size_t BytesFixed::encode<native>(void* data) const;
+template size_t BytesFixed::encode<little>(void* data) const;
+template size_t BytesFixed::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BytesDynamic::encode(void* data) const
@@ -39,6 +43,8 @@ size_t BytesDynamic::encode(void* data) const
 }
 
 template size_t BytesDynamic::encode<native>(void* data) const;
+template size_t BytesDynamic::encode<little>(void* data) const;
+template size_t BytesDynamic::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BytesLimited::encode(void* data) const
@@ -51,6 +57,8 @@ size_t BytesLimited::encode(void* data) const
 }
 
 template size_t BytesLimited::encode<native>(void* data) const;
+template size_t BytesLimited::encode<little>(void* data) const;
+template size_t BytesLimited::encode<big>(void* data) const;
 
 template <endianness E>
 size_t BytesGreedy::encode(void* data) const
@@ -61,3 +69,5 @@ size_t BytesGreedy::encode(void* data) const
 }
 
 template size_t BytesGreedy::encode<native>(void* data) const;
+template size_t BytesGreedy::encode<little>(void* data) const;
+template size_t BytesGreedy::encode<big>(void* data) const;

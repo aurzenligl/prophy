@@ -17,6 +17,8 @@ size_t Endpad::encode(void* data) const
 }
 
 template size_t Endpad::encode<native>(void* data) const;
+template size_t Endpad::encode<little>(void* data) const;
+template size_t Endpad::encode<big>(void* data) const;
 
 template <endianness E>
 size_t EndpadFixed::encode(void* data) const
@@ -29,6 +31,8 @@ size_t EndpadFixed::encode(void* data) const
 }
 
 template size_t EndpadFixed::encode<native>(void* data) const;
+template size_t EndpadFixed::encode<little>(void* data) const;
+template size_t EndpadFixed::encode<big>(void* data) const;
 
 template <endianness E>
 size_t EndpadDynamic::encode(void* data) const
@@ -41,6 +45,8 @@ size_t EndpadDynamic::encode(void* data) const
 }
 
 template size_t EndpadDynamic::encode<native>(void* data) const;
+template size_t EndpadDynamic::encode<little>(void* data) const;
+template size_t EndpadDynamic::encode<big>(void* data) const;
 
 template <endianness E>
 size_t EndpadLimited::encode(void* data) const
@@ -53,6 +59,8 @@ size_t EndpadLimited::encode(void* data) const
 }
 
 template size_t EndpadLimited::encode<native>(void* data) const;
+template size_t EndpadLimited::encode<little>(void* data) const;
+template size_t EndpadLimited::encode<big>(void* data) const;
 
 template <endianness E>
 size_t EndpadGreedy::encode(void* data) const
@@ -65,6 +73,8 @@ size_t EndpadGreedy::encode(void* data) const
 }
 
 template size_t EndpadGreedy::encode<native>(void* data) const;
+template size_t EndpadGreedy::encode<little>(void* data) const;
+template size_t EndpadGreedy::encode<big>(void* data) const;
 
 template <endianness E>
 size_t Scalarpad::encode(void* data) const
@@ -77,6 +87,8 @@ size_t Scalarpad::encode(void* data) const
 }
 
 template size_t Scalarpad::encode<native>(void* data) const;
+template size_t Scalarpad::encode<little>(void* data) const;
+template size_t Scalarpad::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ScalarpadComppre_Helper::encode(void* data) const
@@ -87,6 +99,8 @@ size_t ScalarpadComppre_Helper::encode(void* data) const
 }
 
 template size_t ScalarpadComppre_Helper::encode<native>(void* data) const;
+template size_t ScalarpadComppre_Helper::encode<little>(void* data) const;
+template size_t ScalarpadComppre_Helper::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ScalarpadComppre::encode(void* data) const
@@ -99,6 +113,8 @@ size_t ScalarpadComppre::encode(void* data) const
 }
 
 template size_t ScalarpadComppre::encode<native>(void* data) const;
+template size_t ScalarpadComppre::encode<little>(void* data) const;
+template size_t ScalarpadComppre::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ScalarpadComppost_Helper::encode(void* data) const
@@ -109,6 +125,8 @@ size_t ScalarpadComppost_Helper::encode(void* data) const
 }
 
 template size_t ScalarpadComppost_Helper::encode<native>(void* data) const;
+template size_t ScalarpadComppost_Helper::encode<little>(void* data) const;
+template size_t ScalarpadComppost_Helper::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ScalarpadComppost::encode(void* data) const
@@ -121,6 +139,8 @@ size_t ScalarpadComppost::encode(void* data) const
 }
 
 template size_t ScalarpadComppost::encode<native>(void* data) const;
+template size_t ScalarpadComppost::encode<little>(void* data) const;
+template size_t ScalarpadComppost::encode<big>(void* data) const;
 
 template <endianness E>
 size_t UnionpadOptionalboolpad::encode(void* data) const
@@ -135,6 +155,8 @@ size_t UnionpadOptionalboolpad::encode(void* data) const
 }
 
 template size_t UnionpadOptionalboolpad::encode<native>(void* data) const;
+template size_t UnionpadOptionalboolpad::encode<little>(void* data) const;
+template size_t UnionpadOptionalboolpad::encode<big>(void* data) const;
 
 template <endianness E>
 size_t UnionpadOptionalvaluepad::encode(void* data) const
@@ -147,6 +169,8 @@ size_t UnionpadOptionalvaluepad::encode(void* data) const
 }
 
 template size_t UnionpadOptionalvaluepad::encode<native>(void* data) const;
+template size_t UnionpadOptionalvaluepad::encode<little>(void* data) const;
+template size_t UnionpadOptionalvaluepad::encode<big>(void* data) const;
 
 template <endianness E>
 size_t UnionpadDiscpad_Helper::encode(void* data) const
@@ -155,15 +179,15 @@ size_t UnionpadDiscpad_Helper::encode(void* data) const
     pos = do_encode<E>(pos, uint32_t(discriminator));
     switch(discriminator)
     {
-        case discriminator_a:
-            do_encode<E>(pos, a);
-            break;
+        case discriminator_a: do_encode<E>(pos, a); break;
     }
     pos = pos + 4;
     return pos - static_cast<uint8_t*>(data);
 }
 
 template size_t UnionpadDiscpad_Helper::encode<native>(void* data) const;
+template size_t UnionpadDiscpad_Helper::encode<little>(void* data) const;
+template size_t UnionpadDiscpad_Helper::encode<big>(void* data) const;
 
 template <endianness E>
 size_t UnionpadDiscpad::encode(void* data) const
@@ -176,6 +200,8 @@ size_t UnionpadDiscpad::encode(void* data) const
 }
 
 template size_t UnionpadDiscpad::encode<native>(void* data) const;
+template size_t UnionpadDiscpad::encode<little>(void* data) const;
+template size_t UnionpadDiscpad::encode<big>(void* data) const;
 
 template <endianness E>
 size_t UnionpadArmpad_Helper::encode(void* data) const
@@ -185,18 +211,16 @@ size_t UnionpadArmpad_Helper::encode(void* data) const
     pos = pos + 4;
     switch(discriminator)
     {
-        case discriminator_a:
-            do_encode<E>(pos, a);
-            break;
-        case discriminator_b:
-            do_encode<E>(pos, b);
-            break;
+        case discriminator_a: do_encode<E>(pos, a); break;
+        case discriminator_b: do_encode<E>(pos, b); break;
     }
     pos = pos + 8;
     return pos - static_cast<uint8_t*>(data);
 }
 
 template size_t UnionpadArmpad_Helper::encode<native>(void* data) const;
+template size_t UnionpadArmpad_Helper::encode<little>(void* data) const;
+template size_t UnionpadArmpad_Helper::encode<big>(void* data) const;
 
 template <endianness E>
 size_t UnionpadArmpad::encode(void* data) const
@@ -209,6 +233,8 @@ size_t UnionpadArmpad::encode(void* data) const
 }
 
 template size_t UnionpadArmpad::encode<native>(void* data) const;
+template size_t UnionpadArmpad::encode<little>(void* data) const;
+template size_t UnionpadArmpad::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ArraypadCounter::encode(void* data) const
@@ -221,6 +247,8 @@ size_t ArraypadCounter::encode(void* data) const
 }
 
 template size_t ArraypadCounter::encode<native>(void* data) const;
+template size_t ArraypadCounter::encode<little>(void* data) const;
+template size_t ArraypadCounter::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ArraypadCounterSeparated::encode(void* data) const
@@ -234,6 +262,8 @@ size_t ArraypadCounterSeparated::encode(void* data) const
 }
 
 template size_t ArraypadCounterSeparated::encode<native>(void* data) const;
+template size_t ArraypadCounterSeparated::encode<little>(void* data) const;
+template size_t ArraypadCounterSeparated::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ArraypadCounterAligns_Helper::encode(void* data) const
@@ -246,6 +276,8 @@ size_t ArraypadCounterAligns_Helper::encode(void* data) const
 }
 
 template size_t ArraypadCounterAligns_Helper::encode<native>(void* data) const;
+template size_t ArraypadCounterAligns_Helper::encode<little>(void* data) const;
+template size_t ArraypadCounterAligns_Helper::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ArraypadCounterAligns::encode(void* data) const
@@ -258,6 +290,8 @@ size_t ArraypadCounterAligns::encode(void* data) const
 }
 
 template size_t ArraypadCounterAligns::encode<native>(void* data) const;
+template size_t ArraypadCounterAligns::encode<little>(void* data) const;
+template size_t ArraypadCounterAligns::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ArraypadFixed::encode(void* data) const
@@ -271,6 +305,8 @@ size_t ArraypadFixed::encode(void* data) const
 }
 
 template size_t ArraypadFixed::encode<native>(void* data) const;
+template size_t ArraypadFixed::encode<little>(void* data) const;
+template size_t ArraypadFixed::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ArraypadDynamic::encode(void* data) const
@@ -284,6 +320,8 @@ size_t ArraypadDynamic::encode(void* data) const
 }
 
 template size_t ArraypadDynamic::encode<native>(void* data) const;
+template size_t ArraypadDynamic::encode<little>(void* data) const;
+template size_t ArraypadDynamic::encode<big>(void* data) const;
 
 template <endianness E>
 size_t ArraypadLimited::encode(void* data) const
@@ -298,3 +336,5 @@ size_t ArraypadLimited::encode(void* data) const
 }
 
 template size_t ArraypadLimited::encode<native>(void* data) const;
+template size_t ArraypadLimited::encode<little>(void* data) const;
+template size_t ArraypadLimited::encode<big>(void* data) const;
