@@ -19,12 +19,9 @@ struct Union
         discriminator_c = 3
     } discriminator;
 
-    union
-    {
-        uint8_t a;
-        uint32_t b;
-        Builtin c;
-    };
+    uint8_t a;
+    uint32_t b;
+    Builtin c;
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
