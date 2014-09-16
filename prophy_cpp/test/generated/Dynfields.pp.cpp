@@ -104,3 +104,5 @@ size_t DynfieldsScalarpartialpad::encode(void* data) const
 }
 
 template size_t DynfieldsScalarpartialpad::encode<native>(void* data) const;
+template size_t DynfieldsScalarpartialpad::encode<little>(void* data) const;
+template size_t DynfieldsScalarpartialpad::encode<big>(void* data) const;
