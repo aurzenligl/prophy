@@ -72,6 +72,44 @@ inline void encode_int<big, int32_t>(uint8_t* out, const int32_t& in)
     encode_int<big>(out, static_cast<const uint32_t&>(in));
 }
 
+template <>
+inline void encode_int<little, uint64_t>(uint8_t* out, const uint64_t& in)
+{
+    out[0] = (in & 0x00000000000000FFULL) >> 0;
+    out[1] = (in & 0x000000000000FF00ULL) >> 8;
+    out[2] = (in & 0x0000000000FF0000ULL) >> 16;
+    out[3] = (in & 0x00000000FF000000ULL) >> 24;
+    out[4] = (in & 0x000000FF00000000ULL) >> 32;
+    out[5] = (in & 0x0000FF0000000000ULL) >> 40;
+    out[6] = (in & 0x00FF000000000000ULL) >> 48;
+    out[7] = (in & 0xFF00000000000000ULL) >> 56;
+}
+
+template <>
+inline void encode_int<big, uint64_t>(uint8_t* out, const uint64_t& in)
+{
+    out[0] = (in & 0xFF00000000000000ULL) >> 56;
+    out[1] = (in & 0x00FF000000000000ULL) >> 48;
+    out[2] = (in & 0x0000FF0000000000ULL) >> 40;
+    out[3] = (in & 0x000000FF00000000ULL) >> 32;
+    out[4] = (in & 0x00000000FF000000ULL) >> 24;
+    out[5] = (in & 0x0000000000FF0000ULL) >> 16;
+    out[6] = (in & 0x000000000000FF00ULL) >> 8;
+    out[7] = (in & 0x00000000000000FFULL) >> 0;
+}
+
+template <>
+inline void encode_int<little, int64_t>(uint8_t* out, const int64_t& in)
+{
+    encode_int<little>(out, static_cast<const uint64_t&>(in));
+}
+
+template <>
+inline void encode_int<big, int64_t>(uint8_t* out, const int64_t& in)
+{
+    encode_int<big>(out, static_cast<const uint64_t&>(in));
+}
+
 template <endianness E, typename T,
           bool = codec_traits<T>::is_composite,
           bool = codec_traits<T>::size == -1>
