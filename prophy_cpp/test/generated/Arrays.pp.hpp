@@ -2,9 +2,11 @@
 #define _PROPHY_GENERATED_Arrays_HPP
 
 #include <stdint.h>
-#include <string>
+#include <numeric>
 #include <vector>
+#include <string>
 #include <prophy/endianness.hpp>
+#include <prophy/detail/byte_size.hpp>
 
 struct Builtin
 {
@@ -15,9 +17,17 @@ struct Builtin
 
     Builtin(): x(), y() { }
 
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BuiltinFixed
@@ -28,9 +38,17 @@ struct BuiltinFixed
 
     BuiltinFixed(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BuiltinDynamic
@@ -39,9 +57,17 @@ struct BuiltinDynamic
 
     std::vector<uint32_t> x;
 
+    size_t get_byte_size() const
+    {
+        return 4 + x.size() * 4;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BuiltinLimited
@@ -50,9 +76,17 @@ struct BuiltinLimited
 
     std::vector<uint32_t> x; /// limit 2
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BuiltinGreedy
@@ -61,9 +95,17 @@ struct BuiltinGreedy
 
     std::vector<uint32_t> x; /// greedy
 
+    size_t get_byte_size() const
+    {
+        return x.size() * 4;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct Fixcomp
@@ -73,9 +115,17 @@ struct Fixcomp
     Builtin x;
     Builtin y;
 
+    size_t get_byte_size() const
+    {
+        return 16;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct FixcompFixed
@@ -84,9 +134,17 @@ struct FixcompFixed
 
     Builtin x[2];
 
+    size_t get_byte_size() const
+    {
+        return 16;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct FixcompDynamic
@@ -95,9 +153,17 @@ struct FixcompDynamic
 
     std::vector<Builtin> x;
 
+    size_t get_byte_size() const
+    {
+        return 4 + x.size() * 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct FixcompLimited
@@ -106,9 +172,17 @@ struct FixcompLimited
 
     std::vector<Builtin> x; /// limit 2
 
+    size_t get_byte_size() const
+    {
+        return 20;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct FixcompGreedy
@@ -117,9 +191,17 @@ struct FixcompGreedy
 
     std::vector<Builtin> x; /// greedy
 
+    size_t get_byte_size() const
+    {
+        return x.size() * 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct Dyncomp
@@ -128,9 +210,17 @@ struct Dyncomp
 
     BuiltinDynamic x;
 
+    size_t get_byte_size() const
+    {
+        return x.get_byte_size();
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct DyncompDynamic
@@ -139,9 +229,17 @@ struct DyncompDynamic
 
     std::vector<BuiltinDynamic> x;
 
+    size_t get_byte_size() const
+    {
+        return 4 + std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct DyncompGreedy
@@ -150,9 +248,17 @@ struct DyncompGreedy
 
     std::vector<BuiltinDynamic> x; /// greedy
 
+    size_t get_byte_size() const
+    {
+        return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 #endif  /* _PROPHY_GENERATED_Arrays_HPP */

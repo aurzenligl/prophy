@@ -14,6 +14,7 @@ TEST(generated_arrays, Builtin)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00", 8), std::string(data.data(), size));
 }
 
@@ -27,6 +28,7 @@ TEST(generated_arrays, BuiltinFixed)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00", 8), std::string(data.data(), size));
 }
 
@@ -40,6 +42,7 @@ TEST(generated_arrays, BuiltinDynamic)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00", 12), std::string(data.data(), size));
 }
 
@@ -52,6 +55,7 @@ TEST(generated_arrays, BuiltinLimited)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00", 12), std::string(data.data(), size));
 
     x.x.push_back(2);
@@ -59,6 +63,7 @@ TEST(generated_arrays, BuiltinLimited)
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00", 12), std::string(data.data(), size));
 }
 
@@ -72,6 +77,7 @@ TEST(generated_arrays, BuiltinGreedy)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string("\x01\x00\x00\x00\x02\x00\x00\x00", 8), std::string(data.data(), size));
 }
 
@@ -87,6 +93,7 @@ TEST(generated_arrays, Fixcomp)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
             16), std::string(data.data(), size));
@@ -104,6 +111,7 @@ TEST(generated_arrays, FixcompFixed)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
             16), std::string(data.data(), size));
@@ -122,6 +130,7 @@ TEST(generated_arrays, FixcompDynamic)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(20, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
             20), std::string(data.data(), size));
@@ -138,6 +147,7 @@ TEST(generated_arrays, FixcompLimited)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(20, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
             20), std::string(data.data(), size));
@@ -156,6 +166,7 @@ TEST(generated_arrays, FixcompGreedy)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
             16), std::string(data.data(), size));
@@ -172,6 +183,7 @@ TEST(generated_arrays, Dyncomp)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00",
             16), std::string(data.data(), size));
@@ -190,6 +202,7 @@ TEST(generated_arrays, DyncompDynamic)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(28, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x02\x00\x00\x00"
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
@@ -210,6 +223,7 @@ TEST(generated_arrays, DyncompGreedy)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(24, size);
+    EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(std::string(
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
             "\x01\x00\x00\x00\x04\x00\x00\x00",
