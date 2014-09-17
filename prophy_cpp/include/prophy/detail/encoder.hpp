@@ -110,6 +110,30 @@ inline void encode_int<big, int64_t>(uint8_t* out, const int64_t& in)
     encode_int<big>(out, static_cast<const uint64_t&>(in));
 }
 
+template <>
+inline void encode_int<little, float>(uint8_t* out, const float& in)
+{
+    encode_int<little>(out, reinterpret_cast<const uint32_t&>(in));
+}
+
+template <>
+inline void encode_int<big, float>(uint8_t* out, const float& in)
+{
+    encode_int<big>(out, reinterpret_cast<const uint32_t&>(in));
+}
+
+template <>
+inline void encode_int<little, double>(uint8_t* out, const double& in)
+{
+    encode_int<little>(out, reinterpret_cast<const uint64_t&>(in));
+}
+
+template <>
+inline void encode_int<big, double>(uint8_t* out, const double& in)
+{
+    encode_int<big>(out, reinterpret_cast<const uint64_t&>(in));
+}
+
 template <endianness E, typename T,
           bool = codec_traits<T>::is_composite,
           bool = codec_traits<T>::size == -1>

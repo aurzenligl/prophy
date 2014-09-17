@@ -25,6 +25,22 @@ TEST(generated_others, ConstantTypedefEnum)
             size), std::string(data.data(), size));
 }
 
+TEST(generated_others, Floats)
+{
+    std::vector<char> data(1024);
+
+    Floats x;
+    x.a = 10;
+    x.b = 10;
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(16, size);
+    EXPECT_EQ(std::string(
+            "\x00\x00\x20\x41" "\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x24\x40",
+            size), std::string(data.data(), size));
+}
+
 TEST(generated_others, BytesFixed)
 {
     std::vector<char> data(1024);

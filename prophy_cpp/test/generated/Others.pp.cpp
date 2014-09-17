@@ -21,6 +21,20 @@ template size_t ConstantTypedefEnum::encode<little>(void* data) const;
 template size_t ConstantTypedefEnum::encode<big>(void* data) const;
 
 template <endianness E>
+size_t Floats::encode(void* data) const
+{
+    uint8_t* pos = static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, a);
+    pos = pos + 4;
+    pos = do_encode<E>(pos, b);
+    return pos - static_cast<uint8_t*>(data);
+}
+
+template size_t Floats::encode<native>(void* data) const;
+template size_t Floats::encode<little>(void* data) const;
+template size_t Floats::encode<big>(void* data) const;
+
+template <endianness E>
 size_t BytesFixed::encode(void* data) const
 {
     uint8_t* pos = static_cast<uint8_t*>(data);

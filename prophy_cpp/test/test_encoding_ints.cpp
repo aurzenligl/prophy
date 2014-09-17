@@ -99,3 +99,31 @@ TEST(encoding_ints, int64)
     encode_int<big, uint64_t>(reinterpret_cast<uint8_t*>(&data), 0x0102030405060708ULL);
     EXPECT_EQ(std::string("\x01\x02\x03\x04\x05\x06\x07\x08", 8), std::string(reinterpret_cast<char*>(&data), 8));
 }
+
+TEST(encoding_ints, floats)
+{
+    float data;
+
+    encode_int<native, float>(reinterpret_cast<uint8_t*>(&data), 10);
+    EXPECT_EQ(std::string("\x00\x00\x20\x41", 4), std::string(reinterpret_cast<char*>(&data), 4));
+
+    encode_int<little, float>(reinterpret_cast<uint8_t*>(&data), 10);
+    EXPECT_EQ(std::string("\x00\x00\x20\x41", 4), std::string(reinterpret_cast<char*>(&data), 4));
+
+    encode_int<big, float>(reinterpret_cast<uint8_t*>(&data), 10);
+    EXPECT_EQ(std::string("\x41\x20\x00\x00", 4), std::string(reinterpret_cast<char*>(&data), 4));
+}
+
+TEST(encoding_ints, doubles)
+{
+    double data;
+
+    encode_int<native, double>(reinterpret_cast<uint8_t*>(&data), 10);
+    EXPECT_EQ(std::string("\x00\x00\x00\x00\x00\x00\x24\x40", 8), std::string(reinterpret_cast<char*>(&data), 8));
+
+    encode_int<little, double>(reinterpret_cast<uint8_t*>(&data), 10);
+    EXPECT_EQ(std::string("\x00\x00\x00\x00\x00\x00\x24\x40", 8), std::string(reinterpret_cast<char*>(&data), 8));
+
+    encode_int<big, double>(reinterpret_cast<uint8_t*>(&data), 10);
+    EXPECT_EQ(std::string("\x40\x24\x00\x00\x00\x00\x00\x00", 8), std::string(reinterpret_cast<char*>(&data), 8));
+}

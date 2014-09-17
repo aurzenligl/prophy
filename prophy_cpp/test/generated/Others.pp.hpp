@@ -30,6 +30,20 @@ struct ConstantTypedefEnum
     size_t encode(void* data) const { return encode<prophy::native>(data); }
 };
 
+struct Floats
+{
+    enum { encoded_byte_size = 16 };
+
+    float a;
+    double b;
+
+    Floats(): a(), b() { }
+
+    template <prophy::endianness E>
+    size_t encode(void* data) const;
+    size_t encode(void* data) const { return encode<prophy::native>(data); }
+};
+
 struct BytesFixed
 {
     enum { encoded_byte_size = 3 };
