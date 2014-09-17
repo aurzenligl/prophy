@@ -11,6 +11,11 @@ std::vector<uint8_t> genbytes(const char (&x) [N])
     return std::vector<uint8_t>(x, x + N - 1);
 }
 
+inline std::vector<uint8_t> genbytes(const void* x, size_t size)
+{
+    return std::vector<uint8_t>(static_cast<const uint8_t*>(x), static_cast<const uint8_t*>(x) + size);
+}
+
 template <class T, size_t N>
 void test_swap(const char (&input) [N], const char (&expected) [N], size_t expected_size = N - 1)
 {
