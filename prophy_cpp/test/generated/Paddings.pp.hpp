@@ -2,9 +2,11 @@
 #define _PROPHY_GENERATED_Paddings_HPP
 
 #include <stdint.h>
-#include <string>
+#include <numeric>
 #include <vector>
+#include <string>
 #include <prophy/endianness.hpp>
+#include <prophy/detail/byte_size.hpp>
 
 struct Endpad
 {
