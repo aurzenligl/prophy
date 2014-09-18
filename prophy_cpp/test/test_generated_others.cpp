@@ -18,11 +18,12 @@ TEST(generated_others, ConstantTypedefEnum)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x02\x00"
             "\x03\x00\x04\x00"
-            "\x01\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x01\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_others, Floats)
@@ -35,10 +36,11 @@ TEST(generated_others, Floats)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x00\x00\x20\x41" "\x00\x00\x00\x00"
-            "\x00\x00\x00\x00\x00\x00\x24\x40",
-            size), std::string(data.data(), size));
+            "\x00\x00\x00\x00\x00\x00\x24\x40"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_others, BytesFixed)
@@ -52,9 +54,10 @@ TEST(generated_others, BytesFixed)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(3, size);
-    EXPECT_EQ(std::string(
-            "abc",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "abc"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_others, BytesDynamic)
@@ -66,10 +69,11 @@ TEST(generated_others, BytesDynamic)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x04\x00\x00\x00"
-            "abcd",
-            size), std::string(data.data(), size));
+            "abcd"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_others, BytesLimited)
@@ -81,10 +85,11 @@ TEST(generated_others, BytesLimited)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x02\x00\x00\x00"
-            "ab\x00\x00",
-            size), std::string(data.data(), size));
+            "ab\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_others, BytesGreedy)
@@ -96,7 +101,8 @@ TEST(generated_others, BytesGreedy)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(5, size);
-    EXPECT_EQ(std::string(
-            "abcde",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "abcde"),
+            bytes(data.data(), size));
 }

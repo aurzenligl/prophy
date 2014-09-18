@@ -27,9 +27,17 @@ struct ConstantTypedefEnum
 
     ConstantTypedefEnum(): a(), b(), c(Enum_One) { }
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct Floats
@@ -41,9 +49,17 @@ struct Floats
 
     Floats(): a(), b() { }
 
+    size_t get_byte_size() const
+    {
+        return 16;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BytesFixed
@@ -54,9 +70,17 @@ struct BytesFixed
 
     BytesFixed(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 3;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BytesDynamic
@@ -65,9 +89,19 @@ struct BytesDynamic
 
     std::vector<uint8_t> x;
 
+    size_t get_byte_size() const
+    {
+        return prophy::detail::nearest<4>(
+            4 + x.size()
+        );
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BytesLimited
@@ -76,9 +110,17 @@ struct BytesLimited
 
     std::vector<uint8_t> x; // limit 4
 
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BytesGreedy
@@ -87,9 +129,17 @@ struct BytesGreedy
 
     std::vector<uint8_t> x; // greedy
 
+    size_t get_byte_size() const
+    {
+        return x.size();
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 #endif  /* _PROPHY_GENERATED_Others_HPP */
