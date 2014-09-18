@@ -1,6 +1,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include "generated/Paddings.pp.hpp"
+#include "util.hpp"
 
 using namespace testing;
 
@@ -14,9 +15,10 @@ TEST(generated_paddings, Endpad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(4, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x02" "\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01\x00\x02" "\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, EndpadFixed)
@@ -31,9 +33,10 @@ TEST(generated_paddings, EndpadFixed)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x00\x00\x02\x03\x04" "\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01\x00\x00\x00\x02\x03\x04" "\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, EndpadDynamic)
@@ -45,9 +48,10 @@ TEST(generated_paddings, EndpadDynamic)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x00\x00\x02" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01\x00\x00\x00\x02" "\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, EndpadLimited)
@@ -59,9 +63,10 @@ TEST(generated_paddings, EndpadLimited)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x00\x00\x02" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01\x00\x00\x00\x02" "\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, EndpadGreedy)
@@ -74,9 +79,10 @@ TEST(generated_paddings, EndpadGreedy)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x00\x00\x02" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01\x00\x00\x00\x02" "\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, Scalarpad)
@@ -89,9 +95,10 @@ TEST(generated_paddings, Scalarpad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(4, size);
-    EXPECT_EQ(std::string(
-            "\x01" "\x00" "\x02\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01" "\x00" "\x02\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ScalarpadComppre)
@@ -104,9 +111,10 @@ TEST(generated_paddings, ScalarpadComppre)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(4, size);
-    EXPECT_EQ(std::string(
-            "\x01" "\x00" "\x02\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01" "\x00" "\x02\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ScalarpadComppost)
@@ -119,9 +127,10 @@ TEST(generated_paddings, ScalarpadComppost)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(4, size);
-    EXPECT_EQ(std::string(
-            "\x01" "\x00" "\x02\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01" "\x00" "\x02\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, UnionpadOptionalboolpad)
@@ -135,11 +144,12 @@ TEST(generated_paddings, UnionpadOptionalboolpad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01" "\x00\x00\x00"
             "\x01\x00\x00\x00"
-            "\x02" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x02" "\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, UnionpadOptionalvaluepad)
@@ -152,10 +162,11 @@ TEST(generated_paddings, UnionpadOptionalvaluepad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00" "\x00\x00\x00\x00"
-            "\x02\x00\x00\x00\x00\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x02\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, UnionpadDiscpad)
@@ -169,11 +180,12 @@ TEST(generated_paddings, UnionpadDiscpad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01" "\x00\x00\x00"
             "\x01\x00\x00\x00"
-            "\x02" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x02" "\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, UnionpadArmpad)
@@ -187,11 +199,12 @@ TEST(generated_paddings, UnionpadArmpad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(24, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01" "\x00\x00\x00\x00\x00\x00\x00"
             "\x01\x00\x00\x00" "\x00\x00\x00\x00"
-            "\x02" "\x00\x00\x00\x00\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x02" "\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ArraypadCounter)
@@ -203,9 +216,10 @@ TEST(generated_paddings, ArraypadCounter)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(4, size);
-    EXPECT_EQ(std::string(
-            "\x01" "\x00" "\x02\x00",
-            size), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01" "\x00" "\x02\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ArraypadCounterSeparated)
@@ -218,11 +232,12 @@ TEST(generated_paddings, ArraypadCounterSeparated)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01" "\x00\x00\x00"
             "\x02\x00\x00\x00"
-            "\x03\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x03\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ArraypadCounterAligns)
@@ -235,10 +250,11 @@ TEST(generated_paddings, ArraypadCounterAligns)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(6, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01" "\x00"
-            "\x01\x00\x02" "\x00",
-            size), std::string(data.data(), size));
+            "\x01\x00\x02" "\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ArraypadFixed)
@@ -254,11 +270,12 @@ TEST(generated_paddings, ArraypadFixed)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00"
             "\x02\x03\x04" "\x00"
-            "\x05\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x05\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ArraypadDynamic)
@@ -271,11 +288,12 @@ TEST(generated_paddings, ArraypadDynamic)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00"
             "\x02" "\x00\x00\x00"
-            "\x03\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x03\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_paddings, ArraypadLimited)
@@ -288,9 +306,10 @@ TEST(generated_paddings, ArraypadLimited)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00"
             "\x02" "\x00\x00\x00"
-            "\x03\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x03\x00\x00\x00"),
+            bytes(data.data(), size));
 }

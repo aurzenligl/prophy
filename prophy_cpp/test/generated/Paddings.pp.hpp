@@ -17,9 +17,17 @@ struct Endpad
 
     Endpad(): x(), y() { }
 
+    size_t get_byte_size() const
+    {
+        return 4;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct EndpadFixed
@@ -31,9 +39,17 @@ struct EndpadFixed
 
     EndpadFixed(): x(), y() { }
 
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct EndpadDynamic
@@ -42,9 +58,19 @@ struct EndpadDynamic
 
     std::vector<uint8_t> x;
 
+    size_t get_byte_size() const
+    {
+        return prophy::detail::nearest<4>(
+            4 + x.size()
+        );
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct EndpadLimited
@@ -53,9 +79,17 @@ struct EndpadLimited
 
     std::vector<uint8_t> x; /// limit 2
 
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct EndpadGreedy
@@ -67,9 +101,19 @@ struct EndpadGreedy
 
     EndpadGreedy(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return prophy::detail::nearest<4>(
+            4 + y.size()
+        );
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct Scalarpad
@@ -81,9 +125,17 @@ struct Scalarpad
 
     Scalarpad(): x(), y() { }
 
+    size_t get_byte_size() const
+    {
+        return 4;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ScalarpadComppre_Helper
@@ -94,9 +146,17 @@ struct ScalarpadComppre_Helper
 
     ScalarpadComppre_Helper(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 1;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ScalarpadComppre
@@ -108,9 +168,17 @@ struct ScalarpadComppre
 
     ScalarpadComppre(): y() { }
 
+    size_t get_byte_size() const
+    {
+        return 4;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ScalarpadComppost_Helper
@@ -121,9 +189,17 @@ struct ScalarpadComppost_Helper
 
     ScalarpadComppost_Helper(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 2;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ScalarpadComppost
@@ -135,9 +211,17 @@ struct ScalarpadComppost
 
     ScalarpadComppost(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 4;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct UnionpadOptionalboolpad
@@ -150,9 +234,17 @@ struct UnionpadOptionalboolpad
 
     UnionpadOptionalboolpad(): x(), has_y(), y() { }
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct UnionpadOptionalvaluepad
@@ -164,9 +256,17 @@ struct UnionpadOptionalvaluepad
 
     UnionpadOptionalvaluepad(): has_x(), x() { }
 
+    size_t get_byte_size() const
+    {
+        return 16;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct UnionpadDiscpad_Helper
@@ -182,23 +282,39 @@ struct UnionpadDiscpad_Helper
 
     UnionpadDiscpad_Helper(): discriminator(discriminator_a), a() { }
 
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct UnionpadDiscpad
 {
-    enum { encoded_byte_size = 16 };
+    enum { encoded_byte_size = 12 };
 
     uint8_t x;
     UnionpadDiscpad_Helper y;
 
     UnionpadDiscpad(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct UnionpadArmpad_Helper
@@ -216,9 +332,17 @@ struct UnionpadArmpad_Helper
 
     UnionpadArmpad_Helper(): discriminator(discriminator_a), a(), b() { }
 
+    size_t get_byte_size() const
+    {
+        return 16;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct UnionpadArmpad
@@ -230,9 +354,17 @@ struct UnionpadArmpad
 
     UnionpadArmpad(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 24;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ArraypadCounter
@@ -241,9 +373,17 @@ struct ArraypadCounter
 
     std::vector<uint16_t> x;
 
+    size_t get_byte_size() const
+    {
+        return 2 + 2 * x.size();
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ArraypadCounterSeparated
@@ -255,9 +395,17 @@ struct ArraypadCounterSeparated
 
     ArraypadCounterSeparated(): y() { }
 
+    size_t get_byte_size() const
+    {
+        return 8 + 4 * x.size();
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ArraypadCounterAligns_Helper
@@ -266,9 +414,19 @@ struct ArraypadCounterAligns_Helper
 
     std::vector<uint8_t> x;
 
+    size_t get_byte_size() const
+    {
+        return prophy::detail::nearest<2>(
+            2 + x.size()
+        );
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ArraypadCounterAligns
@@ -280,9 +438,17 @@ struct ArraypadCounterAligns
 
     ArraypadCounterAligns(): x() { }
 
+    size_t get_byte_size() const
+    {
+        return 2 + y.get_byte_size();
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ArraypadFixed
@@ -295,9 +461,17 @@ struct ArraypadFixed
 
     ArraypadFixed(): x(), y(), z() { }
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ArraypadDynamic
@@ -309,9 +483,19 @@ struct ArraypadDynamic
 
     ArraypadDynamic(): y() { }
 
+    size_t get_byte_size() const
+    {
+        return prophy::detail::nearest<4>(
+            4 + x.size()
+        ) + 4;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct ArraypadLimited
@@ -323,9 +507,17 @@ struct ArraypadLimited
 
     ArraypadLimited(): y() { }
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 #endif  /* _PROPHY_GENERATED_Paddings_HPP */
