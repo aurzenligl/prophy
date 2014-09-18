@@ -62,7 +62,7 @@ TEST(generated_others, BytesDynamic)
     std::vector<char> data(1024);
 
     BytesDynamic x;
-    x.x = genbytes("abcd");
+    x.x = bytes("abcd");
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -77,7 +77,7 @@ TEST(generated_others, BytesLimited)
     std::vector<char> data(1024);
 
     BytesLimited x;
-    x.x = genbytes("ab");
+    x.x = bytes("ab");
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -92,7 +92,7 @@ TEST(generated_others, BytesGreedy)
     std::vector<char> data(1024);
 
     BytesGreedy x;
-    x.x = genbytes("abcde");
+    x.x = bytes("abcde");
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(5, size);

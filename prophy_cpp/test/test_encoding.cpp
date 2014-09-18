@@ -12,9 +12,9 @@ TEST(encoding, endianness)
     std::vector<char> data(1024);
 
     DynfieldsScalarpartialpad x;
-    x.x.x = genbytes("abc");
-    x.y.x = genbytes("d");
-    x.z.x = genbytes("efghi");
+    x.x.x = bytes("abc");
+    x.y.x = bytes("d");
+    x.z.x = bytes("efghi");
 
     size = x.encode<native>(data.data());
     EXPECT_EQ(28, size);

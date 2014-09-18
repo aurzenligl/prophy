@@ -16,7 +16,7 @@ TEST(generated_arrays, Builtin)
 
     EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes("\x01\x00\x00\x00\x02\x00\x00\x00"), genbytes(data.data(), size));
+    EXPECT_EQ(bytes("\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 }
 
 TEST(generated_arrays, BuiltinFixed)
@@ -30,7 +30,7 @@ TEST(generated_arrays, BuiltinFixed)
 
     EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes("\x01\x00\x00\x00\x02\x00\x00\x00"), genbytes(data.data(), size));
+    EXPECT_EQ(bytes("\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 }
 
 TEST(generated_arrays, BuiltinDynamic)
@@ -44,7 +44,7 @@ TEST(generated_arrays, BuiltinDynamic)
 
     EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"), genbytes(data.data(), size));
+    EXPECT_EQ(bytes("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 }
 
 TEST(generated_arrays, BuiltinLimited)
@@ -57,7 +57,7 @@ TEST(generated_arrays, BuiltinLimited)
 
     EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes("\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"), genbytes(data.data(), size));
+    EXPECT_EQ(bytes("\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"), bytes(data.data(), size));
 
     x.x.push_back(2);
     x.x.push_back(3);
@@ -65,7 +65,7 @@ TEST(generated_arrays, BuiltinLimited)
 
     EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"), genbytes(data.data(), size));
+    EXPECT_EQ(bytes("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 }
 
 TEST(generated_arrays, BuiltinGreedy)
@@ -79,7 +79,7 @@ TEST(generated_arrays, BuiltinGreedy)
 
     EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes("\x01\x00\x00\x00\x02\x00\x00\x00"), genbytes(data.data(), size));
+    EXPECT_EQ(bytes("\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 }
 
 TEST(generated_arrays, Fixcomp)
@@ -95,9 +95,9 @@ TEST(generated_arrays, Fixcomp)
 
     EXPECT_EQ(16, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
 
 TEST(generated_arrays, FixcompFixed)
@@ -113,9 +113,9 @@ TEST(generated_arrays, FixcompFixed)
 
     EXPECT_EQ(16, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
 
 TEST(generated_arrays, FixcompDynamic)
@@ -132,9 +132,9 @@ TEST(generated_arrays, FixcompDynamic)
 
     EXPECT_EQ(20, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
 
 TEST(generated_arrays, FixcompLimited)
@@ -149,9 +149,9 @@ TEST(generated_arrays, FixcompLimited)
 
     EXPECT_EQ(20, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
 
 TEST(generated_arrays, FixcompGreedy)
@@ -168,9 +168,9 @@ TEST(generated_arrays, FixcompGreedy)
 
     EXPECT_EQ(16, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
 
 TEST(generated_arrays, Dyncomp)
@@ -185,9 +185,9 @@ TEST(generated_arrays, Dyncomp)
 
     EXPECT_EQ(16, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
 
 TEST(generated_arrays, DyncompDynamic)
@@ -204,11 +204,11 @@ TEST(generated_arrays, DyncompDynamic)
 
     EXPECT_EQ(28, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x02\x00\x00\x00"
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
             "\x01\x00\x00\x00\x04\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
 
 TEST(generated_arrays, DyncompGreedy)
@@ -225,8 +225,8 @@ TEST(generated_arrays, DyncompGreedy)
 
     EXPECT_EQ(24, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(genbytes(
+    EXPECT_EQ(bytes(
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
             "\x01\x00\x00\x00\x04\x00\x00\x00"),
-            genbytes(data.data(), size));
+            bytes(data.data(), size));
 }
