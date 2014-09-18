@@ -1,6 +1,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include "generated/Dynfields.pp.hpp"
+#include "util.hpp"
 
 using namespace testing;
 
@@ -15,11 +16,12 @@ TEST(generated_dynfields, Dynfields)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(24, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02" "\x00"
             "\x01\x00\x03\x00" "\x00\x00\x00\x00\x00\x00"
-            "\x04\x00\x00\x00\x00\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x04\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_dynfields, DynfieldsMixed)
@@ -32,11 +34,12 @@ TEST(generated_dynfields, DynfieldsMixed)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00"
             "\x01\x00\x02" "\x00"
-            "\x03\x00" "\x00\x00",
-            size), std::string(data.data(), size));
+            "\x03\x00" "\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_dynfields, DynfieldsOverlapped)
@@ -51,11 +54,12 @@ TEST(generated_dynfields, DynfieldsOverlapped)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(24, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x02\x00\x00\x00\x01\x00\x00\x00"
             "\x02\x00" "\x00\x00" "\x01\x00\x00\x00"
-            "\x03\x00\x04\x00\x05\x00" "\x00\x00",
-            size), std::string(data.data(), size));
+            "\x03\x00\x04\x00\x05\x00" "\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_dynfields, DynfieldsPartialpad)
@@ -70,12 +74,13 @@ TEST(generated_dynfields, DynfieldsPartialpad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(32, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01" "\x00\x00\x00\x00\x00\x00\x00"
             "\x01\x02" "\x00\x00\x00\x00\x00\x00"
             "\x03" "\x00\x00\x00\x00\x00\x00\x00"
-            "\x04\x00\x00\x00\x00\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x04\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_dynfields, DynfieldsScalarpartialpad)
@@ -96,9 +101,10 @@ TEST(generated_dynfields, DynfieldsScalarpartialpad)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(28, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02" "\x00\x00\x00"
             "\x06\x00\x00\x00\x03\x04\x05\x06\x07\x08" "\x00\x00"
-            "\x03\x00\x00\x00\x09\x0a\x0b" "\x00",
-            size), std::string(data.data(), size));
+            "\x03\x00\x00\x00\x09\x0a\x0b" "\x00"),
+            bytes(data.data(), size));
 }

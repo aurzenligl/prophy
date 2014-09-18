@@ -15,6 +15,12 @@ struct byte_size
     }
 };
 
+template <size_t N, typename T>
+inline T nearest(T x)
+{
+    return (x + N - 1) & ~T(N - 1);
+}
+
 } // namespace detail
 } // namespace prophy
 
