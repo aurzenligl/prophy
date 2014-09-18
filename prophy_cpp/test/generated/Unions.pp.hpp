@@ -27,9 +27,17 @@ struct Union
 
     Union(): discriminator(discriminator_a), a(), b() { }
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct BuiltinOptional
@@ -41,9 +49,17 @@ struct BuiltinOptional
 
     BuiltinOptional(): has_x(), x() { }
 
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 struct FixcompOptional
@@ -55,9 +71,17 @@ struct FixcompOptional
 
     FixcompOptional(): has_x(), x() { }
 
+    size_t get_byte_size() const
+    {
+        return 12;
+    }
+
     template <prophy::endianness E>
     size_t encode(void* data) const;
-    size_t encode(void* data) const { return encode<prophy::native>(data); }
+    size_t encode(void* data) const
+    {
+        return encode<prophy::native>(data);
+    }
 };
 
 #endif  /* _PROPHY_GENERATED_Unions_HPP */

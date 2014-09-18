@@ -1,6 +1,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include "generated/Unions.pp.hpp"
+#include "util.hpp"
 
 using namespace testing;
 
@@ -14,18 +15,19 @@ TEST(generated_unions, Union)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00",
-            12), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 
     x.discriminator = Union::discriminator_b;
     x.b = 1;
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
-            "\x02\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00",
-            12), std::string(data.data(), size));
+    EXPECT_EQ(bytes(
+            "\x02\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 
     x.discriminator = Union::discriminator_c;
     x.c.x = 1;
@@ -33,9 +35,9 @@ TEST(generated_unions, Union)
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
-            "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00",
-            12), std::string(data.data(), size));
+    EXPECT_EQ(bytes(
+            "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_unions, BuiltinOptional)
@@ -48,18 +50,19 @@ TEST(generated_unions, BuiltinOptional)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
-            "\x00\x00\x00\x00\x00\x00\x00\x00",
-            8), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x00\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 
     x.has_x = true;
     x.x = 2;
     size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x00\x00\x02\x00\x00\x00",
-            8), std::string(data.data(), size));
+    EXPECT_EQ(bytes(
+            "\x01\x00\x00\x00\x02\x00\x00\x00"),
+            bytes(data.data(), size));
 }
 
 TEST(generated_unions, FixcompOptional)
@@ -73,9 +76,10 @@ TEST(generated_unions, FixcompOptional)
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
-            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            12), std::string(data.data(), size));
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
+            bytes(data.data(), size));
 
     x.has_x = true;
     x.x.x = 3;
@@ -83,7 +87,7 @@ TEST(generated_unions, FixcompOptional)
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
-    EXPECT_EQ(std::string(
-            "\x01\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00",
-            12), std::string(data.data(), size));
+    EXPECT_EQ(bytes(
+            "\x01\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
+            bytes(data.data(), size));
 }
