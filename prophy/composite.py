@@ -1,8 +1,9 @@
 from itertools import ifilter
 
 import scalar
-import container
 from exception import ProphyError
+
+from base_array import base_array
 
 def validate(descriptor):
     if any(type._UNLIMITED for _, type in descriptor[:-1]):
@@ -20,7 +21,7 @@ def add_attributes(cls, descriptor):
 
     alignment = 1
     for _, tp in reversed(descriptor):
-        if issubclass(tp, (container.base_array, str)) and tp._DYNAMIC:
+        if issubclass(tp, (base_array, str)) and tp._DYNAMIC:
             tp._PARTIAL_ALIGNMENT = alignment
             alignment = 1
         alignment = max(tp._ALIGNMENT, alignment)
@@ -45,7 +46,7 @@ def add_padding(cls, descriptor):
 
 def add_properties(cls, descriptor):
     for name, tp in descriptor:
-        if issubclass(tp, container.base_array):
+        if issubclass(tp, base_array):
             add_repeated(cls, name, tp)
         elif issubclass(tp, (struct, union)):
             add_composite(cls, name, tp)
@@ -143,7 +144,7 @@ def get_encode_function(type):
         return encode_optional
     elif type._BOUND and issubclass(type, (int, long)):
         return encode_array_delimiter
-    elif issubclass(type, container.base_array):
+    elif issubclass(type, base_array):
         return encode_array
     elif issubclass(type, (struct, union)):
         return encode_composite
@@ -181,7 +182,7 @@ def get_decode_function(type):
         return decode_optional
     elif type._BOUND and issubclass(type, (int, long)):
         return decode_array_delimiter
-    elif issubclass(type, container.base_array):
+    elif issubclass(type, base_array):
         return decode_array
     elif issubclass(type, (struct, union)):
         return decode_composite
@@ -224,7 +225,7 @@ def indent(lines, spaces):
     return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
 
 def field_to_string(name, type, value):
-    if issubclass(type, container.base_array):
+    if issubclass(type, base_array):
         return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
     elif issubclass(type, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
@@ -241,7 +242,7 @@ def validate_copy_from(lhs, rhs):
 
 def set_field(parent, name, rhs):
     lhs = getattr(parent, name)
-    if isinstance(rhs, container.base_array):
+    if isinstance(rhs, base_array):
         if issubclass(rhs._TYPE, (struct, union)):
             if rhs._DYNAMIC:
                 del lhs[:]
@@ -291,7 +292,7 @@ class struct(object):
             if tp._PARTIAL_ALIGNMENT:
                 data += self._get_padding(len(data), tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
+        if not (self._descriptor and terminal and issubclass(tp, (base_array, str))):
             data += self._get_padding(len(data), self._ALIGNMENT)
 
         return data
@@ -309,7 +310,7 @@ class struct(object):
             if tp._PARTIAL_ALIGNMENT:
                 pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
+        if not (self._descriptor and terminal and issubclass(tp, (base_array, str))):
             pos += self._get_padding_size(pos, self._ALIGNMENT)
 
         if terminal and pos < len(data):
@@ -356,7 +357,7 @@ def validate_union(descriptor):
         raise ProphyError("dynamic types not allowed in union")
     if any(type._BOUND for _, type, _ in descriptor):
         raise ProphyError("bound array/bytes not allowed in union")
-    if any(issubclass(type, container.base_array) for _, type, _ in descriptor):
+    if any(issubclass(type, base_array) for _, type, _ in descriptor):
         raise ProphyError("static array not implemented in union")
     if any(type._OPTIONAL for _, type, _ in descriptor):
         raise ProphyError("union with optional field disallowed")
