@@ -24,13 +24,9 @@ struct Builtin : prophy::detail::message<Builtin>
     }
 
     using prophy::detail::message<Builtin>::encode;
-    using prophy::detail::message<Builtin>::decode;
 
     template <prophy::endianness E>
     size_t encode(void* data) const;
-
-    template <prophy::endianness E>
-    bool decode(const uint8_t*& pos, const uint8_t* end);
 };
 
 struct BuiltinFixed

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <prophy/endianness.hpp>
+#include <prophy/detail/decode_composite.hpp>
 
 namespace prophy
 {
@@ -22,7 +23,7 @@ struct message
     bool decode(const void* data, size_t size)
     {
         const uint8_t* data_ = static_cast<const uint8_t*>(data);
-        bool success = static_cast<T*>(this)->template decode<E>(data_, data_ + size);
+        bool success = decode_composite<T>::template decode<E>(*static_cast<T*>(this), data_, data_ + size);
         size_t bytes_read = data_ - static_cast<const uint8_t*>(data);
         return success && (bytes_read == size);
     }

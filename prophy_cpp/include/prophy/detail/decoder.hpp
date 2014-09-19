@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/codec_traits.hpp>
+#include <prophy/detail/decode_composite.hpp>
 
 namespace prophy
 {

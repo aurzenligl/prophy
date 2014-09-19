@@ -20,18 +20,24 @@ template size_t Builtin::encode<native>(void* data) const;
 template size_t Builtin::encode<little>(void* data) const;
 template size_t Builtin::encode<big>(void* data) const;
 
+namespace prophy
+{
+namespace detail
+{
+template <>
 template <endianness E>
-bool Builtin::decode(const uint8_t*& pos, const uint8_t* end)
+bool decode_composite<Builtin>::decode(Builtin& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode<E>(x, pos, end) &&
-        do_decode<E>(y, pos, end)
+        do_decode<E>(x.x, pos, end) &&
+        do_decode<E>(x.y, pos, end)
     );
 }
-
-template bool Builtin::decode<native>(const uint8_t*& data, const uint8_t* end);
-template bool Builtin::decode<little>(const uint8_t*& data, const uint8_t* end);
-template bool Builtin::decode<big>(const uint8_t*& data, const uint8_t* end);
+template bool decode_composite<Builtin>::decode<native>(Builtin& x, const uint8_t*& pos, const uint8_t* end);
+template bool decode_composite<Builtin>::decode<little>(Builtin& x, const uint8_t*& pos, const uint8_t* end);
+template bool decode_composite<Builtin>::decode<big>(Builtin& x, const uint8_t*& pos, const uint8_t* end);
+}
+}
 
 template <endianness E>
 size_t BuiltinFixed::encode(void* data) const
