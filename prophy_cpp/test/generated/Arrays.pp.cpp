@@ -21,19 +21,16 @@ template size_t Builtin::encode<little>(void* data) const;
 template size_t Builtin::encode<big>(void* data) const;
 
 template <endianness E>
-bool Builtin::decode(const void* data, size_t size)
+const uint8_t* Builtin::decode_impl(const uint8_t* pos, const uint8_t* end)
 {
-    const uint8_t* p = static_cast<const uint8_t*>(data);
-    const uint8_t* e = p + size;
-    return (
-        do_decode<E>(x, p, e) &&
-        do_decode<E>(y, p, e)
-    );
+    do_decode<E>(x, pos, end) &&
+    do_decode<E>(y, pos, end);
+    return pos;
 }
 
-template bool Builtin::decode<native>(const void* data, size_t size);
-template bool Builtin::decode<little>(const void* data, size_t size);
-template bool Builtin::decode<big>(const void* data, size_t size);
+template const uint8_t* Builtin::decode_impl<native>(const uint8_t* data, const uint8_t* end);
+template const uint8_t* Builtin::decode_impl<little>(const uint8_t* data, const uint8_t* end);
+template const uint8_t* Builtin::decode_impl<big>(const uint8_t* data, const uint8_t* end);
 
 template <endianness E>
 size_t BuiltinFixed::encode(void* data) const

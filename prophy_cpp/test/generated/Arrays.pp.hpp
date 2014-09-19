@@ -30,11 +30,19 @@ struct Builtin
     }
 
     template <prophy::endianness E>
-    bool decode(const void* data, size_t size);
+    bool decode(const void* data, size_t size)
+    {
+        const uint8_t* data_ = static_cast<const uint8_t*>(data);
+        return size_t(decode_impl<E>(data_, data_ + size) - data_) == size;
+    }
     bool decode(const void* data, size_t size)
     {
         return decode<prophy::native>(data, size);
     }
+
+private:
+    template <prophy::endianness E>
+    const uint8_t* decode_impl(const uint8_t* pos, const uint8_t* end);
 };
 
 struct BuiltinFixed
