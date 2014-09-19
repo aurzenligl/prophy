@@ -28,6 +28,13 @@ struct Builtin
     {
         return encode<prophy::native>(data);
     }
+
+    template <prophy::endianness E>
+    bool decode(const void* data, size_t size);
+    bool decode(const void* data, size_t size)
+    {
+        return decode<prophy::native>(data, size);
+    }
 };
 
 struct BuiltinFixed

@@ -1,6 +1,7 @@
 #include "Arrays.pp.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
+#include <prophy/detail/decoder.hpp>
 #include <prophy/detail/align.hpp>
 
 using namespace prophy;
@@ -18,6 +19,21 @@ size_t Builtin::encode(void* data) const
 template size_t Builtin::encode<native>(void* data) const;
 template size_t Builtin::encode<little>(void* data) const;
 template size_t Builtin::encode<big>(void* data) const;
+
+template <endianness E>
+bool Builtin::decode(const void* data, size_t size)
+{
+    const uint8_t* p = static_cast<const uint8_t*>(data);
+    const uint8_t* e = p + size;
+    return (
+        do_decode<E>(x, p, e) &&
+        do_decode<E>(y, p, e)
+    );
+}
+
+template bool Builtin::decode<native>(const void* data, size_t size);
+template bool Builtin::decode<little>(const void* data, size_t size);
+template bool Builtin::decode<big>(const void* data, size_t size);
 
 template <endianness E>
 size_t BuiltinFixed::encode(void* data) const
