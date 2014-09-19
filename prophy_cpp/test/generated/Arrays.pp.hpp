@@ -7,8 +7,9 @@
 #include <string>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
 
-struct Builtin
+struct Builtin : prophy::detail::message<Builtin>
 {
     enum { encoded_byte_size = 8 };
 
@@ -22,27 +23,14 @@ struct Builtin
         return 8;
     }
 
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
-
-    template <prophy::endianness E>
-    bool decode(const void* data, size_t size)
-    {
-        const uint8_t* data_ = static_cast<const uint8_t*>(data);
-        return size_t(decode_impl<E>(data_, data_ + size) - data_) == size;
-    }
-    bool decode(const void* data, size_t size)
-    {
-        return decode<prophy::native>(data, size);
-    }
-
 private:
     template <prophy::endianness E>
-    const uint8_t* decode_impl(const uint8_t* pos, const uint8_t* end);
+    size_t encode_impl(void* data) const;
+
+    template <prophy::endianness E>
+    bool decode_impl(const uint8_t*& pos, const uint8_t* end);
+
+    friend class prophy::detail::message<Builtin>;
 };
 
 struct BuiltinFixed

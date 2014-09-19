@@ -46,6 +46,12 @@ TEST(encoding, decode_struct_failures)
     EXPECT_FALSE(x.decode(data.data(), data.size()));
     EXPECT_EQ(3, x.x);
     EXPECT_EQ(4, x.y);
+
+    data = bytes("\x05\x00\x00\x00");
+
+    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_EQ(5, x.x);
+    EXPECT_EQ(4, x.y);
 }
 
 TEST(encoding, endianness)

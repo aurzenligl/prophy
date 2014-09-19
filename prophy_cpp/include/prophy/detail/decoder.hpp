@@ -37,7 +37,7 @@ struct decoder<E, T, false, false>
 };
 
 template <endianness E, typename T>
-inline size_t do_decode(T& x, const uint8_t*& pos, const uint8_t* end)
+inline bool do_decode(T& x, const uint8_t*& pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, pos, end);
 }
