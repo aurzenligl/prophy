@@ -23,14 +23,14 @@ struct Builtin : prophy::detail::message<Builtin>
         return 8;
     }
 
-private:
-    template <prophy::endianness E>
-    size_t encode_impl(void* data) const;
+    using prophy::detail::message<Builtin>::encode;
+    using prophy::detail::message<Builtin>::decode;
 
     template <prophy::endianness E>
-    bool decode_impl(const uint8_t*& pos, const uint8_t* end);
+    size_t encode(void* data) const;
 
-    friend class prophy::detail::message<Builtin>;
+    template <prophy::endianness E>
+    bool decode(const uint8_t*& pos, const uint8_t* end);
 };
 
 struct BuiltinFixed
