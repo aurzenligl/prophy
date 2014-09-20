@@ -54,6 +54,33 @@ TEST(encoding, decode_struct_failures)
     EXPECT_EQ(4, x.y);
 }
 
+TEST(encoding, decode_vector_failures)
+{
+    BuiltinDynamic x;
+    std::vector<uint8_t> data = bytes("\x01\x00\x00"); //not enough to decode counter
+
+    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_EQ(0, x.x.size());
+
+    data = bytes("\x01\x00\x00\x00"); // no array elements
+
+    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(0, x.x[0]);
+
+    data = bytes("\x01\x00\x00\x00\x02\x00\x00"); // one byte short
+
+    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(0, x.x[0]);
+
+    data = bytes("\x01\x00\x00\x00\x02\x00\x00\x00\x00"); // one byte too much
+
+    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(2, x.x[0]);
+}
+
 TEST(encoding, endianness)
 {
     size_t size;
