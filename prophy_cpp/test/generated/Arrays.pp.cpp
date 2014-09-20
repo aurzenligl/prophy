@@ -100,7 +100,7 @@ template <endianness E>
 bool message_impl<BuiltinLimited>::decode(BuiltinLimited& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_resize<E, uint32_t>(x.x, 2, pos, end) &&
+        do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
         do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
         do_decode_advance(8, pos, end)
     );
@@ -223,7 +223,7 @@ template <endianness E>
 bool message_impl<FixcompLimited>::decode(FixcompLimited& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_resize<E, uint32_t>(x.x, 2, pos, end) &&
+        do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
         do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
         do_decode_advance(16, pos, end)
     );

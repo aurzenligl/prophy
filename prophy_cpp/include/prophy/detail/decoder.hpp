@@ -108,19 +108,7 @@ inline bool do_decode_greedy(std::vector<T>& v, const uint8_t*& pos, const uint8
 }
 
 template <endianness E, typename CT, typename T>
-inline bool do_decode_resize(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
-{
-    CT n;
-    if (!decoder<E, CT>::decode(n, pos, end))
-    {
-        return false;
-    }
-    v.resize(n);
-    return true;
-}
-
-template <endianness E, typename CT, typename T>
-inline bool do_decode_resize(std::vector<T>& v, size_t max, const uint8_t*& pos, const uint8_t* end)
+inline bool do_decode_resize(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end, size_t max = ~size_t())
 {
     CT n;
     if (!decoder<E, CT>::decode(n, pos, end))
