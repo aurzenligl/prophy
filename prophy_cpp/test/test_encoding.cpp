@@ -111,35 +111,26 @@ TEST(encoding, decode_fixed_composite_failures)
 
 TEST(encoding, endianness)
 {
-    size_t size;
-    std::vector<char> data(1024);
-
     DynfieldsScalarpartialpad x;
     x.x.x = bytes("abc");
     x.y.x = bytes("d");
     x.z.x = bytes("efghi");
 
-    size = x.encode<native>(data.data());
-    EXPECT_EQ(28, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(bytes(
             "\x03\x00\x00\x00" "abc" "\x00"
             "\x01\x00\x00\x00" "d" "\x00\x00\x00"
-            "\x05\x00\x00\x00" "efghi" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x05\x00\x00\x00" "efghi" "\x00\x00\x00"),
+            x.encode<native>());
 
-    size = x.encode<little>(data.data());
-    EXPECT_EQ(28, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(bytes(
             "\x03\x00\x00\x00" "abc" "\x00"
             "\x01\x00\x00\x00" "d" "\x00\x00\x00"
-            "\x05\x00\x00\x00" "efghi" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x05\x00\x00\x00" "efghi" "\x00\x00\x00"),
+            x.encode<little>());
 
-    size = x.encode<big>(data.data());
-    EXPECT_EQ(28, size);
-    EXPECT_EQ(std::string(
+    EXPECT_EQ(bytes(
             "\x00\x00\x00\x03" "abc" "\x00"
             "\x00\x00\x00\x01" "d" "\x00\x00\x00"
-            "\x00\x00\x00\x05" "efghi" "\x00\x00\x00",
-            size), std::string(data.data(), size));
+            "\x00\x00\x00\x05" "efghi" "\x00\x00\x00"),
+            x.encode<big>());
 }

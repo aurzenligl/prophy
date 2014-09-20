@@ -28,6 +28,19 @@ struct message
     }
 
     template <endianness E>
+    std::vector<uint8_t> encode() const
+    {
+        std::vector<uint8_t> data(static_cast<const T*>(this)->get_byte_size());
+        message_impl<T>::template encode<E>(*static_cast<const T*>(this), data.data());
+        return data;
+    }
+
+    std::vector<uint8_t> encode() const
+    {
+        return encode<native>();
+    }
+
+    template <endianness E>
     bool decode(const void* data, size_t size)
     {
         const uint8_t* data_ = static_cast<const uint8_t*>(data);
