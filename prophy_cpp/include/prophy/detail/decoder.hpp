@@ -27,13 +27,29 @@ struct decoder<E, T, false, false>
 {
     static bool decode(T& x, const uint8_t*& pos, const uint8_t* end)
     {
-        if (size_t(end - pos) >= sizeof(T))
+        if (size_t(end - pos) < sizeof(T))
         {
-            decode_int<E>(x, pos);
-            pos += sizeof(T);
-            return true;
+            return false;
         }
-        return false;
+        decode_int<E>(x, pos);
+        pos += sizeof(T);
+        return true;
+    }
+
+    static bool decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
+    {
+        if (size_t(end - pos) < n * sizeof(T))
+        {
+            return false;
+        }
+        while (n)
+        {
+            decode_int<E>(*x, pos);
+            pos += sizeof(T);
+            ++x;
+            --n;
+        }
+        return true;
     }
 };
 
@@ -41,6 +57,12 @@ template <endianness E, typename T>
 inline bool do_decode(T& x, const uint8_t*& pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, pos, end);
+}
+
+template <endianness E, typename T>
+inline bool do_decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
+{
+    return decoder<E, T>::decode(x, n, pos, end);
 }
 
 } // namespace detail

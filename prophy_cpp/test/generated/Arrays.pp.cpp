@@ -47,6 +47,18 @@ template uint8_t* message_impl<BuiltinFixed>::encode<big>(const BuiltinFixed& x,
 
 template <>
 template <endianness E>
+bool message_impl<BuiltinFixed>::decode(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, 2, pos, end)
+    );
+}
+template bool message_impl<BuiltinFixed>::decode<native>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinFixed>::decode<little>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinFixed>::decode<big>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<BuiltinDynamic>::encode(const BuiltinDynamic& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(x.x.size()));
