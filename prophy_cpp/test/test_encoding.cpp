@@ -9,52 +9,24 @@ using namespace testing;
 using namespace prophy;
 using namespace prophy::detail;
 
-TEST(encoding, decode_builtin_scalars)
-{
-    std::vector<uint8_t> data = bytes("\x01\x00\x00\x00");
-    {
-        const uint8_t* pos = data.data();
-        const uint8_t* end = data.data() + data.size();
-        uint32_t x = 0;
-
-        EXPECT_TRUE(do_decode<native>(x, pos, end));
-        EXPECT_EQ(data.data() + data.size(), pos);
-        EXPECT_EQ(1, x);
-    }
-    {
-        const uint8_t* pos = data.data() + 1;
-        const uint8_t* end = data.data() + data.size();
-        uint32_t x = 0;
-
-        EXPECT_FALSE(do_decode<native>(x, pos, end));
-        EXPECT_EQ(data.data() + 1, pos);
-        EXPECT_EQ(0, x);
-    }
-}
-
 TEST(encoding, decode_struct_failures)
 {
     Builtin x;
-    std::vector<uint8_t> data = bytes("\x01\x00\x00\x00\x02\x00\x00");
 
-    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_FALSE(x.decode(bytes("\x01\x00\x00\x00\x02\x00\x00")));
     EXPECT_EQ(1, x.x);
     EXPECT_EQ(0, x.y);
 
-    data = bytes("\x03\x00\x00\x00\x04\x00\x00\x00\x00");
-
-    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_FALSE(x.decode(bytes("\x03\x00\x00\x00\x04\x00\x00\x00\x00")));
     EXPECT_EQ(3, x.x);
     EXPECT_EQ(4, x.y);
 
-    data = bytes("\x05\x00\x00\x00");
-
-    EXPECT_FALSE(x.decode(data.data(), data.size()));
+    EXPECT_FALSE(x.decode(bytes("\x05\x00\x00\x00")));
     EXPECT_EQ(5, x.x);
     EXPECT_EQ(4, x.y);
 }
 
-TEST(encoding, decode_vector_failures)
+TEST(encoding, decode_dynamic_failures)
 {
     BuiltinDynamic x;
     std::vector<uint8_t> data = bytes("\x01\x00\x00"); //not enough to decode counter
@@ -79,6 +51,28 @@ TEST(encoding, decode_vector_failures)
     EXPECT_FALSE(x.decode(data.data(), data.size()));
     EXPECT_EQ(1, x.x.size());
     EXPECT_EQ(2, x.x[0]);
+}
+
+TEST(encoding, decode_limited_failures)
+{
+    BuiltinLimited x;
+
+    EXPECT_FALSE(x.decode(bytes("\x01\x00\x00\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(0, x.x[0]);
+
+    EXPECT_FALSE(x.decode(bytes("\x01\x00\x00\x00\x01\x00\x00\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(1, x.x[0]);
+
+    EXPECT_FALSE(x.decode(bytes("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(1, x.x[0]);
+    EXPECT_EQ(2, x.x[1]);
+
+    x.x.clear();
+    EXPECT_FALSE(x.decode(bytes("\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00")));
+    EXPECT_EQ(0, x.x.size());
 }
 
 TEST(encoding, endianness)

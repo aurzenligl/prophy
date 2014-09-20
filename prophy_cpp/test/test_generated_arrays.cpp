@@ -18,9 +18,7 @@ TEST(generated_arrays, Builtin)
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes("\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 
-    data = bytes("\x03\x00\x00\x00\x04\x00\x00\x00");
-
-    EXPECT_TRUE(x.decode(data.data(), data.size()));
+    EXPECT_TRUE(x.decode(bytes("\x03\x00\x00\x00\x04\x00\x00\x00")));
     EXPECT_EQ(3, x.x);
     EXPECT_EQ(4, x.y);
 }
@@ -38,9 +36,7 @@ TEST(generated_arrays, BuiltinFixed)
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes("\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 
-    data = bytes("\x03\x00\x00\x00\x04\x00\x00\x00");
-
-    EXPECT_TRUE(x.decode(data.data(), data.size()));
+    EXPECT_TRUE(x.decode(bytes("\x03\x00\x00\x00\x04\x00\x00\x00")));
     EXPECT_EQ(3, x.x[0]);
     EXPECT_EQ(4, x.x[1]);
 }
@@ -58,9 +54,8 @@ TEST(generated_arrays, BuiltinDynamic)
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
 
-    data = bytes("\x03\x00\x00\x00\x05\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00");
-
-    EXPECT_TRUE(x.decode(data.data(), data.size()));
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00\x05\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00")));
     EXPECT_EQ(3, x.x.size());
     EXPECT_EQ(5, x.x[0]);
     EXPECT_EQ(3, x.x[1]);
@@ -86,6 +81,17 @@ TEST(generated_arrays, BuiltinLimited)
     EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes("\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(3, x.x[0]);
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(1, x.x[0]);
+    EXPECT_EQ(2, x.x[1]);
 }
 
 TEST(generated_arrays, BuiltinGreedy)

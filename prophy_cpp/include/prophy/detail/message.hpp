@@ -40,6 +40,17 @@ struct message
     {
         return decode<native>(data, size);
     }
+
+    template <endianness E>
+    bool decode(const std::vector<uint8_t>& data)
+    {
+        return decode<E>(data.data(), data.size());
+    }
+
+    bool decode(const std::vector<uint8_t>& data)
+    {
+        return decode<native>(data);
+    }
 };
 
 } // namespace detail

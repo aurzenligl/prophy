@@ -97,6 +97,20 @@ template uint8_t* message_impl<BuiltinLimited>::encode<big>(const BuiltinLimited
 
 template <>
 template <endianness E>
+bool message_impl<BuiltinLimited>::decode(BuiltinLimited& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, 2, pos, end) &&
+        do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+        do_decode_advance(8, pos, end)
+    );
+}
+template bool message_impl<BuiltinLimited>::decode<native>(BuiltinLimited& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinLimited>::decode<little>(BuiltinLimited& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinLimited>::decode<big>(BuiltinLimited& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<BuiltinGreedy>::encode(const BuiltinGreedy& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x.data(), x.x.size());

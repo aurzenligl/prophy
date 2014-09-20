@@ -65,6 +65,12 @@ inline bool do_decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
     return decoder<E, T>::decode(x, n, pos, end);
 }
 
+template <endianness E, typename T>
+inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t* end)
+{
+    return decoder<E, T>::decode(x, n, pos, end);
+}
+
 template <endianness E, typename T, class V>
 inline bool do_decode_resize(V& v, const uint8_t*& pos, const uint8_t* end)
 {
@@ -74,6 +80,32 @@ inline bool do_decode_resize(V& v, const uint8_t*& pos, const uint8_t* end)
         return false;
     }
     v.resize(x);
+    return true;
+}
+
+template <endianness E, typename T, class V>
+inline bool do_decode_resize(V& v, size_t max, const uint8_t*& pos, const uint8_t* end)
+{
+    T x;
+    if (!decoder<E, T>::decode(x, pos, end))
+    {
+        return false;
+    }
+    if (x > max)
+    {
+        return false;
+    }
+    v.resize(x);
+    return true;
+}
+
+inline bool do_decode_advance(size_t n, const uint8_t*& pos, const uint8_t* end)
+{
+    if (size_t(end - pos) < n)
+    {
+        return false;
+    }
+    pos += n;
     return true;
 }
 
