@@ -22,14 +22,9 @@ struct Builtin : prophy::detail::message<Builtin>
     {
         return 8;
     }
-
-    using prophy::detail::message<Builtin>::encode;
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
 };
 
-struct BuiltinFixed
+struct BuiltinFixed : prophy::detail::message<BuiltinFixed>
 {
     enum { encoded_byte_size = 8 };
 
@@ -41,16 +36,9 @@ struct BuiltinFixed
     {
         return 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BuiltinDynamic
+struct BuiltinDynamic : prophy::detail::message<BuiltinDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -60,16 +48,9 @@ struct BuiltinDynamic
     {
         return 4 + x.size() * 4;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BuiltinLimited
+struct BuiltinLimited : prophy::detail::message<BuiltinLimited>
 {
     enum { encoded_byte_size = 12 };
 
@@ -79,16 +60,9 @@ struct BuiltinLimited
     {
         return 12;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BuiltinGreedy
+struct BuiltinGreedy : prophy::detail::message<BuiltinGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -98,16 +72,9 @@ struct BuiltinGreedy
     {
         return x.size() * 4;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct Fixcomp
+struct Fixcomp : prophy::detail::message<Fixcomp>
 {
     enum { encoded_byte_size = 16 };
 
@@ -118,16 +85,9 @@ struct Fixcomp
     {
         return 16;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct FixcompFixed
+struct FixcompFixed : prophy::detail::message<FixcompFixed>
 {
     enum { encoded_byte_size = 16 };
 
@@ -137,16 +97,9 @@ struct FixcompFixed
     {
         return 16;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct FixcompDynamic
+struct FixcompDynamic : prophy::detail::message<FixcompDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -156,16 +109,9 @@ struct FixcompDynamic
     {
         return 4 + x.size() * 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct FixcompLimited
+struct FixcompLimited : prophy::detail::message<FixcompLimited>
 {
     enum { encoded_byte_size = 20 };
 
@@ -175,16 +121,9 @@ struct FixcompLimited
     {
         return 20;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct FixcompGreedy
+struct FixcompGreedy : prophy::detail::message<FixcompGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -194,16 +133,9 @@ struct FixcompGreedy
     {
         return x.size() * 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct Dyncomp
+struct Dyncomp : prophy::detail::message<Dyncomp>
 {
     enum { encoded_byte_size = -1 };
 
@@ -213,16 +145,9 @@ struct Dyncomp
     {
         return x.get_byte_size();
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DyncompDynamic
+struct DyncompDynamic : prophy::detail::message<DyncompDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -232,16 +157,9 @@ struct DyncompDynamic
     {
         return 4 + std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DyncompGreedy
+struct DyncompGreedy : prophy::detail::message<DyncompGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -250,13 +168,6 @@ struct DyncompGreedy
     size_t get_byte_size() const
     {
         return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
-    }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
     }
 };
 

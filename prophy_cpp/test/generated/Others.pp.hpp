@@ -7,6 +7,7 @@
 #include <string>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
 
 enum { CONSTANT = 3 };
 
@@ -17,7 +18,7 @@ enum Enum
     Enum_One = 1
 };
 
-struct ConstantTypedefEnum
+struct ConstantTypedefEnum : prophy::detail::message<ConstantTypedefEnum>
 {
     enum { encoded_byte_size = 12 };
 
@@ -31,16 +32,9 @@ struct ConstantTypedefEnum
     {
         return 12;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct Floats
+struct Floats : prophy::detail::message<Floats>
 {
     enum { encoded_byte_size = 16 };
 
@@ -53,16 +47,9 @@ struct Floats
     {
         return 16;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BytesFixed
+struct BytesFixed : prophy::detail::message<BytesFixed>
 {
     enum { encoded_byte_size = 3 };
 
@@ -74,16 +61,9 @@ struct BytesFixed
     {
         return 3;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BytesDynamic
+struct BytesDynamic : prophy::detail::message<BytesDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -95,16 +75,9 @@ struct BytesDynamic
             4 + x.size()
         );
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BytesLimited
+struct BytesLimited : prophy::detail::message<BytesLimited>
 {
     enum { encoded_byte_size = 8 };
 
@@ -114,16 +87,9 @@ struct BytesLimited
     {
         return 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BytesGreedy
+struct BytesGreedy : prophy::detail::message<BytesGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -132,13 +98,6 @@ struct BytesGreedy
     size_t get_byte_size() const
     {
         return x.size();
-    }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
     }
 };
 

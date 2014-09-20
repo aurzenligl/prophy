@@ -7,10 +7,11 @@
 #include <string>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
 
 #include "Arrays.pp.hpp"
 
-struct Union
+struct Union : prophy::detail::message<Union>
 {
     enum { encoded_byte_size = 12 };
 
@@ -31,16 +32,9 @@ struct Union
     {
         return 12;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct BuiltinOptional
+struct BuiltinOptional : prophy::detail::message<BuiltinOptional>
 {
     enum { encoded_byte_size = 8 };
 
@@ -53,16 +47,9 @@ struct BuiltinOptional
     {
         return 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct FixcompOptional
+struct FixcompOptional : prophy::detail::message<FixcompOptional>
 {
     enum { encoded_byte_size = 12 };
 
@@ -74,13 +61,6 @@ struct FixcompOptional
     size_t get_byte_size() const
     {
         return 12;
-    }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
     }
 };
 

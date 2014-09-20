@@ -7,8 +7,9 @@
 #include <string>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
 
-struct Dynfields
+struct Dynfields : prophy::detail::message<Dynfields>
 {
     enum { encoded_byte_size = -1 };
 
@@ -26,16 +27,9 @@ struct Dynfields
             ) + 2 + 2 * y.size()
         ) + 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DynfieldsMixed
+struct DynfieldsMixed : prophy::detail::message<DynfieldsMixed>
 {
     enum { encoded_byte_size = -1 };
 
@@ -50,16 +44,9 @@ struct DynfieldsMixed
             ) + 2 * y.size()
         );
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DynfieldsOverlapped
+struct DynfieldsOverlapped : prophy::detail::message<DynfieldsOverlapped>
 {
     enum { encoded_byte_size = -1 };
 
@@ -75,16 +62,9 @@ struct DynfieldsOverlapped
             ) + 4 + 2 * c.size() + 2 * a.size()
         );
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DynfieldsPartialpad_Helper
+struct DynfieldsPartialpad_Helper : prophy::detail::message<DynfieldsPartialpad_Helper>
 {
     enum { encoded_byte_size = -1 };
 
@@ -100,16 +80,9 @@ struct DynfieldsPartialpad_Helper
             1 + x.size()
         ) + 16;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DynfieldsPartialpad
+struct DynfieldsPartialpad : prophy::detail::message<DynfieldsPartialpad>
 {
     enum { encoded_byte_size = -1 };
 
@@ -122,16 +95,9 @@ struct DynfieldsPartialpad
     {
         return 8 + y.get_byte_size();
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DynfieldsScalarpartialpad_Helper
+struct DynfieldsScalarpartialpad_Helper : prophy::detail::message<DynfieldsScalarpartialpad_Helper>
 {
     enum { encoded_byte_size = -1 };
 
@@ -143,16 +109,9 @@ struct DynfieldsScalarpartialpad_Helper
             4 + x.size()
         );
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct DynfieldsScalarpartialpad
+struct DynfieldsScalarpartialpad : prophy::detail::message<DynfieldsScalarpartialpad>
 {
     enum { encoded_byte_size = -1 };
 
@@ -163,13 +122,6 @@ struct DynfieldsScalarpartialpad
     size_t get_byte_size() const
     {
         return x.get_byte_size() + y.get_byte_size() + z.get_byte_size();
-    }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
     }
 };
 

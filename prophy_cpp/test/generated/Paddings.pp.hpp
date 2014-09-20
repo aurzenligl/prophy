@@ -7,8 +7,9 @@
 #include <string>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
 
-struct Endpad
+struct Endpad : prophy::detail::message<Endpad>
 {
     enum { encoded_byte_size = 4 };
 
@@ -21,16 +22,9 @@ struct Endpad
     {
         return 4;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct EndpadFixed
+struct EndpadFixed : prophy::detail::message<EndpadFixed>
 {
     enum { encoded_byte_size = 8 };
 
@@ -43,16 +37,9 @@ struct EndpadFixed
     {
         return 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct EndpadDynamic
+struct EndpadDynamic : prophy::detail::message<EndpadDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -64,16 +51,9 @@ struct EndpadDynamic
             4 + x.size()
         );
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct EndpadLimited
+struct EndpadLimited : prophy::detail::message<EndpadLimited>
 {
     enum { encoded_byte_size = 8 };
 
@@ -83,16 +63,9 @@ struct EndpadLimited
     {
         return 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct EndpadGreedy
+struct EndpadGreedy : prophy::detail::message<EndpadGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -107,16 +80,9 @@ struct EndpadGreedy
             4 + y.size()
         );
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct Scalarpad
+struct Scalarpad : prophy::detail::message<Scalarpad>
 {
     enum { encoded_byte_size = 4 };
 
@@ -129,16 +95,9 @@ struct Scalarpad
     {
         return 4;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ScalarpadComppre_Helper
+struct ScalarpadComppre_Helper : prophy::detail::message<ScalarpadComppre_Helper>
 {
     enum { encoded_byte_size = 1 };
 
@@ -150,16 +109,9 @@ struct ScalarpadComppre_Helper
     {
         return 1;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ScalarpadComppre
+struct ScalarpadComppre : prophy::detail::message<ScalarpadComppre>
 {
     enum { encoded_byte_size = 4 };
 
@@ -172,16 +124,9 @@ struct ScalarpadComppre
     {
         return 4;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ScalarpadComppost_Helper
+struct ScalarpadComppost_Helper : prophy::detail::message<ScalarpadComppost_Helper>
 {
     enum { encoded_byte_size = 2 };
 
@@ -193,16 +138,9 @@ struct ScalarpadComppost_Helper
     {
         return 2;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ScalarpadComppost
+struct ScalarpadComppost : prophy::detail::message<ScalarpadComppost>
 {
     enum { encoded_byte_size = 4 };
 
@@ -215,16 +153,9 @@ struct ScalarpadComppost
     {
         return 4;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct UnionpadOptionalboolpad
+struct UnionpadOptionalboolpad : prophy::detail::message<UnionpadOptionalboolpad>
 {
     enum { encoded_byte_size = 12 };
 
@@ -238,16 +169,9 @@ struct UnionpadOptionalboolpad
     {
         return 12;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct UnionpadOptionalvaluepad
+struct UnionpadOptionalvaluepad : prophy::detail::message<UnionpadOptionalvaluepad>
 {
     enum { encoded_byte_size = 16 };
 
@@ -260,16 +184,9 @@ struct UnionpadOptionalvaluepad
     {
         return 16;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct UnionpadDiscpad_Helper
+struct UnionpadDiscpad_Helper : prophy::detail::message<UnionpadDiscpad_Helper>
 {
     enum { encoded_byte_size = 8 };
 
@@ -286,16 +203,9 @@ struct UnionpadDiscpad_Helper
     {
         return 8;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct UnionpadDiscpad
+struct UnionpadDiscpad : prophy::detail::message<UnionpadDiscpad>
 {
     enum { encoded_byte_size = 12 };
 
@@ -308,16 +218,9 @@ struct UnionpadDiscpad
     {
         return 12;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct UnionpadArmpad_Helper
+struct UnionpadArmpad_Helper : prophy::detail::message<UnionpadArmpad_Helper>
 {
     enum { encoded_byte_size = 16 };
 
@@ -336,16 +239,9 @@ struct UnionpadArmpad_Helper
     {
         return 16;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct UnionpadArmpad
+struct UnionpadArmpad : prophy::detail::message<UnionpadArmpad>
 {
     enum { encoded_byte_size = 24 };
 
@@ -358,16 +254,9 @@ struct UnionpadArmpad
     {
         return 24;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ArraypadCounter
+struct ArraypadCounter : prophy::detail::message<ArraypadCounter>
 {
     enum { encoded_byte_size = -1 };
 
@@ -377,16 +266,9 @@ struct ArraypadCounter
     {
         return 2 + 2 * x.size();
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ArraypadCounterSeparated
+struct ArraypadCounterSeparated : prophy::detail::message<ArraypadCounterSeparated>
 {
     enum { encoded_byte_size = -1 };
 
@@ -399,16 +281,9 @@ struct ArraypadCounterSeparated
     {
         return 8 + 4 * x.size();
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ArraypadCounterAligns_Helper
+struct ArraypadCounterAligns_Helper : prophy::detail::message<ArraypadCounterAligns_Helper>
 {
     enum { encoded_byte_size = -1 };
 
@@ -420,16 +295,9 @@ struct ArraypadCounterAligns_Helper
             2 + x.size()
         );
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ArraypadCounterAligns
+struct ArraypadCounterAligns : prophy::detail::message<ArraypadCounterAligns>
 {
     enum { encoded_byte_size = -1 };
 
@@ -442,16 +310,9 @@ struct ArraypadCounterAligns
     {
         return 2 + y.get_byte_size();
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ArraypadFixed
+struct ArraypadFixed : prophy::detail::message<ArraypadFixed>
 {
     enum { encoded_byte_size = 12 };
 
@@ -465,16 +326,9 @@ struct ArraypadFixed
     {
         return 12;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ArraypadDynamic
+struct ArraypadDynamic : prophy::detail::message<ArraypadDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -489,16 +343,9 @@ struct ArraypadDynamic
             4 + x.size()
         ) + 4;
     }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
-    }
 };
 
-struct ArraypadLimited
+struct ArraypadLimited : prophy::detail::message<ArraypadLimited>
 {
     enum { encoded_byte_size = 12 };
 
@@ -510,13 +357,6 @@ struct ArraypadLimited
     size_t get_byte_size() const
     {
         return 12;
-    }
-
-    template <prophy::endianness E>
-    size_t encode(void* data) const;
-    size_t encode(void* data) const
-    {
-        return encode<prophy::native>(data);
     }
 };
 

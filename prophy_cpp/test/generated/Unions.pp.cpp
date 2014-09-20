@@ -3,52 +3,54 @@
 #include <prophy/detail/encoder.hpp>
 #include <prophy/detail/align.hpp>
 
-using namespace prophy;
-using namespace prophy::detail;
-
-template <endianness E>
-size_t Union::encode(void* data) const
+namespace prophy
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, uint32_t(discriminator));
-    switch(discriminator)
+namespace detail
+{
+
+template <>
+template <endianness E>
+uint8_t* message_impl<Union>::encode(const Union& x, uint8_t* pos)
+{
+    pos = do_encode<E>(pos, uint32_t(x.discriminator));
+    switch(x.discriminator)
     {
-        case discriminator_a: do_encode<E>(pos, a); break;
-        case discriminator_b: do_encode<E>(pos, b); break;
-        case discriminator_c: do_encode<E>(pos, c); break;
+        case Union::discriminator_a: do_encode<E>(pos, x.a); break;
+        case Union::discriminator_b: do_encode<E>(pos, x.b); break;
+        case Union::discriminator_c: do_encode<E>(pos, x.c); break;
     }
     pos = pos + 8;
-    return pos - static_cast<uint8_t*>(data);
+    return pos;
 }
+template uint8_t* message_impl<Union>::encode<native>(const Union& x, uint8_t* pos);
+template uint8_t* message_impl<Union>::encode<little>(const Union& x, uint8_t* pos);
+template uint8_t* message_impl<Union>::encode<big>(const Union& x, uint8_t* pos);
 
-template size_t Union::encode<native>(void* data) const;
-template size_t Union::encode<little>(void* data) const;
-template size_t Union::encode<big>(void* data) const;
-
+template <>
 template <endianness E>
-size_t BuiltinOptional::encode(void* data) const
+uint8_t* message_impl<BuiltinOptional>::encode(const BuiltinOptional& x, uint8_t* pos)
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, uint32_t(has_x));
-    if (has_x) do_encode<E>(pos, x);
+    pos = do_encode<E>(pos, uint32_t(x.has_x));
+    if (x.has_x) do_encode<E>(pos, x.x);
     pos = pos + 4;
-    return pos - static_cast<uint8_t*>(data);
+    return pos;
 }
+template uint8_t* message_impl<BuiltinOptional>::encode<native>(const BuiltinOptional& x, uint8_t* pos);
+template uint8_t* message_impl<BuiltinOptional>::encode<little>(const BuiltinOptional& x, uint8_t* pos);
+template uint8_t* message_impl<BuiltinOptional>::encode<big>(const BuiltinOptional& x, uint8_t* pos);
 
-template size_t BuiltinOptional::encode<native>(void* data) const;
-template size_t BuiltinOptional::encode<little>(void* data) const;
-template size_t BuiltinOptional::encode<big>(void* data) const;
-
+template <>
 template <endianness E>
-size_t FixcompOptional::encode(void* data) const
+uint8_t* message_impl<FixcompOptional>::encode(const FixcompOptional& x, uint8_t* pos)
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, uint32_t(has_x));
-    if (has_x) do_encode<E>(pos, x);
+    pos = do_encode<E>(pos, uint32_t(x.has_x));
+    if (x.has_x) do_encode<E>(pos, x.x);
     pos = pos + 8;
-    return pos - static_cast<uint8_t*>(data);
+    return pos;
 }
+template uint8_t* message_impl<FixcompOptional>::encode<native>(const FixcompOptional& x, uint8_t* pos);
+template uint8_t* message_impl<FixcompOptional>::encode<little>(const FixcompOptional& x, uint8_t* pos);
+template uint8_t* message_impl<FixcompOptional>::encode<big>(const FixcompOptional& x, uint8_t* pos);
 
-template size_t FixcompOptional::encode<native>(void* data) const;
-template size_t FixcompOptional::encode<little>(void* data) const;
-template size_t FixcompOptional::encode<big>(void* data) const;
+} // namespace detail
+} // namespace prophy

@@ -3,85 +3,84 @@
 #include <prophy/detail/encoder.hpp>
 #include <prophy/detail/align.hpp>
 
-using namespace prophy;
-using namespace prophy::detail;
-
-template <endianness E>
-size_t ConstantTypedefEnum::encode(void* data) const
+namespace prophy
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, a, 3);
-    pos = do_encode<E>(pos, b);
-    pos = do_encode<E>(pos, uint32_t(c));
-    return pos - static_cast<uint8_t*>(data);
+namespace detail
+{
+
+template <>
+template <endianness E>
+uint8_t* message_impl<ConstantTypedefEnum>::encode(const ConstantTypedefEnum& x, uint8_t* pos)
+{
+    pos = do_encode<E>(pos, x.a, 3);
+    pos = do_encode<E>(pos, x.b);
+    pos = do_encode<E>(pos, uint32_t(x.c));
+    return pos;
 }
+template uint8_t* message_impl<ConstantTypedefEnum>::encode<native>(const ConstantTypedefEnum& x, uint8_t* pos);
+template uint8_t* message_impl<ConstantTypedefEnum>::encode<little>(const ConstantTypedefEnum& x, uint8_t* pos);
+template uint8_t* message_impl<ConstantTypedefEnum>::encode<big>(const ConstantTypedefEnum& x, uint8_t* pos);
 
-template size_t ConstantTypedefEnum::encode<native>(void* data) const;
-template size_t ConstantTypedefEnum::encode<little>(void* data) const;
-template size_t ConstantTypedefEnum::encode<big>(void* data) const;
-
+template <>
 template <endianness E>
-size_t Floats::encode(void* data) const
+uint8_t* message_impl<Floats>::encode(const Floats& x, uint8_t* pos)
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, a);
+    pos = do_encode<E>(pos, x.a);
     pos = pos + 4;
-    pos = do_encode<E>(pos, b);
-    return pos - static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x.b);
+    return pos;
 }
+template uint8_t* message_impl<Floats>::encode<native>(const Floats& x, uint8_t* pos);
+template uint8_t* message_impl<Floats>::encode<little>(const Floats& x, uint8_t* pos);
+template uint8_t* message_impl<Floats>::encode<big>(const Floats& x, uint8_t* pos);
 
-template size_t Floats::encode<native>(void* data) const;
-template size_t Floats::encode<little>(void* data) const;
-template size_t Floats::encode<big>(void* data) const;
-
+template <>
 template <endianness E>
-size_t BytesFixed::encode(void* data) const
+uint8_t* message_impl<BytesFixed>::encode(const BytesFixed& x, uint8_t* pos)
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, x, 3);
-    return pos - static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x.x, 3);
+    return pos;
 }
+template uint8_t* message_impl<BytesFixed>::encode<native>(const BytesFixed& x, uint8_t* pos);
+template uint8_t* message_impl<BytesFixed>::encode<little>(const BytesFixed& x, uint8_t* pos);
+template uint8_t* message_impl<BytesFixed>::encode<big>(const BytesFixed& x, uint8_t* pos);
 
-template size_t BytesFixed::encode<native>(void* data) const;
-template size_t BytesFixed::encode<little>(void* data) const;
-template size_t BytesFixed::encode<big>(void* data) const;
-
+template <>
 template <endianness E>
-size_t BytesDynamic::encode(void* data) const
+uint8_t* message_impl<BytesDynamic>::encode(const BytesDynamic& x, uint8_t* pos)
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, uint32_t(x.size()));
-    pos = do_encode<E>(pos, x.data(), uint32_t(x.size()));
+    pos = do_encode<E>(pos, uint32_t(x.x.size()));
+    pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
     pos = align<4>(pos);
-    return pos - static_cast<uint8_t*>(data);
+    return pos;
 }
+template uint8_t* message_impl<BytesDynamic>::encode<native>(const BytesDynamic& x, uint8_t* pos);
+template uint8_t* message_impl<BytesDynamic>::encode<little>(const BytesDynamic& x, uint8_t* pos);
+template uint8_t* message_impl<BytesDynamic>::encode<big>(const BytesDynamic& x, uint8_t* pos);
 
-template size_t BytesDynamic::encode<native>(void* data) const;
-template size_t BytesDynamic::encode<little>(void* data) const;
-template size_t BytesDynamic::encode<big>(void* data) const;
-
+template <>
 template <endianness E>
-size_t BytesLimited::encode(void* data) const
+uint8_t* message_impl<BytesLimited>::encode(const BytesLimited& x, uint8_t* pos)
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, uint32_t(std::min(x.size(), size_t(4))));
-    do_encode<E>(pos, x.data(), std::min(x.size(), size_t(4)));
+    pos = do_encode<E>(pos, uint32_t(std::min(x.x.size(), size_t(4))));
+    do_encode<E>(pos, x.x.data(), std::min(x.x.size(), size_t(4)));
     pos = pos + 4;
-    return pos - static_cast<uint8_t*>(data);
+    return pos;
 }
+template uint8_t* message_impl<BytesLimited>::encode<native>(const BytesLimited& x, uint8_t* pos);
+template uint8_t* message_impl<BytesLimited>::encode<little>(const BytesLimited& x, uint8_t* pos);
+template uint8_t* message_impl<BytesLimited>::encode<big>(const BytesLimited& x, uint8_t* pos);
 
-template size_t BytesLimited::encode<native>(void* data) const;
-template size_t BytesLimited::encode<little>(void* data) const;
-template size_t BytesLimited::encode<big>(void* data) const;
-
+template <>
 template <endianness E>
-size_t BytesGreedy::encode(void* data) const
+uint8_t* message_impl<BytesGreedy>::encode(const BytesGreedy& x, uint8_t* pos)
 {
-    uint8_t* pos = static_cast<uint8_t*>(data);
-    pos = do_encode<E>(pos, x.data(), x.size());
-    return pos - static_cast<uint8_t*>(data);
+    pos = do_encode<E>(pos, x.x.data(), x.x.size());
+    return pos;
 }
+template uint8_t* message_impl<BytesGreedy>::encode<native>(const BytesGreedy& x, uint8_t* pos);
+template uint8_t* message_impl<BytesGreedy>::encode<little>(const BytesGreedy& x, uint8_t* pos);
+template uint8_t* message_impl<BytesGreedy>::encode<big>(const BytesGreedy& x, uint8_t* pos);
 
-template size_t BytesGreedy::encode<native>(void* data) const;
-template size_t BytesGreedy::encode<little>(void* data) const;
-template size_t BytesGreedy::encode<big>(void* data) const;
+} // namespace detail
+} // namespace prophy
