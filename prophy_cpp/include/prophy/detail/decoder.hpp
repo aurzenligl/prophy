@@ -65,6 +65,18 @@ inline bool do_decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
     return decoder<E, T>::decode(x, n, pos, end);
 }
 
+template <endianness E, typename T, class V>
+inline bool do_decode_resize(V& v, const uint8_t*& pos, const uint8_t* end)
+{
+    T x;
+    if (!decoder<E, T>::decode(x, pos, end))
+    {
+        return false;
+    }
+    v.resize(x);
+    return true;
+}
+
 } // namespace detail
 } // namespace prophy
 
