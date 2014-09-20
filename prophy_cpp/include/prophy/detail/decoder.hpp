@@ -54,6 +54,15 @@ struct decoder<E, T, false, false>
 };
 
 template <endianness E, typename T>
+struct decoder<E, T, true, false>
+{
+    static bool decode(T& x, const uint8_t*& pos, const uint8_t* end)
+    {
+        return message_impl<T>::template decode<E>(x, pos, end);
+    }
+};
+
+template <endianness E, typename T>
 inline bool do_decode(T& x, const uint8_t*& pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, pos, end);
