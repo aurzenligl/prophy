@@ -75,6 +75,17 @@ TEST(encoding, decode_limited_failures)
     EXPECT_EQ(0, x.x.size());
 }
 
+TEST(encoding, decode_greedy_failures)
+{
+    BuiltinGreedy x;
+
+    EXPECT_FALSE(x.decode(bytes("\x01\x00\x00")));
+    EXPECT_EQ(0, x.x.size());
+
+    EXPECT_FALSE(x.decode(bytes("\x01\x00\x00\x00\x02")));
+    EXPECT_EQ(0, x.x.size());
+}
+
 TEST(encoding, endianness)
 {
     size_t size;

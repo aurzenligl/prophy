@@ -71,31 +71,44 @@ inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t
     return decoder<E, T>::decode(x, n, pos, end);
 }
 
-template <endianness E, typename T, class V>
-inline bool do_decode_resize(V& v, const uint8_t*& pos, const uint8_t* end)
+template <endianness E, typename T>
+inline bool do_decode_greedy(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
 {
-    T x;
-    if (!decoder<E, T>::decode(x, pos, end))
+    size_t n = size_t(end - pos) / sizeof(T);
+    size_t mod = size_t(end - pos) % sizeof(T);
+    if (mod)
     {
         return false;
     }
-    v.resize(x);
+    v.resize(n);
+    return decoder<E, T>::decode(v.data(), n, pos, end);
+}
+
+template <endianness E, typename CT, typename T>
+inline bool do_decode_resize(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
+{
+    CT n;
+    if (!decoder<E, CT>::decode(n, pos, end))
+    {
+        return false;
+    }
+    v.resize(n);
     return true;
 }
 
-template <endianness E, typename T, class V>
-inline bool do_decode_resize(V& v, size_t max, const uint8_t*& pos, const uint8_t* end)
+template <endianness E, typename CT, typename T>
+inline bool do_decode_resize(std::vector<T>& v, size_t max, const uint8_t*& pos, const uint8_t* end)
 {
-    T x;
-    if (!decoder<E, T>::decode(x, pos, end))
+    CT n;
+    if (!decoder<E, CT>::decode(n, pos, end))
     {
         return false;
     }
-    if (x > max)
+    if (n > max)
     {
         return false;
     }
-    v.resize(x);
+    v.resize(n);
     return true;
 }
 

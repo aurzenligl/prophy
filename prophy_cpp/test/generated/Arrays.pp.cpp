@@ -122,6 +122,18 @@ template uint8_t* message_impl<BuiltinGreedy>::encode<big>(const BuiltinGreedy& 
 
 template <>
 template <endianness E>
+bool message_impl<BuiltinGreedy>::decode(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_greedy<E>(x.x, pos, end)
+    );
+}
+template bool message_impl<BuiltinGreedy>::decode<native>(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinGreedy>::decode<little>(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinGreedy>::decode<big>(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<Fixcomp>::encode(const Fixcomp& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
