@@ -170,6 +170,18 @@ template uint8_t* message_impl<FixcompFixed>::encode<big>(const FixcompFixed& x,
 
 template <>
 template <endianness E>
+bool message_impl<FixcompFixed>::decode(FixcompFixed& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, 2, pos, end)
+    );
+}
+template bool message_impl<FixcompFixed>::decode<native>(FixcompFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<FixcompFixed>::decode<little>(FixcompFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<FixcompFixed>::decode<big>(FixcompFixed& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<FixcompDynamic>::encode(const FixcompDynamic& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(x.x.size()));
