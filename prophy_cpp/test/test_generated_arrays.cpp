@@ -182,6 +182,12 @@ TEST(generated_arrays, FixcompDynamic)
     EXPECT_EQ(bytes(
             "\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(4, x.x[0].x);
+    EXPECT_EQ(5, x.x[0].y);
 }
 
 TEST(generated_arrays, FixcompLimited)
@@ -199,6 +205,12 @@ TEST(generated_arrays, FixcompLimited)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(5, x.x[0].x);
+    EXPECT_EQ(6, x.x[0].y);
 }
 
 TEST(generated_arrays, FixcompGreedy)
@@ -218,6 +230,14 @@ TEST(generated_arrays, FixcompGreedy)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(3, x.x[0].x);
+    EXPECT_EQ(4, x.x[0].y);
+    EXPECT_EQ(5, x.x[1].x);
+    EXPECT_EQ(6, x.x[1].y);
 }
 
 TEST(generated_arrays, Dyncomp)
