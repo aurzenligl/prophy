@@ -86,7 +86,7 @@ TEST(encoding, decode_greedy_failures)
     EXPECT_EQ(0, x.x.size());
 }
 
-TEST(encoding, decode_fixed_composite_failures)
+TEST(encoding, decode_fixed_fixcomp_failures)
 {
     FixcompFixed x;
 
@@ -107,6 +107,26 @@ TEST(encoding, decode_fixed_composite_failures)
     EXPECT_EQ(5, x.x[0].y);
     EXPECT_EQ(6, x.x[1].x);
     EXPECT_EQ(7, x.x[1].y);
+}
+
+TEST(encoding, decode_greedy_dyncomp_failures)
+{
+    DyncompGreedy x;
+
+    EXPECT_FALSE(x.decode(bytes("\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(0, x.x[0].x.size());
+
+    EXPECT_FALSE(x.decode(bytes("\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(0, x.x[0].x.size());
+    EXPECT_EQ(0, x.x[1].x.size());
+
+    EXPECT_FALSE(x.decode(bytes("\x02\x00\x00\x00\x03\x00\x00\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(2, x.x[0].x.size());
+    EXPECT_EQ(0, x.x[0].x[0]);
+    EXPECT_EQ(0, x.x[0].x[1]);
 }
 
 TEST(encoding, endianness)
