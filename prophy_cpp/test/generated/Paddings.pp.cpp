@@ -1,6 +1,7 @@
 #include "Paddings.pp.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
+#include <prophy/detail/decoder.hpp>
 #include <prophy/detail/align.hpp>
 
 namespace prophy
@@ -23,6 +24,20 @@ template uint8_t* message_impl<Endpad>::encode<big>(const Endpad& x, uint8_t* po
 
 template <>
 template <endianness E>
+bool message_impl<Endpad>::decode(Endpad& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode<E>(x.y, pos, end) &&
+        do_decode_advance(1, pos, end)
+    );
+}
+template bool message_impl<Endpad>::decode<native>(Endpad& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Endpad>::decode<little>(Endpad& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Endpad>::decode<big>(Endpad& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<EndpadFixed>::encode(const EndpadFixed& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
@@ -36,10 +51,24 @@ template uint8_t* message_impl<EndpadFixed>::encode<big>(const EndpadFixed& x, u
 
 template <>
 template <endianness E>
+bool message_impl<EndpadFixed>::decode(EndpadFixed& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode<E>(x.y, 3, pos, end) &&
+        do_decode_advance(1, pos, end)
+    );
+}
+template bool message_impl<EndpadFixed>::decode<native>(EndpadFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadFixed>::decode<little>(EndpadFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadFixed>::decode<big>(EndpadFixed& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<EndpadDynamic>::encode(const EndpadDynamic& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(x.x.size()));
-    pos = do_encode<E>(pos, x.x.data(), x.x.size());
+    pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
     pos = align<4>(pos);
     return pos;
 }
@@ -49,16 +78,46 @@ template uint8_t* message_impl<EndpadDynamic>::encode<big>(const EndpadDynamic& 
 
 template <>
 template <endianness E>
+bool message_impl<EndpadDynamic>::decode(EndpadDynamic& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+        do_decode_align<4>(pos, end)
+    );
+}
+template bool message_impl<EndpadDynamic>::decode<native>(EndpadDynamic& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadDynamic>::decode<little>(EndpadDynamic& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadDynamic>::decode<big>(EndpadDynamic& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<EndpadLimited>::encode(const EndpadLimited& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(std::min(x.x.size(), size_t(2))));
     do_encode<E>(pos, x.x.data(), std::min(x.x.size(), size_t(2)));
-    pos = pos + 4;
+    pos = pos + 2;
+    pos = pos + 2;
     return pos;
 }
 template uint8_t* message_impl<EndpadLimited>::encode<native>(const EndpadLimited& x, uint8_t* pos);
 template uint8_t* message_impl<EndpadLimited>::encode<little>(const EndpadLimited& x, uint8_t* pos);
 template uint8_t* message_impl<EndpadLimited>::encode<big>(const EndpadLimited& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<EndpadLimited>::decode(EndpadLimited& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
+        do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+        do_decode_advance(2, pos, end) &&
+        do_decode_advance(2, pos, end)
+    );
+}
+template bool message_impl<EndpadLimited>::decode<native>(EndpadLimited& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadLimited>::decode<little>(EndpadLimited& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadLimited>::decode<big>(EndpadLimited& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>
@@ -72,6 +131,20 @@ uint8_t* message_impl<EndpadGreedy>::encode(const EndpadGreedy& x, uint8_t* pos)
 template uint8_t* message_impl<EndpadGreedy>::encode<native>(const EndpadGreedy& x, uint8_t* pos);
 template uint8_t* message_impl<EndpadGreedy>::encode<little>(const EndpadGreedy& x, uint8_t* pos);
 template uint8_t* message_impl<EndpadGreedy>::encode<big>(const EndpadGreedy& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<EndpadGreedy>::decode(EndpadGreedy& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode_greedy<E>(x.y, pos, end) &&
+        do_decode_align<4>(pos, end)
+    );
+}
+template bool message_impl<EndpadGreedy>::decode<native>(EndpadGreedy& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadGreedy>::decode<little>(EndpadGreedy& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<EndpadGreedy>::decode<big>(EndpadGreedy& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>

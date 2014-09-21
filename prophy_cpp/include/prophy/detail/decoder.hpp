@@ -5,6 +5,7 @@
 #include <prophy/endianness.hpp>
 #include <prophy/detail/codec_traits.hpp>
 #include <prophy/detail/message_impl.hpp>
+#include <prophy/detail/align.hpp>
 
 namespace prophy
 {
@@ -109,11 +110,6 @@ struct decoder_greedy<E, T, false>
     static bool decode(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
     {
         size_t n = size_t(end - pos) / codec_traits<T>::size;
-        size_t mod = size_t(end - pos) % codec_traits<T>::size;
-        if (mod)
-        {
-            return false;
-        }
         v.resize(n);
         return decoder<E, T>::decode(v.data(), n, pos, end);
     }
@@ -125,15 +121,15 @@ struct decoder_greedy<E, T, true>
     static bool decode(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
     {
         v.resize(0);
-        while(pos < end)
+        while(true)
         {
             v.push_back(T());
             if (!decoder<E, T>::decode(v.back(), pos, end))
             {
-                return false;
+                v.pop_back();
+                return true;
             }
         }
-        return true;
     }
 };
 
@@ -184,6 +180,18 @@ inline bool do_decode_advance(size_t n, const uint8_t*& pos, const uint8_t* end)
         return false;
     }
     pos += n;
+    return true;
+}
+
+template <size_t A>
+inline bool do_decode_align(const uint8_t*& pos, const uint8_t* end)
+{
+    const uint8_t* aligned = align<A>(pos);
+    if (aligned > end)
+    {
+        return false;
+    }
+    pos = aligned;
     return true;
 }
 

@@ -3,6 +3,7 @@
 #include <prophy/detail/decoder.hpp>
 #include "generated/Arrays.pp.hpp"
 #include "generated/Dynfields.pp.hpp"
+#include "generated/Paddings.pp.hpp"
 #include "util.hpp"
 
 using namespace testing;
@@ -83,7 +84,8 @@ TEST(encoding, decode_greedy_failures)
     EXPECT_EQ(0, x.x.size());
 
     EXPECT_FALSE(x.decode(bytes("\x01\x00\x00\x00\x02")));
-    EXPECT_EQ(0, x.x.size());
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(1, x.x[0]);
 }
 
 TEST(encoding, decode_fixed_fixcomp_failures)
@@ -114,19 +116,27 @@ TEST(encoding, decode_greedy_dyncomp_failures)
     DyncompGreedy x;
 
     EXPECT_FALSE(x.decode(bytes("\x00")));
-    EXPECT_EQ(1, x.x.size());
-    EXPECT_EQ(0, x.x[0].x.size());
+    EXPECT_EQ(0, x.x.size());
 
     EXPECT_FALSE(x.decode(bytes("\x00\x00\x00\x00\x00")));
-    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(1, x.x.size());
     EXPECT_EQ(0, x.x[0].x.size());
-    EXPECT_EQ(0, x.x[1].x.size());
 
     EXPECT_FALSE(x.decode(bytes("\x02\x00\x00\x00\x03\x00\x00\x00")));
-    EXPECT_EQ(1, x.x.size());
-    EXPECT_EQ(2, x.x[0].x.size());
-    EXPECT_EQ(0, x.x[0].x[0]);
-    EXPECT_EQ(0, x.x[0].x[1]);
+    EXPECT_EQ(0, x.x.size());
+}
+
+TEST(encoding, decode_padding_failures)
+{
+    Endpad x;
+
+    EXPECT_FALSE(x.decode(bytes("\x01\x00\x02")));
+    EXPECT_EQ(1, x.x);
+    EXPECT_EQ(2, x.y);
+
+    EXPECT_FALSE(x.decode(bytes("\x03\x00\x04\x00\x00")));
+    EXPECT_EQ(3, x.x);
+    EXPECT_EQ(4, x.y);
 }
 
 TEST(encoding, endianness)

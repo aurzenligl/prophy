@@ -33,6 +33,12 @@ inline uint8_t* align(uint8_t* ptr)
     return reinterpret_cast<uint8_t*>((reinterpret_cast<uintptr_t>(ptr) + mask) & ~uintptr_t(mask));
 }
 
+template <size_t Alignment>
+inline const uint8_t* align(const uint8_t* ptr)
+{
+    return align<Alignment>(const_cast<uint8_t*>(ptr));
+}
+
 } // namespace detail
 } // namespace prophy
 

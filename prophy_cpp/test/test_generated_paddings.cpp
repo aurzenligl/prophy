@@ -19,6 +19,11 @@ TEST(generated_paddings, Endpad)
     EXPECT_EQ(bytes(
             "\x01\x00\x02" "\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x04" "\x00")));
+    EXPECT_EQ(3, x.x);
+    EXPECT_EQ(4, x.y);
 }
 
 TEST(generated_paddings, EndpadFixed)
@@ -37,6 +42,13 @@ TEST(generated_paddings, EndpadFixed)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02\x03\x04" "\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x05\x00\x00\x00\x06\x07\x08" "\x00")));
+    EXPECT_EQ(5, x.x);
+    EXPECT_EQ(6, x.y[0]);
+    EXPECT_EQ(7, x.y[1]);
+    EXPECT_EQ(8, x.y[2]);
 }
 
 TEST(generated_paddings, EndpadDynamic)
@@ -52,6 +64,12 @@ TEST(generated_paddings, EndpadDynamic)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02" "\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00\x03\x04" "\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(3, x.x[0]);
+    EXPECT_EQ(4, x.x[1]);
 }
 
 TEST(generated_paddings, EndpadLimited)
@@ -67,6 +85,11 @@ TEST(generated_paddings, EndpadLimited)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02" "\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00\x06" "\x00\x00\x00")));
+    EXPECT_EQ(1, x.x.size());
+    EXPECT_EQ(6, x.x[0]);
 }
 
 TEST(generated_paddings, EndpadGreedy)
@@ -83,6 +106,18 @@ TEST(generated_paddings, EndpadGreedy)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02" "\x00\x00\x00"),
             bytes(data.data(), size));
+
+    /// * WARNING * If you're using greedy array of elements of smaller alignment than message
+    /// you may receive different array than you sent.
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x05\x00\x00\x00\x06\x07\x00\x00")));
+    EXPECT_EQ(5, x.x);
+    EXPECT_EQ(4, x.y.size());
+    EXPECT_EQ(6, x.y[0]);
+    EXPECT_EQ(7, x.y[1]);
+    EXPECT_EQ(0, x.y[2]);
+    EXPECT_EQ(0, x.y[3]);
 }
 
 TEST(generated_paddings, Scalarpad)
