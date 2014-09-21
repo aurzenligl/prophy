@@ -255,6 +255,13 @@ TEST(generated_arrays, Dyncomp)
     EXPECT_EQ(bytes(
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00")));
+    EXPECT_EQ(3, x.x.x.size());
+    EXPECT_EQ(4, x.x.x[0]);
+    EXPECT_EQ(5, x.x.x[1]);
+    EXPECT_EQ(6, x.x.x[2]);
 }
 
 TEST(generated_arrays, DyncompDynamic)
@@ -276,6 +283,17 @@ TEST(generated_arrays, DyncompDynamic)
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
             "\x01\x00\x00\x00\x04\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00"
+            "\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"
+            "\x01\x00\x00\x00\x03\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(2, x.x[0].x.size());
+    EXPECT_EQ(1, x.x[0].x[0]);
+    EXPECT_EQ(2, x.x[0].x[1]);
+    EXPECT_EQ(1, x.x[1].x.size());
+    EXPECT_EQ(3, x.x[1].x[0]);
 }
 
 TEST(generated_arrays, DyncompGreedy)
@@ -296,4 +314,15 @@ TEST(generated_arrays, DyncompGreedy)
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00"
             "\x01\x00\x00\x00\x04\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00"
+            "\x01\x00\x00\x00\x07\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(3, x.x[0].x.size());
+    EXPECT_EQ(4, x.x[0].x[0]);
+    EXPECT_EQ(5, x.x[0].x[1]);
+    EXPECT_EQ(6, x.x[0].x[2]);
+    EXPECT_EQ(1, x.x[1].x.size());
+    EXPECT_EQ(7, x.x[1].x[0]);
 }

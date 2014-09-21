@@ -268,6 +268,18 @@ template uint8_t* message_impl<Dyncomp>::encode<big>(const Dyncomp& x, uint8_t* 
 
 template <>
 template <endianness E>
+bool message_impl<Dyncomp>::decode(Dyncomp& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end)
+    );
+}
+template bool message_impl<Dyncomp>::decode<native>(Dyncomp& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Dyncomp>::decode<little>(Dyncomp& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Dyncomp>::decode<big>(Dyncomp& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<DyncompDynamic>::encode(const DyncompDynamic& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(x.x.size()));
@@ -280,6 +292,19 @@ template uint8_t* message_impl<DyncompDynamic>::encode<big>(const DyncompDynamic
 
 template <>
 template <endianness E>
+bool message_impl<DyncompDynamic>::decode(DyncompDynamic& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end)
+    );
+}
+template bool message_impl<DyncompDynamic>::decode<native>(DyncompDynamic& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<DyncompDynamic>::decode<little>(DyncompDynamic& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<DyncompDynamic>::decode<big>(DyncompDynamic& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<DyncompGreedy>::encode(const DyncompGreedy& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x.data(), x.x.size());
@@ -288,6 +313,18 @@ uint8_t* message_impl<DyncompGreedy>::encode(const DyncompGreedy& x, uint8_t* po
 template uint8_t* message_impl<DyncompGreedy>::encode<native>(const DyncompGreedy& x, uint8_t* pos);
 template uint8_t* message_impl<DyncompGreedy>::encode<little>(const DyncompGreedy& x, uint8_t* pos);
 template uint8_t* message_impl<DyncompGreedy>::encode<big>(const DyncompGreedy& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<DyncompGreedy>::decode(DyncompGreedy& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_greedy<E>(x.x, pos, end)
+    );
+}
+template bool message_impl<DyncompGreedy>::decode<native>(DyncompGreedy& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<DyncompGreedy>::decode<little>(DyncompGreedy& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<DyncompGreedy>::decode<big>(DyncompGreedy& x, const uint8_t*& pos, const uint8_t* end);
 
 } // namespace detail
 } // namespace prophy

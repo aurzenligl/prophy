@@ -77,6 +77,67 @@ struct decoder<E, T, true, false>
 };
 
 template <endianness E, typename T>
+struct decoder<E, T, true, true>
+{
+    static bool decode(T& x, const uint8_t*& pos, const uint8_t* end)
+    {
+        return message_impl<T>::template decode<E>(x, pos, end);
+    }
+
+    static bool decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
+    {
+        while (n)
+        {
+            if (!message_impl<T>::template decode<E>(*x, pos, end))
+            {
+                return false;
+            }
+            ++x;
+            --n;
+        }
+        return true;
+    }
+};
+
+template <endianness E, typename T,
+          bool = codec_traits<T>::size == -1>
+struct decoder_greedy;
+
+template <endianness E, typename T>
+struct decoder_greedy<E, T, false>
+{
+    static bool decode(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
+    {
+        size_t n = size_t(end - pos) / codec_traits<T>::size;
+        size_t mod = size_t(end - pos) % codec_traits<T>::size;
+        if (mod)
+        {
+            return false;
+        }
+        v.resize(n);
+        return decoder<E, T>::decode(v.data(), n, pos, end);
+    }
+};
+
+template <endianness E, typename T>
+struct decoder_greedy<E, T, true>
+{
+    static bool decode(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
+    {
+        v.resize(0);
+        while(pos < end)
+        {
+            v.push_back(T());
+            if (!decoder<E, T>::decode(v.back(), pos, end))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+template <endianness E, typename T>
 inline bool do_decode(T& x, const uint8_t*& pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, pos, end);
@@ -97,14 +158,7 @@ inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t
 template <endianness E, typename T>
 inline bool do_decode_greedy(std::vector<T>& v, const uint8_t*& pos, const uint8_t* end)
 {
-    size_t n = size_t(end - pos) / sizeof(T);
-    size_t mod = size_t(end - pos) % sizeof(T);
-    if (mod)
-    {
-        return false;
-    }
-    v.resize(n);
-    return decoder<E, T>::decode(v.data(), n, pos, end);
+    return decoder_greedy<E, T>::decode(v, pos, end);
 }
 
 template <endianness E, typename CT, typename T>
