@@ -134,6 +134,11 @@ TEST(generated_paddings, Scalarpad)
     EXPECT_EQ(bytes(
             "\x01" "\x00" "\x02\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03" "\x00" "\x04\x00")));
+    EXPECT_EQ(3, x.x);
+    EXPECT_EQ(4, x.y);
 }
 
 TEST(generated_paddings, ScalarpadComppre)
@@ -150,6 +155,11 @@ TEST(generated_paddings, ScalarpadComppre)
     EXPECT_EQ(bytes(
             "\x01" "\x00" "\x02\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03" "\x00" "\x04\x00")));
+    EXPECT_EQ(3, x.x.x);
+    EXPECT_EQ(4, x.y);
 }
 
 TEST(generated_paddings, ScalarpadComppost)
@@ -166,6 +176,11 @@ TEST(generated_paddings, ScalarpadComppost)
     EXPECT_EQ(bytes(
             "\x01" "\x00" "\x02\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03" "\x00" "\x04\x00")));
+    EXPECT_EQ(3, x.x);
+    EXPECT_EQ(4, x.y.x);
 }
 
 TEST(generated_paddings, UnionpadOptionalboolpad)

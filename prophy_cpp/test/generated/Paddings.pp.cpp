@@ -161,6 +161,20 @@ template uint8_t* message_impl<Scalarpad>::encode<big>(const Scalarpad& x, uint8
 
 template <>
 template <endianness E>
+bool message_impl<Scalarpad>::decode(Scalarpad& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode_advance(1, pos, end) &&
+        do_decode<E>(x.y, pos, end)
+    );
+}
+template bool message_impl<Scalarpad>::decode<native>(Scalarpad& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Scalarpad>::decode<little>(Scalarpad& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Scalarpad>::decode<big>(Scalarpad& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<ScalarpadComppre_Helper>::encode(const ScalarpadComppre_Helper& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
@@ -169,6 +183,18 @@ uint8_t* message_impl<ScalarpadComppre_Helper>::encode(const ScalarpadComppre_He
 template uint8_t* message_impl<ScalarpadComppre_Helper>::encode<native>(const ScalarpadComppre_Helper& x, uint8_t* pos);
 template uint8_t* message_impl<ScalarpadComppre_Helper>::encode<little>(const ScalarpadComppre_Helper& x, uint8_t* pos);
 template uint8_t* message_impl<ScalarpadComppre_Helper>::encode<big>(const ScalarpadComppre_Helper& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<ScalarpadComppre_Helper>::decode(ScalarpadComppre_Helper& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end)
+    );
+}
+template bool message_impl<ScalarpadComppre_Helper>::decode<native>(ScalarpadComppre_Helper& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppre_Helper>::decode<little>(ScalarpadComppre_Helper& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppre_Helper>::decode<big>(ScalarpadComppre_Helper& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>
@@ -185,6 +211,20 @@ template uint8_t* message_impl<ScalarpadComppre>::encode<big>(const ScalarpadCom
 
 template <>
 template <endianness E>
+bool message_impl<ScalarpadComppre>::decode(ScalarpadComppre& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode_advance(1, pos, end) &&
+        do_decode<E>(x.y, pos, end)
+    );
+}
+template bool message_impl<ScalarpadComppre>::decode<native>(ScalarpadComppre& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppre>::decode<little>(ScalarpadComppre& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppre>::decode<big>(ScalarpadComppre& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<ScalarpadComppost_Helper>::encode(const ScalarpadComppost_Helper& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
@@ -193,6 +233,18 @@ uint8_t* message_impl<ScalarpadComppost_Helper>::encode(const ScalarpadComppost_
 template uint8_t* message_impl<ScalarpadComppost_Helper>::encode<native>(const ScalarpadComppost_Helper& x, uint8_t* pos);
 template uint8_t* message_impl<ScalarpadComppost_Helper>::encode<little>(const ScalarpadComppost_Helper& x, uint8_t* pos);
 template uint8_t* message_impl<ScalarpadComppost_Helper>::encode<big>(const ScalarpadComppost_Helper& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<ScalarpadComppost_Helper>::decode(ScalarpadComppost_Helper& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end)
+    );
+}
+template bool message_impl<ScalarpadComppost_Helper>::decode<native>(ScalarpadComppost_Helper& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppost_Helper>::decode<little>(ScalarpadComppost_Helper& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppost_Helper>::decode<big>(ScalarpadComppost_Helper& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>
@@ -206,6 +258,20 @@ uint8_t* message_impl<ScalarpadComppost>::encode(const ScalarpadComppost& x, uin
 template uint8_t* message_impl<ScalarpadComppost>::encode<native>(const ScalarpadComppost& x, uint8_t* pos);
 template uint8_t* message_impl<ScalarpadComppost>::encode<little>(const ScalarpadComppost& x, uint8_t* pos);
 template uint8_t* message_impl<ScalarpadComppost>::encode<big>(const ScalarpadComppost& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<ScalarpadComppost>::decode(ScalarpadComppost& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode_advance(1, pos, end) &&
+        do_decode<E>(x.y, pos, end)
+    );
+}
+template bool message_impl<ScalarpadComppost>::decode<native>(ScalarpadComppost& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppost>::decode<little>(ScalarpadComppost& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ScalarpadComppost>::decode<big>(ScalarpadComppost& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>
