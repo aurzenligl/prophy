@@ -146,9 +146,37 @@ inline bool do_decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
 }
 
 template <endianness E, typename T>
+inline bool do_decode_as_u32(T& x, const uint8_t*& pos, const uint8_t* end)
+{
+    uint32_t data;
+    if (!decoder<E, uint32_t>::decode(data, pos, end))
+    {
+        return false;
+    }
+    x = static_cast<T>(data);
+    return true;
+}
+
+template <endianness E, typename T>
+inline bool do_decode_in_place(T& x, const uint8_t* pos, const uint8_t* end)
+{
+    return decoder<E, T>::decode(x, pos, end);
+}
+
+template <endianness E, typename T>
 inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, n, pos, end);
+}
+
+template <endianness E, typename T>
+inline bool do_decode_in_place_optional(T& x, bool execute, const uint8_t* pos, const uint8_t* end)
+{
+    if (!execute)
+    {
+        return true;
+    }
+    return decoder<E, T>::decode(x, pos, end);
 }
 
 template <endianness E, typename T>

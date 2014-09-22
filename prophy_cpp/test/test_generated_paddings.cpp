@@ -200,6 +200,14 @@ TEST(generated_paddings, UnionpadOptionalboolpad)
             "\x01\x00\x00\x00"
             "\x02" "\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03" "\x00\x00\x00"
+            "\x01\x00\x00\x00"
+            "\x04" "\x00\x00\x00")));
+    EXPECT_EQ(3, x.x);
+    EXPECT_TRUE(x.has_y);
+    EXPECT_EQ(4, x.y);
 }
 
 TEST(generated_paddings, UnionpadOptionalvaluepad)
@@ -217,6 +225,12 @@ TEST(generated_paddings, UnionpadOptionalvaluepad)
             "\x01\x00\x00\x00" "\x00\x00\x00\x00"
             "\x02\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00" "\x00\x00\x00\x00"
+            "\x03\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_TRUE(x.has_x);
+    EXPECT_EQ(3, x.x);
 }
 
 TEST(generated_paddings, UnionpadDiscpad)
@@ -236,6 +250,14 @@ TEST(generated_paddings, UnionpadDiscpad)
             "\x01\x00\x00\x00"
             "\x02" "\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03" "\x00\x00\x00"
+            "\x01\x00\x00\x00"
+            "\x04" "\x00\x00\x00")));
+    EXPECT_EQ(3, x.x);
+    EXPECT_EQ(UnionpadDiscpad_Helper::discriminator_a, x.y.discriminator);
+    EXPECT_EQ(4, x.y.a);
 }
 
 TEST(generated_paddings, UnionpadArmpad)
@@ -255,6 +277,14 @@ TEST(generated_paddings, UnionpadArmpad)
             "\x01\x00\x00\x00" "\x00\x00\x00\x00"
             "\x02" "\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03" "\x00\x00\x00\x00\x00\x00\x00"
+            "\x02\x00\x00\x00" "\x00\x00\x00\x00"
+            "\x04\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(3, x.x);
+    EXPECT_EQ(UnionpadArmpad_Helper::discriminator_b, x.y.discriminator);
+    EXPECT_EQ(4, x.y.b);
 }
 
 TEST(generated_paddings, ArraypadCounter)
