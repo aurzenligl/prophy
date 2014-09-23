@@ -472,6 +472,20 @@ template uint8_t* message_impl<ArraypadCounter>::encode<big>(const ArraypadCount
 
 template <>
 template <endianness E>
+bool message_impl<ArraypadCounter>::decode(ArraypadCounter& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint8_t>(x.x, pos, end) &&
+        do_decode_advance(1, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end)
+    );
+}
+template bool message_impl<ArraypadCounter>::decode<native>(ArraypadCounter& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounter>::decode<little>(ArraypadCounter& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounter>::decode<big>(ArraypadCounter& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<ArraypadCounterSeparated>::encode(const ArraypadCounterSeparated& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint8_t(x.x.size()));
@@ -483,6 +497,21 @@ uint8_t* message_impl<ArraypadCounterSeparated>::encode(const ArraypadCounterSep
 template uint8_t* message_impl<ArraypadCounterSeparated>::encode<native>(const ArraypadCounterSeparated& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadCounterSeparated>::encode<little>(const ArraypadCounterSeparated& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadCounterSeparated>::encode<big>(const ArraypadCounterSeparated& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<ArraypadCounterSeparated>::decode(ArraypadCounterSeparated& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint8_t>(x.x, pos, end) &&
+        do_decode_advance(3, pos, end) &&
+        do_decode<E>(x.y, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end)
+    );
+}
+template bool message_impl<ArraypadCounterSeparated>::decode<native>(ArraypadCounterSeparated& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounterSeparated>::decode<little>(ArraypadCounterSeparated& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounterSeparated>::decode<big>(ArraypadCounterSeparated& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>
@@ -499,6 +528,20 @@ template uint8_t* message_impl<ArraypadCounterAligns_Helper>::encode<big>(const 
 
 template <>
 template <endianness E>
+bool message_impl<ArraypadCounterAligns_Helper>::decode(ArraypadCounterAligns_Helper& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint16_t>(x.x, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+        do_decode_align<2>(pos, end)
+    );
+}
+template bool message_impl<ArraypadCounterAligns_Helper>::decode<native>(ArraypadCounterAligns_Helper& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounterAligns_Helper>::decode<little>(ArraypadCounterAligns_Helper& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounterAligns_Helper>::decode<big>(ArraypadCounterAligns_Helper& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<ArraypadCounterAligns>::encode(const ArraypadCounterAligns& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
@@ -509,6 +552,20 @@ uint8_t* message_impl<ArraypadCounterAligns>::encode(const ArraypadCounterAligns
 template uint8_t* message_impl<ArraypadCounterAligns>::encode<native>(const ArraypadCounterAligns& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadCounterAligns>::encode<little>(const ArraypadCounterAligns& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadCounterAligns>::encode<big>(const ArraypadCounterAligns& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<ArraypadCounterAligns>::decode(ArraypadCounterAligns& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode_advance(1, pos, end) &&
+        do_decode<E>(x.y, pos, end)
+    );
+}
+template bool message_impl<ArraypadCounterAligns>::decode<native>(ArraypadCounterAligns& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounterAligns>::decode<little>(ArraypadCounterAligns& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadCounterAligns>::decode<big>(ArraypadCounterAligns& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>
@@ -526,6 +583,21 @@ template uint8_t* message_impl<ArraypadFixed>::encode<big>(const ArraypadFixed& 
 
 template <>
 template <endianness E>
+bool message_impl<ArraypadFixed>::decode(ArraypadFixed& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode<E>(x.y, 3, pos, end) &&
+        do_decode_advance(1, pos, end) &&
+        do_decode<E>(x.z, pos, end)
+    );
+}
+template bool message_impl<ArraypadFixed>::decode<native>(ArraypadFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadFixed>::decode<little>(ArraypadFixed& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadFixed>::decode<big>(ArraypadFixed& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<ArraypadDynamic>::encode(const ArraypadDynamic& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(x.x.size()));
@@ -537,6 +609,21 @@ uint8_t* message_impl<ArraypadDynamic>::encode(const ArraypadDynamic& x, uint8_t
 template uint8_t* message_impl<ArraypadDynamic>::encode<native>(const ArraypadDynamic& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadDynamic>::encode<little>(const ArraypadDynamic& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadDynamic>::encode<big>(const ArraypadDynamic& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<ArraypadDynamic>::decode(ArraypadDynamic& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+        do_decode_align<4>(pos, end) &&
+        do_decode<E>(x.y, pos, end)
+    );
+}
+template bool message_impl<ArraypadDynamic>::decode<native>(ArraypadDynamic& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadDynamic>::decode<little>(ArraypadDynamic& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadDynamic>::decode<big>(ArraypadDynamic& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
 template <endianness E>
@@ -552,6 +639,22 @@ uint8_t* message_impl<ArraypadLimited>::encode(const ArraypadLimited& x, uint8_t
 template uint8_t* message_impl<ArraypadLimited>::encode<native>(const ArraypadLimited& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadLimited>::encode<little>(const ArraypadLimited& x, uint8_t* pos);
 template uint8_t* message_impl<ArraypadLimited>::encode<big>(const ArraypadLimited& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<ArraypadLimited>::decode(ArraypadLimited& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
+        do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+        do_decode_advance(2, pos, end) &&
+        do_decode_advance(2, pos, end) &&
+        do_decode<E>(x.y, pos, end)
+    );
+}
+template bool message_impl<ArraypadLimited>::decode<native>(ArraypadLimited& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadLimited>::decode<little>(ArraypadLimited& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<ArraypadLimited>::decode<big>(ArraypadLimited& x, const uint8_t*& pos, const uint8_t* end);
 
 } // namespace detail
 } // namespace prophy

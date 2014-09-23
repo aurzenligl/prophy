@@ -349,7 +349,7 @@ struct ArraypadLimited : prophy::detail::message<ArraypadLimited>
 {
     enum { encoded_byte_size = 12 };
 
-    std::vector<uint8_t> x; // limit 4
+    std::vector<uint8_t> x; // limit 2
     uint32_t y;
 
     ArraypadLimited(): y() { }

@@ -300,6 +300,13 @@ TEST(generated_paddings, ArraypadCounter)
     EXPECT_EQ(bytes(
             "\x01" "\x00" "\x02\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03" "\x00" "\x02\x00\x02\x00\x02\x00")));
+    EXPECT_EQ(3, x.x.size());
+    EXPECT_EQ(2, x.x[0]);
+    EXPECT_EQ(2, x.x[1]);
+    EXPECT_EQ(2, x.x[2]);
 }
 
 TEST(generated_paddings, ArraypadCounterSeparated)
@@ -318,6 +325,15 @@ TEST(generated_paddings, ArraypadCounterSeparated)
             "\x02\x00\x00\x00"
             "\x03\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02" "\x00\x00\x00"
+            "\x0a\x00\x00\x00"
+            "\x04\x00\x00\x00\x06\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(4, x.x[0]);
+    EXPECT_EQ(6, x.x[1]);
+    EXPECT_EQ(10, x.y);
 }
 
 TEST(generated_paddings, ArraypadCounterAligns)
@@ -335,6 +351,15 @@ TEST(generated_paddings, ArraypadCounterAligns)
             "\x01" "\x00"
             "\x01\x00\x02" "\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x05" "\x00"
+            "\x03\x00\x02\x03\x04" "\x00")));
+    EXPECT_EQ(5, x.x);
+    EXPECT_EQ(3, x.y.x.size());
+    EXPECT_EQ(2, x.y.x[0]);
+    EXPECT_EQ(3, x.y.x[1]);
+    EXPECT_EQ(4, x.y.x[2]);
 }
 
 TEST(generated_paddings, ArraypadFixed)
@@ -356,6 +381,16 @@ TEST(generated_paddings, ArraypadFixed)
             "\x02\x03\x04" "\x00"
             "\x05\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00"
+            "\x03\x04\x05" "\x00"
+            "\x06\x00\x00\x00")));
+    EXPECT_EQ(2, x.x);
+    EXPECT_EQ(3, x.y[0]);
+    EXPECT_EQ(4, x.y[1]);
+    EXPECT_EQ(5, x.y[2]);
+    EXPECT_EQ(6, x.z);
 }
 
 TEST(generated_paddings, ArraypadDynamic)
@@ -374,6 +409,15 @@ TEST(generated_paddings, ArraypadDynamic)
             "\x02" "\x00\x00\x00"
             "\x03\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00"
+            "\x02\x03" "\x00\x00"
+            "\x02\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(2, x.x[0]);
+    EXPECT_EQ(3, x.x[1]);
+    EXPECT_EQ(2, x.y);
 }
 
 TEST(generated_paddings, ArraypadLimited)
@@ -392,4 +436,13 @@ TEST(generated_paddings, ArraypadLimited)
             "\x02" "\x00\x00\x00"
             "\x03\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00"
+            "\x02\x02" "\x00\x00"
+            "\x01\x00\x00\x00")));
+    EXPECT_EQ(2, x.x.size());
+    EXPECT_EQ(2, x.x[0]);
+    EXPECT_EQ(2, x.x[1]);
+    EXPECT_EQ(1, x.y);
 }
