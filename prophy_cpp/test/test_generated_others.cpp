@@ -24,6 +24,16 @@ TEST(generated_others, ConstantTypedefEnum)
             "\x03\x00\x04\x00"
             "\x01\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x07\x00\x08\x00"
+            "\x09\x00\x01\x00"
+            "\x01\x00\x00\x00")));
+    EXPECT_EQ(7, x.a[0]);
+    EXPECT_EQ(8, x.a[1]);
+    EXPECT_EQ(9, x.a[2]);
+    EXPECT_EQ(1, x.b);
+    EXPECT_EQ(Enum_One, x.c);
 }
 
 TEST(generated_others, Floats)
@@ -41,6 +51,12 @@ TEST(generated_others, Floats)
             "\x00\x00\x20\x41" "\x00\x00\x00\x00"
             "\x00\x00\x00\x00\x00\x00\x24\x40"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x00\x00\x20\x41" "\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x24\x40")));
+    EXPECT_EQ(10, x.a);
+    EXPECT_EQ(10, x.b);
 }
 
 TEST(generated_others, BytesFixed)
@@ -58,6 +74,12 @@ TEST(generated_others, BytesFixed)
     EXPECT_EQ(bytes(
             "abc"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "def")));
+    EXPECT_EQ('d', x.x[0]);
+    EXPECT_EQ('e', x.x[1]);
+    EXPECT_EQ('f', x.x[2]);
 }
 
 TEST(generated_others, BytesDynamic)
@@ -74,6 +96,11 @@ TEST(generated_others, BytesDynamic)
             "\x04\x00\x00\x00"
             "abcd"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x06\x00\x00\x00"
+            "qwerty" "\x00\x00")));
+    EXPECT_EQ(bytes("qwerty"), x.x);
 }
 
 TEST(generated_others, BytesLimited)
@@ -90,6 +117,11 @@ TEST(generated_others, BytesLimited)
             "\x02\x00\x00\x00"
             "ab\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00"
+            "abc\x00")));
+    EXPECT_EQ(bytes("abc"), x.x);
 }
 
 TEST(generated_others, BytesGreedy)
@@ -105,4 +137,8 @@ TEST(generated_others, BytesGreedy)
     EXPECT_EQ(bytes(
             "abcde"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "qasw")));
+    EXPECT_EQ(bytes("qasw"), x.x);
 }
