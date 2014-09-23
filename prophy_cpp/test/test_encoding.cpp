@@ -4,6 +4,7 @@
 #include "generated/Arrays.pp.hpp"
 #include "generated/Dynfields.pp.hpp"
 #include "generated/Paddings.pp.hpp"
+#include "generated/Unions.pp.hpp"
 #include "util.hpp"
 
 using namespace testing;
@@ -137,6 +138,60 @@ TEST(encoding, decode_padding_failures)
     EXPECT_FALSE(x.decode(bytes("\x03\x00\x04\x00\x00")));
     EXPECT_EQ(3, x.x);
     EXPECT_EQ(4, x.y);
+}
+
+TEST(encoding, decode_union_failures)
+{
+    Union x;
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x01\x00\x00\x00"
+            "\x04\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(Union::discriminator_a, x.discriminator);
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x01\x00\x00\x00"
+            "\x04\x00\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(Union::discriminator_a, x.discriminator);
+    EXPECT_EQ(4, x.a);
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x01\x00\x00\x00"
+            "\x08\x00\x00\x00")));
+    EXPECT_EQ(Union::discriminator_a, x.discriminator);
+    EXPECT_EQ(8, x.a);
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x09\x00\x00\x00"
+            "\x04\x00\x00\x00\x00\x00\x00\x00")));
+}
+
+TEST(encoding, decode_optional_failures)
+{
+    BuiltinOptional x;
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x01\x00\x00\x00"
+            "\x01\x00\x00")));
+    EXPECT_TRUE(x.has_x);
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x01\x00\x00\x00"
+            "\x01\x00\x00\x00\x00")));
+    EXPECT_TRUE(x.has_x);
+    EXPECT_EQ(1, x.x);
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x00\x00\x00\x00"
+            "\x08\x00\x00")));
+    EXPECT_FALSE(x.has_x);
+    EXPECT_EQ(1, x.x);
+
+    EXPECT_FALSE(x.decode(bytes(
+            "\x00\x00\x00\x00"
+            "\x08\x00\x00\x00\x00")));
+    EXPECT_FALSE(x.has_x);
+    EXPECT_EQ(1, x.x);
 }
 
 TEST(encoding, endianness)
