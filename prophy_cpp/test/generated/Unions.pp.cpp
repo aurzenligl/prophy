@@ -1,6 +1,7 @@
 #include "Unions.pp.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
+#include <prophy/detail/decoder.hpp>
 #include <prophy/detail/align.hpp>
 
 namespace prophy
@@ -28,6 +29,24 @@ template uint8_t* message_impl<Union>::encode<big>(const Union& x, uint8_t* pos)
 
 template <>
 template <endianness E>
+bool message_impl<Union>::decode(Union& x, const uint8_t*& pos, const uint8_t* end)
+{
+    if (!do_decode_as_u32<E>(x.discriminator, pos, end)) return false;
+    switch(x.discriminator)
+    {
+        case Union::discriminator_a: if (!do_decode_in_place<E>(x.a, pos, end)) return false; break;
+        case Union::discriminator_b: if (!do_decode_in_place<E>(x.b, pos, end)) return false; break;
+        case Union::discriminator_c: if (!do_decode_in_place<E>(x.c, pos, end)) return false; break;
+        default: return false;
+    }
+    return do_decode_advance(8, pos, end);
+}
+template bool message_impl<Union>::decode<native>(Union& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Union>::decode<little>(Union& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Union>::decode<big>(Union& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<BuiltinOptional>::encode(const BuiltinOptional& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(x.has_x));
@@ -41,6 +60,20 @@ template uint8_t* message_impl<BuiltinOptional>::encode<big>(const BuiltinOption
 
 template <>
 template <endianness E>
+bool message_impl<BuiltinOptional>::decode(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_as_u32<E>(x.has_x, pos, end) &&
+        do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
+        do_decode_advance(4, pos, end)
+    );
+}
+template bool message_impl<BuiltinOptional>::decode<native>(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinOptional>::decode<little>(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<BuiltinOptional>::decode<big>(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+template <endianness E>
 uint8_t* message_impl<FixcompOptional>::encode(const FixcompOptional& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, uint32_t(x.has_x));
@@ -51,6 +84,20 @@ uint8_t* message_impl<FixcompOptional>::encode(const FixcompOptional& x, uint8_t
 template uint8_t* message_impl<FixcompOptional>::encode<native>(const FixcompOptional& x, uint8_t* pos);
 template uint8_t* message_impl<FixcompOptional>::encode<little>(const FixcompOptional& x, uint8_t* pos);
 template uint8_t* message_impl<FixcompOptional>::encode<big>(const FixcompOptional& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<FixcompOptional>::decode(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_as_u32<E>(x.has_x, pos, end) &&
+        do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
+        do_decode_advance(8, pos, end)
+    );
+}
+template bool message_impl<FixcompOptional>::decode<native>(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<FixcompOptional>::decode<little>(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<FixcompOptional>::decode<big>(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end);
 
 } // namespace detail
 } // namespace prophy

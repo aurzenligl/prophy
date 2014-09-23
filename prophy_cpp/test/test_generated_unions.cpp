@@ -14,6 +14,7 @@ TEST(generated_unions, Union)
     x.a = 1;
     size_t size = x.encode(data.data());
 
+    /// encoding
     EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
@@ -38,6 +39,26 @@ TEST(generated_unions, Union)
     EXPECT_EQ(bytes(
             "\x03\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00"),
             bytes(data.data(), size));
+
+    /// decoding
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00"
+            "\x04\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(Union::discriminator_a, x.discriminator);
+    EXPECT_EQ(4, x.a);
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00"
+            "\x08\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(Union::discriminator_b, x.discriminator);
+    EXPECT_EQ(8, x.b);
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00"
+            "\x01\x00\x00\x00\x02\x00\x00\x00")));
+    EXPECT_EQ(Union::discriminator_c, x.discriminator);
+    EXPECT_EQ(1, x.c.x);
+    EXPECT_EQ(2, x.c.y);
 }
 
 TEST(generated_unions, BuiltinOptional)
@@ -49,6 +70,7 @@ TEST(generated_unions, BuiltinOptional)
     x.x = 1;
     size_t size = x.encode(data.data());
 
+    /// encoding
     EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
@@ -63,6 +85,16 @@ TEST(generated_unions, BuiltinOptional)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x02\x00\x00\x00"),
             bytes(data.data(), size));
+
+    /// decoding
+    EXPECT_TRUE(x.decode(bytes(
+            "\x00\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_FALSE(x.has_x);
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00\x05\x00\x00\x00")));
+    EXPECT_TRUE(x.has_x);
+    EXPECT_EQ(5, x.x);
 }
 
 TEST(generated_unions, FixcompOptional)
@@ -75,6 +107,7 @@ TEST(generated_unions, FixcompOptional)
     x.x.y = 2;
     size_t size = x.encode(data.data());
 
+    /// encoding
     EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
@@ -90,4 +123,15 @@ TEST(generated_unions, FixcompOptional)
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
             bytes(data.data(), size));
+
+    /// decoding
+    EXPECT_TRUE(x.decode(bytes(
+            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_FALSE(x.has_x);
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x01\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00")));
+    EXPECT_TRUE(x.has_x);
+    EXPECT_EQ(7, x.x.x);
+    EXPECT_EQ(8, x.x.y);
 }
