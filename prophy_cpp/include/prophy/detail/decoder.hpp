@@ -18,6 +18,124 @@ inline void decode_int(T& x, const uint8_t* pos)
     x = *reinterpret_cast<const T*>(pos);
 }
 
+template <>
+inline void decode_int<little, uint16_t>(uint16_t& x, const uint8_t* pos)
+{
+    x = uint16_t(pos[0]) << 0;
+    x |= uint16_t(pos[1]) << 8;
+}
+
+template <>
+inline void decode_int<big, uint16_t>(uint16_t& x, const uint8_t* pos)
+{
+    x = uint16_t(pos[0]) << 8;
+    x |= uint16_t(pos[1]) << 0;
+}
+
+template <>
+inline void decode_int<little, int16_t>(int16_t& x, const uint8_t* pos)
+{
+    decode_int<little>(reinterpret_cast<uint16_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<big, int16_t>(int16_t& x, const uint8_t* pos)
+{
+    decode_int<big>(reinterpret_cast<uint16_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<little, uint32_t>(uint32_t& x, const uint8_t* pos)
+{
+    x = uint32_t(pos[0]) << 0;
+    x |= uint32_t(pos[1]) << 8;
+    x |= uint32_t(pos[2]) << 16;
+    x |= uint32_t(pos[3]) << 24;
+}
+
+template <>
+inline void decode_int<big, uint32_t>(uint32_t& x, const uint8_t* pos)
+{
+    x = uint32_t(pos[0]) << 24;
+    x |= uint32_t(pos[1]) << 16;
+    x |= uint32_t(pos[2]) << 8;
+    x |= uint32_t(pos[3]) << 0;
+}
+
+template <>
+inline void decode_int<little, int32_t>(int32_t& x, const uint8_t* pos)
+{
+    decode_int<little>(reinterpret_cast<uint32_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<big, int32_t>(int32_t& x, const uint8_t* pos)
+{
+    decode_int<big>(reinterpret_cast<uint32_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<little, uint64_t>(uint64_t& x, const uint8_t* pos)
+{
+    x = uint64_t(pos[0]) << 0;
+    x |= uint64_t(pos[1]) << 8;
+    x |= uint64_t(pos[2]) << 16;
+    x |= uint64_t(pos[3]) << 24;
+    x |= uint64_t(pos[4]) << 32;
+    x |= uint64_t(pos[5]) << 40;
+    x |= uint64_t(pos[6]) << 48;
+    x |= uint64_t(pos[7]) << 56;
+}
+
+template <>
+inline void decode_int<big, uint64_t>(uint64_t& x, const uint8_t* pos)
+{
+    x = uint64_t(pos[0]) << 56;
+    x |= uint64_t(pos[1]) << 48;
+    x |= uint64_t(pos[2]) << 40;
+    x |= uint64_t(pos[3]) << 32;
+    x |= uint64_t(pos[4]) << 24;
+    x |= uint64_t(pos[5]) << 16;
+    x |= uint64_t(pos[6]) << 8;
+    x |= uint64_t(pos[7]) << 0;
+}
+
+template <>
+inline void decode_int<little, int64_t>(int64_t& x, const uint8_t* pos)
+{
+    decode_int<little>(reinterpret_cast<uint64_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<big, int64_t>(int64_t& x, const uint8_t* pos)
+{
+    decode_int<big>(reinterpret_cast<uint64_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<little, float>(float& x, const uint8_t* pos)
+{
+    decode_int<little>(reinterpret_cast<uint32_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<big, float>(float& x, const uint8_t* pos)
+{
+    decode_int<big>(reinterpret_cast<uint32_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<little, double>(double& x, const uint8_t* pos)
+{
+    decode_int<little>(reinterpret_cast<uint64_t&>(x), pos);
+}
+
+template <>
+inline void decode_int<big, double>(double& x, const uint8_t* pos)
+{
+    decode_int<big>(reinterpret_cast<uint64_t&>(x), pos);
+}
+
 template <endianness E, typename T,
           bool = codec_traits<T>::is_composite,
           bool = codec_traits<T>::size == -1>
