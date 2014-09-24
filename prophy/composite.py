@@ -1,4 +1,4 @@
-from itertools import ifilter
+from .six import ifilter
 
 from . import scalar
 from .exception import ProphyError

@@ -1,3 +1,5 @@
+from .six import cmp
+
 class base_array(object):
     __slots__ = ['_values']
 
