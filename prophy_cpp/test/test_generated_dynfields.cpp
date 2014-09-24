@@ -22,6 +22,19 @@ TEST(generated_dynfields, Dynfields)
             "\x01\x00\x03\x00" "\x00\x00\x00\x00\x00\x00"
             "\x04\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00\x02\x02\x02" "\x00"
+            "\x02\x00\x03\x00\x03\x00" "\x00\x00"
+            "\x05\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(3, x.x.size());
+    EXPECT_EQ(2, x.x[0]);
+    EXPECT_EQ(2, x.x[1]);
+    EXPECT_EQ(2, x.x[2]);
+    EXPECT_EQ(2, x.y.size());
+    EXPECT_EQ(3, x.y[0]);
+    EXPECT_EQ(3, x.y[1]);
+    EXPECT_EQ(5, x.z);
 }
 
 TEST(generated_dynfields, DynfieldsMixed)
@@ -40,6 +53,18 @@ TEST(generated_dynfields, DynfieldsMixed)
             "\x01\x00\x02" "\x00"
             "\x03\x00" "\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00"
+            "\x02\x00\x02\x02\x02" "\x00"
+            "\x03\x00\x03\x00" "\x00\x00")));
+    EXPECT_EQ(3, x.x.size());
+    EXPECT_EQ(2, x.x[0]);
+    EXPECT_EQ(2, x.x[1]);
+    EXPECT_EQ(2, x.x[2]);
+    EXPECT_EQ(2, x.y.size());
+    EXPECT_EQ(3, x.y[0]);
+    EXPECT_EQ(3, x.y[1]);
 }
 
 TEST(generated_dynfields, DynfieldsOverlapped)
@@ -60,6 +85,18 @@ TEST(generated_dynfields, DynfieldsOverlapped)
             "\x02\x00" "\x00\x00" "\x01\x00\x00\x00"
             "\x03\x00\x04\x00\x05\x00" "\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00\x01\x00\x00\x00"
+            "\x06\x00" "\x00\x00" "\x01\x00\x00\x00"
+            "\x09\x00\x08\x00\x07\x00" "\x00\x00")));
+    EXPECT_EQ(2, x.a.size());
+    EXPECT_EQ(8, x.a[0]);
+    EXPECT_EQ(7, x.a[1]);
+    EXPECT_EQ(1, x.b.size());
+    EXPECT_EQ(6, x.b[0]);
+    EXPECT_EQ(1, x.c.size());
+    EXPECT_EQ(9, x.c[0]);
 }
 
 TEST(generated_dynfields, DynfieldsPartialpad)
@@ -81,6 +118,17 @@ TEST(generated_dynfields, DynfieldsPartialpad)
             "\x03" "\x00\x00\x00\x00\x00\x00\x00"
             "\x04\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02" "\x00\x00\x00\x00\x00\x00\x00"
+            "\x01\x03" "\x00\x00\x00\x00\x00\x00"
+            "\x04" "\x00\x00\x00\x00\x00\x00\x00"
+            "\x05\x00\x00\x00\x00\x00\x00\x00")));
+    EXPECT_EQ(2, x.x);
+    EXPECT_EQ(1, x.y.x.size());
+    EXPECT_EQ(3, x.y.x[0]);
+    EXPECT_EQ(4, x.y.y);
+    EXPECT_EQ(5, x.y.z);
 }
 
 TEST(generated_dynfields, DynfieldsScalarpartialpad)
@@ -107,4 +155,12 @@ TEST(generated_dynfields, DynfieldsScalarpartialpad)
             "\x06\x00\x00\x00\x03\x04\x05\x06\x07\x08" "\x00\x00"
             "\x03\x00\x00\x00\x09\x0a\x0b" "\x00"),
             bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x02\x00\x00\x00" "\x02\x03" "\x00\x00"
+            "\x02\x00\x00\x00" "\x04\x05" "\x00\x00"
+            "\x05\x00\x00\x00" "abcde" "\x00\x00\x00")));
+    EXPECT_EQ(bytes("\x02\x03"), x.x.x);
+    EXPECT_EQ(bytes("\x04\x05"), x.y.x);
+    EXPECT_EQ(bytes("abcde"), x.z.x);
 }
