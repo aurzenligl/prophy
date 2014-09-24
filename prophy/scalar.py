@@ -1,5 +1,6 @@
 import struct
-from exception import ProphyError
+from .exception import ProphyError
+from .six import long
 
 def numeric_decorator(cls, size, id):
     @staticmethod

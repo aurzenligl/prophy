@@ -1,9 +1,8 @@
 from itertools import ifilter
 
-import scalar
-from exception import ProphyError
-
-from base_array import base_array
+from . import scalar
+from .exception import ProphyError
+from .base_array import base_array
 
 def validate(descriptor):
     if any(type._UNLIMITED for _, type in descriptor[:-1]):

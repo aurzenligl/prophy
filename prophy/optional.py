@@ -1,6 +1,6 @@
-import scalar
-import container
-from exception import ProphyError
+from . import scalar
+from . import container
+from .exception import ProphyError
 
 def optional(cls):
     if issubclass(cls, str):

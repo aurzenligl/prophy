@@ -1,6 +1,6 @@
-import composite
-from exception import ProphyError
-from base_array import base_array
+from . import composite
+from .exception import ProphyError
+from .base_array import base_array
 
 def decode_scalar_array(tp, data, pos, endianness, count):
     if count is None:
