@@ -218,4 +218,28 @@ TEST(encoding, endianness)
             "\x00\x00\x00\x01" "d" "\x00\x00\x00"
             "\x00\x00\x00\x05" "efghi" "\x00\x00\x00"),
             x.encode<big>());
+
+    EXPECT_TRUE(x.decode<native>(bytes(
+            "\x01\x00\x00\x00" "a" "\x00\x00\x00"
+            "\x02\x00\x00\x00" "bc" "\x00\x00"
+            "\x03\x00\x00\x00" "def" "\x00")));
+    EXPECT_EQ(bytes("a"), x.x.x);
+    EXPECT_EQ(bytes("bc"), x.y.x);
+    EXPECT_EQ(bytes("def"), x.z.x);
+
+    EXPECT_TRUE(x.decode<little>(bytes(
+            "\x01\x00\x00\x00" "a" "\x00\x00\x00"
+            "\x02\x00\x00\x00" "bc" "\x00\x00"
+            "\x03\x00\x00\x00" "def" "\x00")));
+    EXPECT_EQ(bytes("a"), x.x.x);
+    EXPECT_EQ(bytes("bc"), x.y.x);
+    EXPECT_EQ(bytes("def"), x.z.x);
+
+    EXPECT_TRUE(x.decode<big>(bytes(
+            "\x00\x00\x00\x01" "a" "\x00\x00\x00"
+            "\x00\x00\x00\x02" "bc" "\x00\x00"
+            "\x00\x00\x00\x03" "def" "\x00")));
+    EXPECT_EQ(bytes("a"), x.x.x);
+    EXPECT_EQ(bytes("bc"), x.y.x);
+    EXPECT_EQ(bytes("def"), x.z.x);
 }
