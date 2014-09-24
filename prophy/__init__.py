@@ -22,4 +22,6 @@ from .composite import union_generator
 
 from .exception import ProphyError
 
+from .six import with_metaclass
+
 __version__ = '0.4.2'
