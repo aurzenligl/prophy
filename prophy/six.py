@@ -5,6 +5,7 @@ import sys
 if sys.version > '3':
     long = int
     ifilter = filter
+    xrange = range
 else:
     long = long
     from itertools import ifilter

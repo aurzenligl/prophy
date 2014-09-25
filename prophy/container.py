@@ -110,7 +110,7 @@ class bound_scalar_array(base_array):
         return scalar_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
+        return b"".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, b"\x00")
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
@@ -173,7 +173,7 @@ class bound_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, "\x00")
+        return b"".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, b"\x00")
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):

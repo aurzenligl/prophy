@@ -274,9 +274,9 @@ class struct(object):
     def _get_padding(offset, alignment):
         remainder = offset % alignment
         if remainder:
-            return '\x00' * (alignment - remainder)
+            return b'\x00' * (alignment - remainder)
         else:
-            return ''
+            return b''
 
     @staticmethod
     def _get_padding_size(offset, alignment):
@@ -284,7 +284,7 @@ class struct(object):
         return alignment - remainder if remainder else 0
 
     def encode(self, endianness, terminal = True):
-        data = ""
+        data = b""
         for name, tp, encode_, _ in self._descriptor:
             data += (self._get_padding(len(data), tp._ALIGNMENT) +
                      encode_(self, tp, getattr(self, name, None), endianness))
@@ -330,7 +330,7 @@ class struct_packed(struct):
     __slots__ = []
     @staticmethod
     def _get_padding(offset, alignment):
-        return ''
+        return b''
     @staticmethod
     def _get_padding_size(offset, alignment):
         return 0
