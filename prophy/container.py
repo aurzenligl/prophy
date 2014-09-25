@@ -40,8 +40,11 @@ class fixed_scalar_array(base_array):
         self._values = [self._TYPE._DEFAULT] * self._max_len
 
     def __setitem__(self, idx, value):
-        value = self._TYPE._check(value)
-        self._values[idx] = value
+        if isinstance(idx, slice):
+            self.__setslice__(idx.start, idx.stop, value)
+        else:
+            value = self._TYPE._check(value)
+            self._values[idx] = value
 
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) != len(values):
@@ -86,14 +89,12 @@ class bound_scalar_array(base_array):
     def remove(self, elem):
         self._values.remove(elem)
 
-    def __setitem__(self, idx, values):
+    def __setitem__(self, idx, value):
         if isinstance(idx, slice):
-            if self._max_len and len(self) + len(values) - len(self._values[idx.start:idx.stop]) > self._max_len:
-                raise ProphyError("exceeded array limit")
-            self._values[idx.start:idx.stop] = map(self._TYPE._check, values)
+            self.__setslice__(idx.start, idx.stop, value)
         else: 
-            values = self._TYPE._check(values)
-            self._values[idx] = values
+            value = self._TYPE._check(value)
+            self._values[idx] = value
 
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
