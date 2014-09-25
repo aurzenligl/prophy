@@ -55,7 +55,7 @@ class fixed_scalar_array(base_array):
         return scalar_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(self._TYPE._encode(value, endianness) for value in self)
+        return b"".join(self._TYPE._encode(value, endianness) for value in self)
 
     def _decode_impl(self, data, pos, endianness, _):
         self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len(self))
@@ -131,7 +131,7 @@ class fixed_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(value.encode(endianness, terminal = False) for value in self)
+        return b"".join(value.encode(endianness, terminal = False) for value in self)
 
     def _decode_impl(self, data, pos, endianness, _):
         cursor = 0
