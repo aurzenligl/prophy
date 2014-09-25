@@ -1,6 +1,7 @@
 from . import composite
 from .exception import ProphyError
 from .base_array import base_array
+from .six import *
 
 def decode_scalar_array(tp, data, pos, endianness, count):
     if count is None:
@@ -85,9 +86,14 @@ class bound_scalar_array(base_array):
     def remove(self, elem):
         self._values.remove(elem)
 
-    def __setitem__(self, idx, value):
-        value = self._TYPE._check(value)
-        self._values[idx] = value
+    def __setitem__(self, idx, values):
+        if isinstance(idx, slice):
+            if self._max_len and len(self) + len(values) - len(self._values[idx.start:idx.stop]) > self._max_len:
+                raise ProphyError("exceeded array limit")
+            self._values[idx.start:idx.stop] = map(self._TYPE._check, values)
+        else: 
+            values = self._TYPE._check(values)
+            self._values[idx] = values
 
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:

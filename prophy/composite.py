@@ -1,4 +1,4 @@
-from .six import ifilter
+from .six import ifilter, long
 
 from . import scalar
 from .exception import ProphyError
@@ -103,7 +103,7 @@ def add_composite(cls, name, tp):
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
-    index, field = ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)).next()
+    index, field = next(ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)))
     name, tp = field
     bound_shift = container_tp._BOUND_SHIFT
 
@@ -323,7 +323,7 @@ class struct(object):
             return
 
         self._fields.clear()
-        for name, rhs in other._fields.iteritems():
+        for name, rhs in other._fields.items():
             set_field(self, name, rhs)
 
 class struct_packed(struct):
