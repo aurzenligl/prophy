@@ -36,14 +36,12 @@ def test_float_attributes(tp, size):
     assert tp._PARTIAL_ALIGNMENT is None
 
 def make_E():
-    class E(prophy.enum):
-        __metaclass__ = prophy.enum_generator
+    class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("E_1", 1)]
     return E
 
 def make_E8():
-    class E8(prophy.enum8):
-        __metaclass__ = prophy.enum_generator
+    class E8(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("E_1", 1)]
     return E8
 
@@ -164,8 +162,7 @@ def test_array_greedy_attributes():
     assert A._PARTIAL_ALIGNMENT is None
 
 def test_container_len_attributes():
-    class S(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.bytes(bound = "a_len")),
                        ("b_len", prophy.u8),
@@ -174,8 +171,7 @@ def test_container_len_attributes():
     assert ["a", "a_len", "b", "b_len"] == [tp._BOUND for _, tp, _, _ in S._descriptor]
 
 def test_struct_static_attributes():
-    class S(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8),
                        ("c_len", prophy.u8),
                        ("e_len", prophy.u8),
@@ -191,8 +187,7 @@ def test_struct_static_attributes():
     assert S._BOUND is None
     assert S._PARTIAL_ALIGNMENT is None
 
-    class S1(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", S),
                        ("b_len", prophy.u8),
                        ("b", prophy.array(S, bound = "b_len", size = 3))]
@@ -205,16 +200,13 @@ def test_struct_static_attributes():
     assert None == S1._BOUND
 
 def test_struct_with_optional_attributes():
-    class S(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u32)]
-    class U(prophy.union):
-        __metaclass__ = prophy.union_generator
+    class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u8, 0),
                        ("b", prophy.u16, 1),
                        ("c", prophy.u32, 2)]
-    class O(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class O(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(prophy.u32)),
                        ("b", prophy.optional(S)),
                        ("c", prophy.optional(U))]
@@ -227,12 +219,10 @@ def test_struct_with_optional_attributes():
     assert None == O._BOUND
 
 def test_struct_dynamic_attributes():
-    class S(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8)]
 
-    class S1(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(prophy.u8, bound = "a_len"))]
 
@@ -242,8 +232,7 @@ def test_struct_dynamic_attributes():
     assert False == S1._OPTIONAL
     assert 1 == S1._ALIGNMENT
 
-    class S2(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(S, bound = "a_len"))]
 
@@ -253,8 +242,7 @@ def test_struct_dynamic_attributes():
     assert False == S2._OPTIONAL
     assert 1 == S2._ALIGNMENT
 
-    class S3(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S3(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", S1),
                        ("b", S2)]
 
@@ -265,12 +253,10 @@ def test_struct_dynamic_attributes():
     assert 1 == S3._ALIGNMENT
 
 def test_struct_unlimited_attributes():
-    class S(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8)]
 
-    class S1(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.bytes())]
 
     assert 0 == S1._SIZE
@@ -279,8 +265,7 @@ def test_struct_unlimited_attributes():
     assert False == S1._OPTIONAL
     assert 1 == S._ALIGNMENT
 
-    class S2(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.array(prophy.u8))]
 
     assert 0 == S2._SIZE
@@ -289,8 +274,7 @@ def test_struct_unlimited_attributes():
     assert False == S2._OPTIONAL
     assert 1 == S2._ALIGNMENT
 
-    class S3(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class S3(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", S2)]
 
     assert 0 == S3._SIZE
@@ -300,8 +284,7 @@ def test_struct_unlimited_attributes():
     assert 1 == S3._ALIGNMENT
 
 def test_struct_padded():
-    class S(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u32),
                        ("c", prophy.u64)]
@@ -309,38 +292,33 @@ def test_struct_padded():
     assert 8 == S._ALIGNMENT
     assert 16 == S._SIZE
 
-    class S2(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class S2(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u32),
                        ("b", S)]
 
     assert 8 == S2._ALIGNMENT
     assert 24 == S2._SIZE
 
-    class S3(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class S3(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u32),
                        ("b", prophy.u8)]
 
     assert 4 == S3._ALIGNMENT
     assert 8 == S3._SIZE
 
-    class S4(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class S4(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.array(prophy.u8, size = 7)),
                        ("b", prophy.u32)]
 
     assert 4 == S4._ALIGNMENT
     assert 12 == S4._SIZE
 
-    class U(prophy.union):
-        __metaclass__ = prophy.union_generator
+    class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u8, 0),
                        ("b", prophy.u16, 1),
                        ("c", prophy.u32, 2)]
 
-    class S5(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class S5(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8),
                        ("b", U),
                        ("c", prophy.u8)]
@@ -349,8 +327,7 @@ def test_struct_padded():
     assert 16 == S5._SIZE
 
 def test_struct_partially_padded():
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u8),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
                        ("y", prophy.u32),
@@ -359,8 +336,7 @@ def test_struct_partially_padded():
     assert X._ALIGNMENT == 8
     assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in X._descriptor] == [None, 8, None, None]
 
-    class Y(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u8),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
                        ("y_len", prophy.u32),
@@ -371,8 +347,7 @@ def test_struct_partially_padded():
     assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in Y._descriptor] == [None, 4, None, 8, None]
 
 def test_bytes_partially_padded():
-    class Y(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u8),
                        ("x", prophy.bytes(bound = "x_len")),
                        ("y_len", prophy.u32),
@@ -383,8 +358,7 @@ def test_bytes_partially_padded():
     assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in Y._descriptor] == [None, 4, None, 8, None]
 
 def test_empty_struct():
-    class E(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class E(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = []
 
     assert 0 == E._SIZE
@@ -395,8 +369,7 @@ def test_empty_struct():
     assert None == E._BOUND
 
 def test_union_attributes():
-    class U(prophy.union):
-        __metaclass__ = prophy.union_generator
+    class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u8, 0),
                        ("b", prophy.u16, 1),
                        ("c", prophy.u32, 2)]
