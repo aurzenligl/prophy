@@ -2,6 +2,8 @@
 #define _PROPHY_DETAIL_MESSAGE_IMPL_HPP_
 
 #include <stdint.h>
+#include <string>
+#include <iosfwd>
 #include <prophy/endianness.hpp>
 
 namespace prophy
@@ -17,6 +19,8 @@ struct message_impl
 
     template <endianness E>
     static bool decode(T& x, const uint8_t*& pos, const uint8_t* end);
+
+    static void print(const T& x, std::ostream& out);
 };
 
 } // namespace detail

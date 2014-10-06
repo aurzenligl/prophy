@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
 #include <prophy/detail/decoder.hpp>
+#include <prophy/detail/printer.hpp>
 #include <prophy/detail/align.hpp>
 
 namespace prophy
@@ -35,6 +36,14 @@ template bool message_impl<Builtin>::decode<little>(Builtin& x, const uint8_t*& 
 template bool message_impl<Builtin>::decode<big>(Builtin& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<Builtin>::print(const Builtin& x, std::ostream& out)
+{
+    do_print(out, "x", x.x);
+    do_print(out, "y", x.y);
+}
+template void message_impl<Builtin>::print(const Builtin& x, std::ostream& out);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<BuiltinFixed>::encode(const BuiltinFixed& x, uint8_t* pos)
 {
@@ -56,6 +65,13 @@ bool message_impl<BuiltinFixed>::decode(BuiltinFixed& x, const uint8_t*& pos, co
 template bool message_impl<BuiltinFixed>::decode<native>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BuiltinFixed>::decode<little>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BuiltinFixed>::decode<big>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out)
+{
+    do_print(out, "x", x.x, 2);
+}
+template void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out);
 
 template <>
 template <endianness E>
@@ -81,6 +97,13 @@ bool message_impl<BuiltinDynamic>::decode(BuiltinDynamic& x, const uint8_t*& pos
 template bool message_impl<BuiltinDynamic>::decode<native>(BuiltinDynamic& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BuiltinDynamic>::decode<little>(BuiltinDynamic& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BuiltinDynamic>::decode<big>(BuiltinDynamic& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<BuiltinDynamic>::print(const BuiltinDynamic& x, std::ostream& out)
+{
+    do_print(out, "x", x.x.data(), x.x.size());
+}
+template void message_impl<BuiltinDynamic>::print(const BuiltinDynamic& x, std::ostream& out);
 
 template <>
 template <endianness E>
@@ -110,6 +133,13 @@ template bool message_impl<BuiltinLimited>::decode<little>(BuiltinLimited& x, co
 template bool message_impl<BuiltinLimited>::decode<big>(BuiltinLimited& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<BuiltinLimited>::print(const BuiltinLimited& x, std::ostream& out)
+{
+    do_print(out, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
+}
+template void message_impl<BuiltinLimited>::print(const BuiltinLimited& x, std::ostream& out);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<BuiltinGreedy>::encode(const BuiltinGreedy& x, uint8_t* pos)
 {
@@ -131,6 +161,13 @@ bool message_impl<BuiltinGreedy>::decode(BuiltinGreedy& x, const uint8_t*& pos, 
 template bool message_impl<BuiltinGreedy>::decode<native>(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BuiltinGreedy>::decode<little>(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BuiltinGreedy>::decode<big>(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<BuiltinGreedy>::print(const BuiltinGreedy& x, std::ostream& out)
+{
+    do_print(out, "x", x.x.data(), x.x.size());
+}
+template void message_impl<BuiltinGreedy>::print(const BuiltinGreedy& x, std::ostream& out);
 
 template <>
 template <endianness E>

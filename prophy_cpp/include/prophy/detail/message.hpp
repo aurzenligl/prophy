@@ -1,8 +1,11 @@
 #ifndef _PROPHY_DETAIL_MESSAGE_HPP_
 #define _PROPHY_DETAIL_MESSAGE_HPP_
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <string>
+#include <vector>
+#include <sstream>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/message_impl.hpp>
 
@@ -63,6 +66,13 @@ struct message
     bool decode(const std::vector<uint8_t>& data)
     {
         return decode<native>(data);
+    }
+
+    std::string print() const
+    {
+        std::stringstream ss;
+        message_impl<T>::print(*static_cast<const T*>(this), ss);
+        return ss.str();
     }
 };
 

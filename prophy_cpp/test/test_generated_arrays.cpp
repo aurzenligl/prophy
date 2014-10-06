@@ -21,6 +21,10 @@ TEST(generated_arrays, Builtin)
     EXPECT_TRUE(x.decode(bytes("\x03\x00\x00\x00\x04\x00\x00\x00")));
     EXPECT_EQ(3, x.x);
     EXPECT_EQ(4, x.y);
+
+    EXPECT_EQ(std::string(
+            "x: 3\n"
+            "y: 4\n"), x.print());
 }
 
 TEST(generated_arrays, BuiltinFixed)
@@ -39,6 +43,10 @@ TEST(generated_arrays, BuiltinFixed)
     EXPECT_TRUE(x.decode(bytes("\x03\x00\x00\x00\x04\x00\x00\x00")));
     EXPECT_EQ(3, x.x[0]);
     EXPECT_EQ(4, x.x[1]);
+
+    EXPECT_EQ(std::string(
+            "x: 3\n"
+            "x: 4\n"), x.print());
 }
 
 TEST(generated_arrays, BuiltinDynamic)
@@ -60,6 +68,11 @@ TEST(generated_arrays, BuiltinDynamic)
     EXPECT_EQ(5, x.x[0]);
     EXPECT_EQ(3, x.x[1]);
     EXPECT_EQ(1, x.x[2]);
+
+    EXPECT_EQ(std::string(
+            "x: 5\n"
+            "x: 3\n"
+            "x: 1\n"), x.print());
 }
 
 TEST(generated_arrays, BuiltinLimited)
@@ -92,6 +105,10 @@ TEST(generated_arrays, BuiltinLimited)
     EXPECT_EQ(2, x.x.size());
     EXPECT_EQ(1, x.x[0]);
     EXPECT_EQ(2, x.x[1]);
+
+    EXPECT_EQ(std::string(
+            "x: 1\n"
+            "x: 2\n"), x.print());
 }
 
 TEST(generated_arrays, BuiltinGreedy)
@@ -113,6 +130,11 @@ TEST(generated_arrays, BuiltinGreedy)
     EXPECT_EQ(3, x.x[0]);
     EXPECT_EQ(4, x.x[1]);
     EXPECT_EQ(5, x.x[2]);
+
+    EXPECT_EQ(std::string(
+            "x: 3\n"
+            "x: 4\n"
+            "x: 5\n"), x.print());
 }
 
 TEST(generated_arrays, Fixcomp)
