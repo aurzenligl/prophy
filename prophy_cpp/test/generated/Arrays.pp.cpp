@@ -352,6 +352,13 @@ template bool message_impl<Dyncomp>::decode<little>(Dyncomp& x, const uint8_t*& 
 template bool message_impl<Dyncomp>::decode<big>(Dyncomp& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<Dyncomp>::print(const Dyncomp& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x);
+}
+template void message_impl<Dyncomp>::print(const Dyncomp& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<DyncompDynamic>::encode(const DyncompDynamic& x, uint8_t* pos)
 {
@@ -377,6 +384,13 @@ template bool message_impl<DyncompDynamic>::decode<little>(DyncompDynamic& x, co
 template bool message_impl<DyncompDynamic>::decode<big>(DyncompDynamic& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<DyncompDynamic>::print(const DyncompDynamic& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x.data(), x.x.size());
+}
+template void message_impl<DyncompDynamic>::print(const DyncompDynamic& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<DyncompGreedy>::encode(const DyncompGreedy& x, uint8_t* pos)
 {
@@ -398,6 +412,13 @@ bool message_impl<DyncompGreedy>::decode(DyncompGreedy& x, const uint8_t*& pos, 
 template bool message_impl<DyncompGreedy>::decode<native>(DyncompGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<DyncompGreedy>::decode<little>(DyncompGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<DyncompGreedy>::decode<big>(DyncompGreedy& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<DyncompGreedy>::print(const DyncompGreedy& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x.data(), x.x.size());
+}
+template void message_impl<DyncompGreedy>::print(const DyncompGreedy& x, std::ostream& out, size_t indent);
 
 } // namespace detail
 } // namespace prophy

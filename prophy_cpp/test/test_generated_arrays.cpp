@@ -326,6 +326,13 @@ TEST(generated_arrays, Dyncomp)
     EXPECT_EQ(4, x.x.x[0]);
     EXPECT_EQ(5, x.x.x[1]);
     EXPECT_EQ(6, x.x.x[2]);
+
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 4\n"
+            "  x: 5\n"
+            "  x: 6\n"
+            "}\n"), x.print());
 }
 
 TEST(generated_arrays, DyncompDynamic)
@@ -358,6 +365,15 @@ TEST(generated_arrays, DyncompDynamic)
     EXPECT_EQ(2, x.x[0].x[1]);
     EXPECT_EQ(1, x.x[1].x.size());
     EXPECT_EQ(3, x.x[1].x[0]);
+
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 1\n"
+            "  x: 2\n"
+            "}\n"
+            "x {\n"
+            "  x: 3\n"
+            "}\n"), x.print());
 }
 
 TEST(generated_arrays, DyncompGreedy)
@@ -389,4 +405,14 @@ TEST(generated_arrays, DyncompGreedy)
     EXPECT_EQ(6, x.x[0].x[2]);
     EXPECT_EQ(1, x.x[1].x.size());
     EXPECT_EQ(7, x.x[1].x[0]);
+
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 4\n"
+            "  x: 5\n"
+            "  x: 6\n"
+            "}\n"
+            "x {\n"
+            "  x: 7\n"
+            "}\n"), x.print());
 }
