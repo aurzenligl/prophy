@@ -258,6 +258,13 @@ template bool message_impl<FixcompDynamic>::decode<little>(FixcompDynamic& x, co
 template bool message_impl<FixcompDynamic>::decode<big>(FixcompDynamic& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<FixcompDynamic>::print(const FixcompDynamic& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x.data(), x.x.size());
+}
+template void message_impl<FixcompDynamic>::print(const FixcompDynamic& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<FixcompLimited>::encode(const FixcompLimited& x, uint8_t* pos)
 {
@@ -285,6 +292,13 @@ template bool message_impl<FixcompLimited>::decode<little>(FixcompLimited& x, co
 template bool message_impl<FixcompLimited>::decode<big>(FixcompLimited& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<FixcompLimited>::print(const FixcompLimited& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
+}
+template void message_impl<FixcompLimited>::print(const FixcompLimited& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<FixcompGreedy>::encode(const FixcompGreedy& x, uint8_t* pos)
 {
@@ -306,6 +320,13 @@ bool message_impl<FixcompGreedy>::decode(FixcompGreedy& x, const uint8_t*& pos, 
 template bool message_impl<FixcompGreedy>::decode<native>(FixcompGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<FixcompGreedy>::decode<little>(FixcompGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<FixcompGreedy>::decode<big>(FixcompGreedy& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<FixcompGreedy>::print(const FixcompGreedy& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x.data(), x.x.size());
+}
+template void message_impl<FixcompGreedy>::print(const FixcompGreedy& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>

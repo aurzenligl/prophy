@@ -230,6 +230,12 @@ TEST(generated_arrays, FixcompDynamic)
     EXPECT_EQ(1, x.x.size());
     EXPECT_EQ(4, x.x[0].x);
     EXPECT_EQ(5, x.x[0].y);
+
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 4\n"
+            "  y: 5\n"
+            "}\n"), x.print());
 }
 
 TEST(generated_arrays, FixcompLimited)
@@ -253,6 +259,12 @@ TEST(generated_arrays, FixcompLimited)
     EXPECT_EQ(1, x.x.size());
     EXPECT_EQ(5, x.x[0].x);
     EXPECT_EQ(6, x.x[0].y);
+
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 5\n"
+            "  y: 6\n"
+            "}\n"), x.print());
 }
 
 TEST(generated_arrays, FixcompGreedy)
@@ -280,6 +292,16 @@ TEST(generated_arrays, FixcompGreedy)
     EXPECT_EQ(4, x.x[0].y);
     EXPECT_EQ(5, x.x[1].x);
     EXPECT_EQ(6, x.x[1].y);
+
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 3\n"
+            "  y: 4\n"
+            "}\n"
+            "x {\n"
+            "  x: 5\n"
+            "  y: 6\n"
+            "}\n"), x.print());
 }
 
 TEST(generated_arrays, Dyncomp)
