@@ -45,6 +45,16 @@ struct printer<T, true>
         message_impl<T>::print(x, out, indent + 1);
         out << "}\n";
     }
+
+    static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)
+    {
+        while(n)
+        {
+            print(out, indent, name, *x);
+            ++x;
+            --n;
+        }
+    }
 };
 
 template <typename T>

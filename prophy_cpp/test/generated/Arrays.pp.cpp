@@ -226,6 +226,13 @@ template bool message_impl<FixcompFixed>::decode<little>(FixcompFixed& x, const 
 template bool message_impl<FixcompFixed>::decode<big>(FixcompFixed& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<FixcompFixed>::print(const FixcompFixed& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x, 2);
+}
+template void message_impl<FixcompFixed>::print(const FixcompFixed& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<FixcompDynamic>::encode(const FixcompDynamic& x, uint8_t* pos)
 {
