@@ -20,7 +20,7 @@ struct message_impl
     template <endianness E>
     static bool decode(T& x, const uint8_t*& pos, const uint8_t* end);
 
-    static void print(const T& x, std::ostream& out);
+    static void print(const T& x, std::ostream& out, size_t indent);
 };
 
 } // namespace detail

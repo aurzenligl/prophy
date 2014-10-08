@@ -2,6 +2,7 @@
 #define _PROPHY_DETAIL_PRINTER_HPP_
 
 #include <prophy/detail/codec_traits.hpp>
+#include <prophy/detail/message_impl.hpp>
 
 namespace prophy
 {
@@ -14,16 +15,21 @@ struct printer;
 template <typename T>
 struct printer<T, false>
 {
-    static void print(std::ostream& out, const char* name, const T& x)
+    static void print(std::ostream& out, size_t indent, const char* name, const T& x)
     {
+        while (indent)
+        {
+            out << "  ";
+            --indent;
+        }
         out << name << ": " << x << '\n';
     }
 
-    static void print(std::ostream& out, const char* name, const T* x, size_t n)
+    static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)
     {
         while(n)
         {
-            print(out, name, *x);
+            print(out, indent, name, *x);
             ++x;
             --n;
         }
@@ -31,15 +37,26 @@ struct printer<T, false>
 };
 
 template <typename T>
-inline void do_print(std::ostream& out, const char* name, const T& x)
+struct printer<T, true>
 {
-    printer<T>::print(out, name, x);
+    static void print(std::ostream& out, size_t indent, const char* name, const T& x)
+    {
+        out << name << " {\n";
+        message_impl<T>::print(x, out, indent + 1);
+        out << "}\n";
+    }
+};
+
+template <typename T>
+inline void do_print(std::ostream& out, size_t indent, const char* name, const T& x)
+{
+    printer<T>::print(out, indent, name, x);
 }
 
 template <typename T>
-inline void do_print(std::ostream& out, const char* name, const T* x, size_t n)
+inline void do_print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)
 {
-    printer<T>::print(out, name, x, n);
+    printer<T>::print(out, indent, name, x, n);
 }
 
 } // namespace detail

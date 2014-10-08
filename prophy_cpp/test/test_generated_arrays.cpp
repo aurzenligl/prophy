@@ -160,6 +160,16 @@ TEST(generated_arrays, Fixcomp)
     EXPECT_EQ(4, x.x.y);
     EXPECT_EQ(5, x.y.x);
     EXPECT_EQ(6, x.y.y);
+
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 3\n"
+            "  y: 4\n"
+            "}\n"
+            "y {\n"
+            "  x: 5\n"
+            "  y: 6\n"
+            "}\n"), x.print());
 }
 
 TEST(generated_arrays, FixcompFixed)

@@ -36,12 +36,12 @@ template bool message_impl<Builtin>::decode<little>(Builtin& x, const uint8_t*& 
 template bool message_impl<Builtin>::decode<big>(Builtin& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
-void message_impl<Builtin>::print(const Builtin& x, std::ostream& out)
+void message_impl<Builtin>::print(const Builtin& x, std::ostream& out, size_t indent)
 {
-    do_print(out, "x", x.x);
-    do_print(out, "y", x.y);
+    do_print(out, indent, "x", x.x);
+    do_print(out, indent, "y", x.y);
 }
-template void message_impl<Builtin>::print(const Builtin& x, std::ostream& out);
+template void message_impl<Builtin>::print(const Builtin& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>
@@ -67,11 +67,11 @@ template bool message_impl<BuiltinFixed>::decode<little>(BuiltinFixed& x, const 
 template bool message_impl<BuiltinFixed>::decode<big>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
-void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out)
+void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out, size_t indent)
 {
-    do_print(out, "x", x.x, 2);
+    do_print(out, indent, "x", x.x, 2);
 }
-template void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out);
+template void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>
@@ -99,11 +99,11 @@ template bool message_impl<BuiltinDynamic>::decode<little>(BuiltinDynamic& x, co
 template bool message_impl<BuiltinDynamic>::decode<big>(BuiltinDynamic& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
-void message_impl<BuiltinDynamic>::print(const BuiltinDynamic& x, std::ostream& out)
+void message_impl<BuiltinDynamic>::print(const BuiltinDynamic& x, std::ostream& out, size_t indent)
 {
-    do_print(out, "x", x.x.data(), x.x.size());
+    do_print(out, indent, "x", x.x.data(), x.x.size());
 }
-template void message_impl<BuiltinDynamic>::print(const BuiltinDynamic& x, std::ostream& out);
+template void message_impl<BuiltinDynamic>::print(const BuiltinDynamic& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>
@@ -133,11 +133,11 @@ template bool message_impl<BuiltinLimited>::decode<little>(BuiltinLimited& x, co
 template bool message_impl<BuiltinLimited>::decode<big>(BuiltinLimited& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
-void message_impl<BuiltinLimited>::print(const BuiltinLimited& x, std::ostream& out)
+void message_impl<BuiltinLimited>::print(const BuiltinLimited& x, std::ostream& out, size_t indent)
 {
-    do_print(out, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
+    do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
 }
-template void message_impl<BuiltinLimited>::print(const BuiltinLimited& x, std::ostream& out);
+template void message_impl<BuiltinLimited>::print(const BuiltinLimited& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>
@@ -163,11 +163,11 @@ template bool message_impl<BuiltinGreedy>::decode<little>(BuiltinGreedy& x, cons
 template bool message_impl<BuiltinGreedy>::decode<big>(BuiltinGreedy& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
-void message_impl<BuiltinGreedy>::print(const BuiltinGreedy& x, std::ostream& out)
+void message_impl<BuiltinGreedy>::print(const BuiltinGreedy& x, std::ostream& out, size_t indent)
 {
-    do_print(out, "x", x.x.data(), x.x.size());
+    do_print(out, indent, "x", x.x.data(), x.x.size());
 }
-template void message_impl<BuiltinGreedy>::print(const BuiltinGreedy& x, std::ostream& out);
+template void message_impl<BuiltinGreedy>::print(const BuiltinGreedy& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>
@@ -193,6 +193,14 @@ bool message_impl<Fixcomp>::decode(Fixcomp& x, const uint8_t*& pos, const uint8_
 template bool message_impl<Fixcomp>::decode<native>(Fixcomp& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<Fixcomp>::decode<little>(Fixcomp& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<Fixcomp>::decode<big>(Fixcomp& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<Fixcomp>::print(const Fixcomp& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x);
+    do_print(out, indent, "y", x.y);
+}
+template void message_impl<Fixcomp>::print(const Fixcomp& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>

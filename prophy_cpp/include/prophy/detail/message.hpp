@@ -71,7 +71,7 @@ struct message
     std::string print() const
     {
         std::stringstream ss;
-        message_impl<T>::print(*static_cast<const T*>(this), ss);
+        message_impl<T>::print(*static_cast<const T*>(this), ss, 0);
         return ss.str();
     }
 };
