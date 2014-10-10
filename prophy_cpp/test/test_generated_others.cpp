@@ -34,6 +34,13 @@ TEST(generated_others, ConstantTypedefEnum)
     EXPECT_EQ(9, x.a[2]);
     EXPECT_EQ(1, x.b);
     EXPECT_EQ(Enum_One, x.c);
+
+    EXPECT_EQ(std::string(
+            "a: 7\n"
+            "a: 8\n"
+            "a: 9\n"
+            "b: 1\n"
+            "c: Enum_One\n"), x.print());
 }
 
 TEST(generated_others, Floats)

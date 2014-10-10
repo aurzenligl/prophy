@@ -9,7 +9,27 @@ namespace prophy
 namespace detail
 {
 
-template <typename T, bool = codec_traits<T>::is_composite>
+template<class T>
+struct is_class_or_union
+{
+    struct twochar { char _[2]; };
+    template <class U>
+    static char is_class_or_union_tester(void(U::*)(void));
+    template <class U>
+    static twochar is_class_or_union_tester(...);
+    static const bool value = sizeof(is_class_or_union_tester<T>(0)) == sizeof(char);
+};
+
+template <typename T>
+struct print_traits
+{
+    static const T& get_value(const T& x)
+    {
+        return x;
+    }
+};
+
+template <typename T, bool = is_class_or_union<T>::value>
 struct printer;
 
 template <typename T>
@@ -22,7 +42,7 @@ struct printer<T, false>
             out << "  ";
             --indent;
         }
-        out << name << ": " << x << '\n';
+        out << name << ": " << print_traits<T>::get_value(x) << '\n';
     }
 
     static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)

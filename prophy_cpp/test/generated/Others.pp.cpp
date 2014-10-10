@@ -2,12 +2,26 @@
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
 #include <prophy/detail/decoder.hpp>
+#include <prophy/detail/printer.hpp>
 #include <prophy/detail/align.hpp>
 
 namespace prophy
 {
 namespace detail
 {
+
+template <>
+struct print_traits<Enum>
+{
+    static const char* get_value(Enum x)
+    {
+        switch(x)
+        {
+            case Enum_One: return "Enum_One";
+            default: return "N/A";
+        }
+    }
+};
 
 template <>
 template <endianness E>
@@ -35,6 +49,15 @@ bool message_impl<ConstantTypedefEnum>::decode(ConstantTypedefEnum& x, const uin
 template bool message_impl<ConstantTypedefEnum>::decode<native>(ConstantTypedefEnum& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<ConstantTypedefEnum>::decode<little>(ConstantTypedefEnum& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<ConstantTypedefEnum>::decode<big>(ConstantTypedefEnum& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<ConstantTypedefEnum>::print(const ConstantTypedefEnum& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "a", x.a, 3);
+    do_print(out, indent, "b", x.b);
+    do_print(out, indent, "c", x.c);
+}
+template void message_impl<ConstantTypedefEnum>::print(const ConstantTypedefEnum& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>
