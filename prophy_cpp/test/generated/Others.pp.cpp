@@ -11,18 +11,15 @@ namespace detail
 {
 
 template <>
-struct print_traits<Enum>
+const char* print_traits<Enum>::to_literal(Enum x)
 {
-    static const char* to_literal(Enum x)
+    switch(x)
     {
-        switch(x)
-        {
-            case Enum_One: return "Enum_One";
-            case Enum_Two: return "Enum_Two";
-            default: return 0;
-        }
+        case Enum_One: return "Enum_One";
+        case Enum_Two: return "Enum_Two";
+        default: return 0;
     }
-};
+}
 
 template <>
 template <endianness E>
