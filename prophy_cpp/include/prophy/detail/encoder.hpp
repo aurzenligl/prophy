@@ -137,11 +137,12 @@ inline void encode_int<big, double>(uint8_t* out, const double& in)
 
 template <endianness E, typename T,
           bool = codec_traits<T>::is_composite,
+          bool = codec_traits<T>::is_enum_or_bool,
           bool = codec_traits<T>::size == -1>
 struct encoder;
 
 template <endianness E, typename T>
-struct encoder<E, T, false, false>
+struct encoder<E, T, false, false, false>
 {
     static uint8_t* encode(uint8_t* data, const T& x)
     {
@@ -162,7 +163,28 @@ struct encoder<E, T, false, false>
 };
 
 template <endianness E, typename T>
-struct encoder<E, T, true, false>
+struct encoder<E, T, false, true, false>
+{
+    static uint8_t* encode(uint8_t* data, const T& x)
+    {
+        encode_int<E>(data, uint32_t(x));
+        return data + sizeof(uint32_t);
+    }
+    static uint8_t* encode(uint8_t* data, const T* x, size_t n)
+    {
+        while (n)
+        {
+            encode_int<E>(data, uint32_t(*x));
+            data += sizeof(uint32_t);
+            ++x;
+            --n;
+        }
+        return data;
+    }
+};
+
+template <endianness E, typename T>
+struct encoder<E, T, true, false, false>
 {
     static uint8_t* encode(uint8_t* data, const T& x)
     {
@@ -183,7 +205,7 @@ struct encoder<E, T, true, false>
 };
 
 template <endianness E, typename T>
-struct encoder<E, T, true, true>
+struct encoder<E, T, true, false, true>
 {
     static uint8_t* encode(uint8_t* data, const T& x)
     {

@@ -9,31 +9,19 @@ namespace prophy
 namespace detail
 {
 
-template<class T>
-struct is_class_or_union
-{
-    struct twochar { char _[2]; };
-    template <class U>
-    static char is_class_or_union_tester(void(U::*)(void));
-    template <class U>
-    static twochar is_class_or_union_tester(...);
-    static const bool value = sizeof(is_class_or_union_tester<T>(0)) == sizeof(char);
-};
-
 template <typename T>
 struct print_traits
 {
-    static const T& get_value(const T& x)
-    {
-        return x;
-    }
+    static const char* to_literal(T x);
 };
 
-template <typename T, bool = is_class_or_union<T>::value>
+template <typename T,
+          bool = codec_traits<T>::is_composite,
+          bool = codec_traits<T>::is_enum_or_bool>
 struct printer;
 
 template <typename T>
-struct printer<T, false>
+struct printer<T, false, false>
 {
     static void print(std::ostream& out, size_t indent, const char* name, const T& x)
     {
@@ -42,7 +30,7 @@ struct printer<T, false>
             out << "  ";
             --indent;
         }
-        out << name << ": " << print_traits<T>::get_value(x) << '\n';
+        out << name << ": " << x << '\n';
     }
 
     static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)
@@ -57,7 +45,31 @@ struct printer<T, false>
 };
 
 template <typename T>
-struct printer<T, true>
+struct printer<T, false, true>
+{
+    static void print(std::ostream& out, size_t indent, const char* name, const T& x)
+    {
+        while (indent)
+        {
+            out << "  ";
+            --indent;
+        }
+        out << name << ": " << print_traits<T>::to_literal(x) << '\n';
+    }
+
+    static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)
+    {
+        while(n)
+        {
+            print(out, indent, name, *x);
+            ++x;
+            --n;
+        }
+    }
+};
+
+template <typename T>
+struct printer<T, true, false>
 {
     static void print(std::ostream& out, size_t indent, const char* name, const T& x)
     {

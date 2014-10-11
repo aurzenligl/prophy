@@ -13,7 +13,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<Union>::encode(const Union& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, uint32_t(x.discriminator));
+    pos = do_encode<E>(pos, x.discriminator);
     switch(x.discriminator)
     {
         case Union::discriminator_a: do_encode<E>(pos, x.a); break;
@@ -31,7 +31,7 @@ template <>
 template <endianness E>
 bool message_impl<Union>::decode(Union& x, const uint8_t*& pos, const uint8_t* end)
 {
-    if (!do_decode_as_u32<E>(x.discriminator, pos, end)) return false;
+    if (!do_decode<E>(x.discriminator, pos, end)) return false;
     switch(x.discriminator)
     {
         case Union::discriminator_a: if (!do_decode_in_place<E>(x.a, pos, end)) return false; break;
@@ -49,7 +49,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<BuiltinOptional>::encode(const BuiltinOptional& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, uint32_t(x.has_x));
+    pos = do_encode<E>(pos, x.has_x);
     if (x.has_x) do_encode<E>(pos, x.x);
     pos = pos + 4;
     return pos;
@@ -63,7 +63,7 @@ template <endianness E>
 bool message_impl<BuiltinOptional>::decode(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_as_u32<E>(x.has_x, pos, end) &&
+        do_decode<E>(x.has_x, pos, end) &&
         do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
         do_decode_advance(4, pos, end)
     );
@@ -76,7 +76,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<FixcompOptional>::encode(const FixcompOptional& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, uint32_t(x.has_x));
+    pos = do_encode<E>(pos, x.has_x);
     if (x.has_x) do_encode<E>(pos, x.x);
     pos = pos + 8;
     return pos;
@@ -90,7 +90,7 @@ template <endianness E>
 bool message_impl<FixcompOptional>::decode(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_as_u32<E>(x.has_x, pos, end) &&
+        do_decode<E>(x.has_x, pos, end) &&
         do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
         do_decode_advance(8, pos, end)
     );

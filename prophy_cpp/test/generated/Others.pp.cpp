@@ -13,7 +13,7 @@ namespace detail
 template <>
 struct print_traits<Enum>
 {
-    static const char* get_value(Enum x)
+    static const char* to_literal(Enum x)
     {
         switch(x)
         {
@@ -29,7 +29,7 @@ uint8_t* message_impl<ConstantTypedefEnum>::encode(const ConstantTypedefEnum& x,
 {
     pos = do_encode<E>(pos, x.a, 3);
     pos = do_encode<E>(pos, x.b);
-    pos = do_encode<E>(pos, uint32_t(x.c));
+    pos = do_encode<E>(pos, x.c);
     return pos;
 }
 template uint8_t* message_impl<ConstantTypedefEnum>::encode<native>(const ConstantTypedefEnum& x, uint8_t* pos);
@@ -43,7 +43,7 @@ bool message_impl<ConstantTypedefEnum>::decode(ConstantTypedefEnum& x, const uin
     return (
         do_decode<E>(x.a, 3, pos, end) &&
         do_decode<E>(x.b, pos, end) &&
-        do_decode_as_u32<E>(x.c, pos, end)
+        do_decode<E>(x.c, pos, end)
     );
 }
 template bool message_impl<ConstantTypedefEnum>::decode<native>(ConstantTypedefEnum& x, const uint8_t*& pos, const uint8_t* end);

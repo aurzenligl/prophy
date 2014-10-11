@@ -279,7 +279,7 @@ uint8_t* message_impl<UnionpadOptionalboolpad>::encode(const UnionpadOptionalboo
 {
     pos = do_encode<E>(pos, x.x);
     pos = pos + 3;
-    pos = do_encode<E>(pos, uint32_t(x.has_y));
+    pos = do_encode<E>(pos, x.has_y);
     if (x.has_y) do_encode<E>(pos, x.y);
     pos = pos + 1;
     pos = pos + 3;
@@ -296,7 +296,7 @@ bool message_impl<UnionpadOptionalboolpad>::decode(UnionpadOptionalboolpad& x, c
     return (
         do_decode<E>(x.x, pos, end) &&
         do_decode_advance(3, pos, end) &&
-        do_decode_as_u32<E>(x.has_y, pos, end) &&
+        do_decode<E>(x.has_y, pos, end) &&
         do_decode_in_place_optional<E>(x.y, x.has_y, pos, end) &&
         do_decode_advance(1, pos, end) &&
         do_decode_advance(3, pos, end)
@@ -310,7 +310,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<UnionpadOptionalvaluepad>::encode(const UnionpadOptionalvaluepad& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, uint32_t(x.has_x));
+    pos = do_encode<E>(pos, x.has_x);
     pos = pos + 4;
     if (x.has_x) do_encode<E>(pos, x.x);
     pos = pos + 8;
@@ -325,7 +325,7 @@ template <endianness E>
 bool message_impl<UnionpadOptionalvaluepad>::decode(UnionpadOptionalvaluepad& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_as_u32<E>(x.has_x, pos, end) &&
+        do_decode<E>(x.has_x, pos, end) &&
         do_decode_advance(4, pos, end) &&
         do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
         do_decode_advance(8, pos, end)
@@ -339,7 +339,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<UnionpadDiscpad_Helper>::encode(const UnionpadDiscpad_Helper& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, uint32_t(x.discriminator));
+    pos = do_encode<E>(pos, x.discriminator);
     switch(x.discriminator)
     {
         case UnionpadDiscpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
@@ -355,7 +355,7 @@ template <>
 template <endianness E>
 bool message_impl<UnionpadDiscpad_Helper>::decode(UnionpadDiscpad_Helper& x, const uint8_t*& pos, const uint8_t* end)
 {
-    if (!do_decode_as_u32<E>(x.discriminator, pos, end)) return false;
+    if (!do_decode<E>(x.discriminator, pos, end)) return false;
     switch(x.discriminator)
     {
         case UnionpadDiscpad_Helper::discriminator_a: if (!do_decode_in_place<E>(x.a, pos, end)) return false; break;
@@ -398,7 +398,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<UnionpadArmpad_Helper>::encode(const UnionpadArmpad_Helper& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, uint32_t(x.discriminator));
+    pos = do_encode<E>(pos, x.discriminator);
     pos = pos + 4;
     switch(x.discriminator)
     {
@@ -416,7 +416,7 @@ template <>
 template <endianness E>
 bool message_impl<UnionpadArmpad_Helper>::decode(UnionpadArmpad_Helper& x, const uint8_t*& pos, const uint8_t* end)
 {
-    if (!do_decode_as_u32<E>(x.discriminator, pos, end)) return false;
+    if (!do_decode<E>(x.discriminator, pos, end)) return false;
     if (!do_decode_advance(4, pos, end)) return false;
     switch(x.discriminator)
     {

@@ -138,11 +138,12 @@ inline void decode_int<big, double>(double& x, const uint8_t* pos)
 
 template <endianness E, typename T,
           bool = codec_traits<T>::is_composite,
+          bool = codec_traits<T>::is_enum_or_bool,
           bool = codec_traits<T>::size == -1>
 struct decoder;
 
 template <endianness E, typename T>
-struct decoder<E, T, false, false>
+struct decoder<E, T, false, false, false>
 {
     static bool decode(T& x, const uint8_t*& pos, const uint8_t* end)
     {
@@ -173,7 +174,42 @@ struct decoder<E, T, false, false>
 };
 
 template <endianness E, typename T>
-struct decoder<E, T, true, false>
+struct decoder<E, T, false, true, false>
+{
+    static bool decode(T& x, const uint8_t*& pos, const uint8_t* end)
+    {
+        if (size_t(end - pos) < sizeof(uint32_t))
+        {
+            return false;
+        }
+        uint32_t data;
+        decode_int<E>(data, pos);
+        x = static_cast<T>(data);
+        pos += sizeof(uint32_t);
+        return true;
+    }
+
+    static bool decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
+    {
+        if (size_t(end - pos) < n * sizeof(uint32_t))
+        {
+            return false;
+        }
+        while (n)
+        {
+            uint32_t data;
+            decode_int<E>(data, pos);
+            *x = static_cast<T>(data);
+            pos += sizeof(uint32_t);
+            ++x;
+            --n;
+        }
+        return true;
+    }
+};
+
+template <endianness E, typename T>
+struct decoder<E, T, true, false, false>
 {
     static bool decode(T& x, const uint8_t*& pos, const uint8_t* end)
     {
@@ -196,7 +232,7 @@ struct decoder<E, T, true, false>
 };
 
 template <endianness E, typename T>
-struct decoder<E, T, true, true>
+struct decoder<E, T, true, false, true>
 {
     static bool decode(T& x, const uint8_t*& pos, const uint8_t* end)
     {
@@ -261,18 +297,6 @@ template <endianness E, typename T>
 inline bool do_decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, n, pos, end);
-}
-
-template <endianness E, typename T>
-inline bool do_decode_as_u32(T& x, const uint8_t*& pos, const uint8_t* end)
-{
-    uint32_t data;
-    if (!decoder<E, uint32_t>::decode(data, pos, end))
-    {
-        return false;
-    }
-    x = static_cast<T>(data);
-    return true;
 }
 
 template <endianness E, typename T>
