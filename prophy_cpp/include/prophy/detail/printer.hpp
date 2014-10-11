@@ -54,7 +54,17 @@ struct printer<T, false, true>
             out << "  ";
             --indent;
         }
-        out << name << ": " << print_traits<T>::to_literal(x) << '\n';
+        const char* literal = print_traits<T>::to_literal(x);
+        out << name << ": ";
+        if (literal)
+        {
+            out << literal;
+        }
+        else
+        {
+            out << uint32_t(x);
+        }
+        out << '\n';
     }
 
     static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)

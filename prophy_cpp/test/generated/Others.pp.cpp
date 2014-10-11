@@ -18,7 +18,8 @@ struct print_traits<Enum>
         switch(x)
         {
             case Enum_One: return "Enum_One";
-            default: return "N/A";
+            case Enum_Two: return "Enum_Two";
+            default: return 0;
         }
     }
 };
@@ -58,6 +59,38 @@ void message_impl<ConstantTypedefEnum>::print(const ConstantTypedefEnum& x, std:
     do_print(out, indent, "c", x.c);
 }
 template void message_impl<ConstantTypedefEnum>::print(const ConstantTypedefEnum& x, std::ostream& out, size_t indent);
+
+template <>
+template <endianness E>
+uint8_t* message_impl<DynEnum>::encode(const DynEnum& x, uint8_t* pos)
+{
+    pos = do_encode<E>(pos, uint32_t(x.x.size()));
+    pos = do_encode<E>(pos, x.x.data(), x.x.size());
+    return pos;
+}
+template uint8_t* message_impl<DynEnum>::encode<native>(const DynEnum& x, uint8_t* pos);
+template uint8_t* message_impl<DynEnum>::encode<little>(const DynEnum& x, uint8_t* pos);
+template uint8_t* message_impl<DynEnum>::encode<big>(const DynEnum& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<DynEnum>::decode(DynEnum& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end)
+    );
+}
+template bool message_impl<DynEnum>::decode<native>(DynEnum& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<DynEnum>::decode<little>(DynEnum& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<DynEnum>::decode<big>(DynEnum& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<DynEnum>::print(const DynEnum& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x.data(), x.x.size());
+}
+template void message_impl<DynEnum>::print(const DynEnum& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>

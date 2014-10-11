@@ -15,7 +15,8 @@ typedef uint16_t TU16;
 
 enum Enum
 {
-    Enum_One = 1
+    Enum_One = 1,
+    Enum_Two = 2
 };
 
 struct ConstantTypedefEnum : prophy::detail::message<ConstantTypedefEnum>
@@ -31,6 +32,20 @@ struct ConstantTypedefEnum : prophy::detail::message<ConstantTypedefEnum>
     size_t get_byte_size() const
     {
         return 12;
+    }
+};
+
+struct DynEnum : prophy::detail::message<DynEnum>
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<Enum> x;
+
+    DynEnum() { }
+
+    size_t get_byte_size() const
+    {
+        return 4 + x.size() * 4;
     }
 };
 

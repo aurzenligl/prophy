@@ -43,6 +43,41 @@ TEST(generated_others, ConstantTypedefEnum)
             "c: Enum_One\n"), x.print());
 }
 
+TEST(generated_others, DynEnum)
+{
+    std::vector<char> data(1024);
+
+    DynEnum x;
+    x.x.push_back(Enum_One);
+    x.x.push_back(Enum_Two);
+    x.x.push_back(static_cast<Enum>(3));
+    size_t size = x.encode(data.data());
+
+    EXPECT_EQ(16, size);
+    EXPECT_EQ(size, x.get_byte_size());
+    EXPECT_EQ(bytes(
+            "\x03\x00\x00\x00"
+            "\x01\x00\x00\x00"
+            "\x02\x00\x00\x00"
+            "\x03\x00\x00\x00"),
+            bytes(data.data(), size));
+
+    EXPECT_TRUE(x.decode(bytes(
+            "\x03\x00\x00\x00"
+            "\x03\x00\x00\x00"
+            "\x02\x00\x00\x00"
+            "\x01\x00\x00\x00")));
+    EXPECT_EQ(3, x.x.size());
+    EXPECT_EQ(static_cast<Enum>(3), x.x[0]);
+    EXPECT_EQ(Enum_Two, x.x[1]);
+    EXPECT_EQ(Enum_One, x.x[2]);
+
+    EXPECT_EQ(std::string(
+            "x: 3\n"
+            "x: Enum_Two\n"
+            "x: Enum_One\n"), x.print());
+}
+
 TEST(generated_others, Floats)
 {
     std::vector<char> data(1024);
