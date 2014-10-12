@@ -99,6 +99,13 @@ TEST(generated_others, Floats)
             "\x00\x00\x00\x00\x00\x00\x24\x40")));
     EXPECT_EQ(10, x.a);
     EXPECT_EQ(10, x.b);
+
+    x.a = -1.2;
+    x.b = 12.567;
+
+    EXPECT_EQ(std::string(
+            "a: -1.2\n"
+            "b: 12.567\n"), x.print());
 }
 
 TEST(generated_others, BytesFixed)

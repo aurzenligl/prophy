@@ -117,6 +117,14 @@ template bool message_impl<Floats>::decode<little>(Floats& x, const uint8_t*& po
 template bool message_impl<Floats>::decode<big>(Floats& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<Floats>::print(const Floats& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "a", x.a);
+    do_print(out, indent, "b", x.b);
+}
+template void message_impl<Floats>::print(const Floats& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<BytesFixed>::encode(const BytesFixed& x, uint8_t* pos)
 {
