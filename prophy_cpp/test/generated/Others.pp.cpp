@@ -148,6 +148,13 @@ template bool message_impl<BytesFixed>::decode<little>(BytesFixed& x, const uint
 template bool message_impl<BytesFixed>::decode<big>(BytesFixed& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<BytesFixed>::print(const BytesFixed& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", std::make_pair(x.x, size_t(3)));
+}
+template void message_impl<BytesFixed>::print(const BytesFixed& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<BytesDynamic>::encode(const BytesDynamic& x, uint8_t* pos)
 {
@@ -173,6 +180,13 @@ bool message_impl<BytesDynamic>::decode(BytesDynamic& x, const uint8_t*& pos, co
 template bool message_impl<BytesDynamic>::decode<native>(BytesDynamic& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BytesDynamic>::decode<little>(BytesDynamic& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BytesDynamic>::decode<big>(BytesDynamic& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<BytesDynamic>::print(const BytesDynamic& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", std::make_pair(x.x.data(), x.x.size()));
+}
+template void message_impl<BytesDynamic>::print(const BytesDynamic& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>
@@ -202,6 +216,13 @@ template bool message_impl<BytesLimited>::decode<little>(BytesLimited& x, const 
 template bool message_impl<BytesLimited>::decode<big>(BytesLimited& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<BytesLimited>::print(const BytesLimited& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", std::make_pair(x.x.data(), std::min(x.x.size(), size_t(4))));
+}
+template void message_impl<BytesLimited>::print(const BytesLimited& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<BytesGreedy>::encode(const BytesGreedy& x, uint8_t* pos)
 {
@@ -223,6 +244,13 @@ bool message_impl<BytesGreedy>::decode(BytesGreedy& x, const uint8_t*& pos, cons
 template bool message_impl<BytesGreedy>::decode<native>(BytesGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BytesGreedy>::decode<little>(BytesGreedy& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<BytesGreedy>::decode<big>(BytesGreedy& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<BytesGreedy>::print(const BytesGreedy& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", std::make_pair(x.x.data(), x.x.size()));
+}
+template void message_impl<BytesGreedy>::print(const BytesGreedy& x, std::ostream& out, size_t indent);
 
 } // namespace detail
 } // namespace prophy

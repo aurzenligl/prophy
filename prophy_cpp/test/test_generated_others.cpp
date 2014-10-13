@@ -129,6 +129,9 @@ TEST(generated_others, BytesFixed)
     EXPECT_EQ('d', x.x[0]);
     EXPECT_EQ('e', x.x[1]);
     EXPECT_EQ('f', x.x[2]);
+
+    EXPECT_EQ(std::string(
+            "x: 'def'\n"), x.print());
 }
 
 TEST(generated_others, BytesDynamic)
@@ -150,6 +153,21 @@ TEST(generated_others, BytesDynamic)
             "\x06\x00\x00\x00"
             "qwerty" "\x00\x00")));
     EXPECT_EQ(bytes("qwerty"), x.x);
+
+    x.x.clear();
+    x.x.push_back(9);
+    x.x.push_back(10);
+    x.x.push_back(13);
+    x.x.push_back(92);
+    x.x.push_back(65);
+    x.x.push_back(108);
+    x.x.push_back(97);
+    x.x.push_back(190);
+    x.x.push_back(240);
+
+    EXPECT_EQ(4 + 19 + 2, x.print().size());
+    EXPECT_EQ(std::string(
+            "x: '\\t\\n\\r\\\\Ala\\xbe\\xf0'\n"), x.print());
 }
 
 TEST(generated_others, BytesLimited)
@@ -171,6 +189,9 @@ TEST(generated_others, BytesLimited)
             "\x03\x00\x00\x00"
             "abc\x00")));
     EXPECT_EQ(bytes("abc"), x.x);
+
+    EXPECT_EQ(std::string(
+            "x: 'abc'\n"), x.print());
 }
 
 TEST(generated_others, BytesGreedy)
@@ -190,4 +211,7 @@ TEST(generated_others, BytesGreedy)
     EXPECT_TRUE(x.decode(bytes(
             "qasw")));
     EXPECT_EQ(bytes("qasw"), x.x);
+
+    EXPECT_EQ(std::string(
+            "x: 'qasw'\n"), x.print());
 }

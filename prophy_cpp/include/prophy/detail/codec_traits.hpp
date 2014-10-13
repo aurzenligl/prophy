@@ -109,6 +109,15 @@ struct codec_traits<T, false>
     enum { size = sizeof(uint32_t) };
 };
 
+/// bytes
+template <>
+struct codec_traits<std::pair<const uint8_t*, size_t>, true>
+{
+    enum { is_composite = false };
+    enum { is_enum_or_bool = false };
+    enum { size = -1 };
+};
+
 } // namespace detail
 } // namespace prophy
 

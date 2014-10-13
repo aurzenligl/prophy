@@ -15,6 +15,41 @@ struct print_traits
     static const char* to_literal(T x);
 };
 
+inline void print_byte(std::ostream& out, uint8_t x)
+{
+    switch (x)
+    {
+        case 9: out << "\\t"; return;
+        case 10: out << "\\n"; return;
+        case 13: out << "\\r"; return;
+        case 92: out << "\\\\"; return;
+    }
+    if ((x >= 32) && (x <= 126))
+    {
+        out << char(x);
+    }
+    else
+    {
+        out << "\\x";
+        out.width(2);
+        out.fill('0');
+        out << std::hex << unsigned(x);
+    }
+}
+
+inline std::ostream& operator<<(std::ostream& out, std::pair<const uint8_t*, size_t> bytes)
+{
+    out << '\'';
+    while (bytes.second)
+    {
+        print_byte(out, *bytes.first);
+        ++bytes.first;
+        --bytes.second;
+    }
+    out << '\'';
+    return out;
+}
+
 template <typename T,
           bool = codec_traits<T>::is_composite,
           bool = codec_traits<T>::is_enum_or_bool>
