@@ -99,11 +99,15 @@ TEST(generated_unions, BuiltinOptional)
     EXPECT_TRUE(x.decode(bytes(
             "\x00\x00\x00\x00\x00\x00\x00\x00")));
     EXPECT_FALSE(x.has_x);
+    EXPECT_EQ(std::string(
+            ""), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
             "\x01\x00\x00\x00\x05\x00\x00\x00")));
     EXPECT_TRUE(x.has_x);
     EXPECT_EQ(5, x.x);
+    EXPECT_EQ(std::string(
+            "x: 5\n"), x.print());
 }
 
 TEST(generated_unions, FixcompOptional)
@@ -137,10 +141,17 @@ TEST(generated_unions, FixcompOptional)
     EXPECT_TRUE(x.decode(bytes(
             "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")));
     EXPECT_FALSE(x.has_x);
+    EXPECT_EQ(std::string(
+            ""), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
             "\x01\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00")));
     EXPECT_TRUE(x.has_x);
     EXPECT_EQ(7, x.x.x);
     EXPECT_EQ(8, x.x.y);
+    EXPECT_EQ(std::string(
+            "x {\n"
+            "  x: 7\n"
+            "  y: 8\n"
+            "}\n"), x.print());
 }

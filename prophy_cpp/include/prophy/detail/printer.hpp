@@ -37,6 +37,12 @@ inline void print_byte(std::ostream& out, uint8_t x)
     }
 }
 
+inline std::ostream& operator<<(std::ostream& out, int8_t x)
+{
+    out << int(x);
+    return out;
+}
+
 inline std::ostream& operator<<(std::ostream& out, uint8_t x)
 {
     out << unsigned(x);

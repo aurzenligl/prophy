@@ -86,6 +86,13 @@ template bool message_impl<BuiltinOptional>::decode<little>(BuiltinOptional& x, 
 template bool message_impl<BuiltinOptional>::decode<big>(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end);
 
 template <>
+void message_impl<BuiltinOptional>::print(const BuiltinOptional& x, std::ostream& out, size_t indent)
+{
+    if (x.has_x) do_print(out, indent, "x", x.x);
+}
+template void message_impl<BuiltinOptional>::print(const BuiltinOptional& x, std::ostream& out, size_t indent);
+
+template <>
 template <endianness E>
 uint8_t* message_impl<FixcompOptional>::encode(const FixcompOptional& x, uint8_t* pos)
 {
@@ -111,6 +118,13 @@ bool message_impl<FixcompOptional>::decode(FixcompOptional& x, const uint8_t*& p
 template bool message_impl<FixcompOptional>::decode<native>(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<FixcompOptional>::decode<little>(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<FixcompOptional>::decode<big>(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<FixcompOptional>::print(const FixcompOptional& x, std::ostream& out, size_t indent)
+{
+    if (x.has_x) do_print(out, indent, "x", x.x);
+}
+template void message_impl<FixcompOptional>::print(const FixcompOptional& x, std::ostream& out, size_t indent);
 
 } // namespace detail
 } // namespace prophy
