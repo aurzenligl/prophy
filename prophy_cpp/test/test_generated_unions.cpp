@@ -46,12 +46,16 @@ TEST(generated_unions, Union)
             "\x04\x00\x00\x00\x00\x00\x00\x00")));
     EXPECT_EQ(Union::discriminator_a, x.discriminator);
     EXPECT_EQ(4, x.a);
+    EXPECT_EQ(std::string(
+            "a: 4\n"), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
             "\x02\x00\x00\x00"
             "\x08\x00\x00\x00\x00\x00\x00\x00")));
     EXPECT_EQ(Union::discriminator_b, x.discriminator);
     EXPECT_EQ(8, x.b);
+    EXPECT_EQ(std::string(
+            "b: 8\n"), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
             "\x03\x00\x00\x00"
@@ -59,6 +63,11 @@ TEST(generated_unions, Union)
     EXPECT_EQ(Union::discriminator_c, x.discriminator);
     EXPECT_EQ(1, x.c.x);
     EXPECT_EQ(2, x.c.y);
+    EXPECT_EQ(std::string(
+            "c {\n"
+            "  x: 1\n"
+            "  y: 2\n"
+            "}\n"), x.print());
 }
 
 TEST(generated_unions, BuiltinOptional)

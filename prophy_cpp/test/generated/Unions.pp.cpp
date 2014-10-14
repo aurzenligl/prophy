@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
 #include <prophy/detail/decoder.hpp>
+#include <prophy/detail/printer.hpp>
 #include <prophy/detail/align.hpp>
 
 namespace prophy
@@ -44,6 +45,18 @@ bool message_impl<Union>::decode(Union& x, const uint8_t*& pos, const uint8_t* e
 template bool message_impl<Union>::decode<native>(Union& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<Union>::decode<little>(Union& x, const uint8_t*& pos, const uint8_t* end);
 template bool message_impl<Union>::decode<big>(Union& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<Union>::print(const Union& x, std::ostream& out, size_t indent)
+{
+    switch(x.discriminator)
+    {
+        case Union::discriminator_a: do_print(out, indent, "a", x.a); break;
+        case Union::discriminator_b: do_print(out, indent, "b", x.b); break;
+        case Union::discriminator_c: do_print(out, indent, "c", x.c); break;
+    }
+}
+template void message_impl<Union>::print(const Union& x, std::ostream& out, size_t indent);
 
 template <>
 template <endianness E>

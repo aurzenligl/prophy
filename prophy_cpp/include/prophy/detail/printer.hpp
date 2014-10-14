@@ -37,6 +37,12 @@ inline void print_byte(std::ostream& out, uint8_t x)
     }
 }
 
+inline std::ostream& operator<<(std::ostream& out, uint8_t x)
+{
+    out << unsigned(x);
+    return out;
+}
+
 inline std::ostream& operator<<(std::ostream& out, std::pair<const uint8_t*, size_t> bytes)
 {
     out << '\'';
