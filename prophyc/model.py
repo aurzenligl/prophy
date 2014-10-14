@@ -92,8 +92,20 @@ class StructMember(object):
     def greedy(self):
         return self.array and not self.bound and not self.size
 
-Union = namedtuple("Union", ["name", "members"])
-UnionMember = namedtuple("UnionMember", ["name", "type", "discriminator"])
+class Union(object):
+
+    def __init__(self, name, members):
+        self.name = name
+        self.members = members
+
+        self.kind = Kind.FIXED
+
+    def __cmp__(self, other):
+        return (cmp(self.name, other.name) or
+                cmp(self.members, other.members))
+
+    def __repr__(self):
+        return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
 
 class UnionMember(object):
 
