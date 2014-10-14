@@ -183,11 +183,9 @@ def cross_reference(nodes):
             map(do_cross_reference, node.members)
 
 def evaluate_node_kind(node):
-    if isinstance(node, Typedef):
-        while isinstance(node, Typedef):
-            node = node.definition
-        return evaluate_node_kind(node)
-    elif isinstance(node, Struct):
+    while isinstance(node, Typedef):
+        node = node.definition
+    if isinstance(node, Struct):
         return node.kind
     else:
         return Kind.FIXED
@@ -196,9 +194,9 @@ def evaluate_struct_kind(node):
         if node.members[-1].greedy:
             return Kind.UNLIMITED
         elif any(x.dynamic for x in node.members):
-            return  Kind.DYNAMIC
+            return Kind.DYNAMIC
         else:
-            return  max(x.kind for x in node.members)
+            return max(x.kind for x in node.members)
     else:
         return Kind.FIXED
 def evaluate_member_kind(member):
