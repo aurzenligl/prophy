@@ -381,3 +381,25 @@ def test_partition_many_dynamic_structs():
 
     assert [x.name for x in main] == ["a"]
     assert [[x.name for x in part] for part in parts] == [["b"], ["c"]]
+
+def process(nodes):
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+    model.evaluate_sizes(nodes)
+    return nodes
+
+def get_size_alignment(node):
+    return (node.byte_size, node.alignment)
+
+def test_evaluate_sizes_struct():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u16'),
+            model.StructMember('y', 'u8')
+        ])
+    ])
+    assert map(get_size_alignment, nodes[0].members) == [
+        (2, 2),
+        (1, 1)
+    ]
+    assert get_size_alignment(nodes[0]) == (4, 2)

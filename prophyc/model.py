@@ -38,6 +38,8 @@ class Struct(object):
         self.members = members
 
         self.kind = evaluate_struct_kind(self)
+        self.byte_size = None # byte size of complete struct, dynamic/greedy arrays assumed empty
+        self.alignment = None
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
@@ -62,7 +64,9 @@ class StructMember(object):
         self.optional = optional
 
         self.definition = definition
-        self.kind = evaluate_member_kind(self)
+        self.kind = evaluate_member_kind(self) # type kind, not influenced by array or optional
+        self.byte_size = None # byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy
+        self.alignment = None
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
@@ -99,6 +103,8 @@ class Union(object):
         self.members = members
 
         self.kind = Kind.FIXED
+        self.byte_size = None
+        self.alignment = None
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
@@ -117,6 +123,8 @@ class UnionMember(object):
 
         self.definition = definition
         self.kind = evaluate_member_kind(self)
+        self.byte_size = None
+        self.alignment = None
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
@@ -225,3 +233,49 @@ def partition(members):
     if members:
         current.append(members[-1])
     return main, parts
+
+builtin_byte_sizes = {
+    'u8': (1, 1),
+    'u16': (2, 2),
+    'u32': (4, 4)
+}
+def evaluate_node_size(node):
+    while isinstance(node, Typedef):
+        node = node.definition
+    if isinstance(node, (Struct, Union)):
+        return (node.byte_size, node.alignment)
+    elif isinstance(node, Enum):
+        return builtin_byte_sizes['u32']
+    else:
+        return (None, None) # unknown type, e.g. empty typedef
+def evaluate_member_size(member):
+    if member.definition:
+        return evaluate_node_size(member.definition)
+    elif member.type in builtin_byte_sizes:
+        return builtin_byte_sizes[member.type]
+    else:
+        return (None, None) # unknown type
+def evaluate_struct_size(node):
+    alignment = node.members and max(x.alignment for x in node.members) or 1
+    byte_size = 0
+    for member in node.members:
+        byte_size += (member.alignment - byte_size % member.alignment) % member.alignment
+        byte_size += member.byte_size
+    byte_size += (alignment - byte_size % alignment) % alignment
+    return (byte_size, alignment)
+def evaluate_sizes(nodes):
+    """Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
+       Requires cross referenced nodes.
+    """
+    for node in nodes:
+        if isinstance(node, (Struct, Union)):
+            for member in node.members:
+                member.byte_size, member.alignment = evaluate_member_size(member)
+            if any(member.byte_size is None for member in node.members):
+                node.byte_size, node.alignment = (None, None)
+                continue
+            if isinstance(node, Struct):
+                node.byte_size, node.alignment = evaluate_struct_size(node)
+            elif isinstance(node, Union):
+                node.byte_size = builtin_byte_sizes['u32'] + max(x.byte_size for x in node.members)
+                node.alignment = max(x.alignment for x in node.members)
