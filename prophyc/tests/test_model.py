@@ -555,3 +555,19 @@ def test_evaluate_sizes_typedef():
         (4, 4),
         (4, 4)
     ]
+
+def test_evaluate_sizes_enum():
+    nodes = process([
+        model.Enum('E', [
+            model.EnumMember('E1', '1')
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'E'),
+            model.StructMember('y', 'i8'),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (4, 4),
+        (1, 1),
+        (8, 4)
+    ]

@@ -247,6 +247,10 @@ def partition(members):
     return main, parts
 
 builtin_byte_sizes = {
+    'i8': (1, 1),
+    'i16': (2, 2),
+    'i32': (4, 4),
+    'i64': (8, 8),
     'u8': (1, 1),
     'u16': (2, 2),
     'u32': (4, 4),
