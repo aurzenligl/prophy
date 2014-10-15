@@ -134,6 +134,18 @@ class UnionMember(object):
     def __repr__(self):
         return '{0}: {1} {2}'.format(self.discriminator, self.type, self.name)
 
+""" Utils """
+
+def split_after(nodes, pred):
+    part = []
+    for x in nodes:
+        part.append(x)
+        if pred(x):
+            yield part
+            part = []
+    if part:
+        yield part
+
 """ Following functions process model. """
 
 def topological_sort(nodes):
@@ -237,7 +249,8 @@ def partition(members):
 builtin_byte_sizes = {
     'u8': (1, 1),
     'u16': (2, 2),
-    'u32': (4, 4)
+    'u32': (4, 4),
+    'u64': (8, 8)
 }
 def evaluate_node_size(node):
     while isinstance(node, Typedef):
@@ -278,6 +291,8 @@ def evaluate_sizes(nodes):
                 node.byte_size, node.alignment = (None, None)
                 continue
             if isinstance(node, Struct):
+                for part in split_after(node.members, lambda x: (x.kind == Kind.DYNAMIC) or (x.array and not x.size)):
+                    part[0].alignment = max(part[0].alignment, max(x.alignment for x in part))
                 node.byte_size, node.alignment = evaluate_struct_size(node)
             elif isinstance(node, Union):
                 node.byte_size = builtin_byte_sizes['u32'] + max(x.byte_size for x in node.members)

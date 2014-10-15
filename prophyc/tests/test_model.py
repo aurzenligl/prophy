@@ -39,6 +39,10 @@ MyUnion
     3: u32 c
 """
 
+def test_split_after():
+    generator = model.split_after([1, 42, 2, 3, 42, 42, 5], lambda x: x == 42)
+    assert [x for x in generator] == [[1, 42], [2, 3, 42], [42], [5]]
+
 def test_model_sort_enums():
     nodes = [model.Typedef("B", "A"),
              model.Typedef("C", "A"),
@@ -457,4 +461,34 @@ def test_evaluate_sizes_greedy_array():
         (4, 4),
         (0, 1),
         (4, 4)
+    ]
+
+def test_evaluate_sizes_partial_padding():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('y', 'u8'),
+            model.StructMember('z', 'u64'),
+        ]),
+        model.Struct('Y', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('num_of_y', 'u32'),
+            model.StructMember('y', 'u64', bound = 'num_of_y'),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (4, 4),
+        (0, 1),
+        (1, 8),
+        (8, 8),
+        (24, 8)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (4, 4),
+        (0, 1),
+        (4, 8),
+        (0, 8),
+        (16, 8)
     ]
