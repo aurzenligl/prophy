@@ -481,6 +481,10 @@ def test_evaluate_sizes_nested_struct():
 
 def test_evaluate_sizes_partial_padding():
     nodes = process([
+        model.Struct('D', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u32', bound = 'num_of_x')
+        ]),
         model.Struct('X', [
             model.StructMember('num_of_x', 'u32'),
             model.StructMember('x', 'u8', bound = 'num_of_x'),
@@ -492,19 +496,42 @@ def test_evaluate_sizes_partial_padding():
             model.StructMember('x', 'u8', bound = 'num_of_x'),
             model.StructMember('num_of_y', 'u32'),
             model.StructMember('y', 'u64', bound = 'num_of_y'),
+        ]),
+        model.Struct('Z', [
+            model.StructMember('d1', 'D'),
+            model.StructMember('x', 'u8'),
+            model.StructMember('d2', 'D'),
+            model.StructMember('y1', 'u8'),
+            model.StructMember('y2', 'u64'),
+            model.StructMember('d3', 'D'),
+            model.StructMember('z1', 'u8'),
+            model.StructMember('z2', 'u8'),
+            model.StructMember('z3', 'u16'),
         ])
     ])
-    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
         (4, 4),
         (0, 1),
         (1, 8),
         (8, 8),
         (24, 8)
     ]
-    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+    assert map(get_size_and_alignment, get_members_and_node(nodes[2])) == [
         (4, 4),
         (0, 1),
         (4, 8),
         (0, 8),
         (16, 8)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[3])) == [
+        (4, 4),
+        (1, 4),
+        (4, 4),
+        (1, 8),
+        (8, 8),
+        (4, 4),
+        (1, 2),
+        (1, 1),
+        (2, 2),
+        (40, 8)
     ]

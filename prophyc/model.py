@@ -281,7 +281,7 @@ def evaluate_struct_size(node):
     return (byte_size, alignment)
 def evaluate_sizes(nodes):
     """Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
-       Requires cross referenced nodes.
+       Requires cross referenced nodes and evaluated kinds.
     """
     for node in nodes:
         if isinstance(node, (Struct, Union)):
