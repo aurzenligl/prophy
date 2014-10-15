@@ -411,6 +411,22 @@ def test_evaluate_sizes_struct():
         (4, 2)
     ]
 
+def test_evaluate_sizes_nested_struct():
+    nodes = process([
+        model.Struct('U16', [
+            model.StructMember('x', 'u16'),
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'U16'),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (1, 1),
+        (2, 2),
+        (4, 2)
+    ]
+
 def test_evaluate_sizes_fixed_array():
     nodes = process([
         model.Struct('X', [
@@ -461,22 +477,6 @@ def test_evaluate_sizes_greedy_array():
         (4, 4),
         (0, 1),
         (4, 4)
-    ]
-
-def test_evaluate_sizes_nested_struct():
-    nodes = process([
-        model.Struct('U16', [
-            model.StructMember('x', 'u16'),
-        ]),
-        model.Struct('X', [
-            model.StructMember('x', 'u8'),
-            model.StructMember('y', 'U16'),
-        ])
-    ])
-    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
-        (1, 1),
-        (2, 2),
-        (4, 2)
     ]
 
 def test_evaluate_sizes_partial_padding():
@@ -534,4 +534,24 @@ def test_evaluate_sizes_partial_padding():
         (1, 1),
         (2, 2),
         (40, 8)
+    ]
+
+def test_evaluate_sizes_typedef():
+    nodes = process([
+        model.Typedef('T1', 'u32'),
+        model.Struct('X', [
+            model.StructMember('x', 'T1'),
+        ]),
+        model.Typedef('T2', 'T1'),
+        model.Struct('Y', [
+            model.StructMember('x', 'T2'),
+        ]),
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (4, 4),
+        (4, 4)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[3])) == [
+        (4, 4),
+        (4, 4)
     ]

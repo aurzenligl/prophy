@@ -253,12 +253,14 @@ builtin_byte_sizes = {
     'u64': (8, 8)
 }
 def evaluate_node_size(node):
-    while isinstance(node, Typedef):
+    while isinstance(node, Typedef) and node.definition:
         node = node.definition
     if isinstance(node, (Struct, Union)):
         return (node.byte_size, node.alignment)
     elif isinstance(node, Enum):
         return builtin_byte_sizes['u32']
+    elif node.type in builtin_byte_sizes:
+        return builtin_byte_sizes[node.type]
     else:
         return (None, None) # unknown type, e.g. empty typedef
 def evaluate_member_size(member):
