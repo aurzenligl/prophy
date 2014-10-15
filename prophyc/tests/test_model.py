@@ -432,3 +432,29 @@ def test_evaluate_sizes_dynamic_array():
         (0, 1),
         (4, 4)
     ]
+
+def test_evaluate_sizes_limited_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x', size = '2'),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (4, 4),
+        (2, 1),
+        (8, 4)
+    ]
+
+def test_evaluate_sizes_greedy_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', unlimited = True),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (4, 4),
+        (0, 1),
+        (4, 4)
+    ]
