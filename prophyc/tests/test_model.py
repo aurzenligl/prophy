@@ -463,6 +463,22 @@ def test_evaluate_sizes_greedy_array():
         (4, 4)
     ]
 
+def test_evaluate_sizes_nested_struct():
+    nodes = process([
+        model.Struct('U16', [
+            model.StructMember('x', 'u16'),
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'U16'),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (1, 1),
+        (2, 2),
+        (4, 2)
+    ]
+
 def test_evaluate_sizes_partial_padding():
     nodes = process([
         model.Struct('X', [

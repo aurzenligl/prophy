@@ -291,7 +291,8 @@ def evaluate_sizes(nodes):
                 node.byte_size, node.alignment = (None, None)
                 continue
             if isinstance(node, Struct):
-                for part in split_after(node.members, lambda x: (x.kind == Kind.DYNAMIC) or (x.array and not x.size)):
+                parts = split_after(node.members, lambda x: (x.kind == Kind.DYNAMIC) or (x.array and not x.size))
+                for part in [x for x in parts][1:]:
                     part[0].alignment = max(part[0].alignment, max(x.alignment for x in part))
                 node.byte_size, node.alignment = evaluate_struct_size(node)
             elif isinstance(node, Union):
