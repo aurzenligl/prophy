@@ -403,3 +403,16 @@ def test_evaluate_sizes_struct():
         (1, 1)
     ]
     assert get_size_alignment(nodes[0]) == (4, 2)
+
+def test_evaluate_sizes_fixed_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u8', size = '3')
+        ])
+    ])
+    assert map(get_size_alignment, nodes[0].members) == [
+        (4, 4),
+        (3, 1)
+    ]
+    assert get_size_alignment(nodes[0]) == (8, 4)

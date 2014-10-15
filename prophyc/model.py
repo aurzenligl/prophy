@@ -250,11 +250,14 @@ def evaluate_node_size(node):
         return (None, None) # unknown type, e.g. empty typedef
 def evaluate_member_size(member):
     if member.definition:
-        return evaluate_node_size(member.definition)
+        byte_size, alignment = evaluate_node_size(member.definition)
     elif member.type in builtin_byte_sizes:
-        return builtin_byte_sizes[member.type]
+        byte_size, alignment = builtin_byte_sizes[member.type]
     else:
-        return (None, None) # unknown type
+        byte_size, alignment = (None, None) # unknown type
+    if member.array and byte_size is not None:
+        byte_size = member.size and (byte_size * int(member.size)) or 0
+    return (byte_size, alignment)
 def evaluate_struct_size(node):
     alignment = node.members and max(x.alignment for x in node.members) or 1
     byte_size = 0
