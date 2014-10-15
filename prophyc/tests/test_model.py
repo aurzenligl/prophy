@@ -388,8 +388,11 @@ def process(nodes):
     model.evaluate_sizes(nodes)
     return nodes
 
-def get_size_alignment(node):
+def get_size_and_alignment(node):
     return (node.byte_size, node.alignment)
+
+def get_members_and_node(node):
+    return node.members + [node]
 
 def test_evaluate_sizes_struct():
     nodes = process([
@@ -398,11 +401,11 @@ def test_evaluate_sizes_struct():
             model.StructMember('y', 'u8')
         ])
     ])
-    assert map(get_size_alignment, nodes[0].members) == [
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
         (2, 2),
-        (1, 1)
+        (1, 1),
+        (4, 2)
     ]
-    assert get_size_alignment(nodes[0]) == (4, 2)
 
 def test_evaluate_sizes_fixed_array():
     nodes = process([
@@ -411,8 +414,21 @@ def test_evaluate_sizes_fixed_array():
             model.StructMember('y', 'u8', size = '3')
         ])
     ])
-    assert map(get_size_alignment, nodes[0].members) == [
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
         (4, 4),
-        (3, 1)
+        (3, 1),
+        (8, 4)
     ]
-    assert get_size_alignment(nodes[0]) == (8, 4)
+
+def test_evaluate_sizes_dynamic_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (4, 4),
+        (0, 1),
+        (4, 4)
+    ]
