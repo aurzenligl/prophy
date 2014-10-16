@@ -659,3 +659,15 @@ def test_evaluate_sizes_union():
         (16, 8),
         (24, 8)
     ]
+
+def test_evaluate_sizes_empty():
+    nodes = process([
+        model.Struct('X', []),
+        model.Union('X', []),
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (0, 1)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (4, 4)
+    ]
