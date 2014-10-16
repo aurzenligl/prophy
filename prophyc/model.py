@@ -313,5 +313,5 @@ def evaluate_sizes(nodes):
             evaluate_struct_size(node)
         elif isinstance(node, Union):
             map(evaluate_member_size, node.members)
-            node.byte_size = builtin_byte_sizes['u32'][0] + max(x.byte_size for x in node.members)
-            node.alignment = max(x.alignment for x in node.members)
+            node.alignment = max(builtin_byte_sizes['u32'][1], max(x.alignment for x in node.members))
+            node.byte_size = max(x.byte_size for x in node.members) + node.alignment
