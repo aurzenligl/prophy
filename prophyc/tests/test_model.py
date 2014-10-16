@@ -571,3 +571,33 @@ def test_evaluate_sizes_enum():
         (1, 1),
         (8, 4)
     ]
+
+def test_evaluate_sizes_floats():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'r32'),
+            model.StructMember('y', 'r64'),
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (4, 4),
+        (8, 8),
+        (16, 8)
+    ]
+
+def test_evaluate_sizes_bytes():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'byte'),
+            model.StructMember('y', 'byte', size = 3),
+            model.StructMember('num_of_z', 'u32'),
+            model.StructMember('z', 'byte', bound = 'num_of_z')
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (1, 1),
+        (3, 1),
+        (4, 4),
+        (0, 1),
+        (8, 4)
+    ]

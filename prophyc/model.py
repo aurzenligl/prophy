@@ -254,7 +254,10 @@ builtin_byte_sizes = {
     'u8': (1, 1),
     'u16': (2, 2),
     'u32': (4, 4),
-    'u64': (8, 8)
+    'u64': (8, 8),
+    'r32': (4, 4),
+    'r64': (8, 8),
+    'byte': (1, 1)
 }
 def evaluate_node_size(node):
     while isinstance(node, Typedef) and node.definition:
