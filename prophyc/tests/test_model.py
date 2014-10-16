@@ -671,3 +671,37 @@ def test_evaluate_sizes_empty():
     assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
         (4, 4)
     ]
+
+def test_evaluate_sizes_unknown():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'U'),
+            model.StructMember('z', 'u32'),
+        ]),
+        model.Union('Y', [
+            model.UnionMember('x', 'u32', '1'),
+            model.UnionMember('y', 'U', '2'),
+            model.UnionMember('z', 'u32', '3')
+        ]),
+        model.Typedef('U16', 'U'),
+        model.Struct('Z', [
+            model.StructMember('x', 'U16'),
+        ]),
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (1, 1),
+        (None, None),
+        (4, 4),
+        (None, None)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (4, 4),
+        (None, None),
+        (4, 4),
+        (None, None)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[3])) == [
+        (None, None),
+        (None, None)
+    ]
