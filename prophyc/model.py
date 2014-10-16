@@ -279,6 +279,9 @@ def evaluate_member_size(member):
         byte_size, alignment = (None, None) # unknown type
     if member.array and byte_size is not None:
         byte_size = member.size and (byte_size * int(member.size)) or 0
+    if member.optional:
+        alignment = max(builtin_byte_sizes['u32'][1], alignment)
+        byte_size = byte_size + alignment
     return (byte_size, alignment)
 def evaluate_struct_size(node):
     alignment = node.members and max(x.alignment for x in node.members) or 1

@@ -601,3 +601,30 @@ def test_evaluate_sizes_bytes():
         (0, 1),
         (8, 4)
     ]
+
+def test_evaluate_sizes_optional():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u32')
+        ]),
+        model.Struct('O1', [
+            model.StructMember('x', 'u8', optional = True),
+            model.StructMember('y', 'u16', optional = True),
+            model.StructMember('z', 'u32', optional = True),
+            model.StructMember('a', 'u64', optional = True)
+        ]),
+        model.Struct('O2', [
+            model.StructMember('x', 'X', optional = True)
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
+        (5, 4),
+        (6, 4),
+        (8, 4),
+        (16, 8),
+        (40, 8)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[2])) == [
+        (8, 4),
+        (8, 4)
+    ]
