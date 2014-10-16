@@ -201,6 +201,8 @@ def cross_reference(nodes):
             do_cross_reference(node)
         elif isinstance(node, Struct):
             map(do_cross_reference, node.members)
+        elif isinstance(node, Union):
+            map(do_cross_reference, node.members)
 
 def evaluate_node_kind(node):
     while isinstance(node, Typedef):

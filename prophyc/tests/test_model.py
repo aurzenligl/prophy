@@ -638,6 +638,10 @@ def test_evaluate_sizes_union():
         ]),
         model.Union('Y', [
             model.UnionMember('x', 'u64', '1')
+        ]),
+        model.Union('Z', [
+            model.UnionMember('x', 'X', '1'),
+            model.UnionMember('y', 'Y', '2')
         ])
     ])
     assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
@@ -649,4 +653,9 @@ def test_evaluate_sizes_union():
     assert map(get_size_and_alignment, get_members_and_node(nodes[1])) == [
         (8, 8),
         (16, 8)
+    ]
+    assert map(get_size_and_alignment, get_members_and_node(nodes[2])) == [
+        (8, 4),
+        (16, 8),
+        (24, 8)
     ]
