@@ -628,3 +628,18 @@ def test_evaluate_sizes_optional():
         (8, 4),
         (8, 4)
     ]
+
+def test_evaluate_sizes_union():
+    nodes = process([
+        model.Union('X', [
+            model.UnionMember('x', 'u32', '1'),
+            model.UnionMember('y', 'u32', '2'),
+            model.UnionMember('z', 'u32', '3')
+        ])
+    ])
+    assert map(get_size_and_alignment, get_members_and_node(nodes[0])) == [
+        (4, 4),
+        (4, 4),
+        (4, 4),
+        (8, 4)
+    ]
