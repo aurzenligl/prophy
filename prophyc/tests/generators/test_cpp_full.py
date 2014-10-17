@@ -14,6 +14,20 @@ def Builtin():
         model.Struct('Builtin', [
             model.StructMember('x', 'u32'),
             model.StructMember('y', 'u32')
+        ]),
+        model.Struct('BuiltinFixed', [
+            model.StructMember('x', 'u32', size = 2)
+        ]),
+        model.Struct('BuiltinDynamic', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u32', bound = 'num_of_x')
+        ]),
+        model.Struct('BuiltinLimited', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u32', size = 2, bound = 'num_of_x')
+        ]),
+        model.Struct('BuiltinGreedy', [
+            model.StructMember('x', 'u32', unlimited = True)
         ])
     ])
 
@@ -21,4 +35,19 @@ def test_generate_builtin_encode(Builtin):
     assert generate_struct_encode(Builtin[0]) == """\
 pos = do_encode<E>(pos, x.x);
 pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Builtin[1]) == """\
+pos = do_encode<E>(pos, x.x, 2);
+"""
+    assert generate_struct_encode(Builtin[2]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
+"""
+    assert generate_struct_encode(Builtin[3]) == """\
+pos = do_encode<E>(pos, uint32_t(std::min(x.x.size(), size_t(2))));
+do_encode<E>(pos, x.x.data(), std::min(x.x.size(), size_t(2)));
+pos = pos + 8;
+"""
+    assert generate_struct_encode(Builtin[4]) == """\
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """

@@ -89,8 +89,16 @@ class StructMember(object):
         return fmt.format(self.type, self.name, self.bound, self.size)
 
     @property
+    def fixed(self):
+        return not self.bound and self.size
+
+    @property
     def dynamic(self):
         return self.bound and not self.size
+
+    @property
+    def limited(self):
+        return self.bound and self.size
 
     @property
     def greedy(self):
