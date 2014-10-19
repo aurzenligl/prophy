@@ -31,6 +31,29 @@ def Builtin():
         ])
     ])
 
+@pytest.fixture
+def Fixcomp():
+    return process([
+        model.Struct('Fixcomp', [
+            model.StructMember('x', 'Fixcomp'),
+            model.StructMember('y', 'Fixcomp')
+        ]),
+        model.Struct('FixcompFixed', [
+            model.StructMember('x', 'Fixcomp', size = 2)
+        ]),
+        model.Struct('FixcompDynamic', [
+            model.StructMember('num_of_x', 'Fixcomp'),
+            model.StructMember('x', 'Fixcomp', bound = 'num_of_x')
+        ]),
+        model.Struct('FixcompLimited', [
+            model.StructMember('num_of_x', 'Fixcomp'),
+            model.StructMember('x', 'Fixcomp', size = 2, bound = 'num_of_x')
+        ]),
+        model.Struct('FixcompGreedy', [
+            model.StructMember('x', 'Fixcomp', unlimited = True)
+        ])
+    ])
+
 def test_generate_builtin_encode(Builtin):
     assert generate_struct_encode(Builtin[0]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -49,5 +72,26 @@ do_encode<E>(pos, x.x.data(), std::min(x.x.size(), size_t(2)));
 pos = pos + 8;
 """
     assert generate_struct_encode(Builtin[4]) == """\
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
+"""
+
+def test_generate_fixcomp_encode(Fixcomp):
+    assert generate_struct_encode(Fixcomp[0]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Fixcomp[1]) == """\
+pos = do_encode<E>(pos, x.x, 2);
+"""
+    assert generate_struct_encode(Fixcomp[2]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
+"""
+    assert generate_struct_encode(Fixcomp[3]) == """\
+pos = do_encode<E>(pos, uint32_t(std::min(x.x.size(), size_t(2))));
+do_encode<E>(pos, x.x.data(), std::min(x.x.size(), size_t(2)));
+pos = pos + 16;
+"""
+    assert generate_struct_encode(Fixcomp[4]) == """\
 pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
