@@ -297,6 +297,12 @@ def evaluate_member_size(member):
     member.byte_size, member.alignment = size_alignment
 def evaluate_empty_size(node):
     node.byte_size, node.alignment = (None, None)
+def evaluate_members_sizes(node):
+    map(evaluate_member_size, node.members)
+    if any(member.byte_size is None for member in node.members):
+        evaluate_empty_size(node)
+        return False
+    return True
 def evaluate_partial_padding_size(node):
     parts = split_after(node.members, lambda x: (x.kind == Kind.DYNAMIC) or (x.array and not x.size))
     for part in [x for x in parts][1:]:
@@ -325,23 +331,16 @@ def evaluate_union_size(node):
     node.alignment = max(builtin_byte_sizes['u32'][1], node.members and max(x.alignment for x in node.members) or 1)
     node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
     node.byte_size = (node.byte_size + node.alignment - 1) / node.alignment * node.alignment
-
 def evaluate_sizes(nodes):
     """Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
        Requires cross referenced nodes and evaluated kinds.
     """
     for node in nodes:
         if isinstance(node, Struct):
-            map(evaluate_member_size, node.members)
-            if any(member.byte_size is None for member in node.members):
-                evaluate_empty_size(node)
-                continue
-            map(evaluate_array_and_optional_size, node.members)
-            evaluate_partial_padding_size(node)
-            evaluate_struct_size(node)
+            if evaluate_members_sizes(node):
+                map(evaluate_array_and_optional_size, node.members)
+                evaluate_partial_padding_size(node)
+                evaluate_struct_size(node)
         elif isinstance(node, Union):
-            map(evaluate_member_size, node.members)
-            if any(member.byte_size is None for member in node.members):
-                evaluate_empty_size(node)
-                continue
-            evaluate_union_size(node)
+            if evaluate_members_sizes(node):
+                evaluate_union_size(node)
