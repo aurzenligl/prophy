@@ -103,6 +103,29 @@ def Endpad():
         ])
     ])
 
+@pytest.fixture
+def Scalarpad():
+    return process([
+        model.Struct('Scalarpad', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'u16')
+        ]),
+        model.Struct('ScalarpadComppre_Helper', [
+            model.StructMember('x', 'u8')
+        ]),
+        model.Struct('ScalarpadComppre', [
+            model.StructMember('x', 'ScalarpadComppre_Helper'),
+            model.StructMember('y', 'u16')
+        ]),
+        model.Struct('ScalarpadComppost_Helper', [
+            model.StructMember('x', 'u16')
+        ]),
+        model.Struct('ScalarpadComppost', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'ScalarpadComppost_Helper')
+        ]),
+    ])
+
 def test_generate_builtin_encode(Builtin):
     assert generate_struct_encode(Builtin[0]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -184,4 +207,21 @@ pos = pos + 2;
 pos = do_encode<E>(pos, x.x);
 pos = do_encode<E>(pos, x.y.data(), x.y.size());
 pos = align<4>(pos);
+"""
+
+def test_generate_scalarpad_encode(Scalarpad):
+    assert generate_struct_encode(Scalarpad[0]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 1;
+pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Scalarpad[2]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 1;
+pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Scalarpad[4]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 1;
+pos = do_encode<E>(pos, x.y);
 """

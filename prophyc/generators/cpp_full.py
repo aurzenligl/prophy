@@ -4,6 +4,11 @@ def generate_struct_encode(node):
     text = ''
     bound = {}
     for m in reversed(node.members):
+        if m.padding:
+            if m.padding < 0:
+                text = 'pos = align<{0}>(pos);\n'.format(abs(m.padding)) + text
+            else:
+                text = 'pos = pos + {0};\n'.format(m.padding) + text
         if m.fixed:
             text = 'pos = do_encode<E>(pos, x.{0}, {1});\n'.format(m.name, m.size) + text
         elif m.dynamic:
@@ -28,9 +33,4 @@ def generate_struct_encode(node):
                 )
         else:
             text = 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name) + text
-        if m.padding:
-            if m.padding < 0:
-                text = text + 'pos = align<{0}>(pos);\n'.format(abs(m.padding))
-            else:
-                text = text + 'pos = pos + {0};\n'.format(m.padding)
     return text
