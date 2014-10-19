@@ -54,6 +54,22 @@ def Fixcomp():
         ])
     ])
 
+@pytest.fixture
+def Dyncomp():
+    return process([
+        model.Struct('Dyncomp', [
+            model.StructMember('x', 'Dyncomp'),
+            model.StructMember('y', 'Dyncomp')
+        ]),
+        model.Struct('DyncompDynamic', [
+            model.StructMember('num_of_x', 'Dyncomp'),
+            model.StructMember('x', 'Dyncomp', bound = 'num_of_x')
+        ]),
+        model.Struct('DyncompGreedy', [
+            model.StructMember('x', 'Dyncomp', unlimited = True)
+        ])
+    ])
+
 def test_generate_builtin_encode(Builtin):
     assert generate_struct_encode(Builtin[0]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -93,5 +109,18 @@ do_encode<E>(pos, x.x.data(), std::min(x.x.size(), size_t(2)));
 pos = pos + 16;
 """
     assert generate_struct_encode(Fixcomp[4]) == """\
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
+"""
+
+def test_generate_dyncomp_encode(Dyncomp):
+    assert generate_struct_encode(Dyncomp[0]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Dyncomp[1]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
+"""
+    assert generate_struct_encode(Dyncomp[2]) == """\
 pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
