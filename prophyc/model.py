@@ -67,6 +67,7 @@ class StructMember(object):
         self.kind = evaluate_member_kind(self) # type kind, not influenced by array or optional
         self.byte_size = None # byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy
         self.alignment = None
+        self.padding = None # amount of bytes to add before next field. Assumed 0-length dynamic arrays
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
@@ -303,10 +304,16 @@ def evaluate_partial_padding_size(node):
 def evaluate_struct_size(node):
     alignment = node.members and max(x.alignment for x in node.members) or 1
     byte_size = 0
+    prev_member = node.members and node.members[0] or None
     for member in node.members:
-        byte_size += (member.alignment - byte_size % member.alignment) % member.alignment
-        byte_size += member.byte_size
-    byte_size += (alignment - byte_size % alignment) % alignment
+        padding = (member.alignment - byte_size % member.alignment) % member.alignment
+        byte_size += member.byte_size + padding
+        prev_member.padding = padding
+        prev_member = member
+    if node.members:
+        padding = (alignment - byte_size % alignment) % alignment
+        byte_size += padding
+        prev_member.padding = padding
     node.byte_size, node.alignment = byte_size, alignment
 def evaluate_sizes(nodes):
     """Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
