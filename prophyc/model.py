@@ -67,7 +67,7 @@ class StructMember(object):
         self.kind = evaluate_member_kind(self) # type kind, not influenced by array or optional
         self.byte_size = None # byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy
         self.alignment = None
-        self.padding = None # amount of bytes to add before next field. Assumed 0-length dynamic arrays
+        self.padding = None # amount of bytes to add before next field. If field dynamic: negative alignment of next field
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
@@ -308,12 +308,18 @@ def evaluate_struct_size(node):
     for member in node.members:
         padding = (member.alignment - byte_size % member.alignment) % member.alignment
         byte_size += member.byte_size + padding
-        prev_member.padding = padding
+        if prev_member.dynamic or prev_member.greedy:
+            prev_member.padding = -(member.alignment)
+        else:
+            prev_member.padding = padding
         prev_member = member
     if node.members:
         padding = (alignment - byte_size % alignment) % alignment
         byte_size += padding
-        prev_member.padding = padding
+        if prev_member.dynamic or prev_member.greedy:
+            prev_member.padding = (prev_member.alignment < alignment) and (-alignment) or 0
+        else:
+            prev_member.padding = padding
     node.byte_size, node.alignment = byte_size, alignment
 def evaluate_sizes(nodes):
     """Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.

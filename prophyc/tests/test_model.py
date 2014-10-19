@@ -453,7 +453,7 @@ def test_evaluate_sizes_dynamic_array():
     ])
     assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
         (4, 4, 0),
-        (0, 1, 0),
+        (0, 1, -4),
         (4, 4)
     ]
 
@@ -479,7 +479,7 @@ def test_evaluate_sizes_greedy_array():
     ])
     assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
         (4, 4, 0),
-        (0, 1, 0),
+        (0, 1, -4),
         (4, 4)
     ]
 
@@ -515,14 +515,14 @@ def test_evaluate_sizes_partial_padding():
     ])
     assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
         (4, 4, 0),
-        (0, 1, 4),
+        (0, 1, -8),
         (1, 8, 7),
         (8, 8, 0),
         (24, 8)
     ]
     assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
         (4, 4, 0),
-        (0, 1, 4),
+        (0, 1, -8),
         (4, 8, 4),
         (0, 8, 0),
         (16, 8)
@@ -602,7 +602,7 @@ def test_evaluate_sizes_bytes():
         (1, 1, 0),
         (3, 1, 0),
         (4, 4, 0),
-        (0, 1, 0),
+        (0, 1, -4),
         (8, 4)
     ]
 
