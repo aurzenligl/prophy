@@ -16,7 +16,7 @@ def generate_struct_encode(node):
                 'pos = pos + {0};\n'.format(m.byte_size) + text
             )
         elif m.greedy:
-            text = 'pos = do_encode<E>(pos, x.{0}.data(), uint32_t(x.{0}.size()));\n'.format(m.name) + text
+            text = 'pos = do_encode<E>(pos, x.{0}.data(), x.{0}.size());\n'.format(m.name) + text
         elif m.name in bound:
             b = bound[m.name]
             if b.dynamic:

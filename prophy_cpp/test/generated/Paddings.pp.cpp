@@ -123,7 +123,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<EndpadGreedy>::encode(const EndpadGreedy& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, uint32_t(x.x));
+    pos = do_encode<E>(pos, x.x);
     pos = do_encode<E>(pos, x.y.data(), x.y.size());
     pos = align<4>(pos);
     return pos;

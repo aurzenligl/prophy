@@ -121,7 +121,7 @@ do_encode<E>(pos, x.x.data(), uint32_t(std::min(x.x.size(), size_t(2))));
 pos = pos + 8;
 """
     assert generate_struct_encode(Builtin[4]) == """\
-pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
 
 def test_generate_fixcomp_encode(Fixcomp):
@@ -142,7 +142,7 @@ do_encode<E>(pos, x.x.data(), uint32_t(std::min(x.x.size(), size_t(2))));
 pos = pos + 16;
 """
     assert generate_struct_encode(Fixcomp[5]) == """\
-pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
 
 def test_generate_dyncomp_encode(Dyncomp):
@@ -155,7 +155,7 @@ pos = do_encode<E>(pos, uint32_t(x.x.size()));
 pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
 """
     assert generate_struct_encode(Dyncomp[3]) == """\
-pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
 
 def test_generate_endpad_encode(Endpad):
@@ -169,8 +169,19 @@ pos = do_encode<E>(pos, x.x);
 pos = do_encode<E>(pos, x.y, 3);
 pos = pos + 1;
 """
-#    assert generate_struct_encode(Endpad[2]) == """\
-#pos = do_encode<E>(pos, uint32_t(x.x.size()));
-#pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
-#pos = align<4>(pos);
-#"""
+    assert generate_struct_encode(Endpad[2]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = align<4>(pos);
+"""
+    assert generate_struct_encode(Endpad[3]) == """\
+pos = do_encode<E>(pos, uint32_t(std::min(x.x.size(), size_t(2))));
+do_encode<E>(pos, x.x.data(), uint32_t(std::min(x.x.size(), size_t(2))));
+pos = pos + 2;
+pos = pos + 2;
+"""
+    assert generate_struct_encode(Endpad[4]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = do_encode<E>(pos, x.y.data(), x.y.size());
+pos = align<4>(pos);
+"""
