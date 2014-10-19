@@ -126,6 +126,33 @@ def Scalarpad():
         ]),
     ])
 
+@pytest.fixture
+def Unionpad():
+    return process([
+        model.Struct('UnionpadOptionalboolpad', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'u8', optional = True)
+        ]),
+        model.Struct('UnionpadOptionalvaluepad', [
+            model.StructMember('x', 'u64', optional = True)
+        ]),
+        model.Union('UnionpadDiscpad_Helper', [
+            model.UnionMember('a', 'u8', '1')
+        ]),
+        model.Struct('UnionpadDiscpad', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'UnionpadDiscpad_Helper')
+        ]),
+        model.Union('UnionpadArmpad_Helper', [
+            model.UnionMember('a', 'u8', '1'),
+            model.UnionMember('b', 'u64', '2')
+        ]),
+        model.Struct('UnionpadArmpad', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'UnionpadArmpad_Helper')
+        ])
+    ])
+
 def test_generate_builtin_encode(Builtin):
     assert generate_struct_encode(Builtin[0]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -225,3 +252,47 @@ pos = do_encode<E>(pos, x.x);
 pos = pos + 1;
 pos = do_encode<E>(pos, x.y);
 """
+
+def test_generate_unionpad_encode(Unionpad):
+    assert generate_struct_encode(Unionpad[0]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 3;
+pos = do_encode<E>(pos, x.has_y);
+if (x.has_y) do_encode<E>(pos, x.y);
+pos = pos + 1;
+pos = pos + 3;
+"""
+#    assert generate_struct_encode(Unionpad[1]) == """\
+#pos = do_encode<E>(pos, x.has_x);
+#pos = pos + 4;
+#if (x.has_x) do_encode<E>(pos, x.x);
+#pos = pos + 8;
+#"""
+#    assert generate_struct_encode(Unionpad[2]) == """\
+#pos = do_encode<E>(pos, x.discriminator);
+#switch(x.discriminator)
+#{
+#    case UnionpadDiscpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
+#}
+#pos = pos + 4;
+#"""
+#    assert generate_struct_encode(Unionpad[3]) == """\
+#pos = do_encode<E>(pos, x.x);
+#pos = pos + 3;
+#pos = do_encode<E>(pos, x.y);
+#"""
+#    assert generate_struct_encode(Unionpad[4]) == """\
+#pos = do_encode<E>(pos, x.discriminator);
+#pos = pos + 4;
+#switch(x.discriminator)
+#{
+#    case UnionpadArmpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
+#    case UnionpadArmpad_Helper::discriminator_b: do_encode<E>(pos, x.b); break;
+#}
+#pos = pos + 8;
+#"""
+#    assert generate_struct_encode(Unionpad[5]) == """\
+#pos = do_encode<E>(pos, x.x);
+#pos = pos + 7;
+#pos = do_encode<E>(pos, x.y);
+#"""
