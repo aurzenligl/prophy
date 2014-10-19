@@ -1,5 +1,7 @@
 from prophyc import model
 
+DISC_BYTE_SIZE = 4
+
 def generate_struct_encode(node):
     text = ''
     bound = {}
@@ -23,10 +25,13 @@ def generate_struct_encode(node):
         elif m.greedy:
             text = 'pos = do_encode<E>(pos, x.{0}.data(), x.{0}.size());\n'.format(m.name) + text
         elif m.optional:
+            discpad = (m.alignment > DISC_BYTE_SIZE) and (m.alignment - DISC_BYTE_SIZE) or 0
+            discpadtext = discpad and 'pos = pos + {0};\n'.format(discpad) or ''
             text = (
                 'pos = do_encode<E>(pos, x.has_{0});\n'.format(m.name)
+                + discpadtext
                 + 'if (x.has_{0}) do_encode<E>(pos, x.{0});\n'.format(m.name)
-                + 'pos = pos + {0};\n'.format(m.byte_size - 4) # byte_size without discriminator size
+                + 'pos = pos + {0};\n'.format(m.byte_size - DISC_BYTE_SIZE - discpad)
                 + text
             )
         elif m.name in bound:

@@ -262,12 +262,12 @@ if (x.has_y) do_encode<E>(pos, x.y);
 pos = pos + 1;
 pos = pos + 3;
 """
-#    assert generate_struct_encode(Unionpad[1]) == """\
-#pos = do_encode<E>(pos, x.has_x);
-#pos = pos + 4;
-#if (x.has_x) do_encode<E>(pos, x.x);
-#pos = pos + 8;
-#"""
+    assert generate_struct_encode(Unionpad[1]) == """\
+pos = do_encode<E>(pos, x.has_x);
+pos = pos + 4;
+if (x.has_x) do_encode<E>(pos, x.x);
+pos = pos + 8;
+"""
 #    assert generate_struct_encode(Unionpad[2]) == """\
 #pos = do_encode<E>(pos, x.discriminator);
 #switch(x.discriminator)
