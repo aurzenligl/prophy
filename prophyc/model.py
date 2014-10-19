@@ -321,6 +321,11 @@ def evaluate_struct_size(node):
         else:
             prev_member.padding = padding
     node.byte_size, node.alignment = byte_size, alignment
+def evaluate_union_size(node):
+    node.alignment = max(builtin_byte_sizes['u32'][1], node.members and max(x.alignment for x in node.members) or 1)
+    node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
+    node.byte_size = (node.byte_size + node.alignment - 1) / node.alignment * node.alignment
+
 def evaluate_sizes(nodes):
     """Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
        Requires cross referenced nodes and evaluated kinds.
@@ -339,5 +344,4 @@ def evaluate_sizes(nodes):
             if any(member.byte_size is None for member in node.members):
                 evaluate_empty_size(node)
                 continue
-            node.alignment = max(builtin_byte_sizes['u32'][1], node.members and max(x.alignment for x in node.members) or 1)
-            node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
+            evaluate_union_size(node)

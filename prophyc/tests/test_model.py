@@ -664,6 +664,26 @@ def test_evaluate_sizes_union():
         (24, 8)
     ]
 
+def test_evaluate_sizes_union_with_padding():
+    nodes = process([
+        model.Union('X', [
+            model.UnionMember('x', 'u8', '1')
+        ]),
+        model.Union('Y', [
+            model.UnionMember('x', 'u8', '1'),
+            model.UnionMember('y', 'u64', '2')
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (1, 1),
+        (8, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (1, 1),
+        (8, 8),
+        (16, 8)
+    ]
+
 def test_evaluate_sizes_empty():
     nodes = process([
         model.Struct('X', []),
