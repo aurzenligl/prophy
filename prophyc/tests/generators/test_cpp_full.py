@@ -62,6 +62,26 @@ def Fixcomp():
     ])
 
 @pytest.fixture
+def Unions():
+    return process([
+        model.Struct('Builtin', [
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u32')
+        ]),
+        model.Union('Union', [
+            model.UnionMember('a', 'u8', '1'),
+            model.UnionMember('b', 'u32', '2'),
+            model.UnionMember('c', 'Builtin', '3')
+        ]),
+        model.Struct('BuiltinOptional', [
+            model.StructMember('x', 'u32', optional = True)
+        ]),
+        model.Struct('FixcompOptional', [
+            model.StructMember('x', 'Builtin', optional = True)
+        ])
+    ])
+
+@pytest.fixture
 def Dyncomp():
     return process([
         model.Struct('Builtin', [
@@ -209,6 +229,28 @@ pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
 """
     assert generate_struct_encode(Dyncomp[3]) == """\
 pos = do_encode<E>(pos, x.x.data(), x.x.size());
+"""
+
+def test_generate_unions_encode(Unions):
+    assert generate_union_encode(Unions[1]) == """\
+pos = do_encode<E>(pos, x.discriminator);
+switch(x.discriminator)
+{
+    case Union::discriminator_a: do_encode<E>(pos, x.a); break;
+    case Union::discriminator_b: do_encode<E>(pos, x.b); break;
+    case Union::discriminator_c: do_encode<E>(pos, x.c); break;
+}
+pos = pos + 8;
+"""
+    assert generate_struct_encode(Unions[2]) == """\
+pos = do_encode<E>(pos, x.has_x);
+if (x.has_x) do_encode<E>(pos, x.x);
+pos = pos + 4;
+"""
+    assert generate_struct_encode(Unions[3]) == """\
+pos = do_encode<E>(pos, x.has_x);
+if (x.has_x) do_encode<E>(pos, x.x);
+pos = pos + 8;
 """
 
 def test_generate_endpad_encode(Endpad):
