@@ -284,18 +284,18 @@ pos = do_encode<E>(pos, x.x);
 pos = pos + 3;
 pos = do_encode<E>(pos, x.y);
 """
-#    assert generate_struct_encode(Unionpad[4]) == """\
-#pos = do_encode<E>(pos, x.discriminator);
-#pos = pos + 4;
-#switch(x.discriminator)
-#{
-#    case UnionpadArmpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
-#    case UnionpadArmpad_Helper::discriminator_b: do_encode<E>(pos, x.b); break;
-#}
-#pos = pos + 8;
-#"""
-#    assert generate_struct_encode(Unionpad[5]) == """\
-#pos = do_encode<E>(pos, x.x);
-#pos = pos + 7;
-#pos = do_encode<E>(pos, x.y);
-#"""
+    assert generate_union_encode(Unionpad[4]) == """\
+pos = do_encode<E>(pos, x.discriminator);
+pos = pos + 4;
+switch(x.discriminator)
+{
+    case UnionpadArmpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
+    case UnionpadArmpad_Helper::discriminator_b: do_encode<E>(pos, x.b); break;
+}
+pos = pos + 8;
+"""
+    assert generate_struct_encode(Unionpad[5]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 7;
+pos = do_encode<E>(pos, x.y);
+"""

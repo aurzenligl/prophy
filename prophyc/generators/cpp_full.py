@@ -48,14 +48,16 @@ def generate_struct_encode(node):
     return text
 
 def generate_union_encode(node):
+    discpad = (node.alignment > DISC_BYTE_SIZE) and (node.alignment - DISC_BYTE_SIZE) or 0
     def gen_case(member):
         return ('case {0}::discriminator_{1}: do_encode<E>(pos, x.{1}); break;\n'
             .format(node.name, member.name))
     return (
         'pos = do_encode<E>(pos, x.discriminator);\n'
+        + (discpad and 'pos = pos + {0};\n'.format(discpad) or '')
         + 'switch(x.discriminator)\n'
         + '{\n'
         + ''.join('    ' + gen_case(m) for m in node.members)
         + '}\n'
-        + 'pos = pos + {0};\n'.format(node.byte_size - DISC_BYTE_SIZE)
+        + 'pos = pos + {0};\n'.format(node.byte_size - DISC_BYTE_SIZE - discpad)
     )
