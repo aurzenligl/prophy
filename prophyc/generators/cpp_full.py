@@ -46,3 +46,16 @@ def generate_struct_encode(node):
         else:
             text = 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name) + text
     return text
+
+def generate_union_encode(node):
+    def gen_case(member):
+        return ('case {0}::discriminator_{1}: do_encode<E>(pos, x.{1}); break;\n'
+            .format(node.name, member.name))
+    return (
+        'pos = do_encode<E>(pos, x.discriminator);\n'
+        + 'switch(x.discriminator)\n'
+        + '{\n'
+        + ''.join('    ' + gen_case(m) for m in node.members)
+        + '}\n'
+        + 'pos = pos + {0};\n'.format(node.byte_size - DISC_BYTE_SIZE)
+    )

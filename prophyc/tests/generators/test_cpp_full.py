@@ -1,6 +1,9 @@
 import pytest
 from prophyc import model
-from prophyc.generators.cpp_full import generate_struct_encode
+from prophyc.generators.cpp_full import (
+    generate_struct_encode,
+    generate_union_encode
+)
 
 def process(nodes):
     model.cross_reference(nodes)
@@ -268,19 +271,19 @@ pos = pos + 4;
 if (x.has_x) do_encode<E>(pos, x.x);
 pos = pos + 8;
 """
-#    assert generate_struct_encode(Unionpad[2]) == """\
-#pos = do_encode<E>(pos, x.discriminator);
-#switch(x.discriminator)
-#{
-#    case UnionpadDiscpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
-#}
-#pos = pos + 4;
-#"""
-#    assert generate_struct_encode(Unionpad[3]) == """\
-#pos = do_encode<E>(pos, x.x);
-#pos = pos + 3;
-#pos = do_encode<E>(pos, x.y);
-#"""
+    assert generate_union_encode(Unionpad[2]) == """\
+pos = do_encode<E>(pos, x.discriminator);
+switch(x.discriminator)
+{
+    case UnionpadDiscpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
+}
+pos = pos + 4;
+"""
+    assert generate_struct_encode(Unionpad[3]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 3;
+pos = do_encode<E>(pos, x.y);
+"""
 #    assert generate_struct_encode(Unionpad[4]) == """\
 #pos = do_encode<E>(pos, x.discriminator);
 #pos = pos + 4;
