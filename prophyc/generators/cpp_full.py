@@ -1,8 +1,7 @@
 from prophyc import model
+from prophyc.model import DISC_SIZE
 
-DISC_BYTE_SIZE = 4
-
-BUILTINS = {
+BUILTIN2C = {
     'u8': 'uint8_t',
     'u16': 'uint16_t',
     'u32': 'uint32_t',
@@ -18,32 +17,32 @@ def generate_struct_encode(node):
             text += 'pos = do_encode<E>(pos, x.{0}, {1});\n'.format(m.name, m.size)
         elif m.dynamic:
             d = delimiters[m.name]
-            text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, BUILTINS[d.type])
+            text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, BUILTIN2C[d.type])
         elif m.limited:
             d = delimiters[m.name]
             text += (
-                'do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'.format(m.name, m.size, BUILTINS[d.type])
+                'do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'.format(m.name, m.size, BUILTIN2C[d.type])
                 + 'pos = pos + {0};\n'.format(m.byte_size)
             )
         elif m.greedy:
             text += 'pos = do_encode<E>(pos, x.{0}.data(), x.{0}.size());\n'.format(m.name)
         elif m.optional:
-            discpad = (m.alignment > DISC_BYTE_SIZE) and (m.alignment - DISC_BYTE_SIZE) or 0
+            discpad = (m.alignment > DISC_SIZE) and (m.alignment - DISC_SIZE) or 0
             discpadtext = discpad and 'pos = pos + {0};\n'.format(discpad) or ''
             text += (
                 'pos = do_encode<E>(pos, x.has_{0});\n'.format(m.name)
                 + discpadtext
                 + 'if (x.has_{0}) do_encode<E>(pos, x.{0});\n'.format(m.name)
-                + 'pos = pos + {0};\n'.format(m.byte_size - DISC_BYTE_SIZE - discpad)
+                + 'pos = pos + {0};\n'.format(m.byte_size - DISC_SIZE - discpad)
             )
         elif m.name in bound:
             b = bound[m.name]
             if b.dynamic:
-                text += 'pos = do_encode<E>(pos, {1}(x.{0}.size()));\n'.format(b.name, BUILTINS[m.type])
+                text += 'pos = do_encode<E>(pos, {1}(x.{0}.size()));\n'.format(b.name, BUILTIN2C[m.type])
             else:
                 text += (
                     'pos = do_encode<E>(pos, {2}(std::min(x.{0}.size(), size_t({1}))));\n'
-                    .format(b.name, b.size, BUILTINS[m.type])
+                    .format(b.name, b.size, BUILTIN2C[m.type])
                 )
         else:
             text += 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name)
@@ -55,7 +54,7 @@ def generate_struct_encode(node):
     return text
 
 def generate_union_encode(node):
-    discpad = (node.alignment > DISC_BYTE_SIZE) and (node.alignment - DISC_BYTE_SIZE) or 0
+    discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
     def gen_case(member):
         return ('case {0}::discriminator_{1}: do_encode<E>(pos, x.{1}); break;\n'
             .format(node.name, member.name))
@@ -66,5 +65,5 @@ def generate_union_encode(node):
         + '{\n'
         + ''.join('    ' + gen_case(m) for m in node.members)
         + '}\n'
-        + 'pos = pos + {0};\n'.format(node.byte_size - DISC_BYTE_SIZE - discpad)
+        + 'pos = pos + {0};\n'.format(node.byte_size - DISC_SIZE - discpad)
     )

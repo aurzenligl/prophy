@@ -1,10 +1,32 @@
 from collections import namedtuple
 from itertools import ifilter, islice
 
+""" Determines struct member wire format type. """
 class Kind:
     FIXED = 0
     DYNAMIC = 1
     UNLIMITED = 2
+
+""" Builtin types byte size and alignment. """
+BUILTIN_SIZES = {
+    'i8': 1,
+    'i16': 2,
+    'i32': 4,
+    'i64': 8,
+    'u8': 1,
+    'u16': 2,
+    'u32': 4,
+    'u64': 8,
+    'r32': 4,
+    'r64': 8,
+    'byte': 1
+}
+
+""" Union and optional discriminator byte size. """
+DISC_SIZE = BUILTIN_SIZES['u32']
+
+""" Enum byte size. """
+ENUM_SIZE = BUILTIN_SIZES['u32']
 
 """ Model consists of 6 kinds of symbols:
 Includes, Constants, Enums, Typedefs, Structs, Unions. """
@@ -257,41 +279,30 @@ def partition(members):
         current.append(members[-1])
     return main, parts
 
-builtin_byte_sizes = {
-    'i8': (1, 1),
-    'i16': (2, 2),
-    'i32': (4, 4),
-    'i64': (8, 8),
-    'u8': (1, 1),
-    'u16': (2, 2),
-    'u32': (4, 4),
-    'u64': (8, 8),
-    'r32': (4, 4),
-    'r64': (8, 8),
-    'byte': (1, 1)
-}
 def evaluate_node_size(node):
     while isinstance(node, Typedef) and node.definition:
         node = node.definition
     if isinstance(node, (Struct, Union)):
         return (node.byte_size, node.alignment)
     elif isinstance(node, Enum):
-        return builtin_byte_sizes['u32']
-    elif node.type in builtin_byte_sizes:
-        return builtin_byte_sizes[node.type]
+        return (ENUM_SIZE, ENUM_SIZE)
+    elif node.type in BUILTIN_SIZES:
+        byte_size = BUILTIN_SIZES[node.type]
+        return (byte_size, byte_size)
     else:
         return (None, None) # unknown type, e.g. empty typedef
 def evaluate_array_and_optional_size(member):
     if member.array and member.byte_size is not None:
         member.byte_size = member.size and (member.byte_size * int(member.size)) or 0
     elif member.optional:
-        member.alignment = max(builtin_byte_sizes['u32'][1], member.alignment)
+        member.alignment = max(DISC_SIZE, member.alignment)
         member.byte_size = member.byte_size + member.alignment
 def evaluate_member_size(member):
     if member.definition:
         size_alignment = evaluate_node_size(member.definition)
-    elif member.type in builtin_byte_sizes:
-        size_alignment = builtin_byte_sizes[member.type]
+    elif member.type in BUILTIN_SIZES:
+        byte_size = BUILTIN_SIZES[member.type]
+        size_alignment = (byte_size, byte_size)
     else:
         size_alignment = (None, None) # unknown type
     member.byte_size, member.alignment = size_alignment
@@ -328,7 +339,7 @@ def evaluate_struct_size(node):
             prev_member.padding = padding
     node.byte_size, node.alignment = byte_size, alignment
 def evaluate_union_size(node):
-    node.alignment = max(builtin_byte_sizes['u32'][1], node.members and max(x.alignment for x in node.members) or 1)
+    node.alignment = max(DISC_SIZE, node.members and max(x.alignment for x in node.members) or 1)
     node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
     node.byte_size = (node.byte_size + node.alignment - 1) / node.alignment * node.alignment
 def evaluate_sizes(nodes):
