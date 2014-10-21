@@ -82,6 +82,34 @@ def Unions():
     ])
 
 @pytest.fixture
+def Floats():
+    return process([
+        model.Struct('Floats', [
+            model.StructMember('a', 'r32'),
+            model.StructMember('b', 'r64')
+        ])
+    ])
+
+@pytest.fixture
+def Bytes():
+    return process([
+        model.Struct('BytesFixed', [
+            model.StructMember('x', 'byte', size = 3)
+        ]),
+        model.Struct('BytesDynamic', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'byte', bound = 'num_of_x')
+        ]),
+        model.Struct('BytesLimited', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'byte', size = 4, bound = 'num_of_x')
+        ]),
+        model.Struct('BytesGreedy', [
+            model.StructMember('x', 'byte', unlimited = True)
+        ])
+    ])
+
+@pytest.fixture
 def Dyncomp():
     return process([
         model.Struct('Builtin', [
@@ -251,6 +279,31 @@ pos = pos + 4;
 pos = do_encode<E>(pos, x.has_x);
 if (x.has_x) do_encode<E>(pos, x.x);
 pos = pos + 8;
+"""
+
+def test_generate_floats_encode(Floats):
+    assert generate_struct_encode(Floats[0]) == """\
+pos = do_encode<E>(pos, x.a);
+pos = pos + 4;
+pos = do_encode<E>(pos, x.b);
+"""
+
+def test_generate_bytes_encode(Bytes):
+    assert generate_struct_encode(Bytes[0]) == """\
+pos = do_encode<E>(pos, x.x, 3);
+"""
+    assert generate_struct_encode(Bytes[1]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = align<4>(pos);
+"""
+    assert generate_struct_encode(Bytes[2]) == """\
+pos = do_encode<E>(pos, uint32_t(std::min(x.x.size(), size_t(4))));
+do_encode<E>(pos, x.x.data(), uint32_t(std::min(x.x.size(), size_t(4))));
+pos = pos + 4;
+"""
+    assert generate_struct_encode(Bytes[3]) == """\
+pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
 
 def test_generate_endpad_encode(Endpad):
