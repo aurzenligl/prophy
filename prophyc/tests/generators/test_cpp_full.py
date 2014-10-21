@@ -49,11 +49,11 @@ def Fixcomp():
             model.StructMember('x', 'Builtin', size = 2)
         ]),
         model.Struct('FixcompDynamic', [
-            model.StructMember('num_of_x', 'Builtin'),
+            model.StructMember('num_of_x', 'u32'),
             model.StructMember('x', 'Builtin', bound = 'num_of_x')
         ]),
         model.Struct('FixcompLimited', [
-            model.StructMember('num_of_x', 'Builtin'),
+            model.StructMember('num_of_x', 'u32'),
             model.StructMember('x', 'Builtin', size = 2, bound = 'num_of_x')
         ]),
         model.Struct('FixcompGreedy', [
@@ -121,7 +121,7 @@ def Dyncomp():
             model.StructMember('y', 'Builtin')
         ]),
         model.Struct('DyncompDynamic', [
-            model.StructMember('num_of_x', 'Builtin'),
+            model.StructMember('num_of_x', 'u32'),
             model.StructMember('x', 'Builtin', bound = 'num_of_x')
         ]),
         model.Struct('DyncompGreedy', [
@@ -201,6 +201,43 @@ def Unionpad():
         model.Struct('UnionpadArmpad', [
             model.StructMember('x', 'u8'),
             model.StructMember('y', 'UnionpadArmpad_Helper')
+        ])
+    ])
+
+@pytest.fixture
+def Arraypad():
+    return process([
+        model.Struct('ArraypadCounter', [
+            model.StructMember('num_of_x', 'u8'),
+            model.StructMember('x', 'u16', bound = 'num_of_x')
+        ]),
+        model.Struct('ArraypadCounterSeparated', [
+            model.StructMember('num_of_x', 'u8'),
+            model.StructMember('y', 'u32'),
+            model.StructMember('x', 'u32', bound = 'num_of_x')
+        ]),
+        model.Struct('ArraypadCounterAligns_Helper', [
+            model.StructMember('num_of_x', 'u16'),
+            model.StructMember('x', 'u8', bound = 'num_of_x')
+        ]),
+        model.Struct('ArraypadCounterAligns', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'ArraypadCounterAligns_Helper')
+        ]),
+        model.Struct('ArraypadFixed', [
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u8', size = 3),
+            model.StructMember('z', 'u32')
+        ]),
+        model.Struct('ArraypadDynamic', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('y', 'u32')
+        ]),
+        model.Struct('ArraypadLimited', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', size = 2, bound = 'num_of_x'),
+            model.StructMember('y', 'u32')
         ])
     ])
 
@@ -392,5 +429,47 @@ pos = pos + 8;
     assert generate_struct_encode(Unionpad[5]) == """\
 pos = do_encode<E>(pos, x.x);
 pos = pos + 7;
+pos = do_encode<E>(pos, x.y);
+"""
+
+def test_generate_arraypad_encode(Arraypad):
+    assert generate_struct_encode(Arraypad[0]) == """\
+pos = do_encode<E>(pos, uint8_t(x.x.size()));
+pos = pos + 1;
+pos = do_encode<E>(pos, x.x.data(), uint8_t(x.x.size()));
+"""
+    assert generate_struct_encode(Arraypad[1]) == """\
+pos = do_encode<E>(pos, uint8_t(x.x.size()));
+pos = pos + 3;
+pos = do_encode<E>(pos, x.y);
+pos = do_encode<E>(pos, x.x.data(), uint8_t(x.x.size()));
+"""
+    assert generate_struct_encode(Arraypad[2]) == """\
+pos = do_encode<E>(pos, uint16_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint16_t(x.x.size()));
+pos = align<2>(pos);
+"""
+    assert generate_struct_encode(Arraypad[3]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 1;
+pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Arraypad[4]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = do_encode<E>(pos, x.y, 3);
+pos = pos + 1;
+pos = do_encode<E>(pos, x.z);
+"""
+    assert generate_struct_encode(Arraypad[5]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = align<4>(pos);
+pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Arraypad[6]) == """\
+pos = do_encode<E>(pos, uint32_t(std::min(x.x.size(), size_t(2))));
+do_encode<E>(pos, x.x.data(), uint32_t(std::min(x.x.size(), size_t(2))));
+pos = pos + 2;
+pos = pos + 2;
 pos = do_encode<E>(pos, x.y);
 """
