@@ -82,6 +82,19 @@ def Unions():
     ])
 
 @pytest.fixture
+def Enums():
+    return process([
+        model.Enum('Enum', [
+            model.EnumMember('Enum_One', '1'),
+            model.EnumMember('Enum_Two', '2')
+        ]),
+        model.Struct('DynEnum', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'Enum', bound = 'num_of_x')
+        ])
+    ])
+
+@pytest.fixture
 def Floats():
     return process([
         model.Struct('Floats', [
@@ -316,6 +329,12 @@ pos = pos + 4;
 pos = do_encode<E>(pos, x.has_x);
 if (x.has_x) do_encode<E>(pos, x.x);
 pos = pos + 8;
+"""
+
+def test_generate_enums_encode(Enums):
+    assert generate_struct_encode(Enums[1]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
 """
 
 def test_generate_floats_encode(Floats):
