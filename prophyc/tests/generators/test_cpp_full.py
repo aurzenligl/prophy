@@ -254,6 +254,51 @@ def Arraypad():
         ])
     ])
 
+@pytest.fixture
+def Dynfields():
+    return process([
+        model.Struct('Dynfields', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('num_of_y', 'u16'),
+            model.StructMember('y', 'u16', bound = 'num_of_y'),
+            model.StructMember('z', 'u64')
+        ]),
+        model.Struct('DynfieldsMixed', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('num_of_y', 'u16'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('y', 'u16', bound = 'num_of_y')
+        ]),
+        model.Struct('DynfieldsOverlapped', [
+            model.StructMember('num_of_a', 'u32'),
+            model.StructMember('num_of_b', 'u32'),
+            model.StructMember('b', 'u16', bound = 'num_of_b'),
+            model.StructMember('num_of_c', 'u32'),
+            model.StructMember('c', 'u16', bound = 'num_of_c'),
+            model.StructMember('a', 'u16', bound = 'num_of_a')
+        ]),
+        model.Struct('DynfieldsPartialpad_Helper', [
+            model.StructMember('num_of_x', 'u8'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('y', 'u8'),
+            model.StructMember('z', 'u64')
+        ]),
+        model.Struct('DynfieldsPartialpad', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'DynfieldsPartialpad_Helper')
+        ]),
+        model.Struct('DynfieldsScalarpartialpad_Helper', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x')
+        ]),
+        model.Struct('DynfieldsScalarpartialpad', [
+            model.StructMember('x', 'DynfieldsScalarpartialpad_Helper'),
+            model.StructMember('y', 'DynfieldsScalarpartialpad_Helper'),
+            model.StructMember('z', 'DynfieldsScalarpartialpad_Helper')
+        ])
+    ])
+
 def test_generate_builtin_encode(Builtin):
     assert generate_struct_encode(Builtin[0]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -491,4 +536,56 @@ do_encode<E>(pos, x.x.data(), uint32_t(std::min(x.x.size(), size_t(2))));
 pos = pos + 2;
 pos = pos + 2;
 pos = do_encode<E>(pos, x.y);
+"""
+
+def test_generate_dynfields_encode(Dynfields):
+    assert generate_struct_encode(Dynfields[0]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = align<2>(pos);
+pos = do_encode<E>(pos, uint16_t(x.y.size()));
+pos = do_encode<E>(pos, x.y.data(), uint16_t(x.y.size()));
+pos = align<8>(pos);
+pos = do_encode<E>(pos, x.z);
+"""
+    assert generate_struct_encode(Dynfields[1]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, uint16_t(x.y.size()));
+pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = align<2>(pos);
+pos = do_encode<E>(pos, x.y.data(), uint16_t(x.y.size()));
+pos = align<4>(pos);
+"""
+    assert generate_struct_encode(Dynfields[2]) == """\
+pos = do_encode<E>(pos, uint32_t(x.a.size()));
+pos = do_encode<E>(pos, uint32_t(x.b.size()));
+pos = do_encode<E>(pos, x.b.data(), uint32_t(x.b.size()));
+pos = align<4>(pos);
+pos = do_encode<E>(pos, uint32_t(x.c.size()));
+pos = do_encode<E>(pos, x.c.data(), uint32_t(x.c.size()));
+pos = do_encode<E>(pos, x.a.data(), uint32_t(x.a.size()));
+pos = align<4>(pos);
+"""
+    assert generate_struct_encode(Dynfields[3]) == """\
+pos = do_encode<E>(pos, uint8_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint8_t(x.x.size()));
+pos = align<8>(pos);
+pos = do_encode<E>(pos, x.y);
+pos = pos + 7;
+pos = do_encode<E>(pos, x.z);
+"""
+    assert generate_struct_encode(Dynfields[4]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = pos + 7;
+pos = do_encode<E>(pos, x.y);
+"""
+    assert generate_struct_encode(Dynfields[5]) == """\
+pos = do_encode<E>(pos, uint32_t(x.x.size()));
+pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+pos = align<4>(pos);
+"""
+    assert generate_struct_encode(Dynfields[6]) == """\
+pos = do_encode<E>(pos, x.x);
+pos = do_encode<E>(pos, x.y);
+pos = do_encode<E>(pos, x.z);
 """
