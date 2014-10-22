@@ -63,6 +63,25 @@ def Fixcomp():
     ])
 
 @pytest.fixture
+def Dyncomp():
+    return process([
+        model.Struct('BuiltinDynamic', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u32', bound = 'num_of_x')
+        ]),
+        model.Struct('Dyncomp', [
+            model.StructMember('x', 'BuiltinDynamic')
+        ]),
+        model.Struct('DyncompDynamic', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'BuiltinDynamic', bound = 'num_of_x')
+        ]),
+        model.Struct('DyncompGreedy', [
+            model.StructMember('x', 'BuiltinDynamic', unlimited = True)
+        ])
+    ])
+
+@pytest.fixture
 def Unions():
     return process([
         model.Struct('Builtin', [
@@ -120,26 +139,6 @@ def Bytes():
         ]),
         model.Struct('BytesGreedy', [
             model.StructMember('x', 'byte', unlimited = True)
-        ])
-    ])
-
-@pytest.fixture
-def Dyncomp():
-    return process([
-        model.Struct('Builtin', [
-            model.StructMember('x', 'u32'),
-            model.StructMember('y', 'u32')
-        ]),
-        model.Struct('Dyncomp', [
-            model.StructMember('x', 'Builtin'),
-            model.StructMember('y', 'Builtin')
-        ]),
-        model.Struct('DyncompDynamic', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'Builtin', bound = 'num_of_x')
-        ]),
-        model.Struct('DyncompGreedy', [
-            model.StructMember('x', 'Builtin', unlimited = True)
         ])
     ])
 
@@ -345,7 +344,6 @@ pos = do_encode<E>(pos, x.x.data(), x.x.size());
 def test_generate_dyncomp_encode(Dyncomp):
     assert generate_struct_encode(Dyncomp[1]) == """\
 pos = do_encode<E>(pos, x.x);
-pos = do_encode<E>(pos, x.y);
 """
     assert generate_struct_encode(Dyncomp[2]) == """\
 pos = do_encode<E>(pos, uint32_t(x.x.size()));
@@ -630,5 +628,17 @@ do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
 do_decode_advance(16, pos, end)
 """
     assert generate_struct_decode(Fixcomp[5]) == """\
+do_decode_greedy<E>(x.x, pos, end)
+"""
+
+def test_generate_dyncomp_decode(Dyncomp):
+    assert generate_struct_decode(Dyncomp[1]) == """\
+do_decode<E>(x.x, pos, end)
+"""
+    assert generate_struct_decode(Dyncomp[2]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end)
+"""
+    assert generate_struct_decode(Dyncomp[3]) == """\
 do_decode_greedy<E>(x.x, pos, end)
 """
