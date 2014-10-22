@@ -611,3 +611,24 @@ do_decode_advance(8, pos, end)
     assert generate_struct_decode(Builtin[4]) == """\
 do_decode_greedy<E>(x.x, pos, end)
 """
+
+def test_generate_fixcomp_decode(Fixcomp):
+    assert generate_struct_decode(Fixcomp[1]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_struct_decode(Fixcomp[2]) == """\
+do_decode<E>(x.x, 2, pos, end)
+"""
+    assert generate_struct_decode(Fixcomp[3]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end)
+"""
+    assert generate_struct_decode(Fixcomp[4]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
+do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_advance(16, pos, end)
+"""
+    assert generate_struct_decode(Fixcomp[5]) == """\
+do_decode_greedy<E>(x.x, pos, end)
+"""
