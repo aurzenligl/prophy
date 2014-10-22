@@ -325,7 +325,7 @@ def evaluate_struct_size(node):
     for member in node.members:
         padding = (member.alignment - byte_size % member.alignment) % member.alignment
         byte_size += member.byte_size + padding
-        if prev_member.dynamic or prev_member.greedy:
+        if (prev_member.dynamic or prev_member.greedy) and (prev_member.alignment < member.alignment):
             prev_member.padding = -(member.alignment)
         else:
             prev_member.padding = padding
@@ -333,8 +333,9 @@ def evaluate_struct_size(node):
     if node.members:
         padding = (alignment - byte_size % alignment) % alignment
         byte_size += padding
-        if prev_member.dynamic or prev_member.greedy:
-            prev_member.padding = (prev_member.alignment < alignment) and (-alignment) or 0
+        dyns = [m for m in node.members if (m.dynamic or m.greedy)]
+        if dyns:
+            prev_member.padding = (max(dyns[-1].alignment, node.members[-1].alignment) < alignment) and (-alignment) or 0
         else:
             prev_member.padding = padding
     node.byte_size, node.alignment = byte_size, alignment

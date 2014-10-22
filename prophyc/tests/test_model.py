@@ -511,8 +511,14 @@ def test_evaluate_sizes_partial_padding():
             model.StructMember('z1', 'u8'),
             model.StructMember('z2', 'u8'),
             model.StructMember('z3', 'u16'),
-        ])
+        ]),
+        model.Struct('ZZZ', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u16', bound = 'num_of_x'),
+            model.StructMember('y', 'u16'),
+        ]),
     ])
+
     assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
         (4, 4, 0),
         (0, 1, -8),
@@ -538,6 +544,12 @@ def test_evaluate_sizes_partial_padding():
         (1, 1, 0),
         (2, 2, 0),
         (40, 8)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[4])) == [
+        (4, 4, 0),
+        (0, 2, 0),
+        (2, 2, -4),
+        (8, 4)
     ]
 
 def test_evaluate_sizes_typedef():
