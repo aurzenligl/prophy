@@ -67,3 +67,29 @@ def generate_union_encode(node):
         + '}\n'
         + 'pos = pos + {0};\n'.format(node.byte_size - DISC_SIZE - discpad)
     )
+
+def generate_struct_decode(node):
+    text = []
+    bound = {m.bound:m for m in node.members if m.bound}
+    delimiters = {bound[m.name].name:m for m in node.members if m.name in bound}
+    for m in node.members:
+        if m.fixed:
+            text.append('do_decode<E>(x.{0}, {1}, pos, end)'.format(m.name, m.size))
+        elif m.dynamic:
+            d = delimiters[m.name]
+            text.append('do_decode<E>(x.{0}.data(), x.{0}.size(), pos, end)'.format(m.name))
+        elif m.limited:
+            d = delimiters[m.name]
+            text.append('do_decode_in_place<E>(x.{0}.data(), x.{0}.size(), pos, end)'.format(m.name))
+            text.append('do_decode_advance({0}, pos, end)'.format(m.byte_size))
+        elif m.greedy:
+            text.append('do_decode_greedy<E>(x.{0}, pos, end)'.format(m.name))
+        elif m.name in bound:
+            b = bound[m.name]
+            if b.dynamic:
+                text.append('do_decode_resize<E, uint32_t>(x.{0}, pos, end)'.format(b.name))
+            else:
+                text.append('do_decode_resize<E, uint32_t>(x.{0}, pos, end, {1})'.format(b.name, b.size))
+        else:
+            text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
+    return ' &&\n'.join(text) + '\n'

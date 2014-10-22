@@ -2,7 +2,8 @@ import pytest
 from prophyc import model
 from prophyc.generators.cpp_full import (
     generate_struct_encode,
-    generate_union_encode
+    generate_union_encode,
+    generate_struct_decode
 )
 
 def process(nodes):
@@ -588,4 +589,25 @@ pos = align<4>(pos);
 pos = do_encode<E>(pos, x.x);
 pos = do_encode<E>(pos, x.y);
 pos = do_encode<E>(pos, x.z);
+"""
+
+def test_generate_builtin_decode(Builtin):
+    assert generate_struct_decode(Builtin[0]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_struct_decode(Builtin[1]) == """\
+do_decode<E>(x.x, 2, pos, end)
+"""
+    assert generate_struct_decode(Builtin[2]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end)
+"""
+    assert generate_struct_decode(Builtin[3]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
+do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_advance(8, pos, end)
+"""
+    assert generate_struct_decode(Builtin[4]) == """\
+do_decode_greedy<E>(x.x, pos, end)
 """
