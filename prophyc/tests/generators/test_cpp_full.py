@@ -3,7 +3,8 @@ from prophyc import model
 from prophyc.generators.cpp_full import (
     generate_struct_encode,
     generate_union_encode,
-    generate_struct_decode
+    generate_struct_decode,
+    generate_union_decode
 )
 
 def process(nodes):
@@ -641,4 +642,27 @@ do_decode<E>(x.x.data(), x.x.size(), pos, end)
 """
     assert generate_struct_decode(Dyncomp[3]) == """\
 do_decode_greedy<E>(x.x, pos, end)
+"""
+
+def test_generate_unions_decode(Unions):
+    assert generate_union_decode(Unions[1]) == """\
+if (!do_decode<E>(x.discriminator, pos, end)) return false;
+switch (x.discriminator)
+{
+    case Union::discriminator_a: if (!do_decode_in_place<E>(x.a, pos, end)) return false; break;
+    case Union::discriminator_b: if (!do_decode_in_place<E>(x.b, pos, end)) return false; break;
+    case Union::discriminator_c: if (!do_decode_in_place<E>(x.c, pos, end)) return false; break;
+    default: return false;
+}
+return do_decode_advance(8, pos, end);
+"""
+    assert generate_struct_decode(Unions[2]) == """\
+do_decode<E>(x.has_x, pos, end) &&
+do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
+do_decode_advance(4, pos, end)
+"""
+    assert generate_struct_decode(Unions[3]) == """\
+do_decode<E>(x.has_x, pos, end) &&
+do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
+do_decode_advance(8, pos, end)
 """

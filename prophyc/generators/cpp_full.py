@@ -84,6 +84,12 @@ def generate_struct_decode(node):
             text.append('do_decode_advance({0}, pos, end)'.format(m.byte_size))
         elif m.greedy:
             text.append('do_decode_greedy<E>(x.{0}, pos, end)'.format(m.name))
+        elif m.optional:
+            discpad = (m.alignment > DISC_SIZE) and (m.alignment - DISC_SIZE) or 0
+            discpadtext = discpad and 'pos = pos + {0};\n'.format(discpad) or ''
+            text.append('do_decode<E>(x.has_{0}, pos, end)'.format(m.name))
+            text.append('do_decode_in_place_optional<E>(x.{0}, x.has_{0}, pos, end)'.format(m.name))
+            text.append('do_decode_advance({0}, pos, end)'.format(m.byte_size - DISC_SIZE - discpad))
         elif m.name in bound:
             b = bound[m.name]
             if b.dynamic:
@@ -93,3 +99,19 @@ def generate_struct_decode(node):
         else:
             text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
     return ' &&\n'.join(text) + '\n'
+
+def generate_union_decode(node):
+    discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
+    def gen_case(member):
+        return ('case {0}::discriminator_{1}: if (!do_decode_in_place<E>(x.{1}, pos, end)) return false; break;\n'
+            .format(node.name, member.name))
+    return (
+        'if (!do_decode<E>(x.discriminator, pos, end)) return false;\n'
+#        + (discpad and 'pos = pos + {0};\n'.format(discpad) or '')
+        + 'switch (x.discriminator)\n'
+        + '{\n'
+        + ''.join('    ' + gen_case(m) for m in node.members)
+        + '    ' + 'default: return false;\n'
+        + '}\n'
+        + 'return do_decode_advance({0}, pos, end);\n'.format(node.byte_size - DISC_SIZE - discpad)
+    )
