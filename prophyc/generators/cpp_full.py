@@ -53,21 +53,6 @@ def generate_struct_encode(node):
                 text += 'pos = pos + {0};\n'.format(m.padding)
     return text
 
-def generate_union_encode(node):
-    discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
-    def gen_case(member):
-        return ('case {0}::discriminator_{1}: do_encode<E>(pos, x.{1}); break;\n'
-            .format(node.name, member.name))
-    return (
-        'pos = do_encode<E>(pos, x.discriminator);\n'
-        + (discpad and 'pos = pos + {0};\n'.format(discpad) or '')
-        + 'switch(x.discriminator)\n'
-        + '{\n'
-        + ''.join('    ' + gen_case(m) for m in node.members)
-        + '}\n'
-        + 'pos = pos + {0};\n'.format(node.byte_size - DISC_SIZE - discpad)
-    )
-
 def generate_struct_decode(node):
     text = []
     bound = {m.bound:m for m in node.members if m.bound}
@@ -103,6 +88,26 @@ def generate_struct_decode(node):
                 text.append('do_decode_advance({0}, pos, end)'.format(m.padding))
     return ' &&\n'.join(text) + '\n'
 
+def generate_struct_print(node):
+    text = ''
+    bound = {m.bound:m for m in node.members if m.bound}
+    for m in node.members:
+        if m.fixed:
+            text += 'do_print(out, indent, "{0}", x.{0}, {1});\n'.format(m.name, m.size)
+        elif m.dynamic:
+            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
+        elif m.limited:
+            text += 'do_print(out, indent, "{0}", x.{0}.data(), std::min(x.{0}.size(), size_t({1})));\n'.format(m.name, m.size)
+        elif m.greedy:
+            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
+        elif m.optional:
+            text += 'if (x.has_{0}) do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
+        elif m.name in bound:
+            pass
+        else:
+            text += 'do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
+    return text
+
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
     def gen_case(member):
@@ -119,22 +124,28 @@ def generate_union_decode(node):
         + 'return do_decode_advance({0}, pos, end);\n'.format(node.byte_size - DISC_SIZE - discpad)
     )
 
-def generate_struct_print(node):
-    text = ''
-    bound = {m.bound:m for m in node.members if m.bound}
-    for m in node.members:
-        if m.fixed:
-            text += 'do_print(out, indent, "{0}", x.{0}, {1});\n'.format(m.name, m.size)
-        elif m.dynamic:
-            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
-        elif m.limited:
-            text += 'do_print(out, indent, "{0}", x.{0}.data(), std::min(x.{0}.size(), size_t({1})));\n'.format(m.name, m.size)
-        elif m.greedy:
-            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
-        elif m.optional:
-            text += 'pass;\n'
-        elif m.name in bound:
-            pass
-        else:
-            text += 'do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
-    return text
+def generate_union_encode(node):
+    discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
+    def gen_case(member):
+        return ('case {0}::discriminator_{1}: do_encode<E>(pos, x.{1}); break;\n'
+            .format(node.name, member.name))
+    return (
+        'pos = do_encode<E>(pos, x.discriminator);\n'
+        + (discpad and 'pos = pos + {0};\n'.format(discpad) or '')
+        + 'switch(x.discriminator)\n'
+        + '{\n'
+        + ''.join('    ' + gen_case(m) for m in node.members)
+        + '}\n'
+        + 'pos = pos + {0};\n'.format(node.byte_size - DISC_SIZE - discpad)
+    )
+
+def generate_union_print(node):
+    def gen_case(member):
+        return ('case {0}::discriminator_{1}: do_print(out, indent, "{1}", x.{1}); break;\n'
+            .format(node.name, member.name))
+    return (
+        'switch(x.discriminator)\n'
+        + '{\n'
+        + ''.join('    ' + gen_case(m) for m in node.members)
+        + '}\n'
+    )

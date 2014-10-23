@@ -2,10 +2,11 @@ import pytest
 from prophyc import model
 from prophyc.generators.cpp_full import (
     generate_struct_encode,
-    generate_union_encode,
     generate_struct_decode,
-    generate_union_decode,
-    generate_struct_print
+    generate_struct_print,
+    generate_union_print,
+    generate_union_encode,
+    generate_union_decode
 )
 
 def process(nodes):
@@ -929,4 +930,20 @@ do_print(out, indent, "x", x.x.data(), x.x.size());
 """
     assert generate_struct_print(Dyncomp[3]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+
+def test_generate_unions_print(Unions):
+    assert generate_union_print(Unions[1]) == """\
+switch(x.discriminator)
+{
+    case Union::discriminator_a: do_print(out, indent, "a", x.a); break;
+    case Union::discriminator_b: do_print(out, indent, "b", x.b); break;
+    case Union::discriminator_c: do_print(out, indent, "c", x.c); break;
+}
+"""
+    assert generate_struct_print(Unions[2]) == """\
+if (x.has_x) do_print(out, indent, "x", x.x);
+"""
+    assert generate_struct_print(Unions[3]) == """\
+if (x.has_x) do_print(out, indent, "x", x.x);
 """
