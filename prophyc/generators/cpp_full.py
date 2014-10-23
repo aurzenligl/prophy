@@ -136,7 +136,7 @@ def generate_union_encode(node):
     return (
         'pos = do_encode<E>(pos, x.discriminator);\n'
         + (discpad and 'pos = pos + {0};\n'.format(discpad) or '')
-        + 'switch(x.discriminator)\n'
+        + 'switch (x.discriminator)\n'
         + '{\n'
         + ''.join('    ' + gen_case(m) for m in node.members)
         + '}\n'
@@ -148,7 +148,7 @@ def generate_union_print(node):
         return ('case {0}::discriminator_{1}: do_print(out, indent, "{1}", x.{1}); break;\n'
             .format(node.name, member.name))
     return (
-        'switch(x.discriminator)\n'
+        'switch (x.discriminator)\n'
         + '{\n'
         + ''.join('    ' + gen_case(m) for m in node.members)
         + '}\n'

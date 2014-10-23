@@ -359,7 +359,7 @@ pos = do_encode<E>(pos, x.x.data(), x.x.size());
 def test_generate_unions_encode(Unions):
     assert generate_union_encode(Unions[1]) == """\
 pos = do_encode<E>(pos, x.discriminator);
-switch(x.discriminator)
+switch (x.discriminator)
 {
     case Union::discriminator_a: do_encode<E>(pos, x.a); break;
     case Union::discriminator_b: do_encode<E>(pos, x.b); break;
@@ -471,7 +471,7 @@ pos = pos + 8;
 """
     assert generate_union_encode(Unionpad[2]) == """\
 pos = do_encode<E>(pos, x.discriminator);
-switch(x.discriminator)
+switch (x.discriminator)
 {
     case UnionpadDiscpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
 }
@@ -485,7 +485,7 @@ pos = do_encode<E>(pos, x.y);
     assert generate_union_encode(Unionpad[4]) == """\
 pos = do_encode<E>(pos, x.discriminator);
 pos = pos + 4;
-switch(x.discriminator)
+switch (x.discriminator)
 {
     case UnionpadArmpad_Helper::discriminator_a: do_encode<E>(pos, x.a); break;
     case UnionpadArmpad_Helper::discriminator_b: do_encode<E>(pos, x.b); break;
@@ -934,7 +934,7 @@ do_print(out, indent, "x", x.x.data(), x.x.size());
 
 def test_generate_unions_print(Unions):
     assert generate_union_print(Unions[1]) == """\
-switch(x.discriminator)
+switch (x.discriminator)
 {
     case Union::discriminator_a: do_print(out, indent, "a", x.a); break;
     case Union::discriminator_b: do_print(out, indent, "b", x.b); break;
