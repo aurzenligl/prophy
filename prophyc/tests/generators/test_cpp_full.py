@@ -666,3 +666,34 @@ do_decode<E>(x.has_x, pos, end) &&
 do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
 do_decode_advance(8, pos, end)
 """
+
+def test_generate_enums_decode(Enums):
+    assert generate_struct_decode(Enums[1]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end)
+"""
+
+def test_generate_floats_decode(Floats):
+    assert generate_struct_decode(Floats[0]) == """\
+do_decode<E>(x.a, pos, end) &&
+do_decode_advance(4, pos, end) &&
+do_decode<E>(x.b, pos, end)
+"""
+
+def test_generate_bytes_decode(Bytes):
+    assert generate_struct_decode(Bytes[0]) == """\
+do_decode<E>(x.x, 3, pos, end)
+"""
+    assert generate_struct_decode(Bytes[1]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<4>(pos, end)
+"""
+    assert generate_struct_decode(Bytes[2]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end, 4) &&
+do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_advance(4, pos, end)
+"""
+    assert generate_struct_decode(Bytes[3]) == """\
+do_decode_greedy<E>(x.x, pos, end)
+"""

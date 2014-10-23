@@ -98,6 +98,11 @@ def generate_struct_decode(node):
                 text.append('do_decode_resize<E, uint32_t>(x.{0}, pos, end, {1})'.format(b.name, b.size))
         else:
             text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
+        if m.padding:
+            if m.padding < 0:
+                text.append('do_decode_align<{0}>(pos, end)'.format(abs(m.padding)))
+            else:
+                text.append('do_decode_advance({0}, pos, end)'.format(m.padding))
     return ' &&\n'.join(text) + '\n'
 
 def generate_union_decode(node):
