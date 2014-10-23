@@ -4,7 +4,8 @@ from prophyc.generators.cpp_full import (
     generate_struct_encode,
     generate_union_encode,
     generate_struct_decode,
-    generate_union_decode
+    generate_union_decode,
+    generate_struct_print
 )
 
 def process(nodes):
@@ -881,4 +882,51 @@ do_decode_align<4>(pos, end)
 do_decode<E>(x.x, pos, end) &&
 do_decode<E>(x.y, pos, end) &&
 do_decode<E>(x.z, pos, end)
+"""
+
+def test_generate_builtin_print(Builtin):
+    assert generate_struct_print(Builtin[0]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Builtin[1]) == """\
+do_print(out, indent, "x", x.x, 2);
+"""
+    assert generate_struct_print(Builtin[2]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Builtin[3]) == """\
+do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
+"""
+    assert generate_struct_print(Builtin[4]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+
+def test_generate_fixcomp_print(Fixcomp):
+    assert generate_struct_print(Fixcomp[1]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Fixcomp[2]) == """\
+do_print(out, indent, "x", x.x, 2);
+"""
+    assert generate_struct_print(Fixcomp[3]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Fixcomp[4]) == """\
+do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
+"""
+    assert generate_struct_print(Fixcomp[5]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+
+def test_generate_dyncomp_print(Dyncomp):
+    assert generate_struct_print(Dyncomp[1]) == """\
+do_print(out, indent, "x", x.x);
+"""
+    assert generate_struct_print(Dyncomp[2]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Dyncomp[3]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
 """

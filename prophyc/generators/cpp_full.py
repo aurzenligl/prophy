@@ -118,3 +118,23 @@ def generate_union_decode(node):
         + '}\n'
         + 'return do_decode_advance({0}, pos, end);\n'.format(node.byte_size - DISC_SIZE - discpad)
     )
+
+def generate_struct_print(node):
+    text = ''
+    bound = {m.bound:m for m in node.members if m.bound}
+    for m in node.members:
+        if m.fixed:
+            text += 'do_print(out, indent, "{0}", x.{0}, {1});\n'.format(m.name, m.size)
+        elif m.dynamic:
+            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
+        elif m.limited:
+            text += 'do_print(out, indent, "{0}", x.{0}.data(), std::min(x.{0}.size(), size_t({1})));\n'.format(m.name, m.size)
+        elif m.greedy:
+            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
+        elif m.optional:
+            text += 'pass;\n'
+        elif m.name in bound:
+            pass
+        else:
+            text += 'do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
+    return text
