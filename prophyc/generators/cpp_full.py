@@ -92,14 +92,18 @@ def generate_struct_print(node):
     text = ''
     bound = {m.bound:m for m in node.members if m.bound}
     for m in node.members:
-        if m.fixed:
-            text += 'do_print(out, indent, "{0}", x.{0}, {1});\n'.format(m.name, m.size)
-        elif m.dynamic:
-            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
-        elif m.limited:
-            text += 'do_print(out, indent, "{0}", x.{0}.data(), std::min(x.{0}.size(), size_t({1})));\n'.format(m.name, m.size)
-        elif m.greedy:
-            text += 'do_print(out, indent, "{0}", x.{0}.data(), x.{0}.size());\n'.format(m.name)
+        if m.array:
+            if m.fixed:
+                inner = 'x.{0}, size_t({1})'.format(m.name, m.size)
+            elif m.dynamic:
+                inner = 'x.{0}.data(), x.{0}.size()'.format(m.name)
+            elif m.limited:
+                inner = 'x.{0}.data(), std::min(x.{0}.size(), size_t({1}))'.format(m.name, m.size)
+            elif m.greedy:
+                inner = 'x.{0}.data(), x.{0}.size()'.format(m.name)
+            if m.type == 'byte':
+                inner = inner.join(('std::make_pair(', ')'))
+            text += 'do_print(out, indent, "{0}", {1});\n'.format(m.name, inner)
         elif m.optional:
             text += 'if (x.has_{0}) do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
         elif m.name in bound:
