@@ -697,3 +697,188 @@ do_decode_advance(4, pos, end)
     assert generate_struct_decode(Bytes[3]) == """\
 do_decode_greedy<E>(x.x, pos, end)
 """
+
+def test_generate_endpad_decode(Endpad):
+    assert generate_struct_decode(Endpad[0]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode<E>(x.y, pos, end) &&
+do_decode_advance(1, pos, end)
+"""
+    assert generate_struct_decode(Endpad[1]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode<E>(x.y, 3, pos, end) &&
+do_decode_advance(1, pos, end)
+"""
+    assert generate_struct_decode(Endpad[2]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<4>(pos, end)
+"""
+    assert generate_struct_decode(Endpad[3]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
+do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_advance(2, pos, end) &&
+do_decode_advance(2, pos, end)
+"""
+    assert generate_struct_decode(Endpad[4]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_greedy<E>(x.y, pos, end) &&
+do_decode_align<4>(pos, end)
+"""
+
+def test_generate_scalarpad_decode(Scalarpad):
+    assert generate_struct_decode(Scalarpad[0]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(1, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_struct_decode(Scalarpad[2]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(1, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_struct_decode(Scalarpad[4]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(1, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+
+def test_generate_unionpad_decode(Unionpad):
+    assert generate_struct_decode(Unionpad[0]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(3, pos, end) &&
+do_decode<E>(x.has_y, pos, end) &&
+do_decode_in_place_optional<E>(x.y, x.has_y, pos, end) &&
+do_decode_advance(1, pos, end) &&
+do_decode_advance(3, pos, end)
+"""
+    assert generate_struct_decode(Unionpad[1]) == """\
+do_decode<E>(x.has_x, pos, end) &&
+do_decode_advance(4, pos, end) &&
+do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
+do_decode_advance(8, pos, end)
+"""
+    assert generate_union_decode(Unionpad[2]) == """\
+if (!do_decode<E>(x.discriminator, pos, end)) return false;
+switch (x.discriminator)
+{
+    case UnionpadDiscpad_Helper::discriminator_a: if (!do_decode_in_place<E>(x.a, pos, end)) return false; break;
+    default: return false;
+}
+return do_decode_advance(4, pos, end);
+"""
+    assert generate_struct_decode(Unionpad[3]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(3, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_union_decode(Unionpad[4]) == """\
+if (!do_decode<E>(x.discriminator, pos, end)) return false;
+if (!do_decode_advance(4, pos, end)) return false;
+switch (x.discriminator)
+{
+    case UnionpadArmpad_Helper::discriminator_a: if (!do_decode_in_place<E>(x.a, pos, end)) return false; break;
+    case UnionpadArmpad_Helper::discriminator_b: if (!do_decode_in_place<E>(x.b, pos, end)) return false; break;
+    default: return false;
+}
+return do_decode_advance(8, pos, end);
+"""
+    assert generate_struct_decode(Unionpad[5]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(7, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+
+def test_generate_arraypad_decode(Arraypad):
+    assert generate_struct_decode(Arraypad[0]) == """\
+do_decode_resize<E, uint8_t>(x.x, pos, end) &&
+do_decode_advance(1, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end)
+"""
+    assert generate_struct_decode(Arraypad[1]) == """\
+do_decode_resize<E, uint8_t>(x.x, pos, end) &&
+do_decode_advance(3, pos, end) &&
+do_decode<E>(x.y, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end)
+"""
+    assert generate_struct_decode(Arraypad[2]) == """\
+do_decode_resize<E, uint16_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<2>(pos, end)
+"""
+    assert generate_struct_decode(Arraypad[3]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(1, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_struct_decode(Arraypad[4]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode<E>(x.y, 3, pos, end) &&
+do_decode_advance(1, pos, end) &&
+do_decode<E>(x.z, pos, end)
+"""
+    assert generate_struct_decode(Arraypad[5]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<4>(pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_struct_decode(Arraypad[6]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end, 2) &&
+do_decode_in_place<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_advance(2, pos, end) &&
+do_decode_advance(2, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+
+def test_generate_dynfields_decode(Dynfields):
+    assert generate_struct_decode(Dynfields[0]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<2>(pos, end) &&
+do_decode_resize<E, uint16_t>(x.y, pos, end) &&
+do_decode<E>(x.y.data(), x.y.size(), pos, end) &&
+do_decode_align<8>(pos, end) &&
+do_decode<E>(x.z, pos, end)
+"""
+    assert generate_struct_decode(Dynfields[1]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode_resize<E, uint16_t>(x.y, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<2>(pos, end) &&
+do_decode<E>(x.y.data(), x.y.size(), pos, end) &&
+do_decode_align<4>(pos, end)
+"""
+    assert generate_struct_decode(Dynfields[2]) == """\
+do_decode_resize<E, uint32_t>(x.a, pos, end) &&
+do_decode_resize<E, uint32_t>(x.b, pos, end) &&
+do_decode<E>(x.b.data(), x.b.size(), pos, end) &&
+do_decode_align<4>(pos, end) &&
+do_decode_resize<E, uint32_t>(x.c, pos, end) &&
+do_decode<E>(x.c.data(), x.c.size(), pos, end) &&
+do_decode<E>(x.a.data(), x.a.size(), pos, end) &&
+do_decode_align<4>(pos, end)
+"""
+    assert generate_struct_decode(Dynfields[3]) == """\
+do_decode_resize<E, uint8_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<8>(pos, end) &&
+do_decode<E>(x.y, pos, end) &&
+do_decode_advance(7, pos, end) &&
+do_decode<E>(x.z, pos, end)
+"""
+    assert generate_struct_decode(Dynfields[4]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode_advance(7, pos, end) &&
+do_decode<E>(x.y, pos, end)
+"""
+    assert generate_struct_decode(Dynfields[5]) == """\
+do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+do_decode<E>(x.x.data(), x.x.size(), pos, end) &&
+do_decode_align<4>(pos, end)
+"""
+    assert generate_struct_decode(Dynfields[6]) == """\
+do_decode<E>(x.x, pos, end) &&
+do_decode<E>(x.y, pos, end) &&
+do_decode<E>(x.z, pos, end)
+"""
