@@ -972,3 +972,129 @@ do_print(out, indent, "x", std::make_pair(x.x.data(), std::min(x.x.size(), size_
     assert generate_struct_print(Bytes[3]) == """\
 do_print(out, indent, "x", std::make_pair(x.x.data(), x.x.size()));
 """
+
+def test_generate_endpad_print(Endpad):
+    assert generate_struct_print(Endpad[0]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Endpad[1]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y, size_t(3));
+"""
+    assert generate_struct_print(Endpad[2]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Endpad[3]) == """\
+do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
+"""
+    assert generate_struct_print(Endpad[4]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y.data(), x.y.size());
+"""
+
+def test_generate_scalarpad_print(Scalarpad):
+    assert generate_struct_print(Scalarpad[0]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Scalarpad[2]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Scalarpad[4]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+
+def test_generate_unionpad_print(Unionpad):
+    assert generate_struct_print(Unionpad[0]) == """\
+do_print(out, indent, "x", x.x);
+if (x.has_y) do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Unionpad[1]) == """\
+if (x.has_x) do_print(out, indent, "x", x.x);
+"""
+    assert generate_union_print(Unionpad[2]) == """\
+switch (x.discriminator)
+{
+    case UnionpadDiscpad_Helper::discriminator_a: do_print(out, indent, "a", x.a); break;
+}
+"""
+    assert generate_struct_print(Unionpad[3]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_union_print(Unionpad[4]) == """\
+switch (x.discriminator)
+{
+    case UnionpadArmpad_Helper::discriminator_a: do_print(out, indent, "a", x.a); break;
+    case UnionpadArmpad_Helper::discriminator_b: do_print(out, indent, "b", x.b); break;
+}
+"""
+    assert generate_struct_print(Unionpad[5]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+
+def test_generate_arraypad_print(Arraypad):
+    assert generate_struct_print(Arraypad[0]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Arraypad[1]) == """\
+do_print(out, indent, "y", x.y);
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Arraypad[2]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Arraypad[3]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Arraypad[4]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y, size_t(3));
+do_print(out, indent, "z", x.z);
+"""
+    assert generate_struct_print(Arraypad[5]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Arraypad[6]) == """\
+do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
+do_print(out, indent, "y", x.y);
+"""
+
+def test_generate_dynfields_print(Dynfields):
+    assert generate_struct_print(Dynfields[0]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+do_print(out, indent, "y", x.y.data(), x.y.size());
+do_print(out, indent, "z", x.z);
+"""
+    assert generate_struct_print(Dynfields[1]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+do_print(out, indent, "y", x.y.data(), x.y.size());
+"""
+    assert generate_struct_print(Dynfields[2]) == """\
+do_print(out, indent, "b", x.b.data(), x.b.size());
+do_print(out, indent, "c", x.c.data(), x.c.size());
+do_print(out, indent, "a", x.a.data(), x.a.size());
+"""
+    assert generate_struct_print(Dynfields[3]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+do_print(out, indent, "y", x.y);
+do_print(out, indent, "z", x.z);
+"""
+    assert generate_struct_print(Dynfields[4]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+"""
+    assert generate_struct_print(Dynfields[5]) == """\
+do_print(out, indent, "x", x.x.data(), x.x.size());
+"""
+    assert generate_struct_print(Dynfields[6]) == """\
+do_print(out, indent, "x", x.x);
+do_print(out, indent, "y", x.y);
+do_print(out, indent, "z", x.z);
+"""
