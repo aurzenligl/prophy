@@ -4,9 +4,11 @@ from prophyc.generators.cpp_full import (
     generate_struct_encode,
     generate_struct_decode,
     generate_struct_print,
+    generate_struct_encoded_byte_size,
     generate_union_print,
     generate_union_encode,
-    generate_union_decode
+    generate_union_decode,
+    generate_union_encoded_byte_size
 )
 
 def process(nodes):
@@ -1098,3 +1100,77 @@ do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y);
 do_print(out, indent, "z", x.z);
 """
+
+def test_generate_builtin_encoded_byte_size(Builtin):
+    assert generate_struct_encoded_byte_size(Builtin[0]) == '8'
+    assert generate_struct_encoded_byte_size(Builtin[1]) == '8'
+    assert generate_struct_encoded_byte_size(Builtin[2]) == '-1'
+    assert generate_struct_encoded_byte_size(Builtin[3]) == '12'
+    assert generate_struct_encoded_byte_size(Builtin[4]) == '-1'
+
+def test_generate_fixcomp_encoded_byte_size(Fixcomp):
+    assert generate_struct_encoded_byte_size(Fixcomp[1]) == '16'
+    assert generate_struct_encoded_byte_size(Fixcomp[2]) == '16'
+    assert generate_struct_encoded_byte_size(Fixcomp[3]) == '-1'
+    assert generate_struct_encoded_byte_size(Fixcomp[4]) == '20'
+    assert generate_struct_encoded_byte_size(Fixcomp[5]) == '-1'
+
+def test_generate_dyncomp_encoded_byte_size(Dyncomp):
+    assert generate_struct_encoded_byte_size(Dyncomp[1]) == '-1'
+    assert generate_struct_encoded_byte_size(Dyncomp[2]) == '-1'
+    assert generate_struct_encoded_byte_size(Dyncomp[3]) == '-1'
+
+def test_generate_unions_encoded_byte_size(Unions):
+    assert generate_union_encoded_byte_size(Unions[1]) == '12'
+    assert generate_struct_encoded_byte_size(Unions[2]) == '8'
+    assert generate_struct_encoded_byte_size(Unions[3]) == '12'
+
+def test_generate_enums_encoded_byte_size(Enums):
+    assert generate_struct_encoded_byte_size(Enums[1]) == '-1'
+
+def test_generate_floats_encoded_byte_size(Floats):
+    assert generate_struct_encoded_byte_size(Floats[0]) == '16'
+
+def test_generate_bytes_encoded_byte_size(Bytes):
+    assert generate_struct_encoded_byte_size(Bytes[0]) == '3'
+    assert generate_struct_encoded_byte_size(Bytes[1]) == '-1'
+    assert generate_struct_encoded_byte_size(Bytes[2]) == '8'
+    assert generate_struct_encoded_byte_size(Bytes[3]) == '-1'
+
+def test_generate_endpad_encoded_byte_size(Endpad):
+    assert generate_struct_encoded_byte_size(Endpad[0]) == '4'
+    assert generate_struct_encoded_byte_size(Endpad[1]) == '8'
+    assert generate_struct_encoded_byte_size(Endpad[2]) == '-1'
+    assert generate_struct_encoded_byte_size(Endpad[3]) == '8'
+    assert generate_struct_encoded_byte_size(Endpad[4]) == '-1'
+
+def test_generate_scalarpad_encoded_byte_size(Scalarpad):
+    assert generate_struct_encoded_byte_size(Scalarpad[0]) == '4'
+    assert generate_struct_encoded_byte_size(Scalarpad[2]) == '4'
+    assert generate_struct_encoded_byte_size(Scalarpad[4]) == '4'
+
+def test_generate_unionpad_encoded_byte_size(Unionpad):
+    assert generate_struct_encoded_byte_size(Unionpad[0]) == '12'
+    assert generate_struct_encoded_byte_size(Unionpad[1]) == '16'
+    assert generate_union_encoded_byte_size(Unionpad[2]) == '8'
+    assert generate_struct_encoded_byte_size(Unionpad[3]) == '12'
+    assert generate_union_encoded_byte_size(Unionpad[4]) == '16'
+    assert generate_struct_encoded_byte_size(Unionpad[5]) == '24'
+
+def test_generate_arraypad_encoded_byte_size(Arraypad):
+    assert generate_struct_encoded_byte_size(Arraypad[0]) == '-1'
+    assert generate_struct_encoded_byte_size(Arraypad[1]) == '-1'
+    assert generate_struct_encoded_byte_size(Arraypad[2]) == '-1'
+    assert generate_struct_encoded_byte_size(Arraypad[3]) == '-1'
+    assert generate_struct_encoded_byte_size(Arraypad[4]) == '12'
+    assert generate_struct_encoded_byte_size(Arraypad[5]) == '-1'
+    assert generate_struct_encoded_byte_size(Arraypad[6]) == '12'
+
+def test_generate_dynfields_encoded_byte_size(Dynfields):
+    assert generate_struct_encoded_byte_size(Dynfields[0]) == '-1'
+    assert generate_struct_encoded_byte_size(Dynfields[1]) == '-1'
+    assert generate_struct_encoded_byte_size(Dynfields[2]) == '-1'
+    assert generate_struct_encoded_byte_size(Dynfields[3]) == '-1'
+    assert generate_struct_encoded_byte_size(Dynfields[4]) == '-1'
+    assert generate_struct_encoded_byte_size(Dynfields[5]) == '-1'
+    assert generate_struct_encoded_byte_size(Dynfields[6]) == '-1'

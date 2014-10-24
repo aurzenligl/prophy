@@ -112,6 +112,9 @@ def generate_struct_print(node):
             text += 'do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
     return text
 
+def generate_struct_encoded_byte_size(node):
+    return (node.kind == model.Kind.FIXED) and str(node.byte_size) or '-1'
+
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
     def gen_case(member):
@@ -153,3 +156,6 @@ def generate_union_print(node):
         + ''.join('    ' + gen_case(m) for m in node.members)
         + '}\n'
     )
+
+def generate_union_encoded_byte_size(node):
+    return str(node.byte_size)
