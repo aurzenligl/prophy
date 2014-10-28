@@ -1,5 +1,5 @@
 from prophyc import model
-from prophyc.model import DISC_SIZE
+from prophyc.model import DISC_SIZE, BUILTIN_SIZES
 
 BUILTIN2C = {
     'u8': 'uint8_t',
@@ -114,6 +114,17 @@ def generate_struct_print(node):
 
 def generate_struct_encoded_byte_size(node):
     return (node.kind == model.Kind.FIXED) and str(node.byte_size) or '-1'
+
+def generate_struct_get_byte_size(node):
+    if node.kind == model.Kind.FIXED:
+        return 'return {0};\n'.format(node.byte_size)
+    else:
+        def byte_size(m):
+            return BUILTIN_SIZES.get(m.type) or m.definition.byte_size
+        arrays = ['{0}.size() * {1}'.format(m.name, byte_size(m)) for m in node.members if m.dynamic or m.greedy]
+        if node.byte_size:
+            arrays = ['{0}'.format(node.byte_size)] + arrays
+        return 'return {0};\n'.format(' + '.join(arrays))
 
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0

@@ -5,6 +5,7 @@ from prophyc.generators.cpp_full import (
     generate_struct_decode,
     generate_struct_print,
     generate_struct_encoded_byte_size,
+    generate_struct_get_byte_size,
     generate_union_print,
     generate_union_encode,
     generate_union_decode,
@@ -1174,3 +1175,20 @@ def test_generate_dynfields_encoded_byte_size(Dynfields):
     assert generate_struct_encoded_byte_size(Dynfields[4]) == '-1'
     assert generate_struct_encoded_byte_size(Dynfields[5]) == '-1'
     assert generate_struct_encoded_byte_size(Dynfields[6]) == '-1'
+
+def test_generate_builtin_get_byte_size(Builtin):
+    assert generate_struct_get_byte_size(Builtin[0]) == """\
+return 8;
+"""
+    assert generate_struct_get_byte_size(Builtin[1]) == """\
+return 8;
+"""
+    assert generate_struct_get_byte_size(Builtin[2]) == """\
+return 4 + x.size() * 4;
+"""
+    assert generate_struct_get_byte_size(Builtin[3]) == """\
+return 12;
+"""
+    assert generate_struct_get_byte_size(Builtin[4]) == """\
+return x.size() * 4;
+"""
