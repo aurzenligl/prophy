@@ -117,7 +117,7 @@ def generate_struct_encoded_byte_size(node):
 
 def generate_struct_get_byte_size(node):
     def byte_size(m):
-        return BUILTIN_SIZES.get(m.type) or m.definition.byte_size
+        return BUILTIN_SIZES.get(m.type) or DISC_SIZE * isinstance(m.definition, model.Enum) or m.definition.byte_size
     bytes = 0
     elems = []
     for m in node.members:

@@ -1232,3 +1232,8 @@ return 8;
     assert generate_struct_get_byte_size(Unions[3]) == """\
 return 12;
 """
+
+def test_generate_enums_get_byte_size(Enums):
+    assert generate_struct_get_byte_size(Enums[1]) == """\
+return 4 + x.size() * 4;
+"""
