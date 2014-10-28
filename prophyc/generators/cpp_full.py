@@ -125,7 +125,7 @@ def generate_struct_get_byte_size(node):
             if m.dynamic or m.greedy:
                 elems += ['{0}.size() * {1}'.format(m.name, byte_size(m))]
             else:
-                bytes += m.byte_size
+                bytes += m.byte_size + m.padding
         else:
             if m.dynamic or m.greedy:
                 elems += ['std::accumulate({0}.begin(), {0}.end(), size_t(), prophy::detail::byte_size())'.format(m.name)]
