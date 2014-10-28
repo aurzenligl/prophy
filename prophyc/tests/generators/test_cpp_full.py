@@ -9,7 +9,8 @@ from prophyc.generators.cpp_full import (
     generate_union_print,
     generate_union_encode,
     generate_union_decode,
-    generate_union_encoded_byte_size
+    generate_union_encoded_byte_size,
+    generate_union_get_byte_size
 )
 
 def process(nodes):
@@ -1219,4 +1220,15 @@ return 4 + std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_si
 """
     assert generate_struct_get_byte_size(Dyncomp[3]) == """\
 return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
+"""
+
+def test_generate_unions_get_byte_size(Unions):
+    assert generate_union_get_byte_size(Unions[1]) == """\
+return 12;
+"""
+    assert generate_struct_get_byte_size(Unions[2]) == """\
+return 8;
+"""
+    assert generate_struct_get_byte_size(Unions[3]) == """\
+return 12;
 """

@@ -179,3 +179,6 @@ def generate_union_print(node):
 
 def generate_union_encoded_byte_size(node):
     return str(node.byte_size)
+
+def generate_union_get_byte_size(node):
+    return 'return {0};\n'.format(node.byte_size)
