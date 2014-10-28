@@ -118,10 +118,22 @@ def generate_struct_encoded_byte_size(node):
 def generate_struct_get_byte_size(node):
     def byte_size(m):
         return BUILTIN_SIZES.get(m.type) or m.definition.byte_size
-    arrays = ['{0}.size() * {1}'.format(m.name, byte_size(m)) for m in node.members if m.dynamic or m.greedy]
-    if node.byte_size:
-        arrays = ['{0}'.format(node.byte_size)] + arrays
-    return 'return {0};\n'.format(' + '.join(arrays))
+    bytes = 0
+    elems = []
+    for m in node.members:
+        if m.kind == model.Kind.FIXED:
+            if m.dynamic or m.greedy:
+                elems += ['{0}.size() * {1}'.format(m.name, byte_size(m))]
+            else:
+                bytes += m.byte_size
+        else:
+            if m.dynamic or m.greedy:
+                elems += ['std::accumulate({0}.begin(), {0}.end(), size_t(), prophy::detail::byte_size())'.format(m.name)]
+            else:
+                elems += ['{0}.get_byte_size()'.format(m.name)]
+    if bytes:
+        elems = ['{0}'.format(bytes)] + elems
+    return 'return {0};\n'.format(' + '.join(elems))
 
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0

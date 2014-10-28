@@ -1209,3 +1209,14 @@ return 20;
     assert generate_struct_get_byte_size(Fixcomp[5]) == """\
 return x.size() * 8;
 """
+
+def test_generate_dyncomp_get_byte_size(Dyncomp):
+    assert generate_struct_get_byte_size(Dyncomp[1]) == """\
+return x.get_byte_size();
+"""
+    assert generate_struct_get_byte_size(Dyncomp[2]) == """\
+return 4 + std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
+"""
+    assert generate_struct_get_byte_size(Dyncomp[3]) == """\
+return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
+"""
