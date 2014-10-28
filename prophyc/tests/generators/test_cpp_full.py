@@ -1192,3 +1192,20 @@ return 12;
     assert generate_struct_get_byte_size(Builtin[4]) == """\
 return x.size() * 4;
 """
+
+def test_generate_fixcomp_get_byte_size(Fixcomp):
+    assert generate_struct_get_byte_size(Fixcomp[1]) == """\
+return 16;
+"""
+    assert generate_struct_get_byte_size(Fixcomp[2]) == """\
+return 16;
+"""
+    assert generate_struct_get_byte_size(Fixcomp[3]) == """\
+return 4 + x.size() * 8;
+"""
+    assert generate_struct_get_byte_size(Fixcomp[4]) == """\
+return 20;
+"""
+    assert generate_struct_get_byte_size(Fixcomp[5]) == """\
+return x.size() * 8;
+"""
