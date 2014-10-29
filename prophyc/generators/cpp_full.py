@@ -124,6 +124,11 @@ def generate_struct_get_byte_size(node):
         if m.kind == model.Kind.FIXED:
             if m.dynamic or m.greedy:
                 elems += ['{0}.size() * {1}'.format(m.name, byte_size(m))]
+                if m.padding < 0:
+                    if bytes:
+                        elems = ['{0}'.format(bytes)] + elems
+                        bytes = 0
+                    elems = [' + '.join(elems).join(('prophy::detail::nearest<{0}>(\n    '.format(abs(m.padding)), '\n)'))]
             else:
                 bytes += m.byte_size + m.padding
         else:

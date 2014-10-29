@@ -1242,3 +1242,19 @@ def test_generate_floats_get_byte_size(Floats):
     assert generate_struct_get_byte_size(Floats[0]) == """\
 return 16;
 """
+
+def test_generate_bytes_get_byte_size(Bytes):
+    assert generate_struct_get_byte_size(Bytes[0]) == """\
+return 3;
+"""
+    assert generate_struct_get_byte_size(Bytes[1]) == """\
+return prophy::detail::nearest<4>(
+    4 + x.size() * 1
+);
+"""
+    assert generate_struct_get_byte_size(Bytes[2]) == """\
+return 8;
+"""
+    assert generate_struct_get_byte_size(Bytes[3]) == """\
+return x.size() * 1;
+"""

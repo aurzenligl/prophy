@@ -87,7 +87,7 @@ struct BytesDynamic : prophy::detail::message<BytesDynamic>
     size_t get_byte_size() const
     {
         return prophy::detail::nearest<4>(
-            4 + x.size()
+            4 + x.size() * 1
         );
     }
 };
@@ -112,7 +112,7 @@ struct BytesGreedy : prophy::detail::message<BytesGreedy>
 
     size_t get_byte_size() const
     {
-        return x.size();
+        return x.size() * 1;
     }
 };
 
