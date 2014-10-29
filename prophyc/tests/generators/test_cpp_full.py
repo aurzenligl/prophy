@@ -1258,3 +1258,24 @@ return 8;
     assert generate_struct_get_byte_size(Bytes[3]) == """\
 return x.size() * 1;
 """
+
+def test_generate_endpad_get_byte_size(Endpad):
+    assert generate_struct_get_byte_size(Endpad[0]) == """\
+return 4;
+"""
+    assert generate_struct_get_byte_size(Endpad[1]) == """\
+return 8;
+"""
+    assert generate_struct_get_byte_size(Endpad[2]) == """\
+return prophy::detail::nearest<4>(
+    4 + x.size() * 1
+);
+"""
+    assert generate_struct_get_byte_size(Endpad[3]) == """\
+return 8;
+"""
+    assert generate_struct_get_byte_size(Endpad[4]) == """\
+return prophy::detail::nearest<4>(
+    4 + y.size() * 1
+);
+"""

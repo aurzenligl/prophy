@@ -48,7 +48,7 @@ struct EndpadDynamic : prophy::detail::message<EndpadDynamic>
     size_t get_byte_size() const
     {
         return prophy::detail::nearest<4>(
-            4 + x.size()
+            4 + x.size() * 1
         );
     }
 };
@@ -77,7 +77,7 @@ struct EndpadGreedy : prophy::detail::message<EndpadGreedy>
     size_t get_byte_size() const
     {
         return prophy::detail::nearest<4>(
-            4 + y.size()
+            4 + y.size() * 1
         );
     }
 };
