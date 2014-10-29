@@ -454,6 +454,10 @@ def test_evaluate_sizes_dynamic_array():
             model.StructMember('x', 'u8'),
             model.StructMember('y', 'X'),
             model.StructMember('z', 'u8')
+        ]),
+        model.Struct('Z', [
+            model.StructMember('x', 'X'),
+            model.StructMember('y', 'u64')
         ])
     ])
     assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
@@ -466,6 +470,11 @@ def test_evaluate_sizes_dynamic_array():
         (4, 4, 0),
         (1, 1, -4),
         (12, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+        (4, 4, -8),
+        (8, 8, 0),
+        (16, 8)
     ]
 
 def test_evaluate_sizes_limited_array():
