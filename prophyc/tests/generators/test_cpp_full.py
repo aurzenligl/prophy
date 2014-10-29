@@ -11,7 +11,8 @@ from prophyc.generators.cpp_full import (
     generate_union_encode,
     generate_union_decode,
     generate_union_encoded_byte_size,
-    generate_union_get_byte_size
+    generate_union_get_byte_size,
+    generate_union_fields
 )
 
 def process(nodes):
@@ -1396,52 +1397,82 @@ std::vector<uint32_t> x; /// limit 2
 std::vector<uint32_t> x; /// greedy
 """
 
-#def test_generate_fixcomp_fields(Fixcomp):
-#    assert generate_struct_fields(Fixcomp[1]) == """\
-#"""
-#    assert generate_struct_fields(Fixcomp[2]) == """\
-#"""
-#    assert generate_struct_fields(Fixcomp[3]) == """\
-#"""
-#    assert generate_struct_fields(Fixcomp[4]) == """\
-#"""
-#    assert generate_struct_fields(Fixcomp[5]) == """\
-#"""
-#
-#def test_generate_dyncomp_fields(Dyncomp):
-#    assert generate_struct_fields(Dyncomp[1]) == """\
-#"""
-#    assert generate_struct_fields(Dyncomp[2]) == """\
-#"""
-#    assert generate_struct_fields(Dyncomp[3]) == """\
-#"""
-#
-#def test_generate_unions_fields(Unions):
-#    assert generate_union_fields(Unions[1]) == """\
-#"""
-#    assert generate_struct_fields(Unions[2]) == """\
-#"""
-#    assert generate_struct_fields(Unions[3]) == """\
-#"""
-#
-#def test_generate_enums_fields(Enums):
-#    assert generate_struct_fields(Enums[1]) == """\
-#"""
-#
-#def test_generate_floats_fields(Floats):
-#    assert generate_struct_fields(Floats[0]) == """\
-#"""
-#
-#def test_generate_bytes_fields(Bytes):
-#    assert generate_struct_fields(Bytes[0]) == """\
-#"""
-#    assert generate_struct_fields(Bytes[1]) == """\
-#"""
-#    assert generate_struct_fields(Bytes[2]) == """\
-#"""
-#    assert generate_struct_fields(Bytes[3]) == """\
-#"""
-#
+def test_generate_fixcomp_fields(Fixcomp):
+    assert generate_struct_fields(Fixcomp[1]) == """\
+Builtin x;
+Builtin y;
+"""
+    assert generate_struct_fields(Fixcomp[2]) == """\
+Builtin x[2];
+"""
+    assert generate_struct_fields(Fixcomp[3]) == """\
+std::vector<Builtin> x;
+"""
+    assert generate_struct_fields(Fixcomp[4]) == """\
+std::vector<Builtin> x; /// limit 2
+"""
+    assert generate_struct_fields(Fixcomp[5]) == """\
+std::vector<Builtin> x; /// greedy
+"""
+
+def test_generate_dyncomp_fields(Dyncomp):
+    assert generate_struct_fields(Dyncomp[1]) == """\
+BuiltinDynamic x;
+"""
+    assert generate_struct_fields(Dyncomp[2]) == """\
+std::vector<BuiltinDynamic> x;
+"""
+    assert generate_struct_fields(Dyncomp[3]) == """\
+std::vector<BuiltinDynamic> x; /// greedy
+"""
+
+def test_generate_unions_fields(Unions):
+    assert generate_union_fields(Unions[1]) == """\
+enum _discriminator
+{
+    discriminator_a = 1,
+    discriminator_b = 2,
+    discriminator_c = 3
+} discriminator;
+
+uint8_t a;
+uint32_t b;
+Builtin c;
+"""
+    assert generate_struct_fields(Unions[2]) == """\
+bool has_x;
+uint32_t x;
+"""
+    assert generate_struct_fields(Unions[3]) == """\
+bool has_x;
+Builtin x;
+"""
+
+def test_generate_enums_fields(Enums):
+    assert generate_struct_fields(Enums[1]) == """\
+std::vector<Enum> x;
+"""
+
+def test_generate_floats_fields(Floats):
+    assert generate_struct_fields(Floats[0]) == """\
+float a;
+double b;
+"""
+
+def test_generate_bytes_fields(Bytes):
+    assert generate_struct_fields(Bytes[0]) == """\
+uint8_t x[3];
+"""
+    assert generate_struct_fields(Bytes[1]) == """\
+std::vector<uint8_t> x;
+"""
+    assert generate_struct_fields(Bytes[2]) == """\
+std::vector<uint8_t> x; /// limit 4
+"""
+    assert generate_struct_fields(Bytes[3]) == """\
+std::vector<uint8_t> x; /// greedy
+"""
+
 #def test_generate_endpad_fields(Endpad):
 #    assert generate_struct_fields(Endpad[0]) == """\
 #"""
