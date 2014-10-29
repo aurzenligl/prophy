@@ -6,6 +6,7 @@ from prophyc.generators.cpp_full import (
     generate_struct_print,
     generate_struct_encoded_byte_size,
     generate_struct_get_byte_size,
+    generate_struct_fields,
     generate_union_print,
     generate_union_encode,
     generate_union_decode,
@@ -1375,4 +1376,22 @@ return prophy::detail::nearest<4>(
 """
     assert generate_struct_get_byte_size(Dynfields[6]) == """\
 return x.get_byte_size() + y.get_byte_size() + z.get_byte_size();
+"""
+
+def test_generate_builtin_fields(Builtin):
+    assert generate_struct_fields(Builtin[0]) == """\
+uint32_t x;
+uint32_t y;
+"""
+    assert generate_struct_fields(Builtin[1]) == """\
+uint32_t x[2];
+"""
+    assert generate_struct_fields(Builtin[2]) == """\
+std::vector<uint32_t> x;
+"""
+    assert generate_struct_fields(Builtin[3]) == """\
+std::vector<uint32_t> x; /// limit 2
+"""
+    assert generate_struct_fields(Builtin[4]) == """\
+std::vector<uint32_t> x; /// greedy
 """

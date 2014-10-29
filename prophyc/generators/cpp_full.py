@@ -2,10 +2,17 @@ from prophyc import model
 from prophyc.model import DISC_SIZE, BUILTIN_SIZES
 
 BUILTIN2C = {
+    'i8': 'int8_t',
+    'i16': 'int16_t',
+    'i32': 'int32_t',
+    'i64': 'int64_t',
     'u8': 'uint8_t',
     'u16': 'uint16_t',
     'u32': 'uint32_t',
-    'u64': 'uint64_t'
+    'u64': 'uint64_t',
+    'byte': 'uint8_t',
+    'r32': 'float',
+    'r64': 'double'
 }
 
 def generate_struct_encode(node):
@@ -145,6 +152,26 @@ def generate_struct_get_byte_size(node):
     if bytes:
         elems += [str(bytes)]
     return 'return {0};\n'.format(' + '.join(elems))
+
+def generate_struct_fields(node):
+    bound = {m.bound:m for m in node.members if m.bound}
+    text = ''
+    for m in node.members:
+        if m.fixed:
+            text += '{0} {1}[{2}];\n'.format(BUILTIN2C.get(m.type, m.type), m.name, m.size)
+        elif m.dynamic:
+            text += 'std::vector<{0}> {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
+        elif m.limited:
+            text += 'std::vector<{0}> {1}; /// limit {2}\n'.format(BUILTIN2C.get(m.type, m.type), m.name, m.size)
+        elif m.greedy:
+            text += 'std::vector<{0}> {1}; /// greedy\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
+        elif m.optional:
+            pass
+        elif m.name in bound:
+            pass
+        else:
+            text += '{0} {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
+    return text
 
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
