@@ -556,7 +556,7 @@ def test_evaluate_sizes_partial_padding():
     assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
         (4, 4, 0),
         (1, 4, 3),
-        (4, 4, 4),
+        (4, 4, -8),
         (1, 8, 7),
         (8, 8, 0),
         (4, 4, 0),

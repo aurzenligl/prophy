@@ -319,13 +319,15 @@ def evaluate_partial_padding_size(node):
     for part in [x for x in parts][1:]:
         part[0].alignment = max(part[0].alignment, max(x.alignment for x in part))
 def evaluate_struct_size(node):
+    def is_member_dynamic(m):
+        return m.dynamic or m.greedy or m.kind != Kind.FIXED
     alignment = node.members and max(x.alignment for x in node.members) or 1
     byte_size = 0
     prev_member = node.members and node.members[0] or None
     for member in node.members:
         padding = (member.alignment - byte_size % member.alignment) % member.alignment
         byte_size += member.byte_size + padding
-        if (prev_member.dynamic or prev_member.greedy) and (prev_member.alignment < member.alignment):
+        if is_member_dynamic(prev_member) and (prev_member.alignment < member.alignment):
             prev_member.padding = -(member.alignment)
         else:
             prev_member.padding = padding
@@ -333,8 +335,7 @@ def evaluate_struct_size(node):
     if node.members:
         padding = (alignment - byte_size % alignment) % alignment
         byte_size += padding
-        dyns = [m for m in node.members if (m.dynamic or m.greedy or m.kind >= Kind.DYNAMIC)]
-        if dyns:
+        if any(is_member_dynamic(m) for m in node.members):
             prev_member.padding = (node.members[-1].alignment < alignment) and (-alignment) or 0
         else:
             prev_member.padding = padding
