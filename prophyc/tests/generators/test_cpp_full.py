@@ -1185,7 +1185,7 @@ return 8;
 return 8;
 """
     assert generate_struct_get_byte_size(Builtin[2]) == """\
-return 4 + x.size() * 4;
+return x.size() * 4 + 4;
 """
     assert generate_struct_get_byte_size(Builtin[3]) == """\
 return 12;
@@ -1202,7 +1202,7 @@ return 16;
 return 16;
 """
     assert generate_struct_get_byte_size(Fixcomp[3]) == """\
-return 4 + x.size() * 8;
+return x.size() * 8 + 4;
 """
     assert generate_struct_get_byte_size(Fixcomp[4]) == """\
 return 20;
@@ -1216,7 +1216,7 @@ def test_generate_dyncomp_get_byte_size(Dyncomp):
 return x.get_byte_size();
 """
     assert generate_struct_get_byte_size(Dyncomp[2]) == """\
-return 4 + std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
+return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size()) + 4;
 """
     assert generate_struct_get_byte_size(Dyncomp[3]) == """\
 return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
@@ -1235,7 +1235,7 @@ return 12;
 
 def test_generate_enums_get_byte_size(Enums):
     assert generate_struct_get_byte_size(Enums[1]) == """\
-return 4 + x.size() * 4;
+return x.size() * 4 + 4;
 """
 
 def test_generate_floats_get_byte_size(Floats):
@@ -1249,7 +1249,7 @@ return 3;
 """
     assert generate_struct_get_byte_size(Bytes[1]) == """\
 return prophy::detail::nearest<4>(
-    4 + x.size() * 1
+    x.size() * 1 + 4
 );
 """
     assert generate_struct_get_byte_size(Bytes[2]) == """\
@@ -1268,7 +1268,7 @@ return 8;
 """
     assert generate_struct_get_byte_size(Endpad[2]) == """\
 return prophy::detail::nearest<4>(
-    4 + x.size() * 1
+    x.size() * 1 + 4
 );
 """
     assert generate_struct_get_byte_size(Endpad[3]) == """\
@@ -1276,7 +1276,7 @@ return 8;
 """
     assert generate_struct_get_byte_size(Endpad[4]) == """\
 return prophy::detail::nearest<4>(
-    4 + y.size() * 1
+    y.size() * 1 + 4
 );
 """
 
@@ -1313,26 +1313,26 @@ return 24;
 
 def test_generate_arraypad_get_byte_size(Arraypad):
     assert generate_struct_get_byte_size(Arraypad[0]) == """\
-return 2 + x.size() * 2;
+return x.size() * 2 + 2;
 """
     assert generate_struct_get_byte_size(Arraypad[1]) == """\
-return 8 + x.size() * 4;
+return x.size() * 4 + 8;
 """
     assert generate_struct_get_byte_size(Arraypad[2]) == """\
 return prophy::detail::nearest<2>(
-    2 + x.size() * 1
+    x.size() * 1 + 2
 );
 """
     assert generate_struct_get_byte_size(Arraypad[3]) == """\
-return 2 + y.get_byte_size();
+return y.get_byte_size() + 2;
 """
     assert generate_struct_get_byte_size(Arraypad[4]) == """\
 return 12;
 """
     assert generate_struct_get_byte_size(Arraypad[5]) == """\
-return 4 + prophy::detail::nearest<4>(
-    4 + x.size() * 1
-);
+return prophy::detail::nearest<4>(
+    x.size() * 1 + 4
+) + 4;
 """
     assert generate_struct_get_byte_size(Arraypad[6]) == """\
 return 12;
@@ -1340,37 +1340,37 @@ return 12;
 
 def test_generate_dynfields_get_byte_size(Dynfields):
     assert generate_struct_get_byte_size(Dynfields[0]) == """\
-return 8 + prophy::detail::nearest<8>(
-    2 + prophy::detail::nearest<2>(
-        4 + x.size() * 1
-    ) + y.size() * 2
-);
+return prophy::detail::nearest<8>(
+    prophy::detail::nearest<2>(
+        x.size() * 1 + 4
+    ) + y.size() * 2 + 2
+) + 8;
 """
     assert generate_struct_get_byte_size(Dynfields[1]) == """\
 return prophy::detail::nearest<4>(
     prophy::detail::nearest<2>(
-        6 + x.size() * 1
+        x.size() * 1 + 6
     ) + y.size() * 2
 );
 """
     assert generate_struct_get_byte_size(Dynfields[2]) == """\
 return prophy::detail::nearest<4>(
-    4 + prophy::detail::nearest<4>(
-        8 + b.size() * 2
-    ) + c.size() * 2 + a.size() * 2
+    prophy::detail::nearest<4>(
+        b.size() * 2 + 8
+    ) + c.size() * 2 + a.size() * 2 + 4
 );
 """
     assert generate_struct_get_byte_size(Dynfields[3]) == """\
-return 16 + prophy::detail::nearest<8>(
-    1 + x.size() * 1
-);
+return prophy::detail::nearest<8>(
+    x.size() * 1 + 1
+) + 16;
 """
     assert generate_struct_get_byte_size(Dynfields[4]) == """\
-return 8 + y.get_byte_size();
+return y.get_byte_size() + 8;
 """
     assert generate_struct_get_byte_size(Dynfields[5]) == """\
 return prophy::detail::nearest<4>(
-    4 + x.size() * 1
+    x.size() * 1 + 4
 );
 """
     assert generate_struct_get_byte_size(Dynfields[6]) == """\

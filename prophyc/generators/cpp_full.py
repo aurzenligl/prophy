@@ -135,7 +135,7 @@ def generate_struct_get_byte_size(node):
                 elems += ['{0}.get_byte_size()'.format(m.name)]
         if m.padding < 0:
             if bytes:
-                elems = ['{0}'.format(bytes)] + elems
+                elems += [str(bytes)]
                 bytes = 0
             elems = [
                 'prophy::detail::nearest<{0}>(\n'.format(abs(m.padding))
@@ -143,7 +143,7 @@ def generate_struct_get_byte_size(node):
                 + '\n)'
             ]
     if bytes:
-        elems = ['{0}'.format(bytes)] + elems
+        elems += [str(bytes)]
     return 'return {0};\n'.format(' + '.join(elems))
 
 def generate_union_decode(node):
