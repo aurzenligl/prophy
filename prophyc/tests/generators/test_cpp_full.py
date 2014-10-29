@@ -1395,3 +1395,115 @@ std::vector<uint32_t> x; /// limit 2
     assert generate_struct_fields(Builtin[4]) == """\
 std::vector<uint32_t> x; /// greedy
 """
+
+#def test_generate_fixcomp_fields(Fixcomp):
+#    assert generate_struct_fields(Fixcomp[1]) == """\
+#"""
+#    assert generate_struct_fields(Fixcomp[2]) == """\
+#"""
+#    assert generate_struct_fields(Fixcomp[3]) == """\
+#"""
+#    assert generate_struct_fields(Fixcomp[4]) == """\
+#"""
+#    assert generate_struct_fields(Fixcomp[5]) == """\
+#"""
+#
+#def test_generate_dyncomp_fields(Dyncomp):
+#    assert generate_struct_fields(Dyncomp[1]) == """\
+#"""
+#    assert generate_struct_fields(Dyncomp[2]) == """\
+#"""
+#    assert generate_struct_fields(Dyncomp[3]) == """\
+#"""
+#
+#def test_generate_unions_fields(Unions):
+#    assert generate_union_fields(Unions[1]) == """\
+#"""
+#    assert generate_struct_fields(Unions[2]) == """\
+#"""
+#    assert generate_struct_fields(Unions[3]) == """\
+#"""
+#
+#def test_generate_enums_fields(Enums):
+#    assert generate_struct_fields(Enums[1]) == """\
+#"""
+#
+#def test_generate_floats_fields(Floats):
+#    assert generate_struct_fields(Floats[0]) == """\
+#"""
+#
+#def test_generate_bytes_fields(Bytes):
+#    assert generate_struct_fields(Bytes[0]) == """\
+#"""
+#    assert generate_struct_fields(Bytes[1]) == """\
+#"""
+#    assert generate_struct_fields(Bytes[2]) == """\
+#"""
+#    assert generate_struct_fields(Bytes[3]) == """\
+#"""
+#
+#def test_generate_endpad_fields(Endpad):
+#    assert generate_struct_fields(Endpad[0]) == """\
+#"""
+#    assert generate_struct_fields(Endpad[1]) == """\
+#"""
+#    assert generate_struct_fields(Endpad[2]) == """\
+#"""
+#    assert generate_struct_fields(Endpad[3]) == """\
+#"""
+#    assert generate_struct_fields(Endpad[4]) == """\
+#"""
+#
+#def test_generate_scalarpad_fields(Scalarpad):
+#    assert generate_struct_fields(Scalarpad[0]) == """\
+#"""
+#    assert generate_struct_fields(Scalarpad[2]) == """\
+#"""
+#    assert generate_struct_fields(Scalarpad[4]) == """\
+#"""
+#
+#def test_generate_unionpad_fields(Unionpad):
+#    assert generate_struct_fields(Unionpad[0]) == """\
+#"""
+#    assert generate_struct_fields(Unionpad[1]) == """\
+#"""
+#    assert generate_union_fields(Unionpad[2]) == """\
+#"""
+#    assert generate_struct_fields(Unionpad[3]) == """\
+#"""
+#    assert generate_union_fields(Unionpad[4]) == """\
+#"""
+#    assert generate_struct_fields(Unionpad[5]) == """\
+#"""
+#
+#def test_generate_arraypad_fields(Arraypad):
+#    assert generate_struct_fields(Arraypad[0]) == """\
+#"""
+#    assert generate_struct_fields(Arraypad[1]) == """\
+#"""
+#    assert generate_struct_fields(Arraypad[2]) == """\
+#"""
+#    assert generate_struct_fields(Arraypad[3]) == """\
+#"""
+#    assert generate_struct_fields(Arraypad[4]) == """\
+#"""
+#    assert generate_struct_fields(Arraypad[5]) == """\
+#"""
+#    assert generate_struct_fields(Arraypad[6]) == """\
+#"""
+#
+#def test_generate_dynfields_fields(Dynfields):
+#    assert generate_struct_fields(Dynfields[0]) == """\
+#"""
+#    assert generate_struct_fields(Dynfields[1]) == """\
+#"""
+#    assert generate_struct_fields(Dynfields[2]) == """\
+#"""
+#    assert generate_struct_fields(Dynfields[3]) == """\
+#"""
+#    assert generate_struct_fields(Dynfields[4]) == """\
+#"""
+#    assert generate_struct_fields(Dynfields[5]) == """\
+#"""
+#    assert generate_struct_fields(Dynfields[6]) == """\
+#"""
