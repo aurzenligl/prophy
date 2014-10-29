@@ -118,6 +118,8 @@ def generate_struct_encoded_byte_size(node):
 def generate_struct_get_byte_size(node):
     def byte_size(m):
         return BUILTIN_SIZES.get(m.type) or DISC_SIZE * isinstance(m.definition, model.Enum) or m.definition.byte_size
+    def indent(text):
+        return '    ' + text.replace('\n', '\n    ')
     bytes = 0
     elems = []
     for m in node.members:
@@ -135,7 +137,11 @@ def generate_struct_get_byte_size(node):
             if bytes:
                 elems = ['{0}'.format(bytes)] + elems
                 bytes = 0
-            elems = [' + '.join(elems).join(('prophy::detail::nearest<{0}>(\n    '.format(abs(m.padding)), '\n)'))]
+            elems = [
+                'prophy::detail::nearest<{0}>(\n'.format(abs(m.padding))
+                + indent(' + '.join(elems))
+                + '\n)'
+            ]
     if bytes:
         elems = ['{0}'.format(bytes)] + elems
     return 'return {0};\n'.format(' + '.join(elems))
