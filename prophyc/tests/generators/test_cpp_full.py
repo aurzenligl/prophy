@@ -1279,3 +1279,61 @@ return prophy::detail::nearest<4>(
     4 + y.size() * 1
 );
 """
+
+def test_generate_scalarpad_get_byte_size(Scalarpad):
+    assert generate_struct_get_byte_size(Scalarpad[0]) == """\
+return 4;
+"""
+    assert generate_struct_get_byte_size(Scalarpad[2]) == """\
+return 4;
+"""
+    assert generate_struct_get_byte_size(Scalarpad[4]) == """\
+return 4;
+"""
+
+def test_generate_unionpad_get_byte_size(Unionpad):
+    assert generate_struct_get_byte_size(Unionpad[0]) == """\
+return 12;
+"""
+    assert generate_struct_get_byte_size(Unionpad[1]) == """\
+return 16;
+"""
+    assert generate_union_get_byte_size(Unionpad[2]) == """\
+return 8;
+"""
+    assert generate_struct_get_byte_size(Unionpad[3]) == """\
+return 12;
+"""
+    assert generate_union_get_byte_size(Unionpad[4]) == """\
+return 16;
+"""
+    assert generate_struct_get_byte_size(Unionpad[5]) == """\
+return 24;
+"""
+
+def test_generate_arraypad_get_byte_size(Arraypad):
+    assert generate_struct_get_byte_size(Arraypad[0]) == """\
+return 2 + x.size() * 2;
+"""
+    assert generate_struct_get_byte_size(Arraypad[1]) == """\
+return 8 + x.size() * 4;
+"""
+    assert generate_struct_get_byte_size(Arraypad[2]) == """\
+return prophy::detail::nearest<2>(
+    2 + x.size() * 1
+);
+"""
+    assert generate_struct_get_byte_size(Arraypad[3]) == """\
+return 2 + y.get_byte_size();
+"""
+    assert generate_struct_get_byte_size(Arraypad[4]) == """\
+return 12;
+"""
+    assert generate_struct_get_byte_size(Arraypad[5]) == """\
+return 4 + prophy::detail::nearest<4>(
+    4 + x.size() * 1
+);
+"""
+    assert generate_struct_get_byte_size(Arraypad[6]) == """\
+return 12;
+"""
