@@ -1473,68 +1473,135 @@ std::vector<uint8_t> x; /// limit 4
 std::vector<uint8_t> x; /// greedy
 """
 
-#def test_generate_endpad_fields(Endpad):
-#    assert generate_struct_fields(Endpad[0]) == """\
-#"""
-#    assert generate_struct_fields(Endpad[1]) == """\
-#"""
-#    assert generate_struct_fields(Endpad[2]) == """\
-#"""
-#    assert generate_struct_fields(Endpad[3]) == """\
-#"""
-#    assert generate_struct_fields(Endpad[4]) == """\
-#"""
-#
-#def test_generate_scalarpad_fields(Scalarpad):
-#    assert generate_struct_fields(Scalarpad[0]) == """\
-#"""
-#    assert generate_struct_fields(Scalarpad[2]) == """\
-#"""
-#    assert generate_struct_fields(Scalarpad[4]) == """\
-#"""
-#
-#def test_generate_unionpad_fields(Unionpad):
-#    assert generate_struct_fields(Unionpad[0]) == """\
-#"""
-#    assert generate_struct_fields(Unionpad[1]) == """\
-#"""
-#    assert generate_union_fields(Unionpad[2]) == """\
-#"""
-#    assert generate_struct_fields(Unionpad[3]) == """\
-#"""
-#    assert generate_union_fields(Unionpad[4]) == """\
-#"""
-#    assert generate_struct_fields(Unionpad[5]) == """\
-#"""
-#
-#def test_generate_arraypad_fields(Arraypad):
-#    assert generate_struct_fields(Arraypad[0]) == """\
-#"""
-#    assert generate_struct_fields(Arraypad[1]) == """\
-#"""
-#    assert generate_struct_fields(Arraypad[2]) == """\
-#"""
-#    assert generate_struct_fields(Arraypad[3]) == """\
-#"""
-#    assert generate_struct_fields(Arraypad[4]) == """\
-#"""
-#    assert generate_struct_fields(Arraypad[5]) == """\
-#"""
-#    assert generate_struct_fields(Arraypad[6]) == """\
-#"""
-#
-#def test_generate_dynfields_fields(Dynfields):
-#    assert generate_struct_fields(Dynfields[0]) == """\
-#"""
-#    assert generate_struct_fields(Dynfields[1]) == """\
-#"""
-#    assert generate_struct_fields(Dynfields[2]) == """\
-#"""
-#    assert generate_struct_fields(Dynfields[3]) == """\
-#"""
-#    assert generate_struct_fields(Dynfields[4]) == """\
-#"""
-#    assert generate_struct_fields(Dynfields[5]) == """\
-#"""
-#    assert generate_struct_fields(Dynfields[6]) == """\
-#"""
+def test_generate_endpad_fields(Endpad):
+    assert generate_struct_fields(Endpad[0]) == """\
+uint16_t x;
+uint8_t y;
+"""
+    assert generate_struct_fields(Endpad[1]) == """\
+uint32_t x;
+uint8_t y[3];
+"""
+    assert generate_struct_fields(Endpad[2]) == """\
+std::vector<uint8_t> x;
+"""
+    assert generate_struct_fields(Endpad[3]) == """\
+std::vector<uint8_t> x; /// limit 2
+"""
+    assert generate_struct_fields(Endpad[4]) == """\
+uint32_t x;
+std::vector<uint8_t> y; /// greedy
+"""
+
+def test_generate_scalarpad_fields(Scalarpad):
+    assert generate_struct_fields(Scalarpad[0]) == """\
+uint8_t x;
+uint16_t y;
+"""
+    assert generate_struct_fields(Scalarpad[2]) == """\
+ScalarpadComppre_Helper x;
+uint16_t y;
+"""
+    assert generate_struct_fields(Scalarpad[4]) == """\
+uint8_t x;
+ScalarpadComppost_Helper y;
+"""
+
+def test_generate_unionpad_fields(Unionpad):
+    assert generate_struct_fields(Unionpad[0]) == """\
+uint8_t x;
+bool has_y;
+uint8_t y;
+"""
+    assert generate_struct_fields(Unionpad[1]) == """\
+bool has_x;
+uint64_t x;
+"""
+    assert generate_union_fields(Unionpad[2]) == """\
+enum _discriminator
+{
+    discriminator_a = 1
+} discriminator;
+
+uint8_t a;
+"""
+    assert generate_struct_fields(Unionpad[3]) == """\
+uint8_t x;
+UnionpadDiscpad_Helper y;
+"""
+    assert generate_union_fields(Unionpad[4]) == """\
+enum _discriminator
+{
+    discriminator_a = 1,
+    discriminator_b = 2
+} discriminator;
+
+uint8_t a;
+uint64_t b;
+"""
+    assert generate_struct_fields(Unionpad[5]) == """\
+uint8_t x;
+UnionpadArmpad_Helper y;
+"""
+
+def test_generate_arraypad_fields(Arraypad):
+    assert generate_struct_fields(Arraypad[0]) == """\
+std::vector<uint16_t> x;
+"""
+    assert generate_struct_fields(Arraypad[1]) == """\
+uint32_t y;
+std::vector<uint32_t> x;
+"""
+    assert generate_struct_fields(Arraypad[2]) == """\
+std::vector<uint8_t> x;
+"""
+    assert generate_struct_fields(Arraypad[3]) == """\
+uint8_t x;
+ArraypadCounterAligns_Helper y;
+"""
+    assert generate_struct_fields(Arraypad[4]) == """\
+uint32_t x;
+uint8_t y[3];
+uint32_t z;
+"""
+    assert generate_struct_fields(Arraypad[5]) == """\
+std::vector<uint8_t> x;
+uint32_t y;
+"""
+    assert generate_struct_fields(Arraypad[6]) == """\
+std::vector<uint8_t> x; /// limit 2
+uint32_t y;
+"""
+
+def test_generate_dynfields_fields(Dynfields):
+    assert generate_struct_fields(Dynfields[0]) == """\
+std::vector<uint8_t> x;
+std::vector<uint16_t> y;
+uint64_t z;
+"""
+    assert generate_struct_fields(Dynfields[1]) == """\
+std::vector<uint8_t> x;
+std::vector<uint16_t> y;
+"""
+    assert generate_struct_fields(Dynfields[2]) == """\
+std::vector<uint16_t> b;
+std::vector<uint16_t> c;
+std::vector<uint16_t> a;
+"""
+    assert generate_struct_fields(Dynfields[3]) == """\
+std::vector<uint8_t> x;
+uint8_t y;
+uint64_t z;
+"""
+    assert generate_struct_fields(Dynfields[4]) == """\
+uint8_t x;
+DynfieldsPartialpad_Helper y;
+"""
+    assert generate_struct_fields(Dynfields[5]) == """\
+std::vector<uint8_t> x;
+"""
+    assert generate_struct_fields(Dynfields[6]) == """\
+DynfieldsScalarpartialpad_Helper x;
+DynfieldsScalarpartialpad_Helper y;
+DynfieldsScalarpartialpad_Helper z;
+"""
