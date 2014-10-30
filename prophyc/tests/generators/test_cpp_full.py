@@ -1,6 +1,7 @@
 import pytest
 from prophyc import model
 from prophyc.generators.cpp_full import (
+    generate_include_definition,
     generate_struct_encode,
     generate_struct_decode,
     generate_struct_print,
@@ -22,6 +23,17 @@ def process(nodes):
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes)
     return nodes
+
+@pytest.fixture
+def Include():
+    return process([
+        model.Include('Arrays')
+    ])
+
+def test_generate_include_definition(Include):
+    assert generate_include_definition(Include[0]) == """\
+#include "Arrays.ppf.hpp"
+"""
 
 @pytest.fixture
 def Builtin():
