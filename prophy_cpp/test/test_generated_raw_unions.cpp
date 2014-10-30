@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 #include "util.hpp"
-#include "generated_raw/Unions.ppr.hpp"
+#include "generated_raw/Unions.pp.hpp"
 
 using namespace testing;
-using namespace raw;
 
 TEST(generated_raw_unions, Optional_set)
 {

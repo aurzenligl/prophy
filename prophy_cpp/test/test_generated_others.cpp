@@ -1,9 +1,10 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Others.pp.hpp"
+#include "generated/Others.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
+using namespace prophy::generated;
 
 TEST(generated_others, ConstantTypedefEnum)
 {

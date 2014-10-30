@@ -1,6 +1,4 @@
-#include "Others.ppr.hpp"
-
-using namespace raw;
+#include "Others.pp.hpp"
 
 namespace prophy
 {

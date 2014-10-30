@@ -1,6 +1,4 @@
-#include "Unions.ppr.hpp"
-
-using namespace raw;
+#include "Unions.pp.hpp"
 
 namespace prophy
 {

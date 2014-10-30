@@ -1,5 +1,5 @@
-#ifndef _PROPHY_GENERATED_Dynfields_HPP
-#define _PROPHY_GENERATED_Dynfields_HPP
+#ifndef _PROPHY_GENERATED_FULL_Dynfields_HPP
+#define _PROPHY_GENERATED_FULL_Dynfields_HPP
 
 #include <stdint.h>
 #include <numeric>
@@ -8,6 +8,11 @@
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+
+namespace prophy
+{
+namespace generated
+{
 
 struct Dynfields : prophy::detail::message<Dynfields>
 {
@@ -125,4 +130,7 @@ struct DynfieldsScalarpartialpad : prophy::detail::message<DynfieldsScalarpartia
     }
 };
 
-#endif  /* _PROPHY_GENERATED_Dynfields_HPP */
+} // namespace generated
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_Dynfields_HPP */

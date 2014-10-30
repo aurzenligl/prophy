@@ -1,6 +1,4 @@
-#include "Arrays.ppr.hpp"
-
-using namespace raw;
+#include "Arrays.pp.hpp"
 
 namespace prophy
 {

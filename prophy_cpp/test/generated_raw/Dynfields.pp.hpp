@@ -1,12 +1,9 @@
-#ifndef _PROPHY_GENERATED_RAW_Dynfields_HPP
-#define _PROPHY_GENERATED_RAW_Dynfields_HPP
+#ifndef _PROPHY_GENERATED_Dynfields_HPP
+#define _PROPHY_GENERATED_Dynfields_HPP
 
 #include <prophy/prophy.hpp>
 
-#include "Arrays.ppr.hpp"
-
-namespace raw
-{
+#include "Arrays.pp.hpp"
 
 struct Dynfields
 {
@@ -106,6 +103,4 @@ struct DynfieldsComp
     } _3;
 };
 
-} // namespace raw
-
-#endif  /* _PROPHY_GENERATED_RAW_Dynfields_HPP */
+#endif  /* _PROPHY_GENERATED_Dynfields_HPP */

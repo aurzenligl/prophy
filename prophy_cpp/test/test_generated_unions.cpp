@@ -1,9 +1,10 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Unions.pp.hpp"
+#include "generated/Unions.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
+using namespace prophy::generated;
 
 TEST(generated_unions, Union)
 {

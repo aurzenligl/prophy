@@ -1,5 +1,5 @@
-#ifndef _PROPHY_GENERATED_Others_HPP
-#define _PROPHY_GENERATED_Others_HPP
+#ifndef _PROPHY_GENERATED_FULL_Others_HPP
+#define _PROPHY_GENERATED_FULL_Others_HPP
 
 #include <stdint.h>
 #include <numeric>
@@ -8,6 +8,11 @@
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+
+namespace prophy
+{
+namespace generated
+{
 
 enum { CONSTANT = 3 };
 
@@ -116,4 +121,7 @@ struct BytesGreedy : prophy::detail::message<BytesGreedy>
     }
 };
 
-#endif  /* _PROPHY_GENERATED_Others_HPP */
+} // namespace generated
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_Others_HPP */

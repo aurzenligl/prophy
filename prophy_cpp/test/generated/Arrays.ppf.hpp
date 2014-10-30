@@ -1,5 +1,5 @@
-#ifndef _PROPHY_GENERATED_Arrays_HPP
-#define _PROPHY_GENERATED_Arrays_HPP
+#ifndef _PROPHY_GENERATED_FULL_Arrays_HPP
+#define _PROPHY_GENERATED_FULL_Arrays_HPP
 
 #include <stdint.h>
 #include <numeric>
@@ -8,6 +8,11 @@
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+
+namespace prophy
+{
+namespace generated
+{
 
 struct Builtin : prophy::detail::message<Builtin>
 {
@@ -171,4 +176,7 @@ struct DyncompGreedy : prophy::detail::message<DyncompGreedy>
     }
 };
 
-#endif  /* _PROPHY_GENERATED_Arrays_HPP */
+} // namespace generated
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_Arrays_HPP */

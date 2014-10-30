@@ -1,8 +1,10 @@
-#include "Dynfields.pp.hpp"
+#include "Dynfields.ppf.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
 #include <prophy/detail/decoder.hpp>
 #include <prophy/detail/align.hpp>
+
+using namespace prophy::generated;
 
 namespace prophy
 {

@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 #include "util.hpp"
-#include "generated_raw/Arrays.ppr.hpp"
+#include "generated_raw/Arrays.pp.hpp"
 
 using namespace testing;
-using namespace raw;
 
 TEST(generated_raw_arrays, Builtin)
 {

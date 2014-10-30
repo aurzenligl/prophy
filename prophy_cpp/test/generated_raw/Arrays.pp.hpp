@@ -1,10 +1,7 @@
-#ifndef _PROPHY_GENERATED_RAW_Arrays_HPP
-#define _PROPHY_GENERATED_RAW_Arrays_HPP
+#ifndef _PROPHY_GENERATED_Arrays_HPP
+#define _PROPHY_GENERATED_Arrays_HPP
 
 #include <prophy/prophy.hpp>
-
-namespace raw
-{
 
 struct Builtin
 {
@@ -81,6 +78,4 @@ struct DyncompGreedy
     BuiltinDynamic y[1]; /// greedy array
 };
 
-} // namespace raw
-
-#endif  /* _PROPHY_GENERATED_RAW_Arrays_HPP */
+#endif  /* _PROPHY_GENERATED_Arrays_HPP */

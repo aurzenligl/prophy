@@ -1,15 +1,16 @@
 #include <string>
 #include <gtest/gtest.h>
 #include <prophy/detail/decoder.hpp>
-#include "generated/Arrays.pp.hpp"
-#include "generated/Dynfields.pp.hpp"
-#include "generated/Paddings.pp.hpp"
-#include "generated/Unions.pp.hpp"
+#include "generated/Arrays.ppf.hpp"
+#include "generated/Dynfields.ppf.hpp"
+#include "generated/Paddings.ppf.hpp"
+#include "generated/Unions.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
 using namespace prophy;
 using namespace prophy::detail;
+using namespace prophy::generated;
 
 TEST(encoding, decode_struct_failures)
 {

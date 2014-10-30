@@ -1,5 +1,5 @@
-#ifndef _PROPHY_GENERATED_Paddings_HPP
-#define _PROPHY_GENERATED_Paddings_HPP
+#ifndef _PROPHY_GENERATED_FULL_Paddings_HPP
+#define _PROPHY_GENERATED_FULL_Paddings_HPP
 
 #include <stdint.h>
 #include <numeric>
@@ -8,6 +8,11 @@
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+
+namespace prophy
+{
+namespace generated
+{
 
 struct Endpad : prophy::detail::message<Endpad>
 {
@@ -360,4 +365,7 @@ struct ArraypadLimited : prophy::detail::message<ArraypadLimited>
     }
 };
 
-#endif  /* _PROPHY_GENERATED_Paddings_HPP */
+} // namespace generated
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_Paddings_HPP */

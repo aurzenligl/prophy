@@ -1,12 +1,9 @@
-#ifndef _PROPHY_GENERATED_RAW_Unions_HPP
-#define _PROPHY_GENERATED_RAW_Unions_HPP
+#ifndef _PROPHY_GENERATED_Unions_HPP
+#define _PROPHY_GENERATED_Unions_HPP
 
 #include <prophy/prophy.hpp>
 
-#include "Arrays.ppr.hpp"
-
-namespace raw
-{
+#include "Arrays.pp.hpp"
 
 struct Optional
 {
@@ -33,6 +30,4 @@ struct Union
     };
 };
 
-} // namespace raw
-
-#endif  /* _PROPHY_GENERATED_RAW_Unions_HPP */
+#endif  /* _PROPHY_GENERATED_Unions_HPP */

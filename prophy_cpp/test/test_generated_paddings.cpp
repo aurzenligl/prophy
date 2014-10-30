@@ -1,9 +1,10 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Paddings.pp.hpp"
+#include "generated/Paddings.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
+using namespace prophy::generated;
 
 TEST(generated_paddings, Endpad)
 {

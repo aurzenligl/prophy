@@ -1,6 +1,4 @@
-#include "Dynfields.ppr.hpp"
-
-using namespace raw;
+#include "Dynfields.pp.hpp"
 
 namespace prophy
 {

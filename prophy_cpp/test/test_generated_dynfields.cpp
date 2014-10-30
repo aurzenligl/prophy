@@ -1,9 +1,10 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Dynfields.pp.hpp"
+#include "generated/Dynfields.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
+using namespace prophy::generated;
 
 TEST(generated_dynfields, Dynfields)
 {

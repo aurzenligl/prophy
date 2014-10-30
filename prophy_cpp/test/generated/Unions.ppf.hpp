@@ -1,5 +1,5 @@
-#ifndef _PROPHY_GENERATED_Unions_HPP
-#define _PROPHY_GENERATED_Unions_HPP
+#ifndef _PROPHY_GENERATED_FULL_Unions_HPP
+#define _PROPHY_GENERATED_FULL_Unions_HPP
 
 #include <stdint.h>
 #include <numeric>
@@ -9,7 +9,12 @@
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
 
-#include "Arrays.pp.hpp"
+#include "Arrays.ppf.hpp"
+
+namespace prophy
+{
+namespace generated
+{
 
 struct Union : prophy::detail::message<Union>
 {
@@ -64,4 +69,7 @@ struct FixcompOptional : prophy::detail::message<FixcompOptional>
     }
 };
 
-#endif  /* _PROPHY_GENERATED_Unions_HPP */
+} // namespace generated
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_Unions_HPP */

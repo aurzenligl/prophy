@@ -1,9 +1,10 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Arrays.pp.hpp"
+#include "generated/Arrays.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
+using namespace prophy::generated;
 
 TEST(generated_arrays, Builtin)
 {
