@@ -7,6 +7,10 @@ def generate_include_definition(node):
 def generate_constant_definition(node):
     return 'enum {{ {0} = {1} }};\n'.format(node.name, node.value)
 
+def generate_enum_definition(node):
+    body = ',\n'.join('    {0} = {1}'.format(m.name, m.value) for m in node.members) + '\n'
+    return 'enum {0}\n'.format(node.name) + '{\n' + body + '};\n'
+
 BUILTIN2C = {
     'i8': 'int8_t',
     'i16': 'int16_t',
