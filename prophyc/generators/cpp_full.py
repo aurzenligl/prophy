@@ -174,6 +174,30 @@ def generate_struct_fields(node):
             text += '{0} {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
     return text
 
+def generate_struct_constructor(node):
+    bound = {m.bound:m for m in node.members if m.bound}
+    text = []
+    for m in node.members:
+        if m.fixed:
+            if m.type in BUILTIN2C:
+                text.append('{0}()'.format(m.name))
+        elif m.dynamic:
+            pass
+        elif m.limited:
+            pass
+        elif m.greedy:
+            pass
+        elif m.optional:
+            text.append('has_{0}()'.format(m.name))
+            if m.type in BUILTIN2C:
+                text.append('{0}()'.format(m.name))
+        elif m.name in bound:
+            pass
+        else:
+            if m.type in BUILTIN2C:
+                text.append('{0}()'.format(m.name))
+    return ', '.join(text)
+
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
     def gen_case(member):
@@ -226,3 +250,8 @@ def generate_union_fields(node):
     body = ',\n'.join('    discriminator_{0} = {1}'.format(m.name, m.discriminator) for m in node.members) + '\n'
     fields = ''.join('{0} {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name) for m in node.members)
     return 'enum _discriminator\n{\n' + body + '} discriminator;\n' + '\n' + fields
+
+def generate_union_constructor(node):
+    text = ['discriminator(discriminator_{0})'.format(node.members[0].name)]
+    text += ['{0}()'.format(m.name) for m in node.members if m.type in BUILTIN2C]
+    return ', '.join(text)

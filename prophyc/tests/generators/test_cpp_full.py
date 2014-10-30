@@ -7,12 +7,14 @@ from prophyc.generators.cpp_full import (
     generate_struct_encoded_byte_size,
     generate_struct_get_byte_size,
     generate_struct_fields,
+    generate_struct_constructor,
     generate_union_print,
     generate_union_encode,
     generate_union_decode,
     generate_union_encoded_byte_size,
     generate_union_get_byte_size,
-    generate_union_fields
+    generate_union_fields,
+    generate_union_constructor
 )
 
 def process(nodes):
@@ -1605,3 +1607,77 @@ DynfieldsScalarpartialpad_Helper x;
 DynfieldsScalarpartialpad_Helper y;
 DynfieldsScalarpartialpad_Helper z;
 """
+
+def test_generate_builtin_constructor(Builtin):
+    assert generate_struct_constructor(Builtin[0]) == 'x(), y()'
+    assert generate_struct_constructor(Builtin[1]) == 'x()'
+    assert generate_struct_constructor(Builtin[2]) == ''
+    assert generate_struct_constructor(Builtin[3]) == ''
+    assert generate_struct_constructor(Builtin[4]) == ''
+
+def test_generate_fixcomp_constructor(Fixcomp):
+    assert generate_struct_constructor(Fixcomp[1]) == ''
+    assert generate_struct_constructor(Fixcomp[2]) == ''
+    assert generate_struct_constructor(Fixcomp[3]) == ''
+    assert generate_struct_constructor(Fixcomp[4]) == ''
+    assert generate_struct_constructor(Fixcomp[5]) == ''
+
+def test_generate_dyncomp_constructor(Dyncomp):
+    assert generate_struct_constructor(Dyncomp[1]) == ''
+    assert generate_struct_constructor(Dyncomp[2]) == ''
+    assert generate_struct_constructor(Dyncomp[3]) == ''
+
+def test_generate_unions_constructor(Unions):
+    assert generate_union_constructor(Unions[1]) == 'discriminator(discriminator_a), a(), b()'
+    assert generate_struct_constructor(Unions[2]) == 'has_x(), x()'
+    assert generate_struct_constructor(Unions[3]) == 'has_x()'
+
+#def test_generate_enums_constructor(Enums):
+#    assert generate_struct_constructor(Enums[1]) == ''
+#
+#def test_generate_floats_constructor(Floats):
+#    assert generate_struct_constructor(Floats[0]) == ''
+#
+#def test_generate_bytes_constructor(Bytes):
+#    assert generate_struct_constructor(Bytes[0]) == ''
+#    assert generate_struct_constructor(Bytes[1]) == ''
+#    assert generate_struct_constructor(Bytes[2]) == ''
+#    assert generate_struct_constructor(Bytes[3]) == ''
+#
+#def test_generate_endpad_constructor(Endpad):
+#    assert generate_struct_constructor(Endpad[0]) == ''
+#    assert generate_struct_constructor(Endpad[1]) == ''
+#    assert generate_struct_constructor(Endpad[2]) == ''
+#    assert generate_struct_constructor(Endpad[3]) == ''
+#    assert generate_struct_constructor(Endpad[4]) == ''
+#
+#def test_generate_scalarpad_constructor(Scalarpad):
+#    assert generate_struct_constructor(Scalarpad[0]) == ''
+#    assert generate_struct_constructor(Scalarpad[2]) == ''
+#    assert generate_struct_constructor(Scalarpad[4]) == ''
+#
+#def test_generate_unionpad_constructor(Unionpad):
+#    assert generate_struct_constructor(Unionpad[0]) == ''
+#    assert generate_struct_constructor(Unionpad[1]) == ''
+#    assert generate_union_constructor(Unionpad[2]) == ''
+#    assert generate_struct_constructor(Unionpad[3]) == ''
+#    assert generate_union_constructor(Unionpad[4]) == ''
+#    assert generate_struct_constructor(Unionpad[5]) == ''
+#
+#def test_generate_arraypad_constructor(Arraypad):
+#    assert generate_struct_constructor(Arraypad[0]) == ''
+#    assert generate_struct_constructor(Arraypad[1]) == ''
+#    assert generate_struct_constructor(Arraypad[2]) == ''
+#    assert generate_struct_constructor(Arraypad[3]) == ''
+#    assert generate_struct_constructor(Arraypad[4]) == ''
+#    assert generate_struct_constructor(Arraypad[5]) == ''
+#    assert generate_struct_constructor(Arraypad[6]) == ''
+#
+#def test_generate_dynfields_constructor(Dynfields):
+#    assert generate_struct_constructor(Dynfields[0]) == ''
+#    assert generate_struct_constructor(Dynfields[1]) == ''
+#    assert generate_struct_constructor(Dynfields[2]) == ''
+#    assert generate_struct_constructor(Dynfields[3]) == ''
+#    assert generate_struct_constructor(Dynfields[4]) == ''
+#    assert generate_struct_constructor(Dynfields[5]) == ''
+#    assert generate_struct_constructor(Dynfields[6]) == ''

@@ -56,7 +56,7 @@ struct FixcompOptional : prophy::detail::message<FixcompOptional>
     bool has_x;
     Builtin x;
 
-    FixcompOptional(): has_x(), x() { }
+    FixcompOptional(): has_x() { }
 
     size_t get_byte_size() const
     {
