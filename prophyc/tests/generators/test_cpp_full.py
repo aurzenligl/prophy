@@ -1632,52 +1632,52 @@ def test_generate_unions_constructor(Unions):
     assert generate_struct_constructor(Unions[2]) == 'has_x(), x()'
     assert generate_struct_constructor(Unions[3]) == 'has_x()'
 
-#def test_generate_enums_constructor(Enums):
-#    assert generate_struct_constructor(Enums[1]) == ''
-#
-#def test_generate_floats_constructor(Floats):
-#    assert generate_struct_constructor(Floats[0]) == ''
-#
-#def test_generate_bytes_constructor(Bytes):
-#    assert generate_struct_constructor(Bytes[0]) == ''
-#    assert generate_struct_constructor(Bytes[1]) == ''
-#    assert generate_struct_constructor(Bytes[2]) == ''
-#    assert generate_struct_constructor(Bytes[3]) == ''
-#
-#def test_generate_endpad_constructor(Endpad):
-#    assert generate_struct_constructor(Endpad[0]) == ''
-#    assert generate_struct_constructor(Endpad[1]) == ''
-#    assert generate_struct_constructor(Endpad[2]) == ''
-#    assert generate_struct_constructor(Endpad[3]) == ''
-#    assert generate_struct_constructor(Endpad[4]) == ''
-#
-#def test_generate_scalarpad_constructor(Scalarpad):
-#    assert generate_struct_constructor(Scalarpad[0]) == ''
-#    assert generate_struct_constructor(Scalarpad[2]) == ''
-#    assert generate_struct_constructor(Scalarpad[4]) == ''
-#
-#def test_generate_unionpad_constructor(Unionpad):
-#    assert generate_struct_constructor(Unionpad[0]) == ''
-#    assert generate_struct_constructor(Unionpad[1]) == ''
-#    assert generate_union_constructor(Unionpad[2]) == ''
-#    assert generate_struct_constructor(Unionpad[3]) == ''
-#    assert generate_union_constructor(Unionpad[4]) == ''
-#    assert generate_struct_constructor(Unionpad[5]) == ''
-#
-#def test_generate_arraypad_constructor(Arraypad):
-#    assert generate_struct_constructor(Arraypad[0]) == ''
-#    assert generate_struct_constructor(Arraypad[1]) == ''
-#    assert generate_struct_constructor(Arraypad[2]) == ''
-#    assert generate_struct_constructor(Arraypad[3]) == ''
-#    assert generate_struct_constructor(Arraypad[4]) == ''
-#    assert generate_struct_constructor(Arraypad[5]) == ''
-#    assert generate_struct_constructor(Arraypad[6]) == ''
-#
-#def test_generate_dynfields_constructor(Dynfields):
-#    assert generate_struct_constructor(Dynfields[0]) == ''
-#    assert generate_struct_constructor(Dynfields[1]) == ''
-#    assert generate_struct_constructor(Dynfields[2]) == ''
-#    assert generate_struct_constructor(Dynfields[3]) == ''
-#    assert generate_struct_constructor(Dynfields[4]) == ''
-#    assert generate_struct_constructor(Dynfields[5]) == ''
-#    assert generate_struct_constructor(Dynfields[6]) == ''
+def test_generate_enums_constructor(Enums):
+    assert generate_struct_constructor(Enums[1]) == ''
+
+def test_generate_floats_constructor(Floats):
+    assert generate_struct_constructor(Floats[0]) == 'a(), b()'
+
+def test_generate_bytes_constructor(Bytes):
+    assert generate_struct_constructor(Bytes[0]) == 'x()'
+    assert generate_struct_constructor(Bytes[1]) == ''
+    assert generate_struct_constructor(Bytes[2]) == ''
+    assert generate_struct_constructor(Bytes[3]) == ''
+
+def test_generate_endpad_constructor(Endpad):
+    assert generate_struct_constructor(Endpad[0]) == 'x(), y()'
+    assert generate_struct_constructor(Endpad[1]) == 'x(), y()'
+    assert generate_struct_constructor(Endpad[2]) == ''
+    assert generate_struct_constructor(Endpad[3]) == ''
+    assert generate_struct_constructor(Endpad[4]) == 'x()'
+
+def test_generate_scalarpad_constructor(Scalarpad):
+    assert generate_struct_constructor(Scalarpad[0]) == 'x(), y()'
+    assert generate_struct_constructor(Scalarpad[2]) == 'y()'
+    assert generate_struct_constructor(Scalarpad[4]) == 'x()'
+
+def test_generate_unionpad_constructor(Unionpad):
+    assert generate_struct_constructor(Unionpad[0]) == 'x(), has_y(), y()'
+    assert generate_struct_constructor(Unionpad[1]) == 'has_x(), x()'
+    assert generate_union_constructor(Unionpad[2]) == 'discriminator(discriminator_a), a()'
+    assert generate_struct_constructor(Unionpad[3]) == 'x()'
+    assert generate_union_constructor(Unionpad[4]) == 'discriminator(discriminator_a), a(), b()'
+    assert generate_struct_constructor(Unionpad[5]) == 'x()'
+
+def test_generate_arraypad_constructor(Arraypad):
+    assert generate_struct_constructor(Arraypad[0]) == ''
+    assert generate_struct_constructor(Arraypad[1]) == 'y()'
+    assert generate_struct_constructor(Arraypad[2]) == ''
+    assert generate_struct_constructor(Arraypad[3]) == 'x()'
+    assert generate_struct_constructor(Arraypad[4]) == 'x(), y(), z()'
+    assert generate_struct_constructor(Arraypad[5]) == 'y()'
+    assert generate_struct_constructor(Arraypad[6]) == 'y()'
+
+def test_generate_dynfields_constructor(Dynfields):
+    assert generate_struct_constructor(Dynfields[0]) == 'z()'
+    assert generate_struct_constructor(Dynfields[1]) == ''
+    assert generate_struct_constructor(Dynfields[2]) == ''
+    assert generate_struct_constructor(Dynfields[3]) == 'y(), z()'
+    assert generate_struct_constructor(Dynfields[4]) == 'x()'
+    assert generate_struct_constructor(Dynfields[5]) == ''
+    assert generate_struct_constructor(Dynfields[6]) == ''
