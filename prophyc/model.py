@@ -86,6 +86,7 @@ class StructMember(object):
         self.optional = optional
 
         self.definition = definition
+        self.numeric_size = None # integral number indicating array size (it may be a string with enum member or constant name)
         self.kind = evaluate_member_kind(self) # type kind, not influenced by array or optional
         self.byte_size = None # byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy
         self.alignment = None
@@ -225,13 +226,29 @@ def topological_sort(nodes):
 def cross_reference(nodes):
     """Adds definition reference to Typedef and StructMember."""
     types = {node.name: node for node in nodes}
-    def do_cross_reference(symbol):
-        symbol.definition = types.get(symbol.type)
+    constants = {x.name: x.value for x in (
+        [x for x in nodes if isinstance(x, Constant)]
+        + [m for enum in nodes if isinstance(enum, Enum) for m in enum.members]
+    )}
+    def do_cross_reference(node):
+        node.definition = types.get(node.type)
+    def do_eval_numeric_sizes(node):
+        def to_int(x, default):
+            try:
+                return int(x)
+            except ValueError:
+                return default
+        if node.size:
+            constant = node.size
+            while constant in constants:
+                constant = constants[constant]
+            node.numeric_size = to_int(constant, None)
     for node in nodes:
         if isinstance(node, Typedef):
             do_cross_reference(node)
         elif isinstance(node, Struct):
             map(do_cross_reference, node.members)
+            map(do_eval_numeric_sizes, node.members)
         elif isinstance(node, Union):
             map(do_cross_reference, node.members)
 

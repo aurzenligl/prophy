@@ -170,6 +170,28 @@ def test_cross_reference_typedef():
     assert nodes[3].definition.name == "B"
     assert nodes[3].definition.definition.name == "A"
 
+def test_cross_reference_array_size():
+    nodes = [
+        model.Constant('NUM', '3'),
+        model.Enum('E', [
+            model.EnumMember('E1', '1'),
+            model.EnumMember('E3', 'NUM')
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = 'NUM'),
+            model.StructMember('y', 'u32', size = 'E1'),
+            model.StructMember('z', 'u32', size = 'UNKNOWN'),
+            model.StructMember('a', 'u32', size = 'E3')
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[2].members[0].numeric_size == 3
+    assert nodes[2].members[1].numeric_size == 1
+    assert nodes[2].members[2].numeric_size == None
+    assert nodes[2].members[3].numeric_size == 3
+
 def test_evaluate_kinds_arrays():
     nodes = [
         model.Struct("A", [
