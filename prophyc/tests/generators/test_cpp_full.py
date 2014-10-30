@@ -122,6 +122,13 @@ def Enums():
         model.Struct('DynEnum', [
             model.StructMember('num_of_x', 'u32'),
             model.StructMember('x', 'Enum', bound = 'num_of_x')
+        ]),
+        model.Constant('CONSTANT', '3'),
+        model.Typedef('TU16', 'u16'),
+        model.Struct('ConstantTypedefEnum', [
+            model.StructMember('a', 'u16', size = 'CONSTANT'),
+            model.StructMember('b', 'TU16'),
+            model.StructMember('c', 'Enum')
         ])
     ])
 
@@ -390,6 +397,11 @@ def test_generate_enums_encode(Enums):
     assert generate_struct_encode(Enums[1]) == """\
 pos = do_encode<E>(pos, uint32_t(x.x.size()));
 pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+"""
+    assert generate_struct_encode(Enums[4]) == """\
+pos = do_encode<E>(pos, x.a, CONSTANT);
+pos = do_encode<E>(pos, x.b);
+pos = do_encode<E>(pos, x.c);
 """
 
 def test_generate_floats_encode(Floats):
@@ -682,6 +694,11 @@ def test_generate_enums_decode(Enums):
 do_decode_resize<E, uint32_t>(x.x, pos, end) &&
 do_decode<E>(x.x.data(), x.x.size(), pos, end)
 """
+    assert generate_struct_decode(Enums[4]) == """\
+do_decode<E>(x.a, CONSTANT, pos, end) &&
+do_decode<E>(x.b, pos, end) &&
+do_decode<E>(x.c, pos, end)
+"""
 
 def test_generate_floats_decode(Floats):
     assert generate_struct_decode(Floats[0]) == """\
@@ -960,6 +977,11 @@ def test_generate_enums_print(Enums):
     assert generate_struct_print(Enums[1]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
 """
+    assert generate_struct_print(Enums[4]) == """\
+do_print(out, indent, "a", x.a, size_t(CONSTANT));
+do_print(out, indent, "b", x.b);
+do_print(out, indent, "c", x.c);
+"""
 
 def test_generate_floats_print(Floats):
     assert generate_struct_print(Floats[0]) == """\
@@ -1133,6 +1155,7 @@ def test_generate_unions_encoded_byte_size(Unions):
 
 def test_generate_enums_encoded_byte_size(Enums):
     assert generate_struct_encoded_byte_size(Enums[1]) == '-1'
+    assert generate_struct_encoded_byte_size(Enums[4]) == '12'
 
 def test_generate_floats_encoded_byte_size(Floats):
     assert generate_struct_encoded_byte_size(Floats[0]) == '16'
@@ -1240,6 +1263,9 @@ return 12;
 def test_generate_enums_get_byte_size(Enums):
     assert generate_struct_get_byte_size(Enums[1]) == """\
 return x.size() * 4 + 4;
+"""
+    assert generate_struct_get_byte_size(Enums[4]) == """\
+return 12;
 """
 
 def test_generate_floats_get_byte_size(Floats):
@@ -1454,6 +1480,11 @@ def test_generate_enums_fields(Enums):
     assert generate_struct_fields(Enums[1]) == """\
 std::vector<Enum> x;
 """
+    assert generate_struct_fields(Enums[4]) == """\
+uint16_t a[CONSTANT];
+TU16 b;
+Enum c;
+"""
 
 def test_generate_floats_fields(Floats):
     assert generate_struct_fields(Floats[0]) == """\
@@ -1634,6 +1665,7 @@ def test_generate_unions_constructor(Unions):
 
 def test_generate_enums_constructor(Enums):
     assert generate_struct_constructor(Enums[1]) == ''
+    assert generate_struct_constructor(Enums[4]) == 'a(), b(), c(Enum_One)'
 
 def test_generate_floats_constructor(Floats):
     assert generate_struct_constructor(Floats[0]) == 'a(), b()'

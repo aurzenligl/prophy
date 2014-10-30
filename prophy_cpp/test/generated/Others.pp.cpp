@@ -25,7 +25,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<ConstantTypedefEnum>::encode(const ConstantTypedefEnum& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, x.a, 3);
+    pos = do_encode<E>(pos, x.a, CONSTANT);
     pos = do_encode<E>(pos, x.b);
     pos = do_encode<E>(pos, x.c);
     return pos;
@@ -39,7 +39,7 @@ template <endianness E>
 bool message_impl<ConstantTypedefEnum>::decode(ConstantTypedefEnum& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode<E>(x.a, 3, pos, end) &&
+        do_decode<E>(x.a, CONSTANT, pos, end) &&
         do_decode<E>(x.b, pos, end) &&
         do_decode<E>(x.c, pos, end)
     );
@@ -51,7 +51,7 @@ template bool message_impl<ConstantTypedefEnum>::decode<big>(ConstantTypedefEnum
 template <>
 void message_impl<ConstantTypedefEnum>::print(const ConstantTypedefEnum& x, std::ostream& out, size_t indent)
 {
-    do_print(out, indent, "a", x.a, 3);
+    do_print(out, indent, "a", x.a, size_t(CONSTANT));
     do_print(out, indent, "b", x.b);
     do_print(out, indent, "c", x.c);
 }

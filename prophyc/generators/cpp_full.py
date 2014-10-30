@@ -175,12 +175,23 @@ def generate_struct_fields(node):
     return text
 
 def generate_struct_constructor(node):
+    def get_initializer(m):
+        if isinstance(m.definition, model.Enum):
+            return m.definition.members[0].name
+        while isinstance(m.definition, model.Typedef):
+            m = m.definition
+        if m.type in BUILTIN2C:
+            return ''
+        return None
+    def try_to_append(text, m):
+        init = get_initializer(m)
+        if init is not None:
+            text.append('{0}({1})'.format(m.name, init))
     bound = {m.bound:m for m in node.members if m.bound}
     text = []
     for m in node.members:
         if m.fixed:
-            if m.type in BUILTIN2C:
-                text.append('{0}()'.format(m.name))
+            try_to_append(text, m)
         elif m.dynamic:
             pass
         elif m.limited:
@@ -189,13 +200,11 @@ def generate_struct_constructor(node):
             pass
         elif m.optional:
             text.append('has_{0}()'.format(m.name))
-            if m.type in BUILTIN2C:
-                text.append('{0}()'.format(m.name))
+            try_to_append(text, m)
         elif m.name in bound:
             pass
         else:
-            if m.type in BUILTIN2C:
-                text.append('{0}()'.format(m.name))
+            try_to_append(text, m)
     return ', '.join(text)
 
 def generate_union_decode(node):
