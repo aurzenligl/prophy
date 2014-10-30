@@ -2,6 +2,7 @@ import pytest
 from prophyc import model
 from prophyc.generators.cpp_full import (
     generate_include_definition,
+    generate_constant_definition,
     generate_struct_encode,
     generate_struct_decode,
     generate_struct_print,
@@ -30,9 +31,20 @@ def Include():
         model.Include('Arrays')
     ])
 
+@pytest.fixture
+def Constant():
+    return process([
+        model.Constant('CONSTANT', '3')
+    ])
+
 def test_generate_include_definition(Include):
     assert generate_include_definition(Include[0]) == """\
 #include "Arrays.ppf.hpp"
+"""
+
+def test_generate_constant_definition(Constant):
+    assert generate_constant_definition(Constant[0]) == """\
+enum { CONSTANT = 3 };
 """
 
 @pytest.fixture

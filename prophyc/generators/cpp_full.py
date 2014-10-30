@@ -4,6 +4,9 @@ from prophyc.model import DISC_SIZE, BUILTIN_SIZES
 def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
+def generate_constant_definition(node):
+    return 'enum {{ {0} = {1} }};\n'.format(node.name, node.value)
+
 BUILTIN2C = {
     'i8': 'int8_t',
     'i16': 'int16_t',
