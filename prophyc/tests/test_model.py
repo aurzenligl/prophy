@@ -783,3 +783,34 @@ def test_evaluate_sizes_unknown():
         (None, None, None),
         (None, None)
     ]
+
+def test_evaluate_sizes_array_with_named_size():
+    nodes = process([
+        model.Constant('NUM', '3'),
+        model.Enum('E', [
+            model.EnumMember('E1', '1'),
+            model.EnumMember('E3', 'NUM')
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = 'NUM'),
+            model.StructMember('y', 'u32', size = 'E1'),
+            model.StructMember('z', 'u32', size = 'E3')
+        ]),
+        model.Struct('Y', [
+            model.StructMember('x', 'u32', size = 'UNKNOWN'),
+            model.StructMember('y', 'u32')
+        ])
+
+    ])
+
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+        (12, 4, 0),
+        (4, 4, 0),
+        (12, 4, 0),
+        (28, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+        (None, None, None),
+        (4, 4, None),
+        (None, None)
+    ]

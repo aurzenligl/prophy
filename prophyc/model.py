@@ -310,12 +310,14 @@ def evaluate_node_size(node):
         return (None, None) # unknown type, e.g. empty typedef
 def evaluate_array_and_optional_size(member):
     if member.array and member.byte_size is not None:
-        member.byte_size = member.size and (member.byte_size * int(member.size)) or 0
+        member.byte_size = member.numeric_size and (member.byte_size * member.numeric_size) or 0
     elif member.optional:
         member.alignment = max(DISC_SIZE, member.alignment)
         member.byte_size = member.byte_size + member.alignment
 def evaluate_member_size(member):
-    if member.definition:
+    if isinstance(member, StructMember) and (member.size and member.numeric_size is None):
+        size_alignment = (None, None) # unknown array size
+    elif member.definition:
         size_alignment = evaluate_node_size(member.definition)
     elif member.type in BUILTIN_SIZES:
         byte_size = BUILTIN_SIZES[member.type]
@@ -323,11 +325,11 @@ def evaluate_member_size(member):
     else:
         size_alignment = (None, None) # unknown type
     member.byte_size, member.alignment = size_alignment
+    return size_alignment != (None, None)
 def evaluate_empty_size(node):
     node.byte_size, node.alignment = (None, None)
 def evaluate_members_sizes(node):
-    map(evaluate_member_size, node.members)
-    if any(member.byte_size is None for member in node.members):
+    if not all(map(evaluate_member_size, node.members)):
         evaluate_empty_size(node)
         return False
     return True
