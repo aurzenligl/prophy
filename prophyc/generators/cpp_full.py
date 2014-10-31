@@ -1,16 +1,6 @@
 from prophyc import model
 from prophyc.model import DISC_SIZE, BUILTIN_SIZES
 
-def generate_include_definition(node):
-    return '#include "{0}.ppf.hpp"\n'.format(node.name)
-
-def generate_constant_definition(node):
-    return 'enum {{ {0} = {1} }};\n'.format(node.name, node.value)
-
-def generate_enum_definition(node):
-    body = ',\n'.join('    {0} = {1}'.format(m.name, m.value) for m in node.members) + '\n'
-    return 'enum {0}\n'.format(node.name) + '{\n' + body + '};\n'
-
 BUILTIN2C = {
     'i8': 'int8_t',
     'i16': 'int16_t',
@@ -24,6 +14,19 @@ BUILTIN2C = {
     'r32': 'float',
     'r64': 'double'
 }
+
+def generate_include_definition(node):
+    return '#include "{0}.ppf.hpp"\n'.format(node.name)
+
+def generate_constant_definition(node):
+    return 'enum {{ {0} = {1} }};\n'.format(node.name, node.value)
+
+def generate_enum_definition(node):
+    body = ',\n'.join('    {0} = {1}'.format(m.name, m.value) for m in node.members) + '\n'
+    return 'enum {0}\n'.format(node.name) + '{\n' + body + '};\n'
+
+def generate_typedef_definition(node):
+    return 'typedef {0} {1};\n'.format(BUILTIN2C.get(node.type, node.type), node.name)
 
 def generate_struct_encode(node):
     text = ''

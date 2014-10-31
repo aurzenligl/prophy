@@ -4,6 +4,7 @@ from prophyc.generators.cpp_full import (
     generate_include_definition,
     generate_constant_definition,
     generate_enum_definition,
+    generate_typedef_definition,
     generate_struct_encode,
     generate_struct_decode,
     generate_struct_print,
@@ -47,6 +48,13 @@ def Enum():
         ])
     ])
 
+@pytest.fixture
+def Typedef():
+    return process([
+        model.Typedef('TU16', 'u16'),
+        model.Typedef('TX', 'X')
+    ])
+
 def test_generate_include_definition(Include):
     assert generate_include_definition(Include[0]) == """\
 #include "Arrays.ppf.hpp"
@@ -64,6 +72,14 @@ enum Enum
     Enum_One = 1,
     Enum_Two = 2
 };
+"""
+
+def test_generate_typedef_definition(Typedef):
+    assert generate_typedef_definition(Typedef[0]) == """\
+typedef uint16_t TU16;
+"""
+    assert generate_typedef_definition(Typedef[1]) == """\
+typedef X TX;
 """
 
 @pytest.fixture
