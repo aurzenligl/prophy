@@ -429,7 +429,7 @@ def generate_union_constructor(node):
     text += ['{0}()'.format(m.name) for m in node.members if m.type in BUILTIN2C]
     return ', '.join(text)
 
-_header = """\
+_hpp_header = """\
 #ifndef _PROPHY_GENERATED_FULL_{0}_HPP
 #define _PROPHY_GENERATED_FULL_{0}_HPP
 
@@ -447,7 +447,7 @@ namespace generated
 {{
 """
 
-_footer = """\
+_hpp_footer = """\
 }} // namespace generated
 }} // namespace prophy
 
@@ -458,8 +458,8 @@ _hpp_visitor = {
     model.Include: generate_include_definition,
     model.Constant: generate_constant_definition,
     model.Typedef: generate_typedef_definition,
-    model.Struct: generate_struct_definition,
     model.Enum: generate_enum_definition,
+    model.Struct: generate_struct_definition,
     model.Union: generate_union_definition
 }
 
@@ -475,10 +475,43 @@ def _hpp_generator(nodes):
 def generate_hpp_content(nodes):
     return ''.join(_hpp_generator(nodes))
 
+_cpp_header = """\
+#include "{0}.ppf.hpp"
+#include <algorithm>
+#include <prophy/detail/encoder.hpp>
+#include <prophy/detail/decoder.hpp>
+#include <prophy/detail/printer.hpp>
+#include <prophy/detail/align.hpp>
+
+using namespace prophy::generated;
+
+namespace prophy
+{{
+namespace detail
+{{
+"""
+
+_cpp_footer = """\
+} // namespace detail
+} // namespace prophy
+"""
+
+_cpp_visitor = {
+    model.Enum: generate_enum_implementation,
+    model.Struct: generate_struct_implementation,
+    model.Union: generate_union_implementation
+}
+
+def generate_cpp_content(nodes):
+    return '\n'.join(_cpp_visitor[type(node)](node) for node in nodes if type(node) in _cpp_visitor)
+
 class CppFullGenerator(object):
 
     def __init__(self, output_dir = "."):
         self.output_dir = output_dir
 
     def generate_hpp(self, nodes, basename):
-        return '\n'.join((_header.format(basename), generate_hpp_content(nodes), _footer.format(basename)))
+        return '\n'.join((_hpp_header.format(basename), generate_hpp_content(nodes), _hpp_footer.format(basename)))
+
+    def generate_cpp(self, nodes, basename):
+        return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
