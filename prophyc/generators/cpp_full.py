@@ -15,6 +15,9 @@ BUILTIN2C = {
     'r64': 'double'
 }
 
+def _indent(text):
+    return '\n'.join(x and '    ' + x or '' for x in text.split('\n'))
+
 def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
@@ -29,28 +32,24 @@ def generate_typedef_definition(node):
     return 'typedef {0} {1};\n'.format(BUILTIN2C.get(node.type, node.type), node.name)
 
 def generate_struct_definition(node):
-    def indent(text):
-        return '\n'.join(x and '    ' + x or '' for x in text.split('\n'))
     elems = []
     elems.append('enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)))
     elems.append(generate_struct_fields(node))
     constructor = generate_struct_constructor(node)
     if constructor:
         elems.append('{0}(): {1} {{ }}\n'.format(node.name, constructor))
-    elems.append('size_t get_byte_size() const\n{\n' + indent(generate_struct_get_byte_size(node)) + '}\n')
+    elems.append('size_t get_byte_size() const\n{\n' + _indent(generate_struct_get_byte_size(node)) + '}\n')
     header = 'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
-    return header + '{\n' + indent('\n'.join(elems)) + '};\n'
+    return header + '{\n' + _indent('\n'.join(elems)) + '};\n'
 
 def generate_union_definition(node):
-    def indent(text):
-        return '\n'.join(x and '    ' + x or '' for x in text.split('\n'))
     elems = []
     elems.append('enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)))
     elems.append(generate_union_fields(node))
     elems.append('{0}(): {1} {{ }}\n'.format(node.name, generate_union_constructor(node)))
-    elems.append('size_t get_byte_size() const\n{\n' + indent(generate_union_get_byte_size(node)) + '}\n')
+    elems.append('size_t get_byte_size() const\n{\n' + _indent(generate_union_get_byte_size(node)) + '}\n')
     header = 'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
-    return header + '{\n' + indent('\n'.join(elems)) + '};\n'
+    return header + '{\n' + _indent('\n'.join(elems)) + '};\n'
 
 def generate_struct_encode(node):
     text = ''
@@ -162,8 +161,6 @@ def generate_struct_encoded_byte_size(node):
 def generate_struct_get_byte_size(node):
     def byte_size(m):
         return BUILTIN_SIZES.get(m.type) or DISC_SIZE * isinstance(m.definition, model.Enum) or m.definition.byte_size
-    def indent(text):
-        return '    ' + text.replace('\n', '\n    ')
     bytes = 0
     elems = []
     for m in node.members:
@@ -183,7 +180,7 @@ def generate_struct_get_byte_size(node):
                 bytes = 0
             elems = [
                 'prophy::detail::nearest<{0}>(\n'.format(abs(m.padding))
-                + indent(' + '.join(elems))
+                + _indent(' + '.join(elems))
                 + '\n)'
             ]
     if bytes:
