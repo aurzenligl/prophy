@@ -137,6 +137,20 @@ struct X : prophy::detail::message<X>
 };
 """
 
+def test_generate_enum_implementation(Enum):
+    assert generate_enum_implementation(Enum[0]) == """\
+template <>
+const char* print_traits<Enum>::to_literal(Enum x)
+{
+    switch(x)
+    {
+        case Enum_One: return "Enum_One";
+        case Enum_Two: return "Enum_Two";
+        default: return 0;
+    }
+}
+"""
+
 @pytest.fixture
 def Builtin():
     return process([

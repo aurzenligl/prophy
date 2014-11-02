@@ -51,6 +51,13 @@ def generate_union_definition(node):
     header = 'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
     return header + '{\n' + _indent('\n'.join(elems)) + '};\n'
 
+def generate_enum_implementation(node):
+    switch_body = ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members)
+    switch_body += 'default: return 0;\n'
+    body = 'switch(x)\n{\n' + _indent(switch_body) + '}\n'
+    header = 'template <>\nconst char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name)
+    return header + '{\n' + _indent(body) + '}\n'
+
 def generate_struct_encode(node):
     text = ''
     bound = {m.bound:m for m in node.members if m.bound}
