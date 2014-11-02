@@ -32,31 +32,60 @@ def generate_typedef_definition(node):
     return 'typedef {0} {1};\n'.format(BUILTIN2C.get(node.type, node.type), node.name)
 
 def generate_struct_definition(node):
-    elems = []
-    elems.append('enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)))
-    elems.append(generate_struct_fields(node))
     constructor = generate_struct_constructor(node)
     if constructor:
-        elems.append('{0}(): {1} {{ }}\n'.format(node.name, constructor))
-    elems.append('size_t get_byte_size() const\n{\n' + _indent(generate_struct_get_byte_size(node)) + '}\n')
-    header = 'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
-    return header + '{\n' + _indent('\n'.join(elems)) + '};\n'
+        constructor = '{0}(): {1} {{ }}\n'.format(node.name, constructor)
+    return (
+        'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
+        + '{\n'
+        + _indent(
+            '\n'.join(x for x in (
+                'enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)),
+                generate_struct_fields(node),
+                constructor,
+                'size_t get_byte_size() const\n'
+                + '{\n'
+                + _indent(generate_struct_get_byte_size(node))
+                + '}\n'
+            ) if x)
+        )
+        + '};\n'
+    )
 
 def generate_union_definition(node):
-    elems = []
-    elems.append('enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)))
-    elems.append(generate_union_fields(node))
-    elems.append('{0}(): {1} {{ }}\n'.format(node.name, generate_union_constructor(node)))
-    elems.append('size_t get_byte_size() const\n{\n' + _indent(generate_union_get_byte_size(node)) + '}\n')
-    header = 'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
-    return header + '{\n' + _indent('\n'.join(elems)) + '};\n'
+    return (
+        'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
+        + '{\n'
+        + _indent(
+            '\n'.join((
+                'enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)),
+                generate_union_fields(node),
+                '{0}(): {1} {{ }}\n'.format(node.name, generate_union_constructor(node)),
+                'size_t get_byte_size() const\n'
+                + '{\n'
+                + _indent(generate_union_get_byte_size(node))
+                + '}\n'
+            ))
+        )
+        + '};\n'
+    )
 
 def generate_enum_implementation(node):
-    switch_body = ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members)
-    switch_body += 'default: return 0;\n'
-    body = 'switch(x)\n{\n' + _indent(switch_body) + '}\n'
-    header = 'template <>\nconst char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name)
-    return header + '{\n' + _indent(body) + '}\n'
+    return (
+        'template <>\n'
+        + 'const char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name)
+        + '{\n'
+        + _indent(
+            'switch(x)\n'
+            + '{\n'
+            + _indent(
+                ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members)
+                + 'default: return 0;\n'
+            )
+            + '}\n'
+        )
+        + '}\n'
+    )
 
 def generate_struct_implementation(node):
     def encode_impl(node):
