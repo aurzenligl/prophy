@@ -2029,7 +2029,7 @@ struct B : prophy::detail::message<B>
 """
 
 def test_generate_hpp(Union):
-    assert CppFullGenerator().generate_hpp(Union, 'MyFile') == """\
+    assert CppFullGenerator('.').generate_hpp(Union, 'MyFile') == """\
 #ifndef _PROPHY_GENERATED_FULL_MyFile_HPP
 #define _PROPHY_GENERATED_FULL_MyFile_HPP
 
@@ -2072,7 +2072,7 @@ struct X : prophy::detail::message<X>
 """
 
 def test_generate_cpp(Struct):
-    assert CppFullGenerator().generate_cpp(Struct, 'MyFile') == """\
+    assert CppFullGenerator('.').generate_cpp(Struct, 'MyFile') == """\
 #include "MyFile.ppf.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>

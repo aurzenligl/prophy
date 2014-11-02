@@ -1,3 +1,4 @@
+import os
 from prophyc import model
 from prophyc.model import DISC_SIZE, BUILTIN_SIZES
 
@@ -507,7 +508,7 @@ def generate_cpp_content(nodes):
 
 class CppFullGenerator(object):
 
-    def __init__(self, output_dir = "."):
+    def __init__(self, output_dir):
         self.output_dir = output_dir
 
     def generate_hpp(self, nodes, basename):
@@ -515,3 +516,9 @@ class CppFullGenerator(object):
 
     def generate_cpp(self, nodes, basename):
         return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
+
+    def serialize(self, nodes, basename):
+        hpp_path = os.path.join(self.output_dir, basename + '.ppf.hpp')
+        cpp_path = os.path.join(self.output_dir, basename + '.ppf.cpp')
+        open(hpp_path, 'w').write(self.generate_hpp(nodes, basename))
+        open(cpp_path, 'w').write(self.generate_cpp(nodes, basename))

@@ -50,6 +50,9 @@ def main():
     if opts.cpp_out:
         from prophyc.generators.cpp import CppGenerator
         serializers.append(CppGenerator(opts.cpp_out))
+    if opts.cpp_full_out:
+        from prophyc.generators.cpp_full import CppFullGenerator
+        serializers.append(CppFullGenerator(opts.cpp_full_out))
 
     if not serializers:
         sys.exit("Missing output directives")
@@ -67,6 +70,7 @@ def main():
         model.topological_sort(nodes)
         model.cross_reference(nodes)
         model.evaluate_kinds(nodes)
+        model.evaluate_sizes(nodes)
 
         for serializer in serializers:
             basename = get_basename(input_file)
