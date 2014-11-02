@@ -1955,3 +1955,118 @@ def test_generate_dynfields_constructor(Dynfields):
     assert generate_struct_constructor(Dynfields[4]) == 'x()'
     assert generate_struct_constructor(Dynfields[5]) == ''
     assert generate_struct_constructor(Dynfields[6]) == ''
+
+def test_generate_hpp_newlines():
+    nodes = process([
+        model.Typedef("a", "b"),
+        model.Typedef("c", "d"),
+        model.Enum("E1", [
+            model.EnumMember("E1_A", "0")
+        ]),
+        model.Enum("E2", [
+            model.EnumMember("E2_A", "0")
+        ]),
+        model.Constant("CONST_A", "0"),
+        model.Typedef("e", "f"),
+        model.Constant("CONST_B", "0"),
+        model.Constant("CONST_C", "0"),
+        model.Struct("A", [
+            model.StructMember("a", "u32")
+        ]),
+        model.Struct("B", [
+            model.StructMember("b", "u32")
+        ])
+    ])
+
+    assert generate_hpp_content(nodes) == """\
+typedef b a;
+typedef d c;
+
+enum E1
+{
+    E1_A = 0
+};
+
+enum E2
+{
+    E2_A = 0
+};
+
+enum { CONST_A = 0 };
+
+typedef f e;
+
+enum { CONST_B = 0 };
+enum { CONST_C = 0 };
+
+struct A : prophy::detail::message<A>
+{
+    enum { encoded_byte_size = 4 };
+
+    uint32_t a;
+
+    A(): a() { }
+
+    size_t get_byte_size() const
+    {
+        return 4;
+    }
+};
+
+struct B : prophy::detail::message<B>
+{
+    enum { encoded_byte_size = 4 };
+
+    uint32_t b;
+
+    B(): b() { }
+
+    size_t get_byte_size() const
+    {
+        return 4;
+    }
+};
+"""
+
+def test_generate_hpp(Union):
+    assert CppFullGenerator().generate_hpp(Union, 'MyFile') == """\
+#ifndef _PROPHY_GENERATED_FULL_MyFile_HPP
+#define _PROPHY_GENERATED_FULL_MyFile_HPP
+
+#include <stdint.h>
+#include <numeric>
+#include <vector>
+#include <string>
+#include <prophy/endianness.hpp>
+#include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
+
+namespace prophy
+{
+namespace generated
+{
+
+struct X : prophy::detail::message<X>
+{
+    enum { encoded_byte_size = 8 };
+
+    enum _discriminator
+    {
+        discriminator_a = 1
+    } discriminator;
+
+    uint8_t a;
+
+    X(): discriminator(discriminator_a), a() { }
+
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+};
+
+} // namespace generated
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_MyFile_HPP */
+"""

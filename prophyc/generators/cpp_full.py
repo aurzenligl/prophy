@@ -428,3 +428,57 @@ def generate_union_constructor(node):
     text = ['discriminator(discriminator_{0})'.format(node.members[0].name)]
     text += ['{0}()'.format(m.name) for m in node.members if m.type in BUILTIN2C]
     return ', '.join(text)
+
+_header = """\
+#ifndef _PROPHY_GENERATED_FULL_{0}_HPP
+#define _PROPHY_GENERATED_FULL_{0}_HPP
+
+#include <stdint.h>
+#include <numeric>
+#include <vector>
+#include <string>
+#include <prophy/endianness.hpp>
+#include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
+
+namespace prophy
+{{
+namespace generated
+{{
+"""
+
+_footer = """\
+}} // namespace generated
+}} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_{0}_HPP */
+"""
+
+_hpp_visitor = {
+    model.Include: generate_include_definition,
+    model.Constant: generate_constant_definition,
+    model.Typedef: generate_typedef_definition,
+    model.Struct: generate_struct_definition,
+    model.Enum: generate_enum_definition,
+    model.Union: generate_union_definition
+}
+
+def _hpp_generator(nodes):
+    last_node = None
+    for node in nodes:
+        prepend_newline = bool(last_node
+                               and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
+                                    or type(last_node) is not type(node)))
+        yield (prepend_newline and '\n' or '') + _hpp_visitor[type(node)](node)
+        last_node = node
+
+def generate_hpp_content(nodes):
+    return ''.join(_hpp_generator(nodes))
+
+class CppFullGenerator(object):
+
+    def __init__(self, output_dir = "."):
+        self.output_dir = output_dir
+
+    def generate_hpp(self, nodes, basename):
+        return '\n'.join((_header.format(basename), generate_hpp_content(nodes), _footer.format(basename)))
