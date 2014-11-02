@@ -142,7 +142,7 @@ def test_generate_enum_implementation(Enum):
 template <>
 const char* print_traits<Enum>::to_literal(Enum x)
 {
-    switch(x)
+    switch (x)
     {
         case Enum_One: return "Enum_One";
         case Enum_Two: return "Enum_Two";
@@ -218,6 +218,51 @@ void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent)
     do_print(out, indent, "x", x.x.data(), x.x.size());
 }
 template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent);
+"""
+
+def test_generate_union_implementation(Union):
+    assert generate_union_implementation(Union[0]) == """\
+template <>
+template <endianness E>
+uint8_t* message_impl<X>::encode(const X& x, uint8_t* pos)
+{
+    pos = do_encode<E>(pos, x.discriminator);
+    switch (x.discriminator)
+    {
+        case X::discriminator_a: do_encode<E>(pos, x.a); break;
+    }
+    pos = pos + 4;
+    return pos;
+}
+template uint8_t* message_impl<X>::encode<native>(const X& x, uint8_t* pos);
+template uint8_t* message_impl<X>::encode<little>(const X& x, uint8_t* pos);
+template uint8_t* message_impl<X>::encode<big>(const X& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<X>::decode(X& x, const uint8_t*& pos, const uint8_t* end)
+{
+    if (!do_decode<E>(x.discriminator, pos, end)) return false;
+    switch (x.discriminator)
+    {
+        case X::discriminator_a: if (!do_decode_in_place<E>(x.a, pos, end)) return false; break;
+        default: return false;
+    }
+    return do_decode_advance(4, pos, end);
+}
+template bool message_impl<X>::decode<native>(X& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<X>::decode<little>(X& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<X>::decode<big>(X& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
+{
+    switch (x.discriminator)
+    {
+        case X::discriminator_a: do_print(out, indent, "a", x.a); break;
+    }
+}
+template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
 """
 
 @pytest.fixture

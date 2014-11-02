@@ -76,7 +76,7 @@ def generate_enum_implementation(node):
         + 'const char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name)
         + '{\n'
         + _indent(
-            'switch(x)\n'
+            'switch (x)\n'
             + '{\n'
             + _indent(
                 ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members)
@@ -134,6 +134,51 @@ def generate_struct_implementation(node):
         encode_impl(node) + '\n'
         + decode_impl(node) + '\n'
         + print_impl(node)        
+    )
+
+def generate_union_implementation(node):
+    def encode_impl(node):
+        return (
+            'template <>\n'
+            + 'template <endianness E>\n'
+            + 'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name)
+            + '{\n'
+            + _indent(
+                generate_union_encode(node)
+                + 'return pos;\n'
+            )
+            + '}\n'
+            + ''.join(
+                'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(node.name, e)
+                for e in ('native', 'little', 'big')
+            )
+        )
+    def decode_impl(node):
+        return (
+            'template <>\n'
+            + 'template <endianness E>\n'
+            + 'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name)
+            + '{\n'
+            + _indent(generate_union_decode(node))
+            + '}\n'
+            + ''.join(
+                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(node.name, e)
+                for e in ('native', 'little', 'big')
+            )
+        )
+    def print_impl(node):
+        return (
+            'template <>\n'
+            + 'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name)
+            + '{\n'
+            + _indent(generate_union_print(node))
+            + '}\n'
+            + 'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(node.name)
+        )
+    return (
+        encode_impl(node) + '\n'
+        + decode_impl(node) + '\n'
+        + print_impl(node)
     )
 
 def generate_struct_encode(node):
