@@ -151,6 +151,75 @@ const char* print_traits<Enum>::to_literal(Enum x)
 }
 """
 
+def test_generate_struct_implementation(Struct):
+    assert generate_struct_implementation(Struct[0]) == """\
+template <>
+template <endianness E>
+uint8_t* message_impl<X>::encode(const X& x, uint8_t* pos)
+{
+    pos = do_encode<E>(pos, x.x);
+    pos = do_encode<E>(pos, x.y);
+    return pos;
+}
+template uint8_t* message_impl<X>::encode<native>(const X& x, uint8_t* pos);
+template uint8_t* message_impl<X>::encode<little>(const X& x, uint8_t* pos);
+template uint8_t* message_impl<X>::encode<big>(const X& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<X>::decode(X& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode<E>(x.y, pos, end)
+    );
+}
+template bool message_impl<X>::decode<native>(X& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<X>::decode<little>(X& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<X>::decode<big>(X& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x);
+    do_print(out, indent, "y", x.y);
+}
+template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
+"""
+    assert generate_struct_implementation(Struct[1]) == """\
+template <>
+template <endianness E>
+uint8_t* message_impl<Y>::encode(const Y& x, uint8_t* pos)
+{
+    pos = do_encode<E>(pos, uint32_t(x.x.size()));
+    pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
+    return pos;
+}
+template uint8_t* message_impl<Y>::encode<native>(const Y& x, uint8_t* pos);
+template uint8_t* message_impl<Y>::encode<little>(const Y& x, uint8_t* pos);
+template uint8_t* message_impl<Y>::encode<big>(const Y& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<Y>::decode(Y& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode_resize<E, uint32_t>(x.x, pos, end) &&
+        do_decode<E>(x.x.data(), x.x.size(), pos, end)
+    );
+}
+template bool message_impl<Y>::decode<native>(Y& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Y>::decode<little>(Y& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<Y>::decode<big>(Y& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x.data(), x.x.size());
+}
+template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent);
+"""
+
 @pytest.fixture
 def Builtin():
     return process([

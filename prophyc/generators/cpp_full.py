@@ -58,6 +58,55 @@ def generate_enum_implementation(node):
     header = 'template <>\nconst char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name)
     return header + '{\n' + _indent(body) + '}\n'
 
+def generate_struct_implementation(node):
+    def encode_impl(node):
+        return (
+            'template <>\n'
+            + 'template <endianness E>\n'
+            + 'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name)
+            + '{\n'
+            + _indent(
+                generate_struct_encode(node)
+                + 'return pos;\n'
+            )
+            + '}\n'
+            + ''.join(
+                'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(node.name, e)
+                for e in ('native', 'little', 'big')
+            )
+        )
+    def decode_impl(node):
+        return (
+            'template <>\n'
+            + 'template <endianness E>\n'
+            + 'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name)
+            + '{\n'
+            + _indent(
+                'return (\n'
+                + _indent(generate_struct_decode(node))
+                + ');\n'
+            )
+            + '}\n'
+            + ''.join(
+                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(node.name, e)
+                for e in ('native', 'little', 'big')
+            )
+        )
+    def print_impl(node):
+        return (
+            'template <>\n'
+            + 'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name)
+            + '{\n'
+            + _indent(generate_struct_print(node))
+            + '}\n'
+            + 'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(node.name)
+        )
+    return (
+        encode_impl(node) + '\n'
+        + decode_impl(node) + '\n'
+        + print_impl(node)        
+    )
+
 def generate_struct_encode(node):
     text = ''
     bound = {m.bound:m for m in node.members if m.bound}
