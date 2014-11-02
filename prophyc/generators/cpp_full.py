@@ -28,6 +28,19 @@ def generate_enum_definition(node):
 def generate_typedef_definition(node):
     return 'typedef {0} {1};\n'.format(BUILTIN2C.get(node.type, node.type), node.name)
 
+def generate_struct_definition(node):
+    def indent(text):
+        return '\n'.join(x and '    ' + x or '' for x in text.split('\n'))
+    elems = []
+    elems.append('enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)))
+    elems.append(generate_struct_fields(node))
+    constructor = generate_struct_constructor(node)
+    if constructor:
+        elems.append('{0}(): {1} {{ }}\n'.format(node.name, constructor))
+    elems.append('size_t get_byte_size() const\n{\n' + indent(generate_struct_get_byte_size(node)) + '}\n')
+    header = 'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
+    return header + '{\n' + indent('\n'.join(elems)) + '};\n'
+
 def generate_struct_encode(node):
     text = ''
     bound = {m.bound:m for m in node.members if m.bound}

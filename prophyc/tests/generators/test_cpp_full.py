@@ -36,6 +36,19 @@ def Typedef():
         model.Typedef('TX', 'X')
     ])
 
+@pytest.fixture
+def Struct():
+    return process([
+        model.Struct('X', [
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u32')
+        ]),
+        model.Struct('Y', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'X', bound = 'num_of_x')
+        ])
+    ])
+
 def test_generate_include_definition(Include):
     assert generate_include_definition(Include[0]) == """\
 #include "Arrays.ppf.hpp"
@@ -61,6 +74,37 @@ typedef uint16_t TU16;
 """
     assert generate_typedef_definition(Typedef[1]) == """\
 typedef X TX;
+"""
+
+def test_generate_struct_definition(Struct):
+    assert generate_struct_definition(Struct[0]) == """\
+struct X : prophy::detail::message<X>
+{
+    enum { encoded_byte_size = 8 };
+
+    uint32_t x;
+    uint32_t y;
+
+    X(): x(), y() { }
+
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+};
+"""
+    assert generate_struct_definition(Struct[1]) == """\
+struct Y : prophy::detail::message<Y>
+{
+    enum { encoded_byte_size = -1 };
+
+    std::vector<X> x;
+
+    size_t get_byte_size() const
+    {
+        return x.size() * 8 + 4;
+    }
+};
 """
 
 @pytest.fixture
