@@ -49,6 +49,14 @@ def Struct():
         ])
     ])
 
+@pytest.fixture
+def Union():
+    return process([
+        model.Union('X', [
+            model.UnionMember('a', 'u8', '1')
+        ])
+    ])
+
 def test_generate_include_definition(Include):
     assert generate_include_definition(Include[0]) == """\
 #include "Arrays.ppf.hpp"
@@ -103,6 +111,28 @@ struct Y : prophy::detail::message<Y>
     size_t get_byte_size() const
     {
         return x.size() * 8 + 4;
+    }
+};
+"""
+
+def test_generate_union_definition(Union):
+    assert generate_union_definition(Union[0]) == """\
+struct X : prophy::detail::message<X>
+{
+    enum { encoded_byte_size = 8 };
+
+    enum _discriminator
+    {
+        discriminator_a = 1
+    } discriminator;
+
+    uint8_t a;
+
+    X(): discriminator(discriminator_a), a() { }
+
+    size_t get_byte_size() const
+    {
+        return 8;
     }
 };
 """
