@@ -10,9 +10,7 @@ TEST(generated_unions, Union)
 {
     std::vector<char> data(1024);
 
-    Union x;
-    x.discriminator = Union::discriminator_a;
-    x.a = 1;
+    Union x = Union::create_a(1);
     size_t size = x.encode(data.data());
 
     /// encoding
@@ -22,8 +20,7 @@ TEST(generated_unions, Union)
             "\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
-    x.discriminator = Union::discriminator_b;
-    x.b = 1;
+    x = Union::create_b(1);
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -31,9 +28,7 @@ TEST(generated_unions, Union)
             "\x02\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
-    x.discriminator = Union::discriminator_c;
-    x.c.x = 1;
-    x.c.y = 2;
+    x = Union::create_c({1, 2});
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
