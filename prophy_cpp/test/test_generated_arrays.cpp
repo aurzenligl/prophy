@@ -30,7 +30,7 @@ TEST(generated_arrays, BuiltinFixed)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinFixed x{prophy::array<uint32_t, 2>{{1, 2}}};
+    BuiltinFixed x{{{1, 2}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
