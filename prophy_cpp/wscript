@@ -16,7 +16,7 @@ def build(ctx):
         target = 'test_prophy',
         includes = 'include',
         source = ctx.path.ant_glob('test/**/*.cpp'),
-        cxxflags = '-g -Wall',
+        cxxflags = '-g -Wall -std=gnu++0x',
         lib = ['gtest', 'gmock'] + os_lib)
     ctx.add_post_fun(waf_unit_test.summary)
     ctx.add_post_fun(waf_unit_test.set_exit_code)

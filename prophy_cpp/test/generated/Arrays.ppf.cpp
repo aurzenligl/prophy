@@ -49,7 +49,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<BuiltinFixed>::encode(const BuiltinFixed& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, x.x, 2);
+    pos = do_encode<E>(pos, x.x.data(), 2);
     return pos;
 }
 template uint8_t* message_impl<BuiltinFixed>::encode<native>(const BuiltinFixed& x, uint8_t* pos);
@@ -61,7 +61,7 @@ template <endianness E>
 bool message_impl<BuiltinFixed>::decode(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode<E>(x.x, 2, pos, end)
+        do_decode<E>(x.x.data(), 2, pos, end)
     );
 }
 template bool message_impl<BuiltinFixed>::decode<native>(BuiltinFixed& x, const uint8_t*& pos, const uint8_t* end);
@@ -71,7 +71,7 @@ template bool message_impl<BuiltinFixed>::decode<big>(BuiltinFixed& x, const uin
 template <>
 void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out, size_t indent)
 {
-    do_print(out, indent, "x", x.x, 2);
+    do_print(out, indent, "x", x.x.data(), 2);
 }
 template void message_impl<BuiltinFixed>::print(const BuiltinFixed& x, std::ostream& out, size_t indent);
 

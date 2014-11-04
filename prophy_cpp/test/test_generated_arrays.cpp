@@ -10,9 +10,7 @@ TEST(generated_arrays, Builtin)
 {
     std::vector<uint8_t> data(1024);
 
-    Builtin x;
-    x.x = 1;
-    x.y = 2;
+    Builtin x{1, 2};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -32,9 +30,7 @@ TEST(generated_arrays, BuiltinFixed)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinFixed x;
-    x.x[0] = 1;
-    x.x[1] = 2;
+    BuiltinFixed x{prophy::array<uint32_t, 2>{{1, 2}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -54,9 +50,7 @@ TEST(generated_arrays, BuiltinDynamic)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinDynamic x;
-    x.x.push_back(1);
-    x.x.push_back(2);
+    BuiltinDynamic x{{1, 2}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -80,8 +74,7 @@ TEST(generated_arrays, BuiltinLimited)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinLimited x;
-    x.x.push_back(1);
+    BuiltinLimited x{{1}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -116,9 +109,7 @@ TEST(generated_arrays, BuiltinGreedy)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinGreedy x;
-    x.x.push_back(1);
-    x.x.push_back(2);
+    BuiltinGreedy x{{1, 2}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);

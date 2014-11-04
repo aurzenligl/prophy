@@ -5,6 +5,7 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
@@ -22,6 +23,7 @@ struct Builtin : prophy::detail::message<Builtin>
     uint32_t y;
 
     Builtin(): x(), y() { }
+    Builtin(uint32_t _1, uint32_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -33,9 +35,10 @@ struct BuiltinFixed : prophy::detail::message<BuiltinFixed>
 {
     enum { encoded_byte_size = 8 };
 
-    uint32_t x[2];
+    array<uint32_t, 2> x;
 
     BuiltinFixed(): x() { }
+    BuiltinFixed(const array<uint32_t, 2>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -49,6 +52,9 @@ struct BuiltinDynamic : prophy::detail::message<BuiltinDynamic>
 
     std::vector<uint32_t> x;
 
+    BuiltinDynamic() { }
+    BuiltinDynamic(const std::vector<uint32_t>& _1): x(_1) { }
+
     size_t get_byte_size() const
     {
         return 4 + x.size() * 4;
@@ -61,6 +67,9 @@ struct BuiltinLimited : prophy::detail::message<BuiltinLimited>
 
     std::vector<uint32_t> x; /// limit 2
 
+    BuiltinLimited() { }
+    BuiltinLimited(const std::vector<uint32_t>& _1): x(_1) { }
+
     size_t get_byte_size() const
     {
         return 12;
@@ -72,6 +81,9 @@ struct BuiltinGreedy : prophy::detail::message<BuiltinGreedy>
     enum { encoded_byte_size = -1 };
 
     std::vector<uint32_t> x; /// greedy
+
+    BuiltinGreedy() { }
+    BuiltinGreedy(const std::vector<uint32_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
