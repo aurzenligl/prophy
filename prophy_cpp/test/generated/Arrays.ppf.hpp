@@ -100,6 +100,9 @@ struct Fixcomp : prophy::detail::message<Fixcomp>
     Builtin x;
     Builtin y;
 
+    Fixcomp() { }
+    Fixcomp(const Builtin& _1, const Builtin& _2): x(_1), y(_2) { }
+
     size_t get_byte_size() const
     {
         return 16;
@@ -110,7 +113,10 @@ struct FixcompFixed : prophy::detail::message<FixcompFixed>
 {
     enum { encoded_byte_size = 16 };
 
-    Builtin x[2];
+    array<Builtin, 2> x;
+
+    FixcompFixed() { }
+    FixcompFixed(const array<Builtin, 2>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -124,6 +130,9 @@ struct FixcompDynamic : prophy::detail::message<FixcompDynamic>
 
     std::vector<Builtin> x;
 
+    FixcompDynamic() { }
+    FixcompDynamic(const std::vector<Builtin>& _1): x(_1) { }
+
     size_t get_byte_size() const
     {
         return 4 + x.size() * 8;
@@ -135,6 +144,9 @@ struct FixcompLimited : prophy::detail::message<FixcompLimited>
     enum { encoded_byte_size = 20 };
 
     std::vector<Builtin> x; /// limit 2
+
+    FixcompLimited() { }
+    FixcompLimited(const std::vector<Builtin>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -148,6 +160,9 @@ struct FixcompGreedy : prophy::detail::message<FixcompGreedy>
 
     std::vector<Builtin> x; /// greedy
 
+    FixcompGreedy() { }
+    FixcompGreedy(const std::vector<Builtin>& _1): x(_1) { }
+
     size_t get_byte_size() const
     {
         return x.size() * 8;
@@ -159,6 +174,9 @@ struct Dyncomp : prophy::detail::message<Dyncomp>
     enum { encoded_byte_size = -1 };
 
     BuiltinDynamic x;
+
+    Dyncomp() { }
+    Dyncomp(const BuiltinDynamic& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -172,6 +190,9 @@ struct DyncompDynamic : prophy::detail::message<DyncompDynamic>
 
     std::vector<BuiltinDynamic> x;
 
+    DyncompDynamic() { }
+    DyncompDynamic(const std::vector<BuiltinDynamic>& _1): x(_1) { }
+
     size_t get_byte_size() const
     {
         return 4 + std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
@@ -183,6 +204,9 @@ struct DyncompGreedy : prophy::detail::message<DyncompGreedy>
     enum { encoded_byte_size = -1 };
 
     std::vector<BuiltinDynamic> x; /// greedy
+
+    DyncompGreedy() { }
+    DyncompGreedy(const std::vector<BuiltinDynamic>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
