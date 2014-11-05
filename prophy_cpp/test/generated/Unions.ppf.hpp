@@ -30,22 +30,18 @@ struct Union : prophy::detail::message<Union>
         discriminator_c = 3
     } discriminator;
 
-    typedef prophy::detail::int2type<discriminator_a> _discriminator_a_t;
-    typedef prophy::detail::int2type<discriminator_b> _discriminator_b_t;
-    typedef prophy::detail::int2type<discriminator_c> _discriminator_c_t;
-
-    static const _discriminator_a_t discriminator_a_t;
-    static const _discriminator_b_t discriminator_b_t;
-    static const _discriminator_c_t discriminator_c_t;
+    static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+    static const prophy::detail::int2type<discriminator_b> discriminator_b_t;
+    static const prophy::detail::int2type<discriminator_c> discriminator_c_t;
 
     uint8_t a;
     uint32_t b;
     Builtin c;
 
     Union(): discriminator(discriminator_a), a(), b() { }
-    Union(_discriminator_a_t, uint8_t _1): discriminator(discriminator_a), a(_1) { }
-    Union(_discriminator_b_t, uint32_t _1): discriminator(discriminator_b), b(_1) { }
-    Union(_discriminator_c_t, const Builtin& _1): discriminator(discriminator_c), c(_1) { }
+    Union(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+    Union(prophy::detail::int2type<discriminator_b>, uint32_t _1): discriminator(discriminator_b), b(_1) { }
+    Union(prophy::detail::int2type<discriminator_c>, const Builtin& _1): discriminator(discriminator_c), c(_1) { }
 
     size_t get_byte_size() const
     {
