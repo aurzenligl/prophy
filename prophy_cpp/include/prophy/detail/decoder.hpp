@@ -288,6 +288,28 @@ struct decoder_greedy<E, T, true>
     }
 };
 
+inline bool do_decode_advance(size_t n, const uint8_t*& pos, const uint8_t* end)
+{
+    if (size_t(end - pos) < n)
+    {
+        return false;
+    }
+    pos += n;
+    return true;
+}
+
+template <size_t A>
+inline bool do_decode_align(const uint8_t*& pos, const uint8_t* end)
+{
+    const uint8_t* aligned = align<A>(pos);
+    if (aligned > end)
+    {
+        return false;
+    }
+    pos = aligned;
+    return true;
+}
+
 template <endianness E, typename T>
 inline bool do_decode(T& x, const uint8_t*& pos, const uint8_t* end)
 {
@@ -355,28 +377,6 @@ inline bool do_decode_resize(std::vector<T>& v, const uint8_t*& pos, const uint8
         return false;
     }
     v.resize(n);
-    return true;
-}
-
-inline bool do_decode_advance(size_t n, const uint8_t*& pos, const uint8_t* end)
-{
-    if (size_t(end - pos) < n)
-    {
-        return false;
-    }
-    pos += n;
-    return true;
-}
-
-template <size_t A>
-inline bool do_decode_align(const uint8_t*& pos, const uint8_t* end)
-{
-    const uint8_t* aligned = align<A>(pos);
-    if (aligned > end)
-    {
-        return false;
-    }
-    pos = aligned;
     return true;
 }
 
