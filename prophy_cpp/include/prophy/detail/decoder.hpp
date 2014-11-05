@@ -321,22 +321,19 @@ inline bool do_decode_in_place(optional<T>& x, const uint8_t*& pos, const uint8_
         return false;
     }
     x = disc ? optional<T>(T()) : optional<T>();
+    if (alignment<T>::value > sizeof(uint32_t))
+    {
+        if (!do_decode_advance(alignment<T>::value - sizeof(uint32_t), pos, end))
+        {
+            return false;
+        }
+    }
     if (disc)
     {
         const uint8_t* tmp = pos;
         return decoder<E, T>::decode(*x, tmp, end);
     }
     return true;
-}
-
-template <endianness E, typename T>
-inline bool do_decode_in_place_optional(T& x, bool execute, const uint8_t* pos, const uint8_t* end)
-{
-    if (!execute)
-    {
-        return true;
-    }
-    return decoder<E, T>::decode(x, pos, end);
 }
 
 template <endianness E, typename T>

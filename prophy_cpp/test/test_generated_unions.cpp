@@ -80,7 +80,7 @@ TEST(generated_unions, BuiltinOptional)
             "\x00\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
-    x = {{2}};
+    x = {2};
     size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -107,10 +107,7 @@ TEST(generated_unions, FixcompOptional)
 {
     std::vector<char> data(1024);
 
-    FixcompOptional x;
-    x.has_x = false;
-    x.x.x = 1;
-    x.x.y = 2;
+    FixcompOptional x{};
     size_t size = x.encode(data.data());
 
     /// encoding
@@ -120,9 +117,7 @@ TEST(generated_unions, FixcompOptional)
             "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
-    x.has_x = true;
-    x.x.x = 3;
-    x.x.y = 4;
+    x = {{{3, 4}}};
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -133,15 +128,15 @@ TEST(generated_unions, FixcompOptional)
     /// decoding
     EXPECT_TRUE(x.decode(bytes(
             "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")));
-    EXPECT_FALSE(x.has_x);
+    EXPECT_FALSE(x.x);
     EXPECT_EQ(std::string(
             ""), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
             "\x01\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00")));
-    EXPECT_TRUE(x.has_x);
-    EXPECT_EQ(7, x.x.x);
-    EXPECT_EQ(8, x.x.y);
+    EXPECT_TRUE(x.x);
+    EXPECT_EQ(7, x.x->x);
+    EXPECT_EQ(8, x.x->y);
     EXPECT_EQ(std::string(
             "x {\n"
             "  x: 7\n"

@@ -5,9 +5,12 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {
@@ -165,10 +168,10 @@ struct UnionpadOptionalboolpad : prophy::detail::message<UnionpadOptionalboolpad
     enum { encoded_byte_size = 12 };
 
     uint8_t x;
-    bool has_y;
-    uint8_t y;
+    optional<uint8_t> y;
 
-    UnionpadOptionalboolpad(): x(), has_y(), y() { }
+    UnionpadOptionalboolpad(): x() { }
+    UnionpadOptionalboolpad(uint8_t _1, const optional<uint8_t>& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -180,10 +183,10 @@ struct UnionpadOptionalvaluepad : prophy::detail::message<UnionpadOptionalvaluep
 {
     enum { encoded_byte_size = 16 };
 
-    bool has_x;
-    uint64_t x;
+    optional<uint64_t> x;
 
-    UnionpadOptionalvaluepad(): has_x(), x() { }
+    UnionpadOptionalvaluepad() { }
+    UnionpadOptionalvaluepad(const optional<uint64_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {

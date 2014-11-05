@@ -72,10 +72,10 @@ struct FixcompOptional : prophy::detail::message<FixcompOptional>
 {
     enum { encoded_byte_size = 12 };
 
-    bool has_x;
-    Builtin x;
+    optional<Builtin> x;
 
-    FixcompOptional(): has_x() { }
+    FixcompOptional() { }
+    FixcompOptional(const optional<Builtin>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {

@@ -188,10 +188,7 @@ TEST(generated_paddings, UnionpadOptionalboolpad)
 {
     std::vector<char> data(1024);
 
-    UnionpadOptionalboolpad x;
-    x.x = 1;
-    x.has_y = true;
-    x.y = 2;
+    UnionpadOptionalboolpad x{1, 2};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -207,17 +204,15 @@ TEST(generated_paddings, UnionpadOptionalboolpad)
             "\x01\x00\x00\x00"
             "\x04" "\x00\x00\x00")));
     EXPECT_EQ(3, x.x);
-    EXPECT_TRUE(x.has_y);
-    EXPECT_EQ(4, x.y);
+    EXPECT_TRUE(x.y);
+    EXPECT_EQ(4, *x.y);
 }
 
 TEST(generated_paddings, UnionpadOptionalvaluepad)
 {
     std::vector<char> data(1024);
 
-    UnionpadOptionalvaluepad x;
-    x.has_x = true;
-    x.x = 2;
+    UnionpadOptionalvaluepad x{2};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
@@ -230,8 +225,8 @@ TEST(generated_paddings, UnionpadOptionalvaluepad)
     EXPECT_TRUE(x.decode(bytes(
             "\x01\x00\x00\x00" "\x00\x00\x00\x00"
             "\x03\x00\x00\x00\x00\x00\x00\x00")));
-    EXPECT_TRUE(x.has_x);
-    EXPECT_EQ(3, x.x);
+    EXPECT_TRUE(x.x);
+    EXPECT_EQ(3, *x.x);
 }
 
 TEST(generated_paddings, UnionpadDiscpad)

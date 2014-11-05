@@ -96,8 +96,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<FixcompOptional>::encode(const FixcompOptional& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, x.has_x);
-    if (x.has_x) do_encode<E>(pos, x.x);
+    pos = do_encode<E>(pos, x.x);
     pos = pos + 8;
     return pos;
 }
@@ -110,8 +109,7 @@ template <endianness E>
 bool message_impl<FixcompOptional>::decode(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode<E>(x.has_x, pos, end) &&
-        do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
+        do_decode_in_place<E>(x.x, pos, end) &&
         do_decode_advance(8, pos, end)
     );
 }
@@ -122,7 +120,7 @@ template bool message_impl<FixcompOptional>::decode<big>(FixcompOptional& x, con
 template <>
 void message_impl<FixcompOptional>::print(const FixcompOptional& x, std::ostream& out, size_t indent)
 {
-    if (x.has_x) do_print(out, indent, "x", x.x);
+    if (x.x) do_print(out, indent, "x", *x.x);
 }
 template void message_impl<FixcompOptional>::print(const FixcompOptional& x, std::ostream& out, size_t indent);
 
