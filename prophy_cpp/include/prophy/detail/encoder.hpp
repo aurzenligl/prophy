@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/codec_traits.hpp>
 #include <prophy/detail/message_impl.hpp>
 
@@ -227,6 +228,17 @@ template <endianness E, typename T>
 inline uint8_t* do_encode(uint8_t* data, const T& x)
 {
     return encoder<E, T>::encode(data, x);
+}
+
+template <endianness E, typename T>
+inline uint8_t* do_encode(uint8_t* data, const optional<T>& x)
+{
+    data = do_encode<E>(data, uint32_t(bool(x)));
+    if (x)
+    {
+        do_encode<E>(data, *x);
+    }
+    return data;
 }
 
 template <endianness E, typename T>

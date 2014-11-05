@@ -70,9 +70,7 @@ TEST(generated_unions, BuiltinOptional)
 {
     std::vector<char> data(1024);
 
-    BuiltinOptional x;
-    x.has_x = false;
-    x.x = 1;
+    BuiltinOptional x{};
     size_t size = x.encode(data.data());
 
     /// encoding
@@ -82,8 +80,7 @@ TEST(generated_unions, BuiltinOptional)
             "\x00\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
-    x.has_x = true;
-    x.x = 2;
+    x = {{2}};
     size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -94,14 +91,14 @@ TEST(generated_unions, BuiltinOptional)
     /// decoding
     EXPECT_TRUE(x.decode(bytes(
             "\x00\x00\x00\x00\x00\x00\x00\x00")));
-    EXPECT_FALSE(x.has_x);
+    EXPECT_FALSE(x.x);
     EXPECT_EQ(std::string(
             ""), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
             "\x01\x00\x00\x00\x05\x00\x00\x00")));
-    EXPECT_TRUE(x.has_x);
-    EXPECT_EQ(5, x.x);
+    EXPECT_TRUE(x.x);
+    EXPECT_EQ(5, *x.x);
     EXPECT_EQ(std::string(
             "x: 5\n"), x.print());
 }

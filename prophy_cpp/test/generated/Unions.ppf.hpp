@@ -5,7 +5,9 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
 #include <prophy/detail/mpl.hpp>
@@ -55,10 +57,10 @@ struct BuiltinOptional : prophy::detail::message<BuiltinOptional>
 {
     enum { encoded_byte_size = 8 };
 
-    bool has_x;
-    uint32_t x;
+    optional<uint32_t> x;
 
-    BuiltinOptional(): has_x(), x() { }
+    BuiltinOptional() { }
+    BuiltinOptional(const optional<uint32_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {

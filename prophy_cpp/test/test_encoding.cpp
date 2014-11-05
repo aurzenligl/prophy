@@ -174,25 +174,23 @@ TEST(encoding, decode_optional_failures)
     EXPECT_FALSE(x.decode(bytes(
             "\x01\x00\x00\x00"
             "\x01\x00\x00")));
-    EXPECT_TRUE(x.has_x);
+    EXPECT_TRUE(x.x);
 
     EXPECT_FALSE(x.decode(bytes(
             "\x01\x00\x00\x00"
             "\x01\x00\x00\x00\x00")));
-    EXPECT_TRUE(x.has_x);
-    EXPECT_EQ(1, x.x);
+    EXPECT_TRUE(x.x);
+    EXPECT_EQ(1, *x.x);
 
     EXPECT_FALSE(x.decode(bytes(
             "\x00\x00\x00\x00"
             "\x08\x00\x00")));
-    EXPECT_FALSE(x.has_x);
-    EXPECT_EQ(1, x.x);
+    EXPECT_FALSE(x.x);
 
     EXPECT_FALSE(x.decode(bytes(
             "\x00\x00\x00\x00"
             "\x08\x00\x00\x00\x00")));
-    EXPECT_FALSE(x.has_x);
-    EXPECT_EQ(1, x.x);
+    EXPECT_FALSE(x.x);
 }
 
 TEST(encoding, endianness)

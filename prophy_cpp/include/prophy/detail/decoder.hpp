@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/codec_traits.hpp>
 #include <prophy/detail/message_impl.hpp>
 #include <prophy/detail/align.hpp>
@@ -309,6 +310,23 @@ template <endianness E, typename T>
 inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, n, pos, end);
+}
+
+template <endianness E, typename T>
+inline bool do_decode_in_place(optional<T>& x, const uint8_t*& pos, const uint8_t* end)
+{
+    uint32_t disc;
+    if (!do_decode<E>(disc, pos, end))
+    {
+        return false;
+    }
+    x = disc ? optional<T>(T()) : optional<T>();
+    if (disc)
+    {
+        const uint8_t* tmp = pos;
+        return decoder<E, T>::decode(*x, tmp, end);
+    }
+    return true;
 }
 
 template <endianness E, typename T>

@@ -7,8 +7,10 @@
 #include <string>
 #include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {
