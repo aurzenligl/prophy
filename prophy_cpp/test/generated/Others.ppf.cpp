@@ -27,7 +27,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<ConstantTypedefEnum>::encode(const ConstantTypedefEnum& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, x.a, CONSTANT);
+    pos = do_encode<E>(pos, x.a.data(), CONSTANT);
     pos = do_encode<E>(pos, x.b);
     pos = do_encode<E>(pos, x.c);
     return pos;
@@ -41,7 +41,7 @@ template <endianness E>
 bool message_impl<ConstantTypedefEnum>::decode(ConstantTypedefEnum& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode<E>(x.a, CONSTANT, pos, end) &&
+        do_decode<E>(x.a.data(), CONSTANT, pos, end) &&
         do_decode<E>(x.b, pos, end) &&
         do_decode<E>(x.c, pos, end)
     );
@@ -53,7 +53,7 @@ template bool message_impl<ConstantTypedefEnum>::decode<big>(ConstantTypedefEnum
 template <>
 void message_impl<ConstantTypedefEnum>::print(const ConstantTypedefEnum& x, std::ostream& out, size_t indent)
 {
-    do_print(out, indent, "a", x.a, size_t(CONSTANT));
+    do_print(out, indent, "a", x.a.data(), size_t(CONSTANT));
     do_print(out, indent, "b", x.b);
     do_print(out, indent, "c", x.c);
 }
@@ -130,7 +130,7 @@ template <>
 template <endianness E>
 uint8_t* message_impl<BytesFixed>::encode(const BytesFixed& x, uint8_t* pos)
 {
-    pos = do_encode<E>(pos, x.x, 3);
+    pos = do_encode<E>(pos, x.x.data(), 3);
     return pos;
 }
 template uint8_t* message_impl<BytesFixed>::encode<native>(const BytesFixed& x, uint8_t* pos);
@@ -142,7 +142,7 @@ template <endianness E>
 bool message_impl<BytesFixed>::decode(BytesFixed& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode<E>(x.x, 3, pos, end)
+        do_decode<E>(x.x.data(), 3, pos, end)
     );
 }
 template bool message_impl<BytesFixed>::decode<native>(BytesFixed& x, const uint8_t*& pos, const uint8_t* end);
@@ -152,7 +152,7 @@ template bool message_impl<BytesFixed>::decode<big>(BytesFixed& x, const uint8_t
 template <>
 void message_impl<BytesFixed>::print(const BytesFixed& x, std::ostream& out, size_t indent)
 {
-    do_print(out, indent, "x", std::make_pair(x.x, size_t(3)));
+    do_print(out, indent, "x", std::make_pair(x.x.data(), size_t(3)));
 }
 template void message_impl<BytesFixed>::print(const BytesFixed& x, std::ostream& out, size_t indent);
 

@@ -5,9 +5,12 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {
@@ -24,15 +27,16 @@ enum Enum
     Enum_Two = 2
 };
 
-struct ConstantTypedefEnum : prophy::detail::message<ConstantTypedefEnum>
+struct ConstantTypedefEnum : public prophy::detail::message<ConstantTypedefEnum>
 {
     enum { encoded_byte_size = 12 };
 
-    uint16_t a[CONSTANT];
+    array<uint16_t, CONSTANT> a;
     TU16 b;
     Enum c;
 
     ConstantTypedefEnum(): a(), b(), c(Enum_One) { }
+    ConstantTypedefEnum(const array<uint16_t, CONSTANT>& _1, TU16 _2, Enum _3): a(_1), b(_2), c(_3) { }
 
     size_t get_byte_size() const
     {
@@ -40,13 +44,14 @@ struct ConstantTypedefEnum : prophy::detail::message<ConstantTypedefEnum>
     }
 };
 
-struct DynEnum : prophy::detail::message<DynEnum>
+struct DynEnum : public prophy::detail::message<DynEnum>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<Enum> x;
 
     DynEnum() { }
+    DynEnum(const std::vector<Enum>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -54,7 +59,7 @@ struct DynEnum : prophy::detail::message<DynEnum>
     }
 };
 
-struct Floats : prophy::detail::message<Floats>
+struct Floats : public prophy::detail::message<Floats>
 {
     enum { encoded_byte_size = 16 };
 
@@ -62,6 +67,7 @@ struct Floats : prophy::detail::message<Floats>
     double b;
 
     Floats(): a(), b() { }
+    Floats(float _1, double _2): a(_1), b(_2) { }
 
     size_t get_byte_size() const
     {
@@ -69,13 +75,14 @@ struct Floats : prophy::detail::message<Floats>
     }
 };
 
-struct BytesFixed : prophy::detail::message<BytesFixed>
+struct BytesFixed : public prophy::detail::message<BytesFixed>
 {
     enum { encoded_byte_size = 3 };
 
-    uint8_t x[3];
+    array<uint8_t, 3> x;
 
     BytesFixed(): x() { }
+    BytesFixed(const array<uint8_t, 3>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -83,11 +90,14 @@ struct BytesFixed : prophy::detail::message<BytesFixed>
     }
 };
 
-struct BytesDynamic : prophy::detail::message<BytesDynamic>
+struct BytesDynamic : public prophy::detail::message<BytesDynamic>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<uint8_t> x;
+
+    BytesDynamic() { }
+    BytesDynamic(const std::vector<uint8_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -97,11 +107,14 @@ struct BytesDynamic : prophy::detail::message<BytesDynamic>
     }
 };
 
-struct BytesLimited : prophy::detail::message<BytesLimited>
+struct BytesLimited : public prophy::detail::message<BytesLimited>
 {
     enum { encoded_byte_size = 8 };
 
     std::vector<uint8_t> x; // limit 4
+
+    BytesLimited() { }
+    BytesLimited(const std::vector<uint8_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -109,11 +122,14 @@ struct BytesLimited : prophy::detail::message<BytesLimited>
     }
 };
 
-struct BytesGreedy : prophy::detail::message<BytesGreedy>
+struct BytesGreedy : public prophy::detail::message<BytesGreedy>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<uint8_t> x; // greedy
+
+    BytesGreedy() { }
+    BytesGreedy(const std::vector<uint8_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {

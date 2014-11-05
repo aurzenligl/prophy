@@ -17,7 +17,7 @@ namespace prophy
 namespace generated
 {
 
-struct Builtin : prophy::detail::message<Builtin>
+struct Builtin : public prophy::detail::message<Builtin>
 {
     enum { encoded_byte_size = 8 };
 
@@ -33,7 +33,7 @@ struct Builtin : prophy::detail::message<Builtin>
     }
 };
 
-struct BuiltinFixed : prophy::detail::message<BuiltinFixed>
+struct BuiltinFixed : public prophy::detail::message<BuiltinFixed>
 {
     enum { encoded_byte_size = 8 };
 
@@ -48,7 +48,7 @@ struct BuiltinFixed : prophy::detail::message<BuiltinFixed>
     }
 };
 
-struct BuiltinDynamic : prophy::detail::message<BuiltinDynamic>
+struct BuiltinDynamic : public prophy::detail::message<BuiltinDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -63,7 +63,7 @@ struct BuiltinDynamic : prophy::detail::message<BuiltinDynamic>
     }
 };
 
-struct BuiltinLimited : prophy::detail::message<BuiltinLimited>
+struct BuiltinLimited : public prophy::detail::message<BuiltinLimited>
 {
     enum { encoded_byte_size = 12 };
 
@@ -78,7 +78,7 @@ struct BuiltinLimited : prophy::detail::message<BuiltinLimited>
     }
 };
 
-struct BuiltinGreedy : prophy::detail::message<BuiltinGreedy>
+struct BuiltinGreedy : public prophy::detail::message<BuiltinGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -93,7 +93,7 @@ struct BuiltinGreedy : prophy::detail::message<BuiltinGreedy>
     }
 };
 
-struct Fixcomp : prophy::detail::message<Fixcomp>
+struct Fixcomp : public prophy::detail::message<Fixcomp>
 {
     enum { encoded_byte_size = 16 };
 
@@ -109,13 +109,13 @@ struct Fixcomp : prophy::detail::message<Fixcomp>
     }
 };
 
-struct FixcompFixed : prophy::detail::message<FixcompFixed>
+struct FixcompFixed : public prophy::detail::message<FixcompFixed>
 {
     enum { encoded_byte_size = 16 };
 
     array<Builtin, 2> x;
 
-    FixcompFixed() { }
+    FixcompFixed(): x() { }
     FixcompFixed(const array<Builtin, 2>& _1): x(_1) { }
 
     size_t get_byte_size() const
@@ -124,7 +124,7 @@ struct FixcompFixed : prophy::detail::message<FixcompFixed>
     }
 };
 
-struct FixcompDynamic : prophy::detail::message<FixcompDynamic>
+struct FixcompDynamic : public prophy::detail::message<FixcompDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -139,7 +139,7 @@ struct FixcompDynamic : prophy::detail::message<FixcompDynamic>
     }
 };
 
-struct FixcompLimited : prophy::detail::message<FixcompLimited>
+struct FixcompLimited : public prophy::detail::message<FixcompLimited>
 {
     enum { encoded_byte_size = 20 };
 
@@ -154,7 +154,7 @@ struct FixcompLimited : prophy::detail::message<FixcompLimited>
     }
 };
 
-struct FixcompGreedy : prophy::detail::message<FixcompGreedy>
+struct FixcompGreedy : public prophy::detail::message<FixcompGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -169,7 +169,7 @@ struct FixcompGreedy : prophy::detail::message<FixcompGreedy>
     }
 };
 
-struct Dyncomp : prophy::detail::message<Dyncomp>
+struct Dyncomp : public prophy::detail::message<Dyncomp>
 {
     enum { encoded_byte_size = -1 };
 
@@ -184,7 +184,7 @@ struct Dyncomp : prophy::detail::message<Dyncomp>
     }
 };
 
-struct DyncompDynamic : prophy::detail::message<DyncompDynamic>
+struct DyncompDynamic : public prophy::detail::message<DyncompDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -199,7 +199,7 @@ struct DyncompDynamic : prophy::detail::message<DyncompDynamic>
     }
 };
 
-struct DyncompGreedy : prophy::detail::message<DyncompGreedy>
+struct DyncompGreedy : public prophy::detail::message<DyncompGreedy>
 {
     enum { encoded_byte_size = -1 };
 
