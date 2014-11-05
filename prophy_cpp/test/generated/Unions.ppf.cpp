@@ -65,7 +65,6 @@ template <endianness E>
 uint8_t* message_impl<BuiltinOptional>::encode(const BuiltinOptional& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
-    pos = pos + 4;
     return pos;
 }
 template uint8_t* message_impl<BuiltinOptional>::encode<native>(const BuiltinOptional& x, uint8_t* pos);
@@ -77,8 +76,7 @@ template <endianness E>
 bool message_impl<BuiltinOptional>::decode(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_in_place<E>(x.x, pos, end) &&
-        do_decode_advance(4, pos, end)
+        do_decode<E>(x.x, pos, end)
     );
 }
 template bool message_impl<BuiltinOptional>::decode<native>(BuiltinOptional& x, const uint8_t*& pos, const uint8_t* end);
@@ -97,7 +95,6 @@ template <endianness E>
 uint8_t* message_impl<FixcompOptional>::encode(const FixcompOptional& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
-    pos = pos + 8;
     return pos;
 }
 template uint8_t* message_impl<FixcompOptional>::encode<native>(const FixcompOptional& x, uint8_t* pos);
@@ -109,8 +106,7 @@ template <endianness E>
 bool message_impl<FixcompOptional>::decode(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_in_place<E>(x.x, pos, end) &&
-        do_decode_advance(8, pos, end)
+        do_decode<E>(x.x, pos, end)
     );
 }
 template bool message_impl<FixcompOptional>::decode<native>(FixcompOptional& x, const uint8_t*& pos, const uint8_t* end);

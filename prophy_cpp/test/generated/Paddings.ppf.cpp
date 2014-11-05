@@ -282,7 +282,6 @@ uint8_t* message_impl<UnionpadOptionalboolpad>::encode(const UnionpadOptionalboo
     pos = do_encode<E>(pos, x.x);
     pos = pos + 3;
     pos = do_encode<E>(pos, x.y);
-    pos = pos + 1;
     pos = pos + 3;
     return pos;
 }
@@ -297,8 +296,7 @@ bool message_impl<UnionpadOptionalboolpad>::decode(UnionpadOptionalboolpad& x, c
     return (
         do_decode<E>(x.x, pos, end) &&
         do_decode_advance(3, pos, end) &&
-        do_decode_in_place<E>(x.y, pos, end) &&
-        do_decode_advance(1, pos, end) &&
+        do_decode<E>(x.y, pos, end) &&
         do_decode_advance(3, pos, end)
     );
 }
@@ -311,7 +309,6 @@ template <endianness E>
 uint8_t* message_impl<UnionpadOptionalvaluepad>::encode(const UnionpadOptionalvaluepad& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
-    pos = pos + 8;
     return pos;
 }
 template uint8_t* message_impl<UnionpadOptionalvaluepad>::encode<native>(const UnionpadOptionalvaluepad& x, uint8_t* pos);
@@ -323,8 +320,7 @@ template <endianness E>
 bool message_impl<UnionpadOptionalvaluepad>::decode(UnionpadOptionalvaluepad& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
-        do_decode_in_place<E>(x.x, pos, end) &&
-        do_decode_advance(8, pos, end)
+        do_decode<E>(x.x, pos, end)
     );
 }
 template bool message_impl<UnionpadOptionalvaluepad>::decode<native>(UnionpadOptionalvaluepad& x, const uint8_t*& pos, const uint8_t* end);

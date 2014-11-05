@@ -301,19 +301,7 @@ inline bool do_decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
 }
 
 template <endianness E, typename T>
-inline bool do_decode_in_place(T& x, const uint8_t* pos, const uint8_t* end)
-{
-    return decoder<E, T>::decode(x, pos, end);
-}
-
-template <endianness E, typename T>
-inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t* end)
-{
-    return decoder<E, T>::decode(x, n, pos, end);
-}
-
-template <endianness E, typename T>
-inline bool do_decode_in_place(optional<T>& x, const uint8_t*& pos, const uint8_t* end)
+inline bool do_decode(optional<T>& x, const uint8_t*& pos, const uint8_t* end)
 {
     uint32_t disc;
     if (!do_decode<E>(disc, pos, end))
@@ -330,10 +318,22 @@ inline bool do_decode_in_place(optional<T>& x, const uint8_t*& pos, const uint8_
     }
     if (disc)
     {
-        const uint8_t* tmp = pos;
-        return decoder<E, T>::decode(*x, tmp, end);
+        return decoder<E, T>::decode(*x, pos, end);
     }
+    pos = pos + codec_traits<T>::size;
     return true;
+}
+
+template <endianness E, typename T>
+inline bool do_decode_in_place(T& x, const uint8_t* pos, const uint8_t* end)
+{
+    return decoder<E, T>::decode(x, pos, end);
+}
+
+template <endianness E, typename T>
+inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t* end)
+{
+    return decoder<E, T>::decode(x, n, pos, end);
 }
 
 template <endianness E, typename T>

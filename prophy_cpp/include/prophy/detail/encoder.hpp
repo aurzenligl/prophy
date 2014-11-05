@@ -232,6 +232,12 @@ inline uint8_t* do_encode(uint8_t* data, const T& x)
 }
 
 template <endianness E, typename T>
+inline uint8_t* do_encode(uint8_t* data, const T* x, size_t n)
+{
+    return encoder<E, T>::encode(data, x, n);
+}
+
+template <endianness E, typename T>
 inline uint8_t* do_encode(uint8_t* data, const optional<T>& x)
 {
     data = do_encode<E>(data, uint32_t(bool(x)));
@@ -241,15 +247,9 @@ inline uint8_t* do_encode(uint8_t* data, const optional<T>& x)
     }
     if (x)
     {
-        do_encode<E>(data, *x);
+        return do_encode<E>(data, *x);
     }
-    return data;
-}
-
-template <endianness E, typename T>
-inline uint8_t* do_encode(uint8_t* data, const T* x, size_t n)
-{
-    return encoder<E, T>::encode(data, x, n);
+    return data + codec_traits<T>::size;
 }
 
 } // namespace detail
