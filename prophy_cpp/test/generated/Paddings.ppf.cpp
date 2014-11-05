@@ -43,7 +43,7 @@ template <endianness E>
 uint8_t* message_impl<EndpadFixed>::encode(const EndpadFixed& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
-    pos = do_encode<E>(pos, x.y, 3);
+    pos = do_encode<E>(pos, x.y.data(), 3);
     pos = pos + 1;
     return pos;
 }
@@ -57,7 +57,7 @@ bool message_impl<EndpadFixed>::decode(EndpadFixed& x, const uint8_t*& pos, cons
 {
     return (
         do_decode<E>(x.x, pos, end) &&
-        do_decode<E>(x.y, 3, pos, end) &&
+        do_decode<E>(x.y.data(), 3, pos, end) &&
         do_decode_advance(1, pos, end)
     );
 }
@@ -564,7 +564,7 @@ template <endianness E>
 uint8_t* message_impl<ArraypadFixed>::encode(const ArraypadFixed& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
-    pos = do_encode<E>(pos, x.y, 3);
+    pos = do_encode<E>(pos, x.y.data(), 3);
     pos = pos + 1;
     pos = do_encode<E>(pos, x.z);
     return pos;
@@ -579,7 +579,7 @@ bool message_impl<ArraypadFixed>::decode(ArraypadFixed& x, const uint8_t*& pos, 
 {
     return (
         do_decode<E>(x.x, pos, end) &&
-        do_decode<E>(x.y, 3, pos, end) &&
+        do_decode<E>(x.y.data(), 3, pos, end) &&
         do_decode_advance(1, pos, end) &&
         do_decode<E>(x.z, pos, end)
     );

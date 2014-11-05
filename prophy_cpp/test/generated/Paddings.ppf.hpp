@@ -17,7 +17,7 @@ namespace prophy
 namespace generated
 {
 
-struct Endpad : prophy::detail::message<Endpad>
+struct Endpad : public prophy::detail::message<Endpad>
 {
     enum { encoded_byte_size = 4 };
 
@@ -25,6 +25,7 @@ struct Endpad : prophy::detail::message<Endpad>
     uint8_t y;
 
     Endpad(): x(), y() { }
+    Endpad(uint16_t _1, uint8_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -32,14 +33,15 @@ struct Endpad : prophy::detail::message<Endpad>
     }
 };
 
-struct EndpadFixed : prophy::detail::message<EndpadFixed>
+struct EndpadFixed : public prophy::detail::message<EndpadFixed>
 {
     enum { encoded_byte_size = 8 };
 
     uint32_t x;
-    uint8_t y[3];
+    array<uint8_t, 3> y;
 
     EndpadFixed(): x(), y() { }
+    EndpadFixed(uint32_t _1, const array<uint8_t, 3>& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -47,11 +49,14 @@ struct EndpadFixed : prophy::detail::message<EndpadFixed>
     }
 };
 
-struct EndpadDynamic : prophy::detail::message<EndpadDynamic>
+struct EndpadDynamic : public prophy::detail::message<EndpadDynamic>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<uint8_t> x;
+
+    EndpadDynamic() { }
+    EndpadDynamic(const std::vector<uint8_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -61,11 +66,14 @@ struct EndpadDynamic : prophy::detail::message<EndpadDynamic>
     }
 };
 
-struct EndpadLimited : prophy::detail::message<EndpadLimited>
+struct EndpadLimited : public prophy::detail::message<EndpadLimited>
 {
     enum { encoded_byte_size = 8 };
 
     std::vector<uint8_t> x; /// limit 2
+
+    EndpadLimited() { }
+    EndpadLimited(const std::vector<uint8_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -73,7 +81,7 @@ struct EndpadLimited : prophy::detail::message<EndpadLimited>
     }
 };
 
-struct EndpadGreedy : prophy::detail::message<EndpadGreedy>
+struct EndpadGreedy : public prophy::detail::message<EndpadGreedy>
 {
     enum { encoded_byte_size = -1 };
 
@@ -81,6 +89,7 @@ struct EndpadGreedy : prophy::detail::message<EndpadGreedy>
     std::vector<uint8_t> y; /// greedy
 
     EndpadGreedy(): x() { }
+    EndpadGreedy(uint32_t _1, const std::vector<uint8_t>& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -90,7 +99,7 @@ struct EndpadGreedy : prophy::detail::message<EndpadGreedy>
     }
 };
 
-struct Scalarpad : prophy::detail::message<Scalarpad>
+struct Scalarpad : public prophy::detail::message<Scalarpad>
 {
     enum { encoded_byte_size = 4 };
 
@@ -98,6 +107,7 @@ struct Scalarpad : prophy::detail::message<Scalarpad>
     uint16_t y;
 
     Scalarpad(): x(), y() { }
+    Scalarpad(uint8_t _1, uint16_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -105,13 +115,14 @@ struct Scalarpad : prophy::detail::message<Scalarpad>
     }
 };
 
-struct ScalarpadComppre_Helper : prophy::detail::message<ScalarpadComppre_Helper>
+struct ScalarpadComppre_Helper : public prophy::detail::message<ScalarpadComppre_Helper>
 {
     enum { encoded_byte_size = 1 };
 
     uint8_t x;
 
     ScalarpadComppre_Helper(): x() { }
+    ScalarpadComppre_Helper(uint8_t _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -119,7 +130,7 @@ struct ScalarpadComppre_Helper : prophy::detail::message<ScalarpadComppre_Helper
     }
 };
 
-struct ScalarpadComppre : prophy::detail::message<ScalarpadComppre>
+struct ScalarpadComppre : public prophy::detail::message<ScalarpadComppre>
 {
     enum { encoded_byte_size = 4 };
 
@@ -127,6 +138,7 @@ struct ScalarpadComppre : prophy::detail::message<ScalarpadComppre>
     uint16_t y;
 
     ScalarpadComppre(): y() { }
+    ScalarpadComppre(const ScalarpadComppre_Helper& _1, uint16_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -134,13 +146,14 @@ struct ScalarpadComppre : prophy::detail::message<ScalarpadComppre>
     }
 };
 
-struct ScalarpadComppost_Helper : prophy::detail::message<ScalarpadComppost_Helper>
+struct ScalarpadComppost_Helper : public prophy::detail::message<ScalarpadComppost_Helper>
 {
     enum { encoded_byte_size = 2 };
 
     uint16_t x;
 
     ScalarpadComppost_Helper(): x() { }
+    ScalarpadComppost_Helper(uint16_t _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -148,7 +161,7 @@ struct ScalarpadComppost_Helper : prophy::detail::message<ScalarpadComppost_Help
     }
 };
 
-struct ScalarpadComppost : prophy::detail::message<ScalarpadComppost>
+struct ScalarpadComppost : public prophy::detail::message<ScalarpadComppost>
 {
     enum { encoded_byte_size = 4 };
 
@@ -156,6 +169,7 @@ struct ScalarpadComppost : prophy::detail::message<ScalarpadComppost>
     ScalarpadComppost_Helper y;
 
     ScalarpadComppost(): x() { }
+    ScalarpadComppost(uint8_t _1, const ScalarpadComppost_Helper& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -163,7 +177,7 @@ struct ScalarpadComppost : prophy::detail::message<ScalarpadComppost>
     }
 };
 
-struct UnionpadOptionalboolpad : prophy::detail::message<UnionpadOptionalboolpad>
+struct UnionpadOptionalboolpad : public prophy::detail::message<UnionpadOptionalboolpad>
 {
     enum { encoded_byte_size = 12 };
 
@@ -179,7 +193,7 @@ struct UnionpadOptionalboolpad : prophy::detail::message<UnionpadOptionalboolpad
     }
 };
 
-struct UnionpadOptionalvaluepad : prophy::detail::message<UnionpadOptionalvaluepad>
+struct UnionpadOptionalvaluepad : public prophy::detail::message<UnionpadOptionalvaluepad>
 {
     enum { encoded_byte_size = 16 };
 
@@ -194,7 +208,7 @@ struct UnionpadOptionalvaluepad : prophy::detail::message<UnionpadOptionalvaluep
     }
 };
 
-struct UnionpadDiscpad_Helper : prophy::detail::message<UnionpadDiscpad_Helper>
+struct UnionpadDiscpad_Helper : public prophy::detail::message<UnionpadDiscpad_Helper>
 {
     enum { encoded_byte_size = 8 };
 
@@ -203,9 +217,12 @@ struct UnionpadDiscpad_Helper : prophy::detail::message<UnionpadDiscpad_Helper>
         discriminator_a = 1
     } discriminator;
 
+    static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+
     uint8_t a;
 
     UnionpadDiscpad_Helper(): discriminator(discriminator_a), a() { }
+    UnionpadDiscpad_Helper(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
 
     size_t get_byte_size() const
     {
@@ -213,7 +230,7 @@ struct UnionpadDiscpad_Helper : prophy::detail::message<UnionpadDiscpad_Helper>
     }
 };
 
-struct UnionpadDiscpad : prophy::detail::message<UnionpadDiscpad>
+struct UnionpadDiscpad : public prophy::detail::message<UnionpadDiscpad>
 {
     enum { encoded_byte_size = 12 };
 
@@ -221,6 +238,7 @@ struct UnionpadDiscpad : prophy::detail::message<UnionpadDiscpad>
     UnionpadDiscpad_Helper y;
 
     UnionpadDiscpad(): x() { }
+    UnionpadDiscpad(uint8_t _1, const UnionpadDiscpad_Helper& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -228,7 +246,7 @@ struct UnionpadDiscpad : prophy::detail::message<UnionpadDiscpad>
     }
 };
 
-struct UnionpadArmpad_Helper : prophy::detail::message<UnionpadArmpad_Helper>
+struct UnionpadArmpad_Helper : public prophy::detail::message<UnionpadArmpad_Helper>
 {
     enum { encoded_byte_size = 16 };
 
@@ -238,10 +256,15 @@ struct UnionpadArmpad_Helper : prophy::detail::message<UnionpadArmpad_Helper>
         discriminator_b = 2
     } discriminator;
 
+    static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+    static const prophy::detail::int2type<discriminator_b> discriminator_b_t;
+
     uint8_t a;
     uint64_t b;
 
     UnionpadArmpad_Helper(): discriminator(discriminator_a), a(), b() { }
+    UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+    UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_b>, uint64_t _1): discriminator(discriminator_a), b(_1) { }
 
     size_t get_byte_size() const
     {
@@ -249,7 +272,7 @@ struct UnionpadArmpad_Helper : prophy::detail::message<UnionpadArmpad_Helper>
     }
 };
 
-struct UnionpadArmpad : prophy::detail::message<UnionpadArmpad>
+struct UnionpadArmpad : public prophy::detail::message<UnionpadArmpad>
 {
     enum { encoded_byte_size = 24 };
 
@@ -257,6 +280,7 @@ struct UnionpadArmpad : prophy::detail::message<UnionpadArmpad>
     UnionpadArmpad_Helper y;
 
     UnionpadArmpad(): x() { }
+    UnionpadArmpad(uint8_t _1, const UnionpadArmpad_Helper& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -264,11 +288,14 @@ struct UnionpadArmpad : prophy::detail::message<UnionpadArmpad>
     }
 };
 
-struct ArraypadCounter : prophy::detail::message<ArraypadCounter>
+struct ArraypadCounter : public prophy::detail::message<ArraypadCounter>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<uint16_t> x;
+
+    ArraypadCounter() { }
+    ArraypadCounter(const std::vector<uint16_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -276,7 +303,7 @@ struct ArraypadCounter : prophy::detail::message<ArraypadCounter>
     }
 };
 
-struct ArraypadCounterSeparated : prophy::detail::message<ArraypadCounterSeparated>
+struct ArraypadCounterSeparated : public prophy::detail::message<ArraypadCounterSeparated>
 {
     enum { encoded_byte_size = -1 };
 
@@ -284,6 +311,7 @@ struct ArraypadCounterSeparated : prophy::detail::message<ArraypadCounterSeparat
     std::vector<uint32_t> x;
 
     ArraypadCounterSeparated(): y() { }
+    ArraypadCounterSeparated(uint32_t _1, const std::vector<uint32_t>& _2): y(_1), x(_2) { }
 
     size_t get_byte_size() const
     {
@@ -291,11 +319,14 @@ struct ArraypadCounterSeparated : prophy::detail::message<ArraypadCounterSeparat
     }
 };
 
-struct ArraypadCounterAligns_Helper : prophy::detail::message<ArraypadCounterAligns_Helper>
+struct ArraypadCounterAligns_Helper : public prophy::detail::message<ArraypadCounterAligns_Helper>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<uint8_t> x;
+
+    ArraypadCounterAligns_Helper() { }
+    ArraypadCounterAligns_Helper(const std::vector<uint8_t>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -305,7 +336,7 @@ struct ArraypadCounterAligns_Helper : prophy::detail::message<ArraypadCounterAli
     }
 };
 
-struct ArraypadCounterAligns : prophy::detail::message<ArraypadCounterAligns>
+struct ArraypadCounterAligns : public prophy::detail::message<ArraypadCounterAligns>
 {
     enum { encoded_byte_size = -1 };
 
@@ -313,6 +344,7 @@ struct ArraypadCounterAligns : prophy::detail::message<ArraypadCounterAligns>
     ArraypadCounterAligns_Helper y;
 
     ArraypadCounterAligns(): x() { }
+    ArraypadCounterAligns(uint8_t _1, const ArraypadCounterAligns_Helper& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -320,15 +352,16 @@ struct ArraypadCounterAligns : prophy::detail::message<ArraypadCounterAligns>
     }
 };
 
-struct ArraypadFixed : prophy::detail::message<ArraypadFixed>
+struct ArraypadFixed : public prophy::detail::message<ArraypadFixed>
 {
     enum { encoded_byte_size = 12 };
 
     uint32_t x;
-    uint8_t y[3];
+    array<uint8_t, 3> y;
     uint32_t z;
 
     ArraypadFixed(): x(), y(), z() { }
+    ArraypadFixed(uint32_t _1, const array<uint8_t, 3>& _2, uint32_t _3): x(_1), y(_2), z(_3) { }
 
     size_t get_byte_size() const
     {
@@ -336,7 +369,7 @@ struct ArraypadFixed : prophy::detail::message<ArraypadFixed>
     }
 };
 
-struct ArraypadDynamic : prophy::detail::message<ArraypadDynamic>
+struct ArraypadDynamic : public prophy::detail::message<ArraypadDynamic>
 {
     enum { encoded_byte_size = -1 };
 
@@ -344,6 +377,7 @@ struct ArraypadDynamic : prophy::detail::message<ArraypadDynamic>
     uint32_t y;
 
     ArraypadDynamic(): y() { }
+    ArraypadDynamic(const std::vector<uint8_t>& _1, uint32_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -353,7 +387,7 @@ struct ArraypadDynamic : prophy::detail::message<ArraypadDynamic>
     }
 };
 
-struct ArraypadLimited : prophy::detail::message<ArraypadLimited>
+struct ArraypadLimited : public prophy::detail::message<ArraypadLimited>
 {
     enum { encoded_byte_size = 12 };
 
@@ -361,6 +395,7 @@ struct ArraypadLimited : prophy::detail::message<ArraypadLimited>
     uint32_t y;
 
     ArraypadLimited(): y() { }
+    ArraypadLimited(const std::vector<uint8_t>& _1, uint32_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
