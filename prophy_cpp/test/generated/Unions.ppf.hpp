@@ -19,7 +19,7 @@ namespace prophy
 namespace generated
 {
 
-struct Union : prophy::detail::message<Union>
+struct Union : public prophy::detail::message<Union>
 {
     enum { encoded_byte_size = 12 };
 
@@ -49,7 +49,7 @@ struct Union : prophy::detail::message<Union>
     }
 };
 
-struct BuiltinOptional : prophy::detail::message<BuiltinOptional>
+struct BuiltinOptional : public prophy::detail::message<BuiltinOptional>
 {
     enum { encoded_byte_size = 8 };
 
@@ -64,7 +64,7 @@ struct BuiltinOptional : prophy::detail::message<BuiltinOptional>
     }
 };
 
-struct FixcompOptional : prophy::detail::message<FixcompOptional>
+struct FixcompOptional : public prophy::detail::message<FixcompOptional>
 {
     enum { encoded_byte_size = 12 };
 
