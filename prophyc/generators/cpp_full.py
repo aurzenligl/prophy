@@ -256,7 +256,7 @@ def generate_struct_print(node):
     for m in node.members:
         if m.array:
             if m.fixed:
-                inner = 'x.{0}, size_t({1})'.format(m.name, m.size)
+                inner = 'x.{0}.data(), size_t({1})'.format(m.name, m.size)
             elif m.dynamic:
                 inner = 'x.{0}.data(), x.{0}.size()'.format(m.name)
             elif m.limited:
@@ -267,7 +267,7 @@ def generate_struct_print(node):
                 inner = inner.join(('std::make_pair(', ')'))
             text += 'do_print(out, indent, "{0}", {1});\n'.format(m.name, inner)
         elif m.optional:
-            text += 'if (x.has_{0}) do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
+            text += 'if (x.{0}) do_print(out, indent, "{0}", *x.{0});\n'.format(m.name)
         elif m.name in bound:
             pass
         else:

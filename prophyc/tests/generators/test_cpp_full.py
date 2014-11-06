@@ -1144,7 +1144,7 @@ do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Builtin[1]) == """\
-do_print(out, indent, "x", x.x, size_t(2));
+do_print(out, indent, "x", x.x.data(), size_t(2));
 """
     assert generate_struct_print(Builtin[2]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1162,7 +1162,7 @@ do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Fixcomp[2]) == """\
-do_print(out, indent, "x", x.x, size_t(2));
+do_print(out, indent, "x", x.x.data(), size_t(2));
 """
     assert generate_struct_print(Fixcomp[3]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1195,10 +1195,10 @@ switch (x.discriminator)
 }
 """
     assert generate_struct_print(Unions[2]) == """\
-if (x.has_x) do_print(out, indent, "x", x.x);
+if (x.x) do_print(out, indent, "x", *x.x);
 """
     assert generate_struct_print(Unions[3]) == """\
-if (x.has_x) do_print(out, indent, "x", x.x);
+if (x.x) do_print(out, indent, "x", *x.x);
 """
 
 def test_generate_enums_print(Enums):
@@ -1206,7 +1206,7 @@ def test_generate_enums_print(Enums):
 do_print(out, indent, "x", x.x.data(), x.x.size());
 """
     assert generate_struct_print(Enums[4]) == """\
-do_print(out, indent, "a", x.a, size_t(CONSTANT));
+do_print(out, indent, "a", x.a.data(), size_t(CONSTANT));
 do_print(out, indent, "b", x.b);
 do_print(out, indent, "c", x.c);
 """
@@ -1219,7 +1219,7 @@ do_print(out, indent, "b", x.b);
 
 def test_generate_bytes_print(Bytes):
     assert generate_struct_print(Bytes[0]) == """\
-do_print(out, indent, "x", std::make_pair(x.x, size_t(3)));
+do_print(out, indent, "x", std::make_pair(x.x.data(), size_t(3)));
 """
     assert generate_struct_print(Bytes[1]) == """\
 do_print(out, indent, "x", std::make_pair(x.x.data(), x.x.size()));
@@ -1238,7 +1238,7 @@ do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Endpad[1]) == """\
 do_print(out, indent, "x", x.x);
-do_print(out, indent, "y", x.y, size_t(3));
+do_print(out, indent, "y", x.y.data(), size_t(3));
 """
     assert generate_struct_print(Endpad[2]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1268,10 +1268,10 @@ do_print(out, indent, "y", x.y);
 def test_generate_unionpad_print(Unionpad):
     assert generate_struct_print(Unionpad[0]) == """\
 do_print(out, indent, "x", x.x);
-if (x.has_y) do_print(out, indent, "y", x.y);
+if (x.y) do_print(out, indent, "y", *x.y);
 """
     assert generate_struct_print(Unionpad[1]) == """\
-if (x.has_x) do_print(out, indent, "x", x.x);
+if (x.x) do_print(out, indent, "x", *x.x);
 """
     assert generate_union_print(Unionpad[2]) == """\
 switch (x.discriminator)
@@ -1312,7 +1312,7 @@ do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Arraypad[4]) == """\
 do_print(out, indent, "x", x.x);
-do_print(out, indent, "y", x.y, size_t(3));
+do_print(out, indent, "y", x.y.data(), size_t(3));
 do_print(out, indent, "z", x.z);
 """
     assert generate_struct_print(Arraypad[5]) == """\
