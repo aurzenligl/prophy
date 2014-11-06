@@ -188,7 +188,7 @@ def generate_struct_encode(node):
     delimiters = {bound[m.name].name:m for m in node.members if m.name in bound}
     for m in node.members:
         if m.fixed:
-            text += 'pos = do_encode<E>(pos, x.{0}, {1});\n'.format(m.name, m.size)
+            text += 'pos = do_encode<E>(pos, x.{0}.data(), {1});\n'.format(m.name, m.size)
         elif m.dynamic:
             d = delimiters[m.name]
             text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, BUILTIN2C[d.type])
@@ -201,14 +201,7 @@ def generate_struct_encode(node):
         elif m.greedy:
             text += 'pos = do_encode<E>(pos, x.{0}.data(), x.{0}.size());\n'.format(m.name)
         elif m.optional:
-            discpad = (m.alignment > DISC_SIZE) and (m.alignment - DISC_SIZE) or 0
-            discpadtext = discpad and 'pos = pos + {0};\n'.format(discpad) or ''
-            text += (
-                'pos = do_encode<E>(pos, x.has_{0});\n'.format(m.name)
-                + discpadtext
-                + 'if (x.has_{0}) do_encode<E>(pos, x.{0});\n'.format(m.name)
-                + 'pos = pos + {0};\n'.format(m.byte_size - DISC_SIZE - discpad)
-            )
+            text += 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name)
         elif m.name in bound:
             b = bound[m.name]
             if b.dynamic:
@@ -232,7 +225,7 @@ def generate_struct_decode(node):
     bound = {m.bound:m for m in node.members if m.bound}
     for m in node.members:
         if m.fixed:
-            text.append('do_decode<E>(x.{0}, {1}, pos, end)'.format(m.name, m.size))
+            text.append('do_decode<E>(x.{0}.data(), {1}, pos, end)'.format(m.name, m.size))
         elif m.dynamic:
             text.append('do_decode<E>(x.{0}.data(), x.{0}.size(), pos, end)'.format(m.name))
         elif m.limited:
@@ -241,12 +234,7 @@ def generate_struct_decode(node):
         elif m.greedy:
             text.append('do_decode_greedy<E>(x.{0}, pos, end)'.format(m.name))
         elif m.optional:
-            discpad = (m.alignment > DISC_SIZE) and (m.alignment - DISC_SIZE) or 0
-            text.append('do_decode<E>(x.has_{0}, pos, end)'.format(m.name))
-            if discpad:
-                text.append('do_decode_advance({0}, pos, end)'.format(discpad))
-            text.append('do_decode_in_place_optional<E>(x.{0}, x.has_{0}, pos, end)'.format(m.name))
-            text.append('do_decode_advance({0}, pos, end)'.format(m.byte_size - DISC_SIZE - discpad))
+            text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
         elif m.name in bound:
             b = bound[m.name]
             if b.dynamic:
