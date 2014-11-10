@@ -45,35 +45,32 @@ def generate_typedef_definition(node):
     return 'typedef {0} {1};\n'.format(BUILTIN2C.get(node.type, node.type), node.name)
 
 def generate_struct_definition(node):
-    constructor = generate_struct_constructor(node)
-    if constructor:
-        constructor = '{0}(): {1} {{ }}\n'.format(node.name, constructor)
     return (
-        'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
+        'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name)
         + '{\n'
         + _indent(
-            '\n'.join(x for x in (
+            '\n'.join((
                 'enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)),
                 generate_struct_fields(node),
-                constructor,
+                generate_struct_constructor(node),
                 'size_t get_byte_size() const\n'
                 + '{\n'
                 + _indent(generate_struct_get_byte_size(node))
                 + '}\n'
-            ) if x)
+            ))
         )
         + '};\n'
     )
 
 def generate_union_definition(node):
     return (
-        'struct {0} : prophy::detail::message<{0}>\n'.format(node.name)
+        'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name)
         + '{\n'
         + _indent(
             '\n'.join((
                 'enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)),
                 generate_union_fields(node),
-                '{0}(): {1} {{ }}\n'.format(node.name, generate_union_constructor(node)),
+                generate_union_constructor(node),
                 'size_t get_byte_size() const\n'
                 + '{\n'
                 + _indent(generate_union_get_byte_size(node))
@@ -459,9 +456,12 @@ _hpp_header = """\
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {{

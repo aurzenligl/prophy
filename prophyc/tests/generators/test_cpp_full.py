@@ -84,10 +84,9 @@ typedef uint16_t TU16;
 typedef X TX;
 """
 
-'''
 def test_generate_struct_definition(Struct):
     assert generate_struct_definition(Struct[0]) == """\
-struct X : prophy::detail::message<X>
+struct X : public prophy::detail::message<X>
 {
     enum { encoded_byte_size = 8 };
 
@@ -95,6 +94,7 @@ struct X : prophy::detail::message<X>
     uint32_t y;
 
     X(): x(), y() { }
+    X(uint32_t _1, uint32_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -103,11 +103,14 @@ struct X : prophy::detail::message<X>
 };
 """
     assert generate_struct_definition(Struct[1]) == """\
-struct Y : prophy::detail::message<Y>
+struct Y : public prophy::detail::message<Y>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<X> x;
+
+    Y() { }
+    Y(const std::vector<X>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -118,7 +121,7 @@ struct Y : prophy::detail::message<Y>
 
 def test_generate_union_definition(Union):
     assert generate_union_definition(Union[0]) == """\
-struct X : prophy::detail::message<X>
+struct X : public prophy::detail::message<X>
 {
     enum { encoded_byte_size = 8 };
 
@@ -127,9 +130,12 @@ struct X : prophy::detail::message<X>
         discriminator_a = 1
     } discriminator;
 
+    static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+
     uint8_t a;
 
     X(): discriminator(discriminator_a), a() { }
+    X(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
 
     size_t get_byte_size() const
     {
@@ -137,7 +143,6 @@ struct X : prophy::detail::message<X>
     }
 };
 """
-'''
 
 def test_generate_enum_implementation(Enum):
     assert generate_enum_implementation(Enum[0]) == """\
@@ -153,7 +158,6 @@ const char* print_traits<Enum>::to_literal(Enum x)
 }
 """
 
-'''
 def test_generate_struct_implementation(Struct):
     assert generate_struct_implementation(Struct[0]) == """\
 template <>
@@ -267,7 +271,6 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
 }
 template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
 """
-'''
 
 @pytest.fixture
 def Builtin():
@@ -2125,7 +2128,6 @@ Union(): discriminator(discriminator_x), x(Enum_One) { }
 Union(prophy::detail::int2type<discriminator_x>, TEnum _1): discriminator(discriminator_x), x(_1) { }
 """
 
-'''
 def test_generate_hpp_newlines():
     nodes = process([
         model.Typedef("a", "b"),
@@ -2169,13 +2171,14 @@ typedef f e;
 enum { CONST_B = 0 };
 enum { CONST_C = 0 };
 
-struct A : prophy::detail::message<A>
+struct A : public prophy::detail::message<A>
 {
     enum { encoded_byte_size = 4 };
 
     uint32_t a;
 
     A(): a() { }
+    A(uint32_t _1): a(_1) { }
 
     size_t get_byte_size() const
     {
@@ -2183,13 +2186,14 @@ struct A : prophy::detail::message<A>
     }
 };
 
-struct B : prophy::detail::message<B>
+struct B : public prophy::detail::message<B>
 {
     enum { encoded_byte_size = 4 };
 
     uint32_t b;
 
     B(): b() { }
+    B(uint32_t _1): b(_1) { }
 
     size_t get_byte_size() const
     {
@@ -2207,16 +2211,19 @@ def test_generate_hpp(Union):
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {
 namespace generated
 {
 
-struct X : prophy::detail::message<X>
+struct X : public prophy::detail::message<X>
 {
     enum { encoded_byte_size = 8 };
 
@@ -2225,9 +2232,12 @@ struct X : prophy::detail::message<X>
         discriminator_a = 1
     } discriminator;
 
+    static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+
     uint8_t a;
 
     X(): discriminator(discriminator_a), a() { }
+    X(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
 
     size_t get_byte_size() const
     {
@@ -2325,4 +2335,3 @@ template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t inden
 } // namespace detail
 } // namespace prophy
 """
-'''
