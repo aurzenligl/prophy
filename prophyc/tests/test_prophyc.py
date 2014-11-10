@@ -414,9 +414,12 @@ struct X {
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {
@@ -427,7 +430,7 @@ typedef int16_t TP;
 
 enum { MAX = 4 };
 
-struct X : prophy::detail::message<X>
+struct X : public prophy::detail::message<X>
 {
     enum { encoded_byte_size = 16 };
 
@@ -435,6 +438,7 @@ struct X : prophy::detail::message<X>
     std::vector<TP> y; /// limit MAX
 
     X(): x() { }
+    X(uint32_t _1, const std::vector<TP>& _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
