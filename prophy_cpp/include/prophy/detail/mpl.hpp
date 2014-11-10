@@ -38,6 +38,12 @@ struct enable_if<true, T>
     typedef T type;
 };
 
+template <int I>
+struct int2type
+{
+    enum { value = I };
+};
+
 } // namespace detail
 } // namespace prophy
 

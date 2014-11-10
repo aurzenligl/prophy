@@ -10,9 +10,7 @@ TEST(generated_arrays, Builtin)
 {
     std::vector<uint8_t> data(1024);
 
-    Builtin x;
-    x.x = 1;
-    x.y = 2;
+    Builtin x{1, 2};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -32,9 +30,7 @@ TEST(generated_arrays, BuiltinFixed)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinFixed x;
-    x.x[0] = 1;
-    x.x[1] = 2;
+    BuiltinFixed x{prophy::array<uint32_t, 2>{{1, 2}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -54,9 +50,7 @@ TEST(generated_arrays, BuiltinDynamic)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinDynamic x;
-    x.x.push_back(1);
-    x.x.push_back(2);
+    BuiltinDynamic x{{1, 2}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -80,8 +74,7 @@ TEST(generated_arrays, BuiltinLimited)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinLimited x;
-    x.x.push_back(1);
+    BuiltinLimited x{{1}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -116,9 +109,7 @@ TEST(generated_arrays, BuiltinGreedy)
 {
     std::vector<uint8_t> data(1024);
 
-    BuiltinGreedy x;
-    x.x.push_back(1);
-    x.x.push_back(2);
+    BuiltinGreedy x{{1, 2}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -142,11 +133,7 @@ TEST(generated_arrays, Fixcomp)
 {
     std::vector<uint8_t> data(1024);
 
-    Fixcomp x;
-    x.x.x = 1;
-    x.x.y = 2;
-    x.y.x = 3;
-    x.y.y = 4;
+    Fixcomp x{{1, 2}, {3, 4}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
@@ -177,11 +164,7 @@ TEST(generated_arrays, FixcompFixed)
 {
     std::vector<uint8_t> data(1024);
 
-    FixcompFixed x;
-    x.x[0].x = 1;
-    x.x[0].y = 2;
-    x.x[1].x = 3;
-    x.x[1].y = 4;
+    FixcompFixed x{prophy::array<Builtin, 2>{{{1, 2}, {3, 4}}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
@@ -212,12 +195,7 @@ TEST(generated_arrays, FixcompDynamic)
 {
     std::vector<uint8_t> data(1024);
 
-    FixcompDynamic x;
-    x.x.resize(2);
-    x.x[0].x = 1;
-    x.x[0].y = 2;
-    x.x[1].x = 3;
-    x.x[1].y = 4;
+    FixcompDynamic x{{Builtin{1, 2}, Builtin{3, 4}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(20, size);
@@ -243,10 +221,7 @@ TEST(generated_arrays, FixcompLimited)
 {
     std::vector<uint8_t> data(1024);
 
-    FixcompLimited x;
-    x.x.resize(1);
-    x.x[0].x = 1;
-    x.x[0].y = 2;
+    FixcompLimited x{{Builtin{1, 2}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(20, size);
@@ -272,12 +247,7 @@ TEST(generated_arrays, FixcompGreedy)
 {
     std::vector<uint8_t> data(1024);
 
-    FixcompGreedy x;
-    x.x.resize(2);
-    x.x[0].x = 1;
-    x.x[0].y = 2;
-    x.x[1].x = 3;
-    x.x[1].y = 4;
+    FixcompGreedy x{{Builtin{1, 2}, Builtin{3, 4}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
@@ -309,10 +279,7 @@ TEST(generated_arrays, Dyncomp)
 {
     std::vector<uint8_t> data(1024);
 
-    Dyncomp x;
-    x.x.x.push_back(1);
-    x.x.x.push_back(2);
-    x.x.x.push_back(3);
+    Dyncomp x{{{1, 2, 3}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
@@ -340,12 +307,7 @@ TEST(generated_arrays, DyncompDynamic)
 {
     std::vector<uint8_t> data(1024);
 
-    DyncompDynamic x;
-    x.x.resize(2);
-    x.x[0].x.push_back(1);
-    x.x[0].x.push_back(2);
-    x.x[0].x.push_back(3);
-    x.x[1].x.push_back(4);
+    DyncompDynamic x{{BuiltinDynamic{{1, 2, 3}}, BuiltinDynamic{{4}}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(28, size);
@@ -381,12 +343,7 @@ TEST(generated_arrays, DyncompGreedy)
 {
     std::vector<uint8_t> data(1024);
 
-    DyncompGreedy x;
-    x.x.resize(2);
-    x.x[0].x.push_back(1);
-    x.x[0].x.push_back(2);
-    x.x[0].x.push_back(3);
-    x.x[1].x.push_back(4);
+    DyncompGreedy x{{BuiltinDynamic{{1, 2, 3}}, BuiltinDynamic{{4}}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(24, size);

@@ -3,8 +3,10 @@
 
 #include <stdint.h>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/codec_traits.hpp>
 #include <prophy/detail/message_impl.hpp>
+#include <prophy/detail/align.hpp>
 
 namespace prophy
 {
@@ -233,6 +235,21 @@ template <endianness E, typename T>
 inline uint8_t* do_encode(uint8_t* data, const T* x, size_t n)
 {
     return encoder<E, T>::encode(data, x, n);
+}
+
+template <endianness E, typename T>
+inline uint8_t* do_encode(uint8_t* data, const optional<T>& x)
+{
+    data = do_encode<E>(data, uint32_t(bool(x)));
+    if (alignment<T>::value > sizeof(uint32_t))
+    {
+        data = data + alignment<T>::value - sizeof(uint32_t);
+    }
+    if (x)
+    {
+        return do_encode<E>(data, *x);
+    }
+    return data + codec_traits<T>::size;
 }
 
 } // namespace detail

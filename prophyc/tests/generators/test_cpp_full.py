@@ -86,7 +86,7 @@ typedef X TX;
 
 def test_generate_struct_definition(Struct):
     assert generate_struct_definition(Struct[0]) == """\
-struct X : prophy::detail::message<X>
+struct X : public prophy::detail::message<X>
 {
     enum { encoded_byte_size = 8 };
 
@@ -94,6 +94,7 @@ struct X : prophy::detail::message<X>
     uint32_t y;
 
     X(): x(), y() { }
+    X(uint32_t _1, uint32_t _2): x(_1), y(_2) { }
 
     size_t get_byte_size() const
     {
@@ -102,11 +103,14 @@ struct X : prophy::detail::message<X>
 };
 """
     assert generate_struct_definition(Struct[1]) == """\
-struct Y : prophy::detail::message<Y>
+struct Y : public prophy::detail::message<Y>
 {
     enum { encoded_byte_size = -1 };
 
     std::vector<X> x;
+
+    Y() { }
+    Y(const std::vector<X>& _1): x(_1) { }
 
     size_t get_byte_size() const
     {
@@ -117,7 +121,7 @@ struct Y : prophy::detail::message<Y>
 
 def test_generate_union_definition(Union):
     assert generate_union_definition(Union[0]) == """\
-struct X : prophy::detail::message<X>
+struct X : public prophy::detail::message<X>
 {
     enum { encoded_byte_size = 8 };
 
@@ -126,9 +130,12 @@ struct X : prophy::detail::message<X>
         discriminator_a = 1
     } discriminator;
 
+    static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+
     uint8_t a;
 
     X(): discriminator(discriminator_a), a() { }
+    X(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
 
     size_t get_byte_size() const
     {
@@ -565,7 +572,7 @@ pos = do_encode<E>(pos, x.x);
 pos = do_encode<E>(pos, x.y);
 """
     assert generate_struct_encode(Builtin[1]) == """\
-pos = do_encode<E>(pos, x.x, 2);
+pos = do_encode<E>(pos, x.x.data(), 2);
 """
     assert generate_struct_encode(Builtin[2]) == """\
 pos = do_encode<E>(pos, uint32_t(x.x.size()));
@@ -586,7 +593,7 @@ pos = do_encode<E>(pos, x.x);
 pos = do_encode<E>(pos, x.y);
 """
     assert generate_struct_encode(Fixcomp[2]) == """\
-pos = do_encode<E>(pos, x.x, 2);
+pos = do_encode<E>(pos, x.x.data(), 2);
 """
     assert generate_struct_encode(Fixcomp[3]) == """\
 pos = do_encode<E>(pos, uint32_t(x.x.size()));
@@ -625,14 +632,10 @@ switch (x.discriminator)
 pos = pos + 8;
 """
     assert generate_struct_encode(Unions[2]) == """\
-pos = do_encode<E>(pos, x.has_x);
-if (x.has_x) do_encode<E>(pos, x.x);
-pos = pos + 4;
+pos = do_encode<E>(pos, x.x);
 """
     assert generate_struct_encode(Unions[3]) == """\
-pos = do_encode<E>(pos, x.has_x);
-if (x.has_x) do_encode<E>(pos, x.x);
-pos = pos + 8;
+pos = do_encode<E>(pos, x.x);
 """
 
 def test_generate_enums_encode(Enums):
@@ -641,7 +644,7 @@ pos = do_encode<E>(pos, uint32_t(x.x.size()));
 pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
 """
     assert generate_struct_encode(Enums[4]) == """\
-pos = do_encode<E>(pos, x.a, CONSTANT);
+pos = do_encode<E>(pos, x.a.data(), CONSTANT);
 pos = do_encode<E>(pos, x.b);
 pos = do_encode<E>(pos, x.c);
 """
@@ -655,7 +658,7 @@ pos = do_encode<E>(pos, x.b);
 
 def test_generate_bytes_encode(Bytes):
     assert generate_struct_encode(Bytes[0]) == """\
-pos = do_encode<E>(pos, x.x, 3);
+pos = do_encode<E>(pos, x.x.data(), 3);
 """
     assert generate_struct_encode(Bytes[1]) == """\
 pos = do_encode<E>(pos, uint32_t(x.x.size()));
@@ -679,7 +682,7 @@ pos = pos + 1;
 """
     assert generate_struct_encode(Endpad[1]) == """\
 pos = do_encode<E>(pos, x.x);
-pos = do_encode<E>(pos, x.y, 3);
+pos = do_encode<E>(pos, x.y.data(), 3);
 pos = pos + 1;
 """
     assert generate_struct_encode(Endpad[2]) == """\
@@ -720,16 +723,11 @@ def test_generate_unionpad_encode(Unionpad):
     assert generate_struct_encode(Unionpad[0]) == """\
 pos = do_encode<E>(pos, x.x);
 pos = pos + 3;
-pos = do_encode<E>(pos, x.has_y);
-if (x.has_y) do_encode<E>(pos, x.y);
-pos = pos + 1;
+pos = do_encode<E>(pos, x.y);
 pos = pos + 3;
 """
     assert generate_struct_encode(Unionpad[1]) == """\
-pos = do_encode<E>(pos, x.has_x);
-pos = pos + 4;
-if (x.has_x) do_encode<E>(pos, x.x);
-pos = pos + 8;
+pos = do_encode<E>(pos, x.x);
 """
     assert generate_union_encode(Unionpad[2]) == """\
 pos = do_encode<E>(pos, x.discriminator);
@@ -784,7 +782,7 @@ pos = do_encode<E>(pos, x.y);
 """
     assert generate_struct_encode(Arraypad[4]) == """\
 pos = do_encode<E>(pos, x.x);
-pos = do_encode<E>(pos, x.y, 3);
+pos = do_encode<E>(pos, x.y.data(), 3);
 pos = pos + 1;
 pos = do_encode<E>(pos, x.z);
 """
@@ -860,7 +858,7 @@ do_decode<E>(x.x, pos, end) &&
 do_decode<E>(x.y, pos, end)
 """
     assert generate_struct_decode(Builtin[1]) == """\
-do_decode<E>(x.x, 2, pos, end)
+do_decode<E>(x.x.data(), 2, pos, end)
 """
     assert generate_struct_decode(Builtin[2]) == """\
 do_decode_resize<E, uint32_t>(x.x, pos, end) &&
@@ -881,7 +879,7 @@ do_decode<E>(x.x, pos, end) &&
 do_decode<E>(x.y, pos, end)
 """
     assert generate_struct_decode(Fixcomp[2]) == """\
-do_decode<E>(x.x, 2, pos, end)
+do_decode<E>(x.x.data(), 2, pos, end)
 """
     assert generate_struct_decode(Fixcomp[3]) == """\
 do_decode_resize<E, uint32_t>(x.x, pos, end) &&
@@ -921,14 +919,10 @@ switch (x.discriminator)
 return do_decode_advance(8, pos, end);
 """
     assert generate_struct_decode(Unions[2]) == """\
-do_decode<E>(x.has_x, pos, end) &&
-do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
-do_decode_advance(4, pos, end)
+do_decode<E>(x.x, pos, end)
 """
     assert generate_struct_decode(Unions[3]) == """\
-do_decode<E>(x.has_x, pos, end) &&
-do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
-do_decode_advance(8, pos, end)
+do_decode<E>(x.x, pos, end)
 """
 
 def test_generate_enums_decode(Enums):
@@ -937,7 +931,7 @@ do_decode_resize<E, uint32_t>(x.x, pos, end) &&
 do_decode<E>(x.x.data(), x.x.size(), pos, end)
 """
     assert generate_struct_decode(Enums[4]) == """\
-do_decode<E>(x.a, CONSTANT, pos, end) &&
+do_decode<E>(x.a.data(), CONSTANT, pos, end) &&
 do_decode<E>(x.b, pos, end) &&
 do_decode<E>(x.c, pos, end)
 """
@@ -951,7 +945,7 @@ do_decode<E>(x.b, pos, end)
 
 def test_generate_bytes_decode(Bytes):
     assert generate_struct_decode(Bytes[0]) == """\
-do_decode<E>(x.x, 3, pos, end)
+do_decode<E>(x.x.data(), 3, pos, end)
 """
     assert generate_struct_decode(Bytes[1]) == """\
 do_decode_resize<E, uint32_t>(x.x, pos, end) &&
@@ -975,7 +969,7 @@ do_decode_advance(1, pos, end)
 """
     assert generate_struct_decode(Endpad[1]) == """\
 do_decode<E>(x.x, pos, end) &&
-do_decode<E>(x.y, 3, pos, end) &&
+do_decode<E>(x.y.data(), 3, pos, end) &&
 do_decode_advance(1, pos, end)
 """
     assert generate_struct_decode(Endpad[2]) == """\
@@ -1016,16 +1010,11 @@ def test_generate_unionpad_decode(Unionpad):
     assert generate_struct_decode(Unionpad[0]) == """\
 do_decode<E>(x.x, pos, end) &&
 do_decode_advance(3, pos, end) &&
-do_decode<E>(x.has_y, pos, end) &&
-do_decode_in_place_optional<E>(x.y, x.has_y, pos, end) &&
-do_decode_advance(1, pos, end) &&
+do_decode<E>(x.y, pos, end) &&
 do_decode_advance(3, pos, end)
 """
     assert generate_struct_decode(Unionpad[1]) == """\
-do_decode<E>(x.has_x, pos, end) &&
-do_decode_advance(4, pos, end) &&
-do_decode_in_place_optional<E>(x.x, x.has_x, pos, end) &&
-do_decode_advance(8, pos, end)
+do_decode<E>(x.x, pos, end)
 """
     assert generate_union_decode(Unionpad[2]) == """\
 if (!do_decode<E>(x.discriminator, pos, end)) return false;
@@ -1082,7 +1071,7 @@ do_decode<E>(x.y, pos, end)
 """
     assert generate_struct_decode(Arraypad[4]) == """\
 do_decode<E>(x.x, pos, end) &&
-do_decode<E>(x.y, 3, pos, end) &&
+do_decode<E>(x.y.data(), 3, pos, end) &&
 do_decode_advance(1, pos, end) &&
 do_decode<E>(x.z, pos, end)
 """
@@ -1158,7 +1147,7 @@ do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Builtin[1]) == """\
-do_print(out, indent, "x", x.x, size_t(2));
+do_print(out, indent, "x", x.x.data(), size_t(2));
 """
     assert generate_struct_print(Builtin[2]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1176,7 +1165,7 @@ do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Fixcomp[2]) == """\
-do_print(out, indent, "x", x.x, size_t(2));
+do_print(out, indent, "x", x.x.data(), size_t(2));
 """
     assert generate_struct_print(Fixcomp[3]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1209,10 +1198,10 @@ switch (x.discriminator)
 }
 """
     assert generate_struct_print(Unions[2]) == """\
-if (x.has_x) do_print(out, indent, "x", x.x);
+if (x.x) do_print(out, indent, "x", *x.x);
 """
     assert generate_struct_print(Unions[3]) == """\
-if (x.has_x) do_print(out, indent, "x", x.x);
+if (x.x) do_print(out, indent, "x", *x.x);
 """
 
 def test_generate_enums_print(Enums):
@@ -1220,7 +1209,7 @@ def test_generate_enums_print(Enums):
 do_print(out, indent, "x", x.x.data(), x.x.size());
 """
     assert generate_struct_print(Enums[4]) == """\
-do_print(out, indent, "a", x.a, size_t(CONSTANT));
+do_print(out, indent, "a", x.a.data(), size_t(CONSTANT));
 do_print(out, indent, "b", x.b);
 do_print(out, indent, "c", x.c);
 """
@@ -1233,7 +1222,7 @@ do_print(out, indent, "b", x.b);
 
 def test_generate_bytes_print(Bytes):
     assert generate_struct_print(Bytes[0]) == """\
-do_print(out, indent, "x", std::make_pair(x.x, size_t(3)));
+do_print(out, indent, "x", std::make_pair(x.x.data(), size_t(3)));
 """
     assert generate_struct_print(Bytes[1]) == """\
 do_print(out, indent, "x", std::make_pair(x.x.data(), x.x.size()));
@@ -1252,7 +1241,7 @@ do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Endpad[1]) == """\
 do_print(out, indent, "x", x.x);
-do_print(out, indent, "y", x.y, size_t(3));
+do_print(out, indent, "y", x.y.data(), size_t(3));
 """
     assert generate_struct_print(Endpad[2]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1282,10 +1271,10 @@ do_print(out, indent, "y", x.y);
 def test_generate_unionpad_print(Unionpad):
     assert generate_struct_print(Unionpad[0]) == """\
 do_print(out, indent, "x", x.x);
-if (x.has_y) do_print(out, indent, "y", x.y);
+if (x.y) do_print(out, indent, "y", *x.y);
 """
     assert generate_struct_print(Unionpad[1]) == """\
-if (x.has_x) do_print(out, indent, "x", x.x);
+if (x.x) do_print(out, indent, "x", *x.x);
 """
     assert generate_union_print(Unionpad[2]) == """\
 switch (x.discriminator)
@@ -1326,7 +1315,7 @@ do_print(out, indent, "y", x.y);
 """
     assert generate_struct_print(Arraypad[4]) == """\
 do_print(out, indent, "x", x.x);
-do_print(out, indent, "y", x.y, size_t(3));
+do_print(out, indent, "y", x.y.data(), size_t(3));
 do_print(out, indent, "z", x.z);
 """
     assert generate_struct_print(Arraypad[5]) == """\
@@ -1655,7 +1644,7 @@ uint32_t x;
 uint32_t y;
 """
     assert generate_struct_fields(Builtin[1]) == """\
-uint32_t x[2];
+array<uint32_t, 2> x;
 """
     assert generate_struct_fields(Builtin[2]) == """\
 std::vector<uint32_t> x;
@@ -1673,7 +1662,7 @@ Builtin x;
 Builtin y;
 """
     assert generate_struct_fields(Fixcomp[2]) == """\
-Builtin x[2];
+array<Builtin, 2> x;
 """
     assert generate_struct_fields(Fixcomp[3]) == """\
 std::vector<Builtin> x;
@@ -1705,17 +1694,19 @@ enum _discriminator
     discriminator_c = 3
 } discriminator;
 
+static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+static const prophy::detail::int2type<discriminator_b> discriminator_b_t;
+static const prophy::detail::int2type<discriminator_c> discriminator_c_t;
+
 uint8_t a;
 uint32_t b;
 Builtin c;
 """
     assert generate_struct_fields(Unions[2]) == """\
-bool has_x;
-uint32_t x;
+optional<uint32_t> x;
 """
     assert generate_struct_fields(Unions[3]) == """\
-bool has_x;
-Builtin x;
+optional<Builtin> x;
 """
 
 def test_generate_enums_fields(Enums):
@@ -1723,7 +1714,7 @@ def test_generate_enums_fields(Enums):
 std::vector<Enum> x;
 """
     assert generate_struct_fields(Enums[4]) == """\
-uint16_t a[CONSTANT];
+array<uint16_t, CONSTANT> a;
 TU16 b;
 Enum c;
 """
@@ -1736,7 +1727,7 @@ double b;
 
 def test_generate_bytes_fields(Bytes):
     assert generate_struct_fields(Bytes[0]) == """\
-uint8_t x[3];
+array<uint8_t, 3> x;
 """
     assert generate_struct_fields(Bytes[1]) == """\
 std::vector<uint8_t> x;
@@ -1755,7 +1746,7 @@ uint8_t y;
 """
     assert generate_struct_fields(Endpad[1]) == """\
 uint32_t x;
-uint8_t y[3];
+array<uint8_t, 3> y;
 """
     assert generate_struct_fields(Endpad[2]) == """\
 std::vector<uint8_t> x;
@@ -1785,18 +1776,18 @@ ScalarpadComppost_Helper y;
 def test_generate_unionpad_fields(Unionpad):
     assert generate_struct_fields(Unionpad[0]) == """\
 uint8_t x;
-bool has_y;
-uint8_t y;
+optional<uint8_t> y;
 """
     assert generate_struct_fields(Unionpad[1]) == """\
-bool has_x;
-uint64_t x;
+optional<uint64_t> x;
 """
     assert generate_union_fields(Unionpad[2]) == """\
 enum _discriminator
 {
     discriminator_a = 1
 } discriminator;
+
+static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
 
 uint8_t a;
 """
@@ -1810,6 +1801,9 @@ enum _discriminator
     discriminator_a = 1,
     discriminator_b = 2
 } discriminator;
+
+static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+static const prophy::detail::int2type<discriminator_b> discriminator_b_t;
 
 uint8_t a;
 uint64_t b;
@@ -1836,7 +1830,7 @@ ArraypadCounterAligns_Helper y;
 """
     assert generate_struct_fields(Arraypad[4]) == """\
 uint32_t x;
-uint8_t y[3];
+array<uint8_t, 3> y;
 uint32_t z;
 """
     assert generate_struct_fields(Arraypad[5]) == """\
@@ -1882,79 +1876,257 @@ DynfieldsScalarpartialpad_Helper z;
 """
 
 def test_generate_builtin_constructor(Builtin):
-    assert generate_struct_constructor(Builtin[0]) == 'x(), y()'
-    assert generate_struct_constructor(Builtin[1]) == 'x()'
-    assert generate_struct_constructor(Builtin[2]) == ''
-    assert generate_struct_constructor(Builtin[3]) == ''
-    assert generate_struct_constructor(Builtin[4]) == ''
+    assert generate_struct_constructor(Builtin[0]) == """\
+Builtin(): x(), y() { }
+Builtin(uint32_t _1, uint32_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Builtin[1]) == """\
+BuiltinFixed(): x() { }
+BuiltinFixed(const array<uint32_t, 2>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Builtin[2]) == """\
+BuiltinDynamic() { }
+BuiltinDynamic(const std::vector<uint32_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Builtin[3]) == """\
+BuiltinLimited() { }
+BuiltinLimited(const std::vector<uint32_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Builtin[4]) == """\
+BuiltinGreedy() { }
+BuiltinGreedy(const std::vector<uint32_t>& _1): x(_1) { }
+"""
 
 def test_generate_fixcomp_constructor(Fixcomp):
-    assert generate_struct_constructor(Fixcomp[1]) == ''
-    assert generate_struct_constructor(Fixcomp[2]) == ''
-    assert generate_struct_constructor(Fixcomp[3]) == ''
-    assert generate_struct_constructor(Fixcomp[4]) == ''
-    assert generate_struct_constructor(Fixcomp[5]) == ''
+    assert generate_struct_constructor(Fixcomp[1]) == """\
+Fixcomp() { }
+Fixcomp(const Builtin& _1, const Builtin& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Fixcomp[2]) == """\
+FixcompFixed(): x() { }
+FixcompFixed(const array<Builtin, 2>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Fixcomp[3]) == """\
+FixcompDynamic() { }
+FixcompDynamic(const std::vector<Builtin>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Fixcomp[4]) == """\
+FixcompLimited() { }
+FixcompLimited(const std::vector<Builtin>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Fixcomp[5]) == """\
+FixcompGreedy() { }
+FixcompGreedy(const std::vector<Builtin>& _1): x(_1) { }
+"""
 
 def test_generate_dyncomp_constructor(Dyncomp):
-    assert generate_struct_constructor(Dyncomp[1]) == ''
-    assert generate_struct_constructor(Dyncomp[2]) == ''
-    assert generate_struct_constructor(Dyncomp[3]) == ''
+    assert generate_struct_constructor(Dyncomp[1]) == """\
+Dyncomp() { }
+Dyncomp(const BuiltinDynamic& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Dyncomp[2]) == """\
+DyncompDynamic() { }
+DyncompDynamic(const std::vector<BuiltinDynamic>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Dyncomp[3]) == """\
+DyncompGreedy() { }
+DyncompGreedy(const std::vector<BuiltinDynamic>& _1): x(_1) { }
+"""
 
 def test_generate_unions_constructor(Unions):
-    assert generate_union_constructor(Unions[1]) == 'discriminator(discriminator_a), a(), b()'
-    assert generate_struct_constructor(Unions[2]) == 'has_x(), x()'
-    assert generate_struct_constructor(Unions[3]) == 'has_x()'
+    assert generate_union_constructor(Unions[1]) == """\
+Union(): discriminator(discriminator_a), a(), b() { }
+Union(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+Union(prophy::detail::int2type<discriminator_b>, uint32_t _1): discriminator(discriminator_b), b(_1) { }
+Union(prophy::detail::int2type<discriminator_c>, const Builtin& _1): discriminator(discriminator_c), c(_1) { }
+"""
+    assert generate_struct_constructor(Unions[2]) == """\
+BuiltinOptional() { }
+BuiltinOptional(const optional<uint32_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Unions[3]) == """\
+FixcompOptional() { }
+FixcompOptional(const optional<Builtin>& _1): x(_1) { }
+"""
 
 def test_generate_enums_constructor(Enums):
-    assert generate_struct_constructor(Enums[1]) == ''
-    assert generate_struct_constructor(Enums[4]) == 'a(), b(), c(Enum_One)'
+    assert generate_struct_constructor(Enums[1]) == """\
+DynEnum() { }
+DynEnum(const std::vector<Enum>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Enums[4]) == """\
+ConstantTypedefEnum(): a(), b(), c(Enum_One) { }
+ConstantTypedefEnum(const array<uint16_t, CONSTANT>& _1, TU16 _2, Enum _3): a(_1), b(_2), c(_3) { }
+"""
 
 def test_generate_floats_constructor(Floats):
-    assert generate_struct_constructor(Floats[0]) == 'a(), b()'
+    assert generate_struct_constructor(Floats[0]) == """\
+Floats(): a(), b() { }
+Floats(float _1, double _2): a(_1), b(_2) { }
+"""
 
 def test_generate_bytes_constructor(Bytes):
-    assert generate_struct_constructor(Bytes[0]) == 'x()'
-    assert generate_struct_constructor(Bytes[1]) == ''
-    assert generate_struct_constructor(Bytes[2]) == ''
-    assert generate_struct_constructor(Bytes[3]) == ''
+    assert generate_struct_constructor(Bytes[0]) == """\
+BytesFixed(): x() { }
+BytesFixed(const array<uint8_t, 3>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Bytes[1]) == """\
+BytesDynamic() { }
+BytesDynamic(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Bytes[2]) == """\
+BytesLimited() { }
+BytesLimited(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Bytes[3]) == """\
+BytesGreedy() { }
+BytesGreedy(const std::vector<uint8_t>& _1): x(_1) { }
+"""
 
 def test_generate_endpad_constructor(Endpad):
-    assert generate_struct_constructor(Endpad[0]) == 'x(), y()'
-    assert generate_struct_constructor(Endpad[1]) == 'x(), y()'
-    assert generate_struct_constructor(Endpad[2]) == ''
-    assert generate_struct_constructor(Endpad[3]) == ''
-    assert generate_struct_constructor(Endpad[4]) == 'x()'
+    assert generate_struct_constructor(Endpad[0]) == """\
+Endpad(): x(), y() { }
+Endpad(uint16_t _1, uint8_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Endpad[1]) == """\
+EndpadFixed(): x(), y() { }
+EndpadFixed(uint32_t _1, const array<uint8_t, 3>& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Endpad[2]) == """\
+EndpadDynamic() { }
+EndpadDynamic(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Endpad[3]) == """\
+EndpadLimited() { }
+EndpadLimited(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Endpad[4]) == """\
+EndpadGreedy(): x() { }
+EndpadGreedy(uint32_t _1, const std::vector<uint8_t>& _2): x(_1), y(_2) { }
+"""
 
 def test_generate_scalarpad_constructor(Scalarpad):
-    assert generate_struct_constructor(Scalarpad[0]) == 'x(), y()'
-    assert generate_struct_constructor(Scalarpad[2]) == 'y()'
-    assert generate_struct_constructor(Scalarpad[4]) == 'x()'
+    assert generate_struct_constructor(Scalarpad[0]) == """\
+Scalarpad(): x(), y() { }
+Scalarpad(uint8_t _1, uint16_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Scalarpad[2]) == """\
+ScalarpadComppre(): y() { }
+ScalarpadComppre(const ScalarpadComppre_Helper& _1, uint16_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Scalarpad[4]) == """\
+ScalarpadComppost(): x() { }
+ScalarpadComppost(uint8_t _1, const ScalarpadComppost_Helper& _2): x(_1), y(_2) { }
+"""
 
 def test_generate_unionpad_constructor(Unionpad):
-    assert generate_struct_constructor(Unionpad[0]) == 'x(), has_y(), y()'
-    assert generate_struct_constructor(Unionpad[1]) == 'has_x(), x()'
-    assert generate_union_constructor(Unionpad[2]) == 'discriminator(discriminator_a), a()'
-    assert generate_struct_constructor(Unionpad[3]) == 'x()'
-    assert generate_union_constructor(Unionpad[4]) == 'discriminator(discriminator_a), a(), b()'
-    assert generate_struct_constructor(Unionpad[5]) == 'x()'
+    assert generate_struct_constructor(Unionpad[0]) == """\
+UnionpadOptionalboolpad(): x() { }
+UnionpadOptionalboolpad(uint8_t _1, const optional<uint8_t>& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Unionpad[1]) == """\
+UnionpadOptionalvaluepad() { }
+UnionpadOptionalvaluepad(const optional<uint64_t>& _1): x(_1) { }
+"""
+    assert generate_union_constructor(Unionpad[2]) == """\
+UnionpadDiscpad_Helper(): discriminator(discriminator_a), a() { }
+UnionpadDiscpad_Helper(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+"""
+    assert generate_struct_constructor(Unionpad[3]) == """\
+UnionpadDiscpad(): x() { }
+UnionpadDiscpad(uint8_t _1, const UnionpadDiscpad_Helper& _2): x(_1), y(_2) { }
+"""
+    assert generate_union_constructor(Unionpad[4]) == """\
+UnionpadArmpad_Helper(): discriminator(discriminator_a), a(), b() { }
+UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_b>, uint64_t _1): discriminator(discriminator_b), b(_1) { }
+"""
+    assert generate_struct_constructor(Unionpad[5]) == """\
+UnionpadArmpad(): x() { }
+UnionpadArmpad(uint8_t _1, const UnionpadArmpad_Helper& _2): x(_1), y(_2) { }
+"""
 
 def test_generate_arraypad_constructor(Arraypad):
-    assert generate_struct_constructor(Arraypad[0]) == ''
-    assert generate_struct_constructor(Arraypad[1]) == 'y()'
-    assert generate_struct_constructor(Arraypad[2]) == ''
-    assert generate_struct_constructor(Arraypad[3]) == 'x()'
-    assert generate_struct_constructor(Arraypad[4]) == 'x(), y(), z()'
-    assert generate_struct_constructor(Arraypad[5]) == 'y()'
-    assert generate_struct_constructor(Arraypad[6]) == 'y()'
+    assert generate_struct_constructor(Arraypad[0]) == """\
+ArraypadCounter() { }
+ArraypadCounter(const std::vector<uint16_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Arraypad[1]) == """\
+ArraypadCounterSeparated(): y() { }
+ArraypadCounterSeparated(uint32_t _1, const std::vector<uint32_t>& _2): y(_1), x(_2) { }
+"""
+    assert generate_struct_constructor(Arraypad[2]) == """\
+ArraypadCounterAligns_Helper() { }
+ArraypadCounterAligns_Helper(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Arraypad[3]) == """\
+ArraypadCounterAligns(): x() { }
+ArraypadCounterAligns(uint8_t _1, const ArraypadCounterAligns_Helper& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Arraypad[4]) == """\
+ArraypadFixed(): x(), y(), z() { }
+ArraypadFixed(uint32_t _1, const array<uint8_t, 3>& _2, uint32_t _3): x(_1), y(_2), z(_3) { }
+"""
+    assert generate_struct_constructor(Arraypad[5]) == """\
+ArraypadDynamic(): y() { }
+ArraypadDynamic(const std::vector<uint8_t>& _1, uint32_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Arraypad[6]) == """\
+ArraypadLimited(): y() { }
+ArraypadLimited(const std::vector<uint8_t>& _1, uint32_t _2): x(_1), y(_2) { }
+"""
 
 def test_generate_dynfields_constructor(Dynfields):
-    assert generate_struct_constructor(Dynfields[0]) == 'z()'
-    assert generate_struct_constructor(Dynfields[1]) == ''
-    assert generate_struct_constructor(Dynfields[2]) == ''
-    assert generate_struct_constructor(Dynfields[3]) == 'y(), z()'
-    assert generate_struct_constructor(Dynfields[4]) == 'x()'
-    assert generate_struct_constructor(Dynfields[5]) == ''
-    assert generate_struct_constructor(Dynfields[6]) == ''
+    assert generate_struct_constructor(Dynfields[0]) == """\
+Dynfields(): z() { }
+Dynfields(const std::vector<uint8_t>& _1, const std::vector<uint16_t>& _2, uint64_t _3): x(_1), y(_2), z(_3) { }
+"""
+    assert generate_struct_constructor(Dynfields[1]) == """\
+DynfieldsMixed() { }
+DynfieldsMixed(const std::vector<uint8_t>& _1, const std::vector<uint16_t>& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Dynfields[2]) == """\
+DynfieldsOverlapped() { }
+DynfieldsOverlapped(const std::vector<uint16_t>& _1, const std::vector<uint16_t>& _2, const std::vector<uint16_t>& _3): b(_1), c(_2), a(_3) { }
+"""
+    assert generate_struct_constructor(Dynfields[3]) == """\
+DynfieldsPartialpad_Helper(): y(), z() { }
+DynfieldsPartialpad_Helper(const std::vector<uint8_t>& _1, uint8_t _2, uint64_t _3): x(_1), y(_2), z(_3) { }
+"""
+    assert generate_struct_constructor(Dynfields[4]) == """\
+DynfieldsPartialpad(): x() { }
+DynfieldsPartialpad(uint8_t _1, const DynfieldsPartialpad_Helper& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Dynfields[5]) == """\
+DynfieldsScalarpartialpad_Helper() { }
+DynfieldsScalarpartialpad_Helper(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Dynfields[6]) == """\
+DynfieldsScalarpartialpad() { }
+DynfieldsScalarpartialpad(const DynfieldsScalarpartialpad_Helper& _1, const DynfieldsScalarpartialpad_Helper& _2, const DynfieldsScalarpartialpad_Helper& _3): x(_1), y(_2), z(_3) { }
+"""
+
+def test_initializer_list_typedefed_enum():
+    nodes = process([
+        model.Enum('Enum', [
+            model.EnumMember('Enum_One', '1')
+        ]),
+        model.Typedef('TEnum', 'Enum'),
+        model.Struct('Struct', [
+            model.StructMember('x', 'TEnum')
+        ]),
+        model.Union('Union', [
+            model.UnionMember('x', 'TEnum', '1')
+        ])
+    ])
+    assert generate_struct_constructor(nodes[2]) == """\
+Struct(): x(Enum_One) { }
+Struct(TEnum _1): x(_1) { }
+"""
+    assert generate_union_constructor(nodes[3]) == """\
+Union(): discriminator(discriminator_x), x(Enum_One) { }
+Union(prophy::detail::int2type<discriminator_x>, TEnum _1): discriminator(discriminator_x), x(_1) { }
+"""
 
 def test_generate_hpp_newlines():
     nodes = process([
@@ -1999,13 +2171,14 @@ typedef f e;
 enum { CONST_B = 0 };
 enum { CONST_C = 0 };
 
-struct A : prophy::detail::message<A>
+struct A : public prophy::detail::message<A>
 {
     enum { encoded_byte_size = 4 };
 
     uint32_t a;
 
     A(): a() { }
+    A(uint32_t _1): a(_1) { }
 
     size_t get_byte_size() const
     {
@@ -2013,13 +2186,14 @@ struct A : prophy::detail::message<A>
     }
 };
 
-struct B : prophy::detail::message<B>
+struct B : public prophy::detail::message<B>
 {
     enum { encoded_byte_size = 4 };
 
     uint32_t b;
 
     B(): b() { }
+    B(uint32_t _1): b(_1) { }
 
     size_t get_byte_size() const
     {
@@ -2037,16 +2211,19 @@ def test_generate_hpp(Union):
 #include <numeric>
 #include <vector>
 #include <string>
+#include <prophy/array.hpp>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/byte_size.hpp>
 #include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
 
 namespace prophy
 {
 namespace generated
 {
 
-struct X : prophy::detail::message<X>
+struct X : public prophy::detail::message<X>
 {
     enum { encoded_byte_size = 8 };
 
@@ -2055,9 +2232,12 @@ struct X : prophy::detail::message<X>
         discriminator_a = 1
     } discriminator;
 
+    static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+
     uint8_t a;
 
     X(): discriminator(discriminator_a), a() { }
+    X(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
 
     size_t get_byte_size() const
     {

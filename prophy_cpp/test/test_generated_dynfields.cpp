@@ -10,10 +10,7 @@ TEST(generated_dynfields, Dynfields)
 {
     std::vector<char> data(1024);
 
-    Dynfields x;
-    x.x.push_back(2);
-    x.y.push_back(3);
-    x.z = 4;
+    Dynfields x{{2}, {3}, 4};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(24, size);
@@ -42,9 +39,7 @@ TEST(generated_dynfields, DynfieldsMixed)
 {
     std::vector<char> data(1024);
 
-    DynfieldsMixed x;
-    x.x.push_back(2);
-    x.y.push_back(3);
+    DynfieldsMixed x{{2}, {3}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -72,11 +67,7 @@ TEST(generated_dynfields, DynfieldsOverlapped)
 {
     std::vector<char> data(1024);
 
-    DynfieldsOverlapped x;
-    x.a.push_back(4);
-    x.a.push_back(5);
-    x.b.push_back(2);
-    x.c.push_back(3);
+    DynfieldsOverlapped x{{2}, {3}, {4, 5}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(24, size);
@@ -104,11 +95,7 @@ TEST(generated_dynfields, DynfieldsPartialpad)
 {
     std::vector<char> data(1024);
 
-    DynfieldsPartialpad x;
-    x.x = 1;
-    x.y.x.push_back(2);
-    x.y.y = 3;
-    x.y.z = 4;
+    DynfieldsPartialpad x{1, {{2}, 3, 4}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(32, size);
@@ -136,17 +123,7 @@ TEST(generated_dynfields, DynfieldsScalarpartialpad)
 {
     std::vector<char> data(1024);
 
-    DynfieldsScalarpartialpad x;
-    x.x.x.push_back(2);
-    x.y.x.push_back(3);
-    x.y.x.push_back(4);
-    x.y.x.push_back(5);
-    x.y.x.push_back(6);
-    x.y.x.push_back(7);
-    x.y.x.push_back(8);
-    x.z.x.push_back(9);
-    x.z.x.push_back(10);
-    x.z.x.push_back(11);
+    DynfieldsScalarpartialpad x{{{2}}, {{3, 4, 5, 6, 7, 8}}, {{9, 10, 11}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(28, size);

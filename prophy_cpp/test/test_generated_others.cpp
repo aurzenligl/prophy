@@ -10,12 +10,7 @@ TEST(generated_others, ConstantTypedefEnum)
 {
     std::vector<char> data(1024);
 
-    ConstantTypedefEnum x;
-    x.a[0] = 1;
-    x.a[1] = 2;
-    x.a[2] = 3;
-    x.b = 4;
-    x.c = Enum_One;
+    ConstantTypedefEnum x{prophy::array<uint16_t, CONSTANT>{{1, 2, 3}}, 4, Enum_One};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -48,10 +43,7 @@ TEST(generated_others, DynEnum)
 {
     std::vector<char> data(1024);
 
-    DynEnum x;
-    x.x.push_back(Enum_One);
-    x.x.push_back(Enum_Two);
-    x.x.push_back(static_cast<Enum>(3));
+    DynEnum x{{Enum_One, Enum_Two, static_cast<Enum>(3)}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
@@ -83,9 +75,7 @@ TEST(generated_others, Floats)
 {
     std::vector<char> data(1024);
 
-    Floats x;
-    x.a = 10;
-    x.b = 10;
+    Floats x{10, 10};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(16, size);
@@ -113,10 +103,7 @@ TEST(generated_others, BytesFixed)
 {
     std::vector<char> data(1024);
 
-    BytesFixed x;
-    x.x[0] = 'a';
-    x.x[1] = 'b';
-    x.x[2] = 'c';
+    BytesFixed x{prophy::array<uint8_t, 3>{{'a', 'b', 'c'}}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(3, size);
@@ -139,8 +126,7 @@ TEST(generated_others, BytesDynamic)
 {
     std::vector<char> data(1024);
 
-    BytesDynamic x;
-    x.x = bytes("abcd");
+    BytesDynamic x{{'a', 'b', 'c', 'd'}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -175,8 +161,7 @@ TEST(generated_others, BytesLimited)
 {
     std::vector<char> data(1024);
 
-    BytesLimited x;
-    x.x = bytes("ab");
+    BytesLimited x{{'a', 'b'}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(8, size);
@@ -199,8 +184,7 @@ TEST(generated_others, BytesGreedy)
 {
     std::vector<char> data(1024);
 
-    BytesGreedy x;
-    x.x = bytes("abcde");
+    BytesGreedy x{{'a', 'b', 'c', 'd', 'e'}};
     size_t size = x.encode(data.data());
 
     EXPECT_EQ(5, size);

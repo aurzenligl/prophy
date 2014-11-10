@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
 #include <prophy/detail/codec_traits.hpp>
 #include <prophy/detail/message_impl.hpp>
 #include <prophy/detail/align.hpp>
@@ -287,6 +288,28 @@ struct decoder_greedy<E, T, true>
     }
 };
 
+inline bool do_decode_advance(size_t n, const uint8_t*& pos, const uint8_t* end)
+{
+    if (size_t(end - pos) < n)
+    {
+        return false;
+    }
+    pos += n;
+    return true;
+}
+
+template <size_t A>
+inline bool do_decode_align(const uint8_t*& pos, const uint8_t* end)
+{
+    const uint8_t* aligned = align<A>(pos);
+    if (aligned > end)
+    {
+        return false;
+    }
+    pos = aligned;
+    return true;
+}
+
 template <endianness E, typename T>
 inline bool do_decode(T& x, const uint8_t*& pos, const uint8_t* end)
 {
@@ -300,6 +323,30 @@ inline bool do_decode(T* x, size_t n, const uint8_t*& pos, const uint8_t* end)
 }
 
 template <endianness E, typename T>
+inline bool do_decode(optional<T>& x, const uint8_t*& pos, const uint8_t* end)
+{
+    uint32_t disc;
+    if (!do_decode<E>(disc, pos, end))
+    {
+        return false;
+    }
+    x = disc ? optional<T>(T()) : optional<T>();
+    if (alignment<T>::value > sizeof(uint32_t))
+    {
+        if (!do_decode_advance(alignment<T>::value - sizeof(uint32_t), pos, end))
+        {
+            return false;
+        }
+    }
+    if (disc)
+    {
+        return decoder<E, T>::decode(*x, pos, end);
+    }
+    pos = pos + codec_traits<T>::size;
+    return true;
+}
+
+template <endianness E, typename T>
 inline bool do_decode_in_place(T& x, const uint8_t* pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, pos, end);
@@ -309,16 +356,6 @@ template <endianness E, typename T>
 inline bool do_decode_in_place(T* x, size_t n, const uint8_t* pos, const uint8_t* end)
 {
     return decoder<E, T>::decode(x, n, pos, end);
-}
-
-template <endianness E, typename T>
-inline bool do_decode_in_place_optional(T& x, bool execute, const uint8_t* pos, const uint8_t* end)
-{
-    if (!execute)
-    {
-        return true;
-    }
-    return decoder<E, T>::decode(x, pos, end);
 }
 
 template <endianness E, typename T>
@@ -340,28 +377,6 @@ inline bool do_decode_resize(std::vector<T>& v, const uint8_t*& pos, const uint8
         return false;
     }
     v.resize(n);
-    return true;
-}
-
-inline bool do_decode_advance(size_t n, const uint8_t*& pos, const uint8_t* end)
-{
-    if (size_t(end - pos) < n)
-    {
-        return false;
-    }
-    pos += n;
-    return true;
-}
-
-template <size_t A>
-inline bool do_decode_align(const uint8_t*& pos, const uint8_t* end)
-{
-    const uint8_t* aligned = align<A>(pos);
-    if (aligned > end)
-    {
-        return false;
-    }
-    pos = aligned;
     return true;
 }
 
