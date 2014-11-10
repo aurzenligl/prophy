@@ -311,7 +311,7 @@ def generate_struct_fields(node):
     text = ''
     for m in node.members:
         if m.fixed:
-            text += '{0} {1}[{2}];\n'.format(BUILTIN2C.get(m.type, m.type), m.name, m.size)
+            text += 'array<{0}, {1}> {2};\n'.format(BUILTIN2C.get(m.type, m.type), m.size, m.name)
         elif m.dynamic:
             text += 'std::vector<{0}> {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
         elif m.limited:
@@ -319,8 +319,7 @@ def generate_struct_fields(node):
         elif m.greedy:
             text += 'std::vector<{0}> {1}; /// greedy\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
         elif m.optional:
-            text += 'bool has_{0};\n'.format(m.name)
-            text += '{0} {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
+            text += 'optional<{0}> {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name)
         elif m.name in bound:
             pass
         else:
@@ -409,9 +408,13 @@ def generate_union_get_byte_size(node):
     return 'return {0};\n'.format(node.byte_size)
 
 def generate_union_fields(node):
-    body = ',\n'.join('    discriminator_{0} = {1}'.format(m.name, m.discriminator) for m in node.members) + '\n'
+    body = ',\n'.join('discriminator_{0} = {1}'.format(m.name, m.discriminator) for m in node.members) + '\n'
+    disc_defs = ''.join(
+        'static const prophy::detail::int2type<discriminator_{0}> discriminator_{0}_t;\n'.format(m.name)
+        for m in node.members
+    )
     fields = ''.join('{0} {1};\n'.format(BUILTIN2C.get(m.type, m.type), m.name) for m in node.members)
-    return 'enum _discriminator\n{\n' + body + '} discriminator;\n' + '\n' + fields
+    return 'enum _discriminator\n{\n' + _indent(body) + '} discriminator;\n' + '\n' + disc_defs + '\n' + fields
 
 def generate_union_constructor(node):
     text = ['discriminator(discriminator_{0})'.format(node.members[0].name)]

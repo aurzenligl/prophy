@@ -1641,7 +1641,7 @@ uint32_t x;
 uint32_t y;
 """
     assert generate_struct_fields(Builtin[1]) == """\
-uint32_t x[2];
+array<uint32_t, 2> x;
 """
     assert generate_struct_fields(Builtin[2]) == """\
 std::vector<uint32_t> x;
@@ -1659,7 +1659,7 @@ Builtin x;
 Builtin y;
 """
     assert generate_struct_fields(Fixcomp[2]) == """\
-Builtin x[2];
+array<Builtin, 2> x;
 """
     assert generate_struct_fields(Fixcomp[3]) == """\
 std::vector<Builtin> x;
@@ -1691,17 +1691,19 @@ enum _discriminator
     discriminator_c = 3
 } discriminator;
 
+static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+static const prophy::detail::int2type<discriminator_b> discriminator_b_t;
+static const prophy::detail::int2type<discriminator_c> discriminator_c_t;
+
 uint8_t a;
 uint32_t b;
 Builtin c;
 """
     assert generate_struct_fields(Unions[2]) == """\
-bool has_x;
-uint32_t x;
+optional<uint32_t> x;
 """
     assert generate_struct_fields(Unions[3]) == """\
-bool has_x;
-Builtin x;
+optional<Builtin> x;
 """
 
 def test_generate_enums_fields(Enums):
@@ -1709,7 +1711,7 @@ def test_generate_enums_fields(Enums):
 std::vector<Enum> x;
 """
     assert generate_struct_fields(Enums[4]) == """\
-uint16_t a[CONSTANT];
+array<uint16_t, CONSTANT> a;
 TU16 b;
 Enum c;
 """
@@ -1722,7 +1724,7 @@ double b;
 
 def test_generate_bytes_fields(Bytes):
     assert generate_struct_fields(Bytes[0]) == """\
-uint8_t x[3];
+array<uint8_t, 3> x;
 """
     assert generate_struct_fields(Bytes[1]) == """\
 std::vector<uint8_t> x;
@@ -1741,7 +1743,7 @@ uint8_t y;
 """
     assert generate_struct_fields(Endpad[1]) == """\
 uint32_t x;
-uint8_t y[3];
+array<uint8_t, 3> y;
 """
     assert generate_struct_fields(Endpad[2]) == """\
 std::vector<uint8_t> x;
@@ -1771,18 +1773,18 @@ ScalarpadComppost_Helper y;
 def test_generate_unionpad_fields(Unionpad):
     assert generate_struct_fields(Unionpad[0]) == """\
 uint8_t x;
-bool has_y;
-uint8_t y;
+optional<uint8_t> y;
 """
     assert generate_struct_fields(Unionpad[1]) == """\
-bool has_x;
-uint64_t x;
+optional<uint64_t> x;
 """
     assert generate_union_fields(Unionpad[2]) == """\
 enum _discriminator
 {
     discriminator_a = 1
 } discriminator;
+
+static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
 
 uint8_t a;
 """
@@ -1796,6 +1798,9 @@ enum _discriminator
     discriminator_a = 1,
     discriminator_b = 2
 } discriminator;
+
+static const prophy::detail::int2type<discriminator_a> discriminator_a_t;
+static const prophy::detail::int2type<discriminator_b> discriminator_b_t;
 
 uint8_t a;
 uint64_t b;
@@ -1822,7 +1827,7 @@ ArraypadCounterAligns_Helper y;
 """
     assert generate_struct_fields(Arraypad[4]) == """\
 uint32_t x;
-uint8_t y[3];
+array<uint8_t, 3> y;
 uint32_t z;
 """
     assert generate_struct_fields(Arraypad[5]) == """\
