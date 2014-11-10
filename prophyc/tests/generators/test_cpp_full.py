@@ -1873,79 +1873,257 @@ DynfieldsScalarpartialpad_Helper z;
 """
 
 def test_generate_builtin_constructor(Builtin):
-    assert generate_struct_constructor(Builtin[0]) == 'x(), y()'
-    assert generate_struct_constructor(Builtin[1]) == 'x()'
-    assert generate_struct_constructor(Builtin[2]) == ''
-    assert generate_struct_constructor(Builtin[3]) == ''
-    assert generate_struct_constructor(Builtin[4]) == ''
+    assert generate_struct_constructor(Builtin[0]) == """\
+Builtin(): x(), y() { }
+Builtin(uint32_t _1, uint32_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Builtin[1]) == """\
+BuiltinFixed(): x() { }
+BuiltinFixed(const array<uint32_t, 2>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Builtin[2]) == """\
+BuiltinDynamic() { }
+BuiltinDynamic(const std::vector<uint32_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Builtin[3]) == """\
+BuiltinLimited() { }
+BuiltinLimited(const std::vector<uint32_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Builtin[4]) == """\
+BuiltinGreedy() { }
+BuiltinGreedy(const std::vector<uint32_t>& _1): x(_1) { }
+"""
 
 def test_generate_fixcomp_constructor(Fixcomp):
-    assert generate_struct_constructor(Fixcomp[1]) == ''
-    assert generate_struct_constructor(Fixcomp[2]) == ''
-    assert generate_struct_constructor(Fixcomp[3]) == ''
-    assert generate_struct_constructor(Fixcomp[4]) == ''
-    assert generate_struct_constructor(Fixcomp[5]) == ''
+    assert generate_struct_constructor(Fixcomp[1]) == """\
+Fixcomp() { }
+Fixcomp(const Builtin& _1, const Builtin& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Fixcomp[2]) == """\
+FixcompFixed(): x() { }
+FixcompFixed(const array<Builtin, 2>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Fixcomp[3]) == """\
+FixcompDynamic() { }
+FixcompDynamic(const std::vector<Builtin>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Fixcomp[4]) == """\
+FixcompLimited() { }
+FixcompLimited(const std::vector<Builtin>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Fixcomp[5]) == """\
+FixcompGreedy() { }
+FixcompGreedy(const std::vector<Builtin>& _1): x(_1) { }
+"""
 
 def test_generate_dyncomp_constructor(Dyncomp):
-    assert generate_struct_constructor(Dyncomp[1]) == ''
-    assert generate_struct_constructor(Dyncomp[2]) == ''
-    assert generate_struct_constructor(Dyncomp[3]) == ''
+    assert generate_struct_constructor(Dyncomp[1]) == """\
+Dyncomp() { }
+Dyncomp(const BuiltinDynamic& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Dyncomp[2]) == """\
+DyncompDynamic() { }
+DyncompDynamic(const std::vector<BuiltinDynamic>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Dyncomp[3]) == """\
+DyncompGreedy() { }
+DyncompGreedy(const std::vector<BuiltinDynamic>& _1): x(_1) { }
+"""
 
 def test_generate_unions_constructor(Unions):
-    assert generate_union_constructor(Unions[1]) == 'discriminator(discriminator_a), a(), b()'
-    assert generate_struct_constructor(Unions[2]) == 'has_x(), x()'
-    assert generate_struct_constructor(Unions[3]) == 'has_x()'
+    assert generate_union_constructor(Unions[1]) == """\
+Union(): discriminator(discriminator_a), a(), b() { }
+Union(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+Union(prophy::detail::int2type<discriminator_b>, uint32_t _1): discriminator(discriminator_b), b(_1) { }
+Union(prophy::detail::int2type<discriminator_c>, const Builtin& _1): discriminator(discriminator_c), c(_1) { }
+"""
+    assert generate_struct_constructor(Unions[2]) == """\
+BuiltinOptional() { }
+BuiltinOptional(const optional<uint32_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Unions[3]) == """\
+FixcompOptional() { }
+FixcompOptional(const optional<Builtin>& _1): x(_1) { }
+"""
 
 def test_generate_enums_constructor(Enums):
-    assert generate_struct_constructor(Enums[1]) == ''
-    assert generate_struct_constructor(Enums[4]) == 'a(), b(), c(Enum_One)'
+    assert generate_struct_constructor(Enums[1]) == """\
+DynEnum() { }
+DynEnum(const std::vector<Enum>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Enums[4]) == """\
+ConstantTypedefEnum(): a(), b(), c(Enum_One) { }
+ConstantTypedefEnum(const array<uint16_t, CONSTANT>& _1, TU16 _2, Enum _3): a(_1), b(_2), c(_3) { }
+"""
 
 def test_generate_floats_constructor(Floats):
-    assert generate_struct_constructor(Floats[0]) == 'a(), b()'
+    assert generate_struct_constructor(Floats[0]) == """\
+Floats(): a(), b() { }
+Floats(float _1, double _2): a(_1), b(_2) { }
+"""
 
 def test_generate_bytes_constructor(Bytes):
-    assert generate_struct_constructor(Bytes[0]) == 'x()'
-    assert generate_struct_constructor(Bytes[1]) == ''
-    assert generate_struct_constructor(Bytes[2]) == ''
-    assert generate_struct_constructor(Bytes[3]) == ''
+    assert generate_struct_constructor(Bytes[0]) == """\
+BytesFixed(): x() { }
+BytesFixed(const array<uint8_t, 3>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Bytes[1]) == """\
+BytesDynamic() { }
+BytesDynamic(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Bytes[2]) == """\
+BytesLimited() { }
+BytesLimited(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Bytes[3]) == """\
+BytesGreedy() { }
+BytesGreedy(const std::vector<uint8_t>& _1): x(_1) { }
+"""
 
 def test_generate_endpad_constructor(Endpad):
-    assert generate_struct_constructor(Endpad[0]) == 'x(), y()'
-    assert generate_struct_constructor(Endpad[1]) == 'x(), y()'
-    assert generate_struct_constructor(Endpad[2]) == ''
-    assert generate_struct_constructor(Endpad[3]) == ''
-    assert generate_struct_constructor(Endpad[4]) == 'x()'
+    assert generate_struct_constructor(Endpad[0]) == """\
+Endpad(): x(), y() { }
+Endpad(uint16_t _1, uint8_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Endpad[1]) == """\
+EndpadFixed(): x(), y() { }
+EndpadFixed(uint32_t _1, const array<uint8_t, 3>& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Endpad[2]) == """\
+EndpadDynamic() { }
+EndpadDynamic(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Endpad[3]) == """\
+EndpadLimited() { }
+EndpadLimited(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Endpad[4]) == """\
+EndpadGreedy(): x() { }
+EndpadGreedy(uint32_t _1, const std::vector<uint8_t>& _2): x(_1), y(_2) { }
+"""
 
 def test_generate_scalarpad_constructor(Scalarpad):
-    assert generate_struct_constructor(Scalarpad[0]) == 'x(), y()'
-    assert generate_struct_constructor(Scalarpad[2]) == 'y()'
-    assert generate_struct_constructor(Scalarpad[4]) == 'x()'
+    assert generate_struct_constructor(Scalarpad[0]) == """\
+Scalarpad(): x(), y() { }
+Scalarpad(uint8_t _1, uint16_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Scalarpad[2]) == """\
+ScalarpadComppre(): y() { }
+ScalarpadComppre(const ScalarpadComppre_Helper& _1, uint16_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Scalarpad[4]) == """\
+ScalarpadComppost(): x() { }
+ScalarpadComppost(uint8_t _1, const ScalarpadComppost_Helper& _2): x(_1), y(_2) { }
+"""
 
 def test_generate_unionpad_constructor(Unionpad):
-    assert generate_struct_constructor(Unionpad[0]) == 'x(), has_y(), y()'
-    assert generate_struct_constructor(Unionpad[1]) == 'has_x(), x()'
-    assert generate_union_constructor(Unionpad[2]) == 'discriminator(discriminator_a), a()'
-    assert generate_struct_constructor(Unionpad[3]) == 'x()'
-    assert generate_union_constructor(Unionpad[4]) == 'discriminator(discriminator_a), a(), b()'
-    assert generate_struct_constructor(Unionpad[5]) == 'x()'
+    assert generate_struct_constructor(Unionpad[0]) == """\
+UnionpadOptionalboolpad(): x() { }
+UnionpadOptionalboolpad(uint8_t _1, const optional<uint8_t>& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Unionpad[1]) == """\
+UnionpadOptionalvaluepad() { }
+UnionpadOptionalvaluepad(const optional<uint64_t>& _1): x(_1) { }
+"""
+    assert generate_union_constructor(Unionpad[2]) == """\
+UnionpadDiscpad_Helper(): discriminator(discriminator_a), a() { }
+UnionpadDiscpad_Helper(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+"""
+    assert generate_struct_constructor(Unionpad[3]) == """\
+UnionpadDiscpad(): x() { }
+UnionpadDiscpad(uint8_t _1, const UnionpadDiscpad_Helper& _2): x(_1), y(_2) { }
+"""
+    assert generate_union_constructor(Unionpad[4]) == """\
+UnionpadArmpad_Helper(): discriminator(discriminator_a), a(), b() { }
+UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
+UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_b>, uint64_t _1): discriminator(discriminator_b), b(_1) { }
+"""
+    assert generate_struct_constructor(Unionpad[5]) == """\
+UnionpadArmpad(): x() { }
+UnionpadArmpad(uint8_t _1, const UnionpadArmpad_Helper& _2): x(_1), y(_2) { }
+"""
 
 def test_generate_arraypad_constructor(Arraypad):
-    assert generate_struct_constructor(Arraypad[0]) == ''
-    assert generate_struct_constructor(Arraypad[1]) == 'y()'
-    assert generate_struct_constructor(Arraypad[2]) == ''
-    assert generate_struct_constructor(Arraypad[3]) == 'x()'
-    assert generate_struct_constructor(Arraypad[4]) == 'x(), y(), z()'
-    assert generate_struct_constructor(Arraypad[5]) == 'y()'
-    assert generate_struct_constructor(Arraypad[6]) == 'y()'
+    assert generate_struct_constructor(Arraypad[0]) == """\
+ArraypadCounter() { }
+ArraypadCounter(const std::vector<uint16_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Arraypad[1]) == """\
+ArraypadCounterSeparated(): y() { }
+ArraypadCounterSeparated(uint32_t _1, const std::vector<uint32_t>& _2): y(_1), x(_2) { }
+"""
+    assert generate_struct_constructor(Arraypad[2]) == """\
+ArraypadCounterAligns_Helper() { }
+ArraypadCounterAligns_Helper(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Arraypad[3]) == """\
+ArraypadCounterAligns(): x() { }
+ArraypadCounterAligns(uint8_t _1, const ArraypadCounterAligns_Helper& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Arraypad[4]) == """\
+ArraypadFixed(): x(), y(), z() { }
+ArraypadFixed(uint32_t _1, const array<uint8_t, 3>& _2, uint32_t _3): x(_1), y(_2), z(_3) { }
+"""
+    assert generate_struct_constructor(Arraypad[5]) == """\
+ArraypadDynamic(): y() { }
+ArraypadDynamic(const std::vector<uint8_t>& _1, uint32_t _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Arraypad[6]) == """\
+ArraypadLimited(): y() { }
+ArraypadLimited(const std::vector<uint8_t>& _1, uint32_t _2): x(_1), y(_2) { }
+"""
 
 def test_generate_dynfields_constructor(Dynfields):
-    assert generate_struct_constructor(Dynfields[0]) == 'z()'
-    assert generate_struct_constructor(Dynfields[1]) == ''
-    assert generate_struct_constructor(Dynfields[2]) == ''
-    assert generate_struct_constructor(Dynfields[3]) == 'y(), z()'
-    assert generate_struct_constructor(Dynfields[4]) == 'x()'
-    assert generate_struct_constructor(Dynfields[5]) == ''
-    assert generate_struct_constructor(Dynfields[6]) == ''
+    assert generate_struct_constructor(Dynfields[0]) == """\
+Dynfields(): z() { }
+Dynfields(const std::vector<uint8_t>& _1, const std::vector<uint16_t>& _2, uint64_t _3): x(_1), y(_2), z(_3) { }
+"""
+    assert generate_struct_constructor(Dynfields[1]) == """\
+DynfieldsMixed() { }
+DynfieldsMixed(const std::vector<uint8_t>& _1, const std::vector<uint16_t>& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Dynfields[2]) == """\
+DynfieldsOverlapped() { }
+DynfieldsOverlapped(const std::vector<uint16_t>& _1, const std::vector<uint16_t>& _2, const std::vector<uint16_t>& _3): b(_1), c(_2), a(_3) { }
+"""
+    assert generate_struct_constructor(Dynfields[3]) == """\
+DynfieldsPartialpad_Helper(): y(), z() { }
+DynfieldsPartialpad_Helper(const std::vector<uint8_t>& _1, uint8_t _2, uint64_t _3): x(_1), y(_2), z(_3) { }
+"""
+    assert generate_struct_constructor(Dynfields[4]) == """\
+DynfieldsPartialpad(): x() { }
+DynfieldsPartialpad(uint8_t _1, const DynfieldsPartialpad_Helper& _2): x(_1), y(_2) { }
+"""
+    assert generate_struct_constructor(Dynfields[5]) == """\
+DynfieldsScalarpartialpad_Helper() { }
+DynfieldsScalarpartialpad_Helper(const std::vector<uint8_t>& _1): x(_1) { }
+"""
+    assert generate_struct_constructor(Dynfields[6]) == """\
+DynfieldsScalarpartialpad() { }
+DynfieldsScalarpartialpad(const DynfieldsScalarpartialpad_Helper& _1, const DynfieldsScalarpartialpad_Helper& _2, const DynfieldsScalarpartialpad_Helper& _3): x(_1), y(_2), z(_3) { }
+"""
+
+def test_initializer_list_typedefed_enum():
+    nodes = process([
+        model.Enum('Enum', [
+            model.EnumMember('Enum_One', '1')
+        ]),
+        model.Typedef('TEnum', 'Enum'),
+        model.Struct('Struct', [
+            model.StructMember('x', 'TEnum')
+        ]),
+        model.Union('Union', [
+            model.UnionMember('x', 'TEnum', '1')
+        ])
+    ])
+    assert generate_struct_constructor(nodes[2]) == """\
+Struct(): x(Enum_One) { }
+Struct(TEnum _1): x(_1) { }
+"""
+    assert generate_union_constructor(nodes[3]) == """\
+Union(): discriminator(discriminator_x), x(Enum_One) { }
+Union(prophy::detail::int2type<discriminator_x>, TEnum _1): discriminator(discriminator_x), x(_1) { }
+"""
 
 '''
 def test_generate_hpp_newlines():

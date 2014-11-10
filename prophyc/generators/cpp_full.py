@@ -19,6 +19,18 @@ BUILTIN2C = {
 def _indent(text):
     return '\n'.join(x and '    ' + x or '' for x in text.split('\n'))
 
+def _get_initializer(m):
+    while isinstance(m.definition, model.Typedef):
+        m = m.definition
+    if isinstance(m.definition, model.Enum):
+        return m.definition.members[0].name
+    if m.type in BUILTIN2C:
+        return ''
+    return None
+
+def _const_refize(apply, text):
+    return apply and text.join(('const ', '&')) or text
+
 def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
@@ -327,37 +339,42 @@ def generate_struct_fields(node):
     return text
 
 def generate_struct_constructor(node):
-    def get_initializer(m):
-        if isinstance(m.definition, model.Enum):
-            return m.definition.members[0].name
-        while isinstance(m.definition, model.Typedef):
-            m = m.definition
-        if m.type in BUILTIN2C:
-            return ''
-        return None
-    def try_to_append(text, m):
-        init = get_initializer(m)
+    def add_to_default(lst, m, init):
         if init is not None:
-            text.append('{0}({1})'.format(m.name, init))
+            lst.append('{0}({1})'.format(m.name, init))
+    def add_to_full(lst, const_ref, m, fmt = '{0}'):
+        lst.append((const_ref, fmt.format(BUILTIN2C.get(m.type, m.type)), m.name))
     bound = {m.bound:m for m in node.members if m.bound}
-    text = []
+    default_ctor = []
+    full_ctor = []
     for m in node.members:
+        init = _get_initializer(m)
         if m.fixed:
-            try_to_append(text, m)
+            add_to_default(default_ctor, m, '')
+            add_to_full(full_ctor, True, m, 'array<{0}, %s>' % m.size)
         elif m.dynamic:
-            pass
+            add_to_full(full_ctor, True, m, 'std::vector<{0}>')
         elif m.limited:
-            pass
+            add_to_full(full_ctor, True, m, 'std::vector<{0}>')
         elif m.greedy:
-            pass
+            add_to_full(full_ctor, True, m, 'std::vector<{0}>')
         elif m.optional:
-            text.append('has_{0}()'.format(m.name))
-            try_to_append(text, m)
+            add_to_full(full_ctor, True, m, 'optional<{0}>')
         elif m.name in bound:
             pass
         else:
-            try_to_append(text, m)
-    return ', '.join(text)
+            add_to_default(default_ctor, m, init)
+            add_to_full(full_ctor, init is None, m)
+    return (
+        (default_ctor
+            and '{0}(): {1} {{ }}\n'.format(node.name, ', '.join(default_ctor))
+            or '{0}() {{ }}\n'.format(node.name))
+        + '{0}({1}): {2} {{ }}\n'.format(
+            node.name,
+            ', '.join(_const_refize(const_ref, tp) + ' _%s' % idx for idx, (const_ref, tp, _) in enumerate(full_ctor, 1)),
+            ', '.join('{0}(_{1})'.format(name, idx) for idx, (_, _, name) in enumerate(full_ctor, 1))
+        )
+    )
 
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
@@ -417,9 +434,22 @@ def generate_union_fields(node):
     return 'enum _discriminator\n{\n' + _indent(body) + '} discriminator;\n' + '\n' + disc_defs + '\n' + fields
 
 def generate_union_constructor(node):
-    text = ['discriminator(discriminator_{0})'.format(node.members[0].name)]
-    text += ['{0}()'.format(m.name) for m in node.members if m.type in BUILTIN2C]
-    return ', '.join(text)
+    inits = [_get_initializer(m) for m in node.members]
+    return (
+        '{0}(): {1} {{ }}\n'.format(node.name, ', '.join(
+            ['discriminator(discriminator_{0})'.format(node.members[0].name)]
+            + ['{0}({1})'.format(m.name, init) for m, init in zip(node.members, inits) if init is not None]
+        ))
+        + ''.join(
+            '{0}(prophy::detail::int2type<discriminator_{1}>, {2} _1): discriminator(discriminator_{1}), {1}(_1) {{ }}\n'
+            .format(
+                node.name,
+                m.name,
+                _const_refize(init is None, BUILTIN2C.get(m.type, m.type))
+            )
+            for m, init in zip(node.members, inits)
+        )
+    )
 
 _hpp_header = """\
 #ifndef _PROPHY_GENERATED_FULL_{0}_HPP

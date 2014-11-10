@@ -264,7 +264,7 @@ struct UnionpadArmpad_Helper : public prophy::detail::message<UnionpadArmpad_Hel
 
     UnionpadArmpad_Helper(): discriminator(discriminator_a), a(), b() { }
     UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_a>, uint8_t _1): discriminator(discriminator_a), a(_1) { }
-    UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_b>, uint64_t _1): discriminator(discriminator_a), b(_1) { }
+    UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_b>, uint64_t _1): discriminator(discriminator_b), b(_1) { }
 
     size_t get_byte_size() const
     {
