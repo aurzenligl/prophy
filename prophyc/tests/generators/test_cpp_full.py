@@ -8,19 +8,19 @@ def process(nodes):
     model.evaluate_sizes(nodes)
     return nodes
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Include():
     return process([
         model.Include('Arrays')
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Constant():
     return process([
         model.Constant('CONSTANT', '3')
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Enum():
     return process([
         model.Enum('Enum', [
@@ -29,14 +29,14 @@ def Enum():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Typedef():
     return process([
         model.Typedef('TU16', 'u16'),
         model.Typedef('TX', 'X')
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Struct():
     return process([
         model.Struct('X', [
@@ -49,7 +49,7 @@ def Struct():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Union():
     return process([
         model.Union('X', [
@@ -272,7 +272,7 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
 template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
 """
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Builtin():
     return process([
         model.Struct('Builtin', [
@@ -295,7 +295,7 @@ def Builtin():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Fixcomp():
     return process([
         model.Struct('Builtin', [
@@ -322,7 +322,7 @@ def Fixcomp():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Dyncomp():
     return process([
         model.Struct('BuiltinDynamic', [
@@ -341,7 +341,7 @@ def Dyncomp():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Unions():
     return process([
         model.Struct('Builtin', [
@@ -361,7 +361,7 @@ def Unions():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Enums():
     return process([
         model.Enum('Enum', [
@@ -381,7 +381,7 @@ def Enums():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Floats():
     return process([
         model.Struct('Floats', [
@@ -390,7 +390,7 @@ def Floats():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Bytes():
     return process([
         model.Struct('BytesFixed', [
@@ -409,7 +409,7 @@ def Bytes():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Endpad():
     return process([
         model.Struct('Endpad', [
@@ -434,7 +434,7 @@ def Endpad():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Scalarpad():
     return process([
         model.Struct('Scalarpad', [
@@ -457,7 +457,7 @@ def Scalarpad():
         ]),
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Unionpad():
     return process([
         model.Struct('UnionpadOptionalboolpad', [
@@ -484,7 +484,7 @@ def Unionpad():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Arraypad():
     return process([
         model.Struct('ArraypadCounter', [
@@ -521,7 +521,7 @@ def Arraypad():
         ])
     ])
 
-@pytest.fixture
+@pytest.fixture(scope = 'session')
 def Dynfields():
     return process([
         model.Struct('Dynfields', [
