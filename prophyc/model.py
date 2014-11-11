@@ -1,6 +1,9 @@
 from collections import namedtuple
 from itertools import ifilter, islice
 
+""" Exception types """
+class GenerateError(Exception): pass
+
 """ Determines struct member wire format type. """
 class Kind:
     FIXED = 0

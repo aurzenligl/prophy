@@ -74,7 +74,10 @@ def main():
 
         for serializer in serializers:
             basename = get_basename(input_file)
-            serializer.serialize(nodes, basename)
+            try:
+                serializer.serialize(nodes, basename)
+            except model.GenerateError as e:
+                sys.exit(e.message)
 
 if __name__ == "__main__":
     main()

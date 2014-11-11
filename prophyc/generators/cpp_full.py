@@ -1,6 +1,6 @@
 import os
 from prophyc import model
-from prophyc.model import DISC_SIZE, BUILTIN_SIZES
+from prophyc.model import DISC_SIZE, BUILTIN_SIZES, GenerateError
 
 BUILTIN2C = {
     'i8': 'int8_t',
@@ -527,6 +527,11 @@ _cpp_visitor = {
 def generate_cpp_content(nodes):
     return '\n'.join(_cpp_visitor[type(node)](node) for node in nodes if type(node) in _cpp_visitor)
 
+def check_nodes(nodes):
+    for n in nodes:
+        if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
+            raise GenerateError('prophyc: error: {0} byte size unknown'.format(n.name))
+
 class CppFullGenerator(object):
 
     def __init__(self, output_dir):
@@ -539,6 +544,7 @@ class CppFullGenerator(object):
         return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
 
     def serialize(self, nodes, basename):
+        check_nodes(nodes)
         hpp_path = os.path.join(self.output_dir, basename + '.ppf.hpp')
         cpp_path = os.path.join(self.output_dir, basename + '.ppf.cpp')
         open(hpp_path, 'w').write(self.generate_hpp(nodes, basename))

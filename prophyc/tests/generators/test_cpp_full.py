@@ -2335,3 +2335,33 @@ template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t inden
 } // namespace detail
 } // namespace prophy
 """
+
+def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'Unknown')
+        ])
+    ])
+    with pytest.raises(GenerateError) as e:
+        CppFullGenerator('.').serialize(nodes, 'Filename')
+    assert "prophyc: error: X byte size unknown" == e.value.message
+
+def test_exception_when_numeric_size_is_unknown(tmpdir_cwd):
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = 'Unknown')
+        ])
+    ])
+    with pytest.raises(GenerateError) as e:
+        CppFullGenerator('.').serialize(nodes, 'Filename')
+    assert "prophyc: error: X byte size unknown" == e.value.message
+
+def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
+    nodes = process([
+        model.Union('X', [
+            model.UnionMember('x', 'StillUnknown', '1')
+        ])
+    ])
+    with pytest.raises(GenerateError) as e:
+        CppFullGenerator('.').serialize(nodes, 'Filename')
+    assert "prophyc: error: X byte size unknown" == e.value.message

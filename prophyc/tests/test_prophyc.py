@@ -506,3 +506,20 @@ template void message_impl<X>::print(const X& x, std::ostream& out, size_t inden
 } // namespace detail
 } // namespace prophy
 """
+
+def test_cpp_full_out_error(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <struct name="Test">
+        <member name="x" type="Unknown">
+            <dimension isVariableSize="true"/>
+        </member>
+    </struct>
+</xml>
+""")
+
+    ret, out, err = call(["--isar", "--cpp_full_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 1
+    assert out == ""
+    assert tr(err) == "prophyc: error: Test byte size unknown\n"
