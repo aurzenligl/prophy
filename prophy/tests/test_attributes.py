@@ -408,3 +408,16 @@ def test_union_attributes():
     assert 4 == U._ALIGNMENT
     assert U._BOUND is None
     assert U._PARTIAL_ALIGNMENT is None
+
+def test_union_with_discriminator_padding_attributes():
+    class U1(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a1", prophy.u8, 0)]
+    class U2(prophy.union):
+        __metaclass__ = prophy.union_generator
+        _descriptor = [("a2", prophy.u64, 0)]
+
+    assert 8 == U1._SIZE
+    assert 4 == U1._ALIGNMENT
+    assert 16 == U2._SIZE
+    assert 8 == U2._ALIGNMENT

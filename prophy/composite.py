@@ -362,12 +362,15 @@ def validate_union(descriptor):
         raise ProphyError("union with optional field disallowed")
 
 def add_union_attributes(cls, descriptor):
+    def pad(value, alignment):
+        remainder = value % alignment
+        return remainder and (value + (alignment - remainder)) or value
     cls._discriminator_type = scalar.u32
-    cls._SIZE = cls._discriminator_type._SIZE + max(type._SIZE for _, type, _ in descriptor)
     cls._DYNAMIC = False
     cls._UNLIMITED = False
     cls._OPTIONAL = False
-    cls._ALIGNMENT = max(type._ALIGNMENT for _, type, _ in descriptor)
+    cls._ALIGNMENT = max(scalar.u32._ALIGNMENT, max(type._ALIGNMENT for _, type, _ in descriptor))
+    cls._SIZE = pad(cls._ALIGNMENT + max(type._SIZE for _, type, _ in descriptor), cls._ALIGNMENT)
     cls._BOUND = None
     cls._PARTIAL_ALIGNMENT = None
 
@@ -441,21 +444,21 @@ class union(object):
     def encode(self, endianness, terminal = True):
         name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(disc, endianness) +
-                encode_(self, tp, value, endianness))
+        data = (self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, '\x00')
+                + encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, '\x00')
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal = True)
 
     def _decode_impl(self, data, pos, endianness, terminal):
-        disc, bytes_read = self._discriminator_type._decode(data, pos, endianness)
+        disc, _ = self._discriminator_type._decode(data, pos, endianness)
         field = get_discriminated_field(self, disc)
         if not field:
             raise ProphyError("unknown discriminator")
         name, type, _, _, decode_ = field
         self._discriminated = field
-        bytes_read += decode_(self, name, type, data, pos + bytes_read, endianness, {})
+        decode_(self, name, type, data, pos + self._ALIGNMENT, endianness, {})
         if (len(data) - pos) < self._SIZE:
             raise ProphyError("not enough bytes")
         if terminal and (len(data) - pos) > self._SIZE:
