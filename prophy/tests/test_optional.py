@@ -122,7 +122,6 @@ def test_optional_struct_in_array():
     x.decode("\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
     assert """\
 a {
-
 }
 """ == str(x)
 

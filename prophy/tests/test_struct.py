@@ -258,7 +258,6 @@ def test_empty_struct():
 
     assert """\
 a {
-
 }
 """ == str(x)
     assert "" == x.encode(">")

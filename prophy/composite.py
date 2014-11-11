@@ -218,8 +218,8 @@ def decode_scalar(parent, name, type, data, pos, endianness, len_hints):
     setattr(parent, name, value)
     return size
 
-def indent(lines, spaces):
-    return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
+def indent(text, spaces):
+    return '\n'.join(x and spaces * ' ' + x or '' for x in text.split('\n'))
 
 def field_to_string(name, type, value):
     if issubclass(type, container.base_array):
