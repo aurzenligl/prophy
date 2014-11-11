@@ -71,6 +71,11 @@ def test_optional_attributes():
     assert None == prophy.optional(prophy.i8)._BOUND
     assert None == prophy.optional(prophy.i8)._PARTIAL_ALIGNMENT
 
+    assert 5 == prophy.optional(prophy.i8)._OPTIONAL_SIZE
+    assert 4 == prophy.optional(prophy.i8)._OPTIONAL_ALIGNMENT
+    assert 16 == prophy.optional(prophy.i64)._OPTIONAL_SIZE
+    assert 8 == prophy.optional(prophy.i64)._OPTIONAL_ALIGNMENT
+
 def test_bytes_static_attributes():
     B = prophy.bytes(size = 3)
 

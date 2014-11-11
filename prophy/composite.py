@@ -9,13 +9,12 @@ def validate(descriptor):
         raise ProphyError("unlimited field is not the last one")
 
 def add_attributes(cls, descriptor):
-    cls._SIZE = sum(type._SIZE for _, type in descriptor)
-    cls._SIZE += sum(x._optional_type._SIZE for x in filter(lambda x: x._OPTIONAL, (type for _, type in descriptor)))
+    cls._SIZE = sum((type._OPTIONAL and type._OPTIONAL_SIZE or type._SIZE) for _, type in descriptor)
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
     cls._BOUND = None
-    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor) if descriptor else 1
+    cls._ALIGNMENT = max((type._OPTIONAL and type._OPTIONAL_ALIGNMENT or type._ALIGNMENT) for _, type in descriptor) if descriptor else 1
     cls._PARTIAL_ALIGNMENT = None
 
     alignment = 1
@@ -154,11 +153,10 @@ def get_encode_function(type):
 
 def encode_optional(parent, type, value, endianness):
     if value is None:
-        return (type._optional_type._encode(False, endianness) +
-                "\x00" * type._SIZE)
+        return "\x00" * type._OPTIONAL_SIZE
     else:
-        return (type._optional_type._encode(True, endianness) +
-                type._encode(parent, type.__bases__[0], value, endianness))
+        return (type._optional_type._encode(True, endianness).ljust(type._OPTIONAL_ALIGNMENT, '\x00')
+                + type._encode(parent, type.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type, value, endianness):
     return type._encode(len(getattr(parent, type._BOUND)), endianness)
@@ -191,13 +189,13 @@ def get_decode_function(type):
         return decode_scalar
 
 def decode_optional(parent, name, type, data, pos, endianness, len_hints):
-    value, size = type._optional_type._decode(data, pos, endianness)
+    value, _ = type._optional_type._decode(data, pos, endianness)
     if value:
         setattr(parent, name, True)
-        return size + type._decode(parent, name, type.__bases__[0], data, pos + size, endianness, len_hints)
+        return type._OPTIONAL_ALIGNMENT + type._decode(parent, name, type.__bases__[0], data, pos + type._OPTIONAL_ALIGNMENT, endianness, len_hints)
     else:
         setattr(parent, name, None)
-        return size + type._SIZE
+        return type._OPTIONAL_ALIGNMENT + type._SIZE
 
 def decode_array_delimiter(parent, name, type, data, pos, endianness, len_hints):
     value, size = type._decode(data, pos, endianness)
