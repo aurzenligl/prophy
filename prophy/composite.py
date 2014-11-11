@@ -283,14 +283,14 @@ class struct(object):
 
     def encode(self, endianness, terminal = True):
         data = ""
+
         for name, tp, encode_, _ in self._descriptor:
             data += (self._get_padding(len(data), tp._ALIGNMENT) +
                      encode_(self, tp, getattr(self, name, None), endianness))
             if tp._PARTIAL_ALIGNMENT:
                 data += self._get_padding(len(data), tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            data += self._get_padding(len(data), self._ALIGNMENT)
+        data += self._get_padding(len(data), self._ALIGNMENT)
 
         return data
 
@@ -307,8 +307,7 @@ class struct(object):
             if tp._PARTIAL_ALIGNMENT:
                 pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            pos += self._get_padding_size(pos, self._ALIGNMENT)
+        pos += self._get_padding_size(pos, self._ALIGNMENT)
 
         if terminal and pos < len(data):
             raise ProphyError("not all bytes read")
