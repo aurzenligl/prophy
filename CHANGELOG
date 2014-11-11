@@ -1,3 +1,9 @@
+next release
+-----------------------------------
+- new cpp full output,
+  exposes structs and unions as classes with value semantics,
+  provides means to encode, decode and print them
+
 0.4.2
 -----------------------------------
 - added documentation
