@@ -15,6 +15,12 @@ struct print_traits
     static const char* to_literal(T x);
 };
 
+struct indent_t
+{
+    indent_t(int level_): level(level_) { }
+    int level;
+};
+
 inline void print_byte(std::ostream& out, uint8_t x)
 {
     switch (x)
@@ -62,6 +68,16 @@ inline std::ostream& operator<<(std::ostream& out, std::pair<const uint8_t*, siz
     return out;
 }
 
+inline std::ostream& operator<<(std::ostream& out, indent_t indent)
+{
+    while (indent.level)
+    {
+        out << "  ";
+        --indent.level;
+    }
+    return out;
+}
+
 template <typename T,
           bool = codec_traits<T>::is_composite,
           bool = codec_traits<T>::is_enum_or_bool>
@@ -72,12 +88,7 @@ struct printer<T, false, false>
 {
     static void print(std::ostream& out, size_t indent, const char* name, const T& x)
     {
-        while (indent)
-        {
-            out << "  ";
-            --indent;
-        }
-        out << name << ": " << x << '\n';
+        out << indent_t(indent) << name << ": " << x << '\n';
     }
 
     static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)
@@ -96,13 +107,8 @@ struct printer<T, false, true>
 {
     static void print(std::ostream& out, size_t indent, const char* name, const T& x)
     {
-        while (indent)
-        {
-            out << "  ";
-            --indent;
-        }
+        out << indent_t(indent) << name << ": ";
         const char* literal = print_traits<T>::to_literal(x);
-        out << name << ": ";
         if (literal)
         {
             out << literal;
@@ -130,9 +136,9 @@ struct printer<T, true, false>
 {
     static void print(std::ostream& out, size_t indent, const char* name, const T& x)
     {
-        out << name << " {\n";
+        out << indent_t(indent) << name << " {\n";
         message_impl<T>::print(x, out, indent + 1);
-        out << "}\n";
+        out << indent_t(indent) << "}\n";
     }
 
     static void print(std::ostream& out, size_t indent, const char* name, const T* x, size_t n)
