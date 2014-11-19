@@ -41,7 +41,7 @@ Enums are represented as regular C++ enums::
         Test1_3 = 3
     };
 
-::
+.. code-block:: cpp
 
     enum Test1
     {
@@ -57,7 +57,7 @@ Structs are also represented as regular structs::
         u32 a;
     };
 
-::
+.. code-block:: cpp
 
     struct Test2
     {
@@ -83,7 +83,7 @@ depending on type:
         i32 d<...>;
     };
 
-::
+.. code-block:: cpp
 
     struct Test8
     {
@@ -112,7 +112,7 @@ and value itself. Fact that optional field type may not be dynamic simplifies th
         Test2* b;
     };
 
-::
+.. code-block:: cpp
 
     struct Test6
     {
@@ -132,7 +132,7 @@ are accessible as members of unnamed inner union::
         1: Test2 b;
     };
 
-::
+.. code-block:: cpp
 
     struct Test7
     {
@@ -159,7 +159,9 @@ You have a couple of options:
     write message and see where you are,
 
   - you can also calculate exact size using sizeof operator,
-    but need to be :ref:`careful with padding<encoding_struct_padding>`::
+    but need to be :ref:`careful with padding<encoding_struct_padding>`:
+
+    .. code-block:: cpp
 
       struct X
       {
@@ -184,7 +186,7 @@ Othwerise you'll have problems either with alignment or fulfilling
         u32 b<>;
     };
 
-::
+.. code-block:: cpp
 
     struct X
     {
@@ -198,7 +200,8 @@ Othwerise you'll have problems either with alignment or fulfilling
         } _2;
     };
 
-::
+.. code-block:: cpp
+    :emphasize-lines: 6
 
     X* x = static_cast<X*>(malloc(1024));
     x->num_of_a = 3;

@@ -118,11 +118,11 @@ Prophy Compiler can be used to generate C++ full codec like this::
 Result is a pair of header and source files, which - together with Prophy C++ library - form
 a fully functional codec. They're called ``values.ppf.hpp`` and ``values.ppf.cpp`` and look like this:
 
-.. include:: example/values.ppf.hpp
-    :literal:
+.. literalinclude:: example/values.ppf.hpp
+    :language: cpp
 
-.. include:: example/values.ppf.cpp
-    :literal:
+.. literalinclude:: example/values.ppf.cpp
+    :language: cpp
 
 Write and read
 ------------------
@@ -130,8 +130,8 @@ Write and read
 We can create a program which fills message with data, encodes it,
 then decodes buffer to another instance of message and prints it:
 
-.. include:: example/cpp_full.cpp
-    :literal:
+.. literalinclude:: example/cpp_full.cpp
+    :language: cpp
 
 Program outputs::
 
@@ -199,8 +199,8 @@ Prophy Compiler can be used to generate C++ raw codec like this::
 Result is a file, which contains C++ structs with layout intended to be identical to
 Prophy wire format. It's ``values.pp.hpp`` and looks like this:
 
-.. include:: example/values.pp.hpp
-    :literal:
+.. literalinclude:: example/values.pp.hpp
+    :language: cpp
 
 .. warning ::
 
@@ -210,16 +210,16 @@ Prophy wire format. It's ``values.pp.hpp`` and looks like this:
 
 It's accompanied by ``values.pp.cpp`` with endianness swap algorithms for structs and unions:
 
-.. include:: example/values.pp.cpp
-    :literal:
+.. literalinclude:: example/values.pp.cpp
+    :language: cpp
 
 Write and read
 ------------------
 
 We can create a program to write data to buffer and read from it:
 
-.. include:: example/cpp.cpp
-    :literal:
+.. literalinclude:: example/cpp.cpp
+    :language: cpp
 
 This program outputs::
 
