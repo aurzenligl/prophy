@@ -112,86 +112,53 @@ Bytes field is an array of bytes, which can be handled by codec
 in more effective way than an array of u8. Wire format, however,
 is the same.
 
+Optional
+================
+
+Optional is a fixed-size value prepended by a boolean value encoded as a 32-bit integer.
+If it's not set, it's filled with zeroes up to size. This one::
+
+    u32* x;
+
+with x set to 1 would encode as::
+
+    01 00 00 00 01 00 00 00
+
+and with x not set would encode as::
+
+    00 00 00 00 00 00 00 00
+
+.. note ::
+    Optional field may not contain unlimited nor dynamic struct.
+
 Struct
 ============
 
-A sequence of fields which get serialized in order. Following struct::
-
-    struct X
-    {
-        u16 x;
-        u16 y;
-    };
-
-with fields set to 1 and 2 will yield::
-
-    01 00 02 00
-
-.. _encoding_struct_padding:
-
-Struct padding
------------------
-
-Prophy appends padding after each field if needed to ensure field alignment.
-Additionally, last field is padded to fulfil struct alignment. This struct::
-
-    struct X
-    {
-        u8 x;
-        u32 y;
-        u16 z;
-    };
-
-with fields set to 1, 2 and 3 will have padding denoted by brackets::
-
-    01 [00 00 00] 02 00 00 00 03 00 [00 00]
-
-Nested struct
------------------
-
-Structs may be nested to express data in hierarchy.
-Padding rules apply as if nested struct field was numeric field
-with alignment equal to its largest field alignment.
-Following structs::
+A sequence of fields which get serialized in strict order. Following struct X::
 
     struct Nested
     {
-        u8 a;
-        u16 b;
-        u8 c;
+        u16 n1;
+        u16 n2;
     };
 
     struct X
     {
-        u8 x;
-        Nested y;
-        u8 z;
+        Nested x;
+        u32 y;
     };
 
-with fields set to 1, (2, 3, 4) and 5 encodes as::
+with fields set to (1, 2) and 3 will yield::
 
-    01 [00] 02 [00] 03 00 04 [00] 05 [00]
+    01 00 02 00 03 00 00 00
 
-.. _encoding_dynamic_struct:
+.. _encoding_struct_padding:
 
 Dynamic struct
-----------------
+-------------------
 
-Struct which contains dynamic arrays directly or indirectly
+Struct containing dynamic arrays directly or indirectly
 becomes dynamic itself - its wire representation size varies.
-
-It also means its dynamic arrays padding is related to
-number of their elements. Example illustrates::
-
-    struct X
-    {
-        bytes x<>;
-        bytes y<>;
-    };
-
-with fields set to (1,) and (1, 2, 3) would give::
-
-    01 00 00 00 01 [00 00 00] 03 00 00 00 01 02 03 [00]
 
 .. note ::
     Dynamic struct may not be held in fixed or limited array.
@@ -203,30 +170,7 @@ Struct which contains greedy array or unlimited struct
 in the last field becomes an unlimited struct.
 
 .. note ::
-    Unlimited struct may not be held in any array.
-
-Optional field
-------------------
-
-Optional struct field has fixed size on wire.
-It's prepended by a boolean value encoded as a 32-bit integer.
-If field is not set, it's filled with zeroes up to size. This one::
-
-    struct X
-    {
-        u16* x;
-    };
-
-with field set to 1 would encode as::
-
-    01 00 00 00 01 00 00 00
-
-and with field not set would encode as::
-
-    00 00 00 00 00 00 00 00
-
-.. note ::
-    Optional field may not contain unlimited nor dynamic struct.
+    Unlimited struct may not be held in any array or non-last struct field.
 
 Union
 =================
@@ -235,19 +179,230 @@ Union has fixed size, related to its largest arm size.
 It encodes single arm prepended by a field discriminator encoded
 as a 32-bit integer. This union::
 
+    struct TwoInts
+    {
+        u16 a1;
+        u16 a2;
+    };
+
     union X
     {
-        0: u8 x;
-        1: u16 y;
+        0: u32 x;
+        1: TwoInts y;
     };
 
 with first arm discriminated and set to 1 encodes as::
 
-    00 00 00 00 01 [00 00 00]
+    00 00 00 00 01 00 00 00
 
-and with second arm discriminated and set to 2 encodes as::
+and with second arm discriminated and set to (2, 3) encodes as::
 
-    01 00 00 00 02 00 [00 00]
+    01 00 00 00 02 00 03 00
 
 .. note ::
     Union arm may not contain unlimited nor dynamic struct, nor array.
+
+Padding
+==============
+
+Prior examples were deliberately composed of values tiled together without
+padding in-between. Facts that:
+
+  - different length integral values are allowed,
+  - any field in struct/union (recursively) needs to be aligned to address divisible by its alignment (assuming starting from 0).
+
+makes it necessary to insert padding between struct fields, union discriminator and arm,
+optional flag and value, array delimiter and elements or at the end of struct.
+
+Technically padding bytes can have any values, but canonically encoded messages
+should be padded with zeroes.
+
+Let's go through a couple of examples.
+
+Integer padding
+-----------------------
+
+In this struct::
+
+    struct
+    {
+        u8 a;
+        u16 b;
+    };
+
+field b requires one byte of padding to be aligned::
+
+    01 [00] 02 00
+
+Composite padding
+-------------------------
+
+Composite (struct or union) alignment is the greatest alignment of its fields.
+Optional flag, union discriminator, array delimiter all contribute to struct alignment.
+Furthermore - each composite byte-size must be a multiple of its alignment.
+In this example struct X::
+
+    struct Nested
+    {
+        u16 n1;
+        u32 n2;
+        u16 n3;
+    };
+
+    struct X
+    {
+        u64 x;
+        u32 y;
+        u8 z;
+        Nested n;
+    };
+
+illustrates four such paddings:
+
+  #. to align Nested field
+  #. to align n2 field
+  #. to align Nested struct
+  #. to align X struct
+
+::
+
+    01  00  00  00  00  00  00  00
+    02  00  00  00  03 [00  00  00]
+    04  00 [00  00] 05  00  00  00
+    06  00 [00  00][00  00  00  00]
+
+Dynamic array padding
+-------------------------
+
+Dynamic array is tricky - it requires padding depending on
+number of elements. Other than that - usual rules apply.
+Such struct::
+
+    struct X
+    {
+        u8 x<>;
+        u8 y<>;
+    };
+
+encoded with [1] and [2, 3, 4] will be padded this way::
+
+    01 00 00 00 01 [00 00 00] 03 00 00 00 02 03 04 [00]
+
+if [] and [1, 2, 3, 4] were chosen, there would be no padding at all::
+
+    00 00 00 00 04 00 00 00 01 02 03 04
+
+Arrays with elements exceeding delimiter alignment may require padding::
+
+    struct X
+    {
+        u64 x<>;
+    };
+
+::
+
+    01 00 00 00 [00 00 00 00] 01 00 00 00 00 00 00 00
+
+even if there are no elements (composite padding)::
+
+    00 00 00 00 [00 00 00 00]
+
+Optional padding
+--------------------
+
+Optional fields don't follow the composite rule, their byte-size
+doesn't need to be a multiple of alignment. Thanks to that,
+second field in this example doesn't need to be padded
+(but struct as such is padded to multiple of 4 - flag alignment)::
+
+    struct X
+    {
+        u8* x;
+        u8 y;
+    };
+
+::
+
+    01 00 00 00 01 02 [00 00]
+
+Optional fields can have padding between flag and value,
+if value has alignment greater than flag::
+
+    struct X
+    {
+        u64* x;
+    };
+
+::
+
+    01 00 00 00 [00 00 00 00] 01 00 00 00 00 00 00 00
+
+Union padding
+----------------
+
+Unions follow composite rule of padding to multiple of alignment::
+
+    union X
+    {
+        1: u8 x;
+    };
+
+::
+
+    01 00 00 00 02 [00 00 00]
+
+and - like optionals - can insert padding between discriminator and arm::
+
+    union X
+    {
+        1: u64 x;
+        2: u8 y;
+    };
+
+::
+
+    01 00 00 00 [00 00 00 00] 02 00 00 00 00 00 00 00
+
+Note that:
+
+  - such padding applies to other arms also,
+  - shorter arms are padded to largest arm size.
+
+::
+
+    02 00 00 00 [00 00 00 00] 03 [00 00 00 00 00 00 00]
+
+Fields following dynamic fields
+------------------------------------
+
+We can split any struct to blocks which end with dynamic fields.
+In order to have paddings between non-dynamic fields in blocks
+stable regardless of dynamic fields byte-sizes, we need to
+propose an unusual rule: first field of such block has the greatest
+alignment of all block fields. In other words: block is treated
+like composite in that regard::
+
+    struct X
+    {
+        u8 a<>;
+        u8 b;
+        u32 c;
+        u8 d<>;
+        u8 e;
+        u64 f;
+    };
+
+This one (both arrays set with 1 element only) has four paddings:
+
+  #. dynamic padding to align b-d block
+  #. to align c field
+  #. dynamic padding to align e-f block
+  #. to align f field
+
+::
+
+    01  00  00  00  01 [00  00  00]
+    02 [00  00  00] 03  00  00  00
+    01  00  00  00  04 [00  00  00]
+    05 [00  00  00  00  00  00  00]
+    06  00  00  00  00  00  00  00
