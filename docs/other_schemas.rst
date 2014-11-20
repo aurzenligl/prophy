@@ -57,7 +57,7 @@ There are following patch rules:
 Sack schema
 ------------
 
-Prophy messages can be defined in a mix of C++ language subset, called Sack.
+Prophy messages can be defined in a C++ language subset, called Sack.
 
 In this mode Prophy messages are defined by C++ structs and classes,
 which may contain enums, typedefs and unions.
