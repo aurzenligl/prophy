@@ -3,34 +3,27 @@
 
 #include <stdint.h>
 #include <vector>
+#include <prophy/prophy.hpp>
 
-static union endianness_finder_t
+template <size_t N>
+std::vector<uint8_t> bytes(const char (&x) [N])
 {
-    uint32_t i;
-    char c[4];
-} endianness_finder = { 0x04030201 };
+    return std::vector<uint8_t>(x, x + N - 1);
+}
 
-const bool am_i_little = endianness_finder.c[0] == 1;
-
-struct data
+inline std::vector<uint8_t> bytes(const void* x, size_t size)
 {
-    template <size_t N>
-    data(const char (&big_) [N], const char (&little_) [N])
-        : big(big_, big_ + N - 1),
-          little(little_, little_ + N - 1),
-          input(am_i_little ? big : little),
-          expected(am_i_little ? little : big)
-    { }
+    return std::vector<uint8_t>(static_cast<const uint8_t*>(x), static_cast<const uint8_t*>(x) + size);
+}
 
-    std::vector<uint8_t> big;
-    std::vector<uint8_t> little;
-    std::vector<uint8_t> input;
-    std::vector<uint8_t> expected;
-};
-
-inline size_t byte_distance(void* first, void* last)
+template <class T, size_t N>
+void test_swap(const char (&input) [N], const char (&expected) [N], size_t expected_size = N - 1)
 {
-    return static_cast<uint8_t*>(last) - static_cast<uint8_t*>(first);
+    std::vector<char> data(input, input + N - 1);
+    T* next = prophy::swap(reinterpret_cast<T*>(data.begin().base()));
+
+    EXPECT_EQ(expected_size, reinterpret_cast<char*>(next) - data.data());
+    EXPECT_EQ(std::string(expected, N - 1), std::string(data.data(), N - 1));
 }
 
 #endif  /* _TEST_UTIL_HPP */

@@ -258,7 +258,6 @@ def test_empty_struct():
 
     assert """\
 a {
-
 }
 """ == str(x)
     assert "" == x.encode(">")
@@ -476,8 +475,8 @@ def test_struct_with_multiple_dynamic_fields():
     x.a[:] = [1, 2]
     x.b[:] = [3, 4]
 
-    assert '\x00\x02\x02\x00\x00\x00\x00\x01\x00\x00\x00\x02\x03\x04' == x.encode('>')
-    assert '\x02\x00\x02\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x04' == x.encode('<')
+    assert '\x00\x02\x02\x00\x00\x00\x00\x01\x00\x00\x00\x02\x03\x04\x00\x00' == x.encode('>')
+    assert '\x02\x00\x02\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x04\x00\x00' == x.encode('<')
 
     x.decode('\x01\x00\x03\x00\x05\x00\x00\x00\x02\x01\x00', '<')
     assert [5] == x.a[:]
@@ -493,12 +492,12 @@ def test_struct_with_greedy_bytes():
     x.a[:] = [5, 6, 7]
     x.b = 'ala ma kota'
 
-    assert '\x00\x03\x00\x05\x00\x06\x00\x07ala ma kota' == x.encode('>')
-    assert '\x03\x00\x05\x00\x06\x00\x07\x00ala ma kota' == x.encode('<')
+    assert '\x00\x03\x00\x05\x00\x06\x00\x07ala ma kota\x00' == x.encode('>')
+    assert '\x03\x00\x05\x00\x06\x00\x07\x00ala ma kota\x00' == x.encode('<')
 
-    x.decode('\x00\x01\x00\x08abecadlo', '>')
+    x.decode('\x00\x01\x00\x08abacus\x00\x00', '>')
     assert [8] == x.a[:]
-    assert 'abecadlo' == x.b
+    assert 'abacus\x00\x00' == x.b
 
 def test_struct_with_and_without_padding():
     class A(prophy.struct):

@@ -1,3 +1,11 @@
+next release
+-----------------------------------
+- new cpp full output, exposes structs and unions as classes with value semantics,
+  provides means to encode/decode them in different endiannesses and print them
+- prophy python library: union/optional alignment/padding bug fixed
+- prophy python library: padding is always encoded after struct, even if it ends with an array
+- prophy python library: empty line in stringified struct with empty optional field bug fixed
+
 0.4.2
 -----------------------------------
 - added documentation

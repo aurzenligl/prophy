@@ -62,7 +62,12 @@ def parse_options():
     parser.add_argument('--cpp_out',
                         metavar = 'OUT_DIR',
                         type = readable_dir,
-                        help = 'Generate C++ header and source files.')
+                        help = 'Generate C++ simple POD-based codec header and source files.')
+
+    parser.add_argument('--cpp_full_out',
+                        metavar = 'OUT_DIR',
+                        type = readable_dir,
+                        help = 'Generate C++ full object-based codec header and source files.')
 
     parser.add_argument('--version',
                         action = 'store_true',
