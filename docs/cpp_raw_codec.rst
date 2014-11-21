@@ -159,7 +159,7 @@ You have a couple of options:
     write message and see where you are,
 
   - you can also calculate exact size using sizeof operator,
-    but need to be :ref:`careful with padding<encoding_struct_padding>`:
+    but need to be :ref:`careful with padding<encoding_padding>`:
 
     .. code-block:: cpp
 
@@ -178,7 +178,7 @@ How to get past dynamic fields?
 You'll want to use ``prophy::cast`` function to get a pointer
 of next field's type, aligned to that type.
 Othwerise you'll have problems either with alignment or fulfilling
-:ref:`wire format expectations<encoding_dynamic_struct>`::
+:ref:`wire format expectations<encoding_padding>`::
 
     struct X
     {

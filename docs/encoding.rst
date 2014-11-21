@@ -152,8 +152,6 @@ with fields set to (1, 2) and 3 will yield::
 
     01 00 02 00 03 00 00 00
 
-.. _encoding_struct_padding:
-
 Dynamic struct
 -------------------
 
@@ -201,6 +199,8 @@ and with second arm discriminated and set to (2, 3) encodes as::
 
 .. note ::
     Union arm may not contain unlimited nor dynamic struct, nor array.
+
+.. _encoding_padding:
 
 Padding
 ==============
