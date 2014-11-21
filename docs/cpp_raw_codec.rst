@@ -225,5 +225,12 @@ This is what the implementation file and ``prophy::swap`` function are for::
     EndiannessSensitive* msg = ...
     prophy::swap(msg);
 
+.. warning::
+
+    Swapping works only from foreign endianness to native.
+    Swapping the other way around results in undefined behavior.
+    It needs to be an interface agreement or extraneous data
+    which lets receiver know endianness of data before reading it.
+
 If you don't need endianness swapping in your application,
 disregard the implementation file altogether.
