@@ -90,7 +90,7 @@ creates a Python codec equivalent to::
 Isar schema
 ------------
 
-This schema is based xml.
+This schema is based on xml.
 
 Isar xml may contain definitions of messages, enums, constants,
 typedefs and unions.
