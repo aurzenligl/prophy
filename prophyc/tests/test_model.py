@@ -24,7 +24,7 @@ MyStruct
 """
 
 def test_union_repr():
-    union = model.Union("MyStruct", [
+    union = model.Union("MyUnion", [
         model.UnionMember("a", "u8", 1),
         model.UnionMember("b", "u16", 2),
         model.UnionMember("c", "u32", 3)
@@ -32,6 +32,16 @@ def test_union_repr():
     assert str(union.members[0]) == "1: u8 a"
     assert str(union.members[1]) == "2: u16 b"
     assert str(union.members[2]) == "3: u32 c"
+    assert str(union) == """\
+MyUnion
+    1: u8 a
+    2: u16 b
+    3: u32 c
+"""
+
+def test_split_after():
+    generator = model.split_after([1, 42, 2, 3, 42, 42, 5], lambda x: x == 42)
+    assert [x for x in generator] == [[1, 42], [2, 3, 42], [42], [5]]
 
 def test_model_sort_enums():
     nodes = [model.Typedef("B", "A"),
@@ -159,6 +169,28 @@ def test_cross_reference_typedef():
     assert nodes[2].members[1].definition.definition.name == "A"
     assert nodes[3].definition.name == "B"
     assert nodes[3].definition.definition.name == "A"
+
+def test_cross_reference_array_size():
+    nodes = [
+        model.Constant('NUM', '3'),
+        model.Enum('E', [
+            model.EnumMember('E1', '1'),
+            model.EnumMember('E3', 'NUM')
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = 'NUM'),
+            model.StructMember('y', 'u32', size = 'E1'),
+            model.StructMember('z', 'u32', size = 'UNKNOWN'),
+            model.StructMember('a', 'u32', size = 'E3')
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[2].members[0].numeric_size == 3
+    assert nodes[2].members[1].numeric_size == 1
+    assert nodes[2].members[2].numeric_size == None
+    assert nodes[2].members[3].numeric_size == 3
 
 def test_evaluate_kinds_arrays():
     nodes = [
@@ -375,3 +407,410 @@ def test_partition_many_dynamic_structs():
 
     assert [x.name for x in main] == ["a"]
     assert [[x.name for x in part] for part in parts] == [["b"], ["c"]]
+
+def process(nodes):
+    model.cross_reference(nodes)
+    model.evaluate_kinds(nodes)
+    model.evaluate_sizes(nodes)
+    return nodes
+
+def get_size_alignment_padding(node):
+    return (
+        isinstance(node, model.StructMember)
+        and (node.byte_size, node.alignment, node.padding)
+        or (node.byte_size, node.alignment)
+    )
+
+def get_members_and_node(node):
+    return node.members + [node]
+
+def test_evaluate_sizes_struct():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u16'),
+            model.StructMember('y', 'u8')
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (2, 2, 0),
+        (1, 1, 1),
+        (4, 2)
+    ]
+
+def test_evaluate_sizes_nested_struct():
+    nodes = process([
+        model.Struct('U16', [
+            model.StructMember('x', 'u16'),
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'U16'),
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (1, 1, 1),
+        (2, 2, 0),
+        (4, 2)
+    ]
+
+def test_evaluate_sizes_fixed_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u8', size = '3')
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (4, 4, 0),
+        (3, 1, 1),
+        (8, 4)
+    ]
+
+def test_evaluate_sizes_dynamic_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+        ]),
+        model.Struct('Y', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'X'),
+            model.StructMember('z', 'u8')
+        ]),
+        model.Struct('Z', [
+            model.StructMember('x', 'X'),
+            model.StructMember('y', 'u64')
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (4, 4, 0),
+        (0, 1, -4),
+        (4, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (1, 1, 3),
+        (4, 4, 0),
+        (1, 1, -4),
+        (12, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+        (4, 4, -8),
+        (8, 8, 0),
+        (16, 8)
+    ]
+
+def test_evaluate_sizes_limited_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x', size = '2'),
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (4, 4, 0),
+        (2, 1, 2),
+        (8, 4)
+    ]
+
+def test_evaluate_sizes_greedy_array():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', unlimited = True),
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (4, 4, 0),
+        (0, 1, -4),
+        (4, 4)
+    ]
+
+def test_evaluate_sizes_partial_padding():
+    nodes = process([
+        model.Struct('D', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u32', bound = 'num_of_x')
+        ]),
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('y', 'u8'),
+            model.StructMember('z', 'u64'),
+        ]),
+        model.Struct('Y', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('num_of_y', 'u32'),
+            model.StructMember('y', 'u64', bound = 'num_of_y'),
+        ]),
+        model.Struct('Z', [
+            model.StructMember('d1', 'D'),
+            model.StructMember('x', 'u8'),
+            model.StructMember('d2', 'D'),
+            model.StructMember('y1', 'u8'),
+            model.StructMember('y2', 'u64'),
+            model.StructMember('d3', 'D'),
+            model.StructMember('z1', 'u8'),
+            model.StructMember('z2', 'u8'),
+            model.StructMember('z3', 'u16'),
+        ]),
+        model.Struct('ZZZ', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'u16', bound = 'num_of_x'),
+            model.StructMember('y', 'u16'),
+        ]),
+    ])
+
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (4, 4, 0),
+        (0, 1, -8),
+        (1, 8, 7),
+        (8, 8, 0),
+        (24, 8)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+        (4, 4, 0),
+        (0, 1, -8),
+        (4, 8, 4),
+        (0, 8, 0),
+        (16, 8)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+        (4, 4, 0),
+        (1, 4, 3),
+        (4, 4, -8),
+        (1, 8, 7),
+        (8, 8, 0),
+        (4, 4, 0),
+        (1, 2, 0),
+        (1, 1, 0),
+        (2, 2, -8),
+        (40, 8)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[4])) == [
+        (4, 4, 0),
+        (0, 2, 0),
+        (2, 2, -4),
+        (8, 4)
+    ]
+
+def test_evaluate_sizes_typedef():
+    nodes = process([
+        model.Typedef('T1', 'u32'),
+        model.Struct('X', [
+            model.StructMember('x', 'T1'),
+        ]),
+        model.Typedef('T2', 'T1'),
+        model.Struct('Y', [
+            model.StructMember('x', 'T2'),
+        ]),
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (4, 4, 0),
+        (4, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+        (4, 4, 0),
+        (4, 4)
+    ]
+
+def test_evaluate_sizes_enum():
+    nodes = process([
+        model.Enum('E', [
+            model.EnumMember('E1', '1')
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'E'),
+            model.StructMember('y', 'i8'),
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (4, 4, 0),
+        (1, 1, 3),
+        (8, 4)
+    ]
+
+def test_evaluate_sizes_floats():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'r32'),
+            model.StructMember('y', 'r64'),
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (4, 4, 4),
+        (8, 8, 0),
+        (16, 8)
+    ]
+
+def test_evaluate_sizes_bytes():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'byte'),
+            model.StructMember('y', 'byte', size = 3),
+            model.StructMember('num_of_z', 'u32'),
+            model.StructMember('z', 'byte', bound = 'num_of_z')
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (1, 1, 0),
+        (3, 1, 0),
+        (4, 4, 0),
+        (0, 1, -4),
+        (8, 4)
+    ]
+
+def test_evaluate_sizes_optional():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u32')
+        ]),
+        model.Struct('O1', [
+            model.StructMember('x', 'u8', optional = True),
+            model.StructMember('y', 'u16', optional = True),
+            model.StructMember('z', 'u32', optional = True),
+            model.StructMember('a', 'u64', optional = True)
+        ]),
+        model.Struct('O2', [
+            model.StructMember('x', 'X', optional = True)
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (5, 4, 3),
+        (6, 4, 2),
+        (8, 4, 0),
+        (16, 8, 0),
+        (40, 8)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+        (8, 4, 0),
+        (8, 4)
+    ]
+
+def test_evaluate_sizes_union():
+    nodes = process([
+        model.Union('X', [
+            model.UnionMember('x', 'u32', '1'),
+            model.UnionMember('y', 'u32', '2'),
+            model.UnionMember('z', 'u32', '3')
+        ]),
+        model.Union('Y', [
+            model.UnionMember('x', 'u64', '1')
+        ]),
+        model.Union('Z', [
+            model.UnionMember('x', 'X', '1'),
+            model.UnionMember('y', 'Y', '2')
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (4, 4),
+        (4, 4),
+        (4, 4),
+        (8, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (8, 8),
+        (16, 8)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+        (8, 4),
+        (16, 8),
+        (24, 8)
+    ]
+
+def test_evaluate_sizes_union_with_padding():
+    nodes = process([
+        model.Union('X', [
+            model.UnionMember('x', 'u8', '1')
+        ]),
+        model.Union('Y', [
+            model.UnionMember('x', 'u8', '1'),
+            model.UnionMember('y', 'u64', '2')
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (1, 1),
+        (8, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (1, 1),
+        (8, 8),
+        (16, 8)
+    ]
+
+def test_evaluate_sizes_empty():
+    nodes = process([
+        model.Struct('X', []),
+        model.Union('X', []),
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (0, 1)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (4, 4)
+    ]
+
+def test_evaluate_sizes_unknown():
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('x', 'u8'),
+            model.StructMember('y', 'U'),
+            model.StructMember('z', 'u32'),
+        ]),
+        model.Union('Y', [
+            model.UnionMember('x', 'u32', '1'),
+            model.UnionMember('y', 'U', '2'),
+            model.UnionMember('z', 'u32', '3')
+        ]),
+        model.Typedef('U16', 'U'),
+        model.Struct('Z', [
+            model.StructMember('x', 'U16'),
+        ]),
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+        (1, 1, None),
+        (None, None, None),
+        (4, 4, None),
+        (None, None)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (4, 4),
+        (None, None),
+        (4, 4),
+        (None, None)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+        (None, None, None),
+        (None, None)
+    ]
+
+def test_evaluate_sizes_array_with_named_size():
+    nodes = process([
+        model.Constant('NUM', '3'),
+        model.Enum('E', [
+            model.EnumMember('E1', '1'),
+            model.EnumMember('E3', 'NUM')
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = 'NUM'),
+            model.StructMember('y', 'u32', size = 'E1'),
+            model.StructMember('z', 'u32', size = 'E3')
+        ]),
+        model.Struct('Y', [
+            model.StructMember('x', 'u32', size = 'UNKNOWN'),
+            model.StructMember('y', 'u32')
+        ])
+
+    ])
+
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+        (12, 4, 0),
+        (4, 4, 0),
+        (12, 4, 0),
+        (28, 4)
+    ]
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+        (None, None, None),
+        (4, 4, None),
+        (None, None)
+    ]

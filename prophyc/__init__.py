@@ -5,7 +5,7 @@ import os
 
 from prophyc import options
 
-__version__ = '0.4.2'
+__version__ = '0.5'
 
 def get_basename(filename):
     return os.path.splitext(os.path.basename(filename))[0]
@@ -50,6 +50,9 @@ def main():
     if opts.cpp_out:
         from prophyc.generators.cpp import CppGenerator
         serializers.append(CppGenerator(opts.cpp_out))
+    if opts.cpp_full_out:
+        from prophyc.generators.cpp_full import CppFullGenerator
+        serializers.append(CppFullGenerator(opts.cpp_full_out))
 
     if not serializers:
         sys.exit("Missing output directives")
@@ -67,10 +70,14 @@ def main():
         model.topological_sort(nodes)
         model.cross_reference(nodes)
         model.evaluate_kinds(nodes)
+        model.evaluate_sizes(nodes)
 
         for serializer in serializers:
             basename = get_basename(input_file)
-            serializer.serialize(nodes, basename)
+            try:
+                serializer.serialize(nodes, basename)
+            except model.GenerateError as e:
+                sys.exit(e.message)
 
 if __name__ == "__main__":
     main()

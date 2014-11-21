@@ -84,10 +84,10 @@ def test_optional_union():
         _descriptor = [("a", prophy.optional(U))]
 
     x = O()
-    assert "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+    assert "\x00\x00\x00\x00" "\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
 
     x.a = True
-    assert "\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x00" == x.encode(">")
+    assert "\x00\x00\x00\x01" "\x00\x00\x00\x05" "\x00\x00\x00\x00" == x.encode(">")
 
     x.a.a = 3
     assert "\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x03" == x.encode(">")
@@ -122,7 +122,6 @@ def test_optional_struct_in_array():
     x.decode("\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
     assert """\
 a {
-
 }
 """ == str(x)
 
@@ -165,3 +164,32 @@ def test_optional_array():
     with pytest.raises(Exception) as e:
         prophy.array(prophy.optional(prophy.u32))
     assert "array of optional type not allowed" == e.value.message
+
+def test_optional_padded():
+    class X(prophy.struct):
+        __metaclass__ = prophy.struct_generator
+        _descriptor = [('x', prophy.optional(prophy.u8)),
+                       ('y', prophy.optional(prophy.u64))]
+
+    x = X()
+    x.x = 1
+    x.y = 2
+    assert x.encode('>') == (
+        '\x00\x00\x00\x01'
+        '\x01\x00\x00\x00'
+        '\x00\x00\x00\x01\x00\x00\x00\x00'
+        '\x00\x00\x00\x00\x00\x00\x00\x02'
+    )
+    x.decode(
+        '\x00\x00\x00\x01'
+        '\x03\x00\x00\x00'
+        '\x00\x00\x00\x01\x00\x00\x00\x00'
+        '\x00\x00\x00\x00\x00\x00\x00\x04',
+        '>'
+    )
+    assert x.x == 3
+    assert x.y == 4
+    assert str(x) == """\
+x: 3
+y: 4
+"""

@@ -9,13 +9,12 @@ def validate(descriptor):
         raise ProphyError("unlimited field is not the last one")
 
 def add_attributes(cls, descriptor):
-    cls._SIZE = sum(type._SIZE for _, type in descriptor)
-    cls._SIZE += sum(x._optional_type._SIZE for x in filter(lambda x: x._OPTIONAL, (type for _, type in descriptor)))
+    cls._SIZE = sum((type._OPTIONAL and type._OPTIONAL_SIZE or type._SIZE) for _, type in descriptor)
     cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
     cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
     cls._OPTIONAL = False
     cls._BOUND = None
-    cls._ALIGNMENT = max(type._ALIGNMENT for _, type in descriptor) if descriptor else 1
+    cls._ALIGNMENT = max((type._OPTIONAL and type._OPTIONAL_ALIGNMENT or type._ALIGNMENT) for _, type in descriptor) if descriptor else 1
     cls._PARTIAL_ALIGNMENT = None
 
     alignment = 1
@@ -154,11 +153,10 @@ def get_encode_function(type):
 
 def encode_optional(parent, type, value, endianness):
     if value is None:
-        return (type._optional_type._encode(False, endianness) +
-                "\x00" * type._SIZE)
+        return "\x00" * type._OPTIONAL_SIZE
     else:
-        return (type._optional_type._encode(True, endianness) +
-                type._encode(parent, type.__bases__[0], value, endianness))
+        return (type._optional_type._encode(True, endianness).ljust(type._OPTIONAL_ALIGNMENT, '\x00')
+                + type._encode(parent, type.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type, value, endianness):
     return type._encode(len(getattr(parent, type._BOUND)), endianness)
@@ -191,13 +189,13 @@ def get_decode_function(type):
         return decode_scalar
 
 def decode_optional(parent, name, type, data, pos, endianness, len_hints):
-    value, size = type._optional_type._decode(data, pos, endianness)
+    value, _ = type._optional_type._decode(data, pos, endianness)
     if value:
         setattr(parent, name, True)
-        return size + type._decode(parent, name, type.__bases__[0], data, pos + size, endianness, len_hints)
+        return type._OPTIONAL_ALIGNMENT + type._decode(parent, name, type.__bases__[0], data, pos + type._OPTIONAL_ALIGNMENT, endianness, len_hints)
     else:
         setattr(parent, name, None)
-        return size + type._SIZE
+        return type._OPTIONAL_ALIGNMENT + type._SIZE
 
 def decode_array_delimiter(parent, name, type, data, pos, endianness, len_hints):
     value, size = type._decode(data, pos, endianness)
@@ -220,8 +218,8 @@ def decode_scalar(parent, name, type, data, pos, endianness, len_hints):
     setattr(parent, name, value)
     return size
 
-def indent(lines, spaces):
-    return "\n".join((spaces * " ") + i for i in lines.splitlines()) + "\n"
+def indent(text, spaces):
+    return '\n'.join(x and spaces * ' ' + x or '' for x in text.split('\n'))
 
 def field_to_string(name, type, value):
     if issubclass(type, container.base_array):
@@ -285,14 +283,14 @@ class struct(object):
 
     def encode(self, endianness, terminal = True):
         data = ""
+
         for name, tp, encode_, _ in self._descriptor:
             data += (self._get_padding(len(data), tp._ALIGNMENT) +
                      encode_(self, tp, getattr(self, name, None), endianness))
             if tp._PARTIAL_ALIGNMENT:
                 data += self._get_padding(len(data), tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            data += self._get_padding(len(data), self._ALIGNMENT)
+        data += self._get_padding(len(data), self._ALIGNMENT)
 
         return data
 
@@ -309,8 +307,7 @@ class struct(object):
             if tp._PARTIAL_ALIGNMENT:
                 pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (container.base_array, str))):
-            pos += self._get_padding_size(pos, self._ALIGNMENT)
+        pos += self._get_padding_size(pos, self._ALIGNMENT)
 
         if terminal and pos < len(data):
             raise ProphyError("not all bytes read")
@@ -362,12 +359,15 @@ def validate_union(descriptor):
         raise ProphyError("union with optional field disallowed")
 
 def add_union_attributes(cls, descriptor):
+    def pad(value, alignment):
+        remainder = value % alignment
+        return remainder and (value + (alignment - remainder)) or value
     cls._discriminator_type = scalar.u32
-    cls._SIZE = cls._discriminator_type._SIZE + max(type._SIZE for _, type, _ in descriptor)
     cls._DYNAMIC = False
     cls._UNLIMITED = False
     cls._OPTIONAL = False
-    cls._ALIGNMENT = max(type._ALIGNMENT for _, type, _ in descriptor)
+    cls._ALIGNMENT = max(scalar.u32._ALIGNMENT, max(type._ALIGNMENT for _, type, _ in descriptor))
+    cls._SIZE = pad(cls._ALIGNMENT + max(type._SIZE for _, type, _ in descriptor), cls._ALIGNMENT)
     cls._BOUND = None
     cls._PARTIAL_ALIGNMENT = None
 
@@ -441,21 +441,21 @@ class union(object):
     def encode(self, endianness, terminal = True):
         name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(disc, endianness) +
-                encode_(self, tp, value, endianness))
+        data = (self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, '\x00')
+                + encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, '\x00')
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal = True)
 
     def _decode_impl(self, data, pos, endianness, terminal):
-        disc, bytes_read = self._discriminator_type._decode(data, pos, endianness)
+        disc, _ = self._discriminator_type._decode(data, pos, endianness)
         field = get_discriminated_field(self, disc)
         if not field:
             raise ProphyError("unknown discriminator")
         name, type, _, _, decode_ = field
         self._discriminated = field
-        bytes_read += decode_(self, name, type, data, pos + bytes_read, endianness, {})
+        decode_(self, name, type, data, pos + self._ALIGNMENT, endianness, {})
         if (len(data) - pos) < self._SIZE:
             raise ProphyError("not enough bytes")
         if terminal and (len(data) - pos) > self._SIZE:
