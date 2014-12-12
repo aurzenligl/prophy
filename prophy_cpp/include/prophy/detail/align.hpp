@@ -1,6 +1,7 @@
 #ifndef _PROPHY_DETAIL_ALIGN_HPP
 #define _PROPHY_DETAIL_ALIGN_HPP
 
+#include <stddef.h>
 #include <stdint.h>
 
 namespace prophy
