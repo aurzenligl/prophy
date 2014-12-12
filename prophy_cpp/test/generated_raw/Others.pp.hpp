@@ -49,7 +49,7 @@ struct EnumUnion
 namespace prophy
 {
 
-inline void swap(Enum* x) { swap(reinterpret_cast<uint32_t*>(x)); }
+template <> inline Enum* swap<Enum>(Enum* in) { swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }
 template <> ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum*);
 template <> EnumArrays* swap<EnumArrays>(EnumArrays*);
 template <> EnumGreedyArray* swap<EnumGreedyArray>(EnumGreedyArray*);
