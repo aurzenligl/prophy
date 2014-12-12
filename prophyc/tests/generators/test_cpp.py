@@ -480,7 +480,7 @@ def test_swap_enum_in_struct():
 template <>
 X* swap<X>(X* payload)
 {
-    swap(reinterpret_cast<uint32_t*>(&payload->x));
+    swap(&payload->x);
     return payload + 1;
 }
 """
@@ -503,11 +503,11 @@ def test_swap_enum_in_arrays():
 template <>
 EnumArrays* swap<EnumArrays>(EnumArrays* payload)
 {
-    swap_n_fixed(reinterpret_cast<uint32_t*>(payload->a), 2);
+    swap_n_fixed(payload->a, 2);
     swap(&payload->num_of_b);
-    swap_n_fixed(reinterpret_cast<uint32_t*>(payload->b), payload->num_of_b);
+    swap_n_fixed(payload->b, payload->num_of_b);
     swap(&payload->num_of_c);
-    return cast<EnumArrays*>(swap_n_fixed(reinterpret_cast<uint32_t*>(payload->c), payload->num_of_c));
+    return cast<EnumArrays*>(swap_n_fixed(payload->c, payload->num_of_c));
 }
 """
 
@@ -525,7 +525,7 @@ def test_swap_enum_in_greedy_array():
 template <>
 EnumGreedyArray* swap<EnumGreedyArray>(EnumGreedyArray* payload)
 {
-    return cast<EnumGreedyArray*>(reinterpret_cast<uint32_t*>(payload->x));
+    return cast<EnumGreedyArray*>(payload->x);
 }
 """
 
@@ -546,7 +546,7 @@ EnumUnion* swap<EnumUnion>(EnumUnion* payload)
     swap(reinterpret_cast<uint32_t*>(&payload->discriminator));
     switch (payload->discriminator)
     {
-        case EnumUnion::discriminator_x: swap(reinterpret_cast<uint32_t*>(&payload->x)); break;
+        case EnumUnion::discriminator_x: swap(&payload->x); break;
         default: break;
     }
     return payload + 1;
@@ -787,7 +787,7 @@ def test_generate_swap_declarations():
 namespace prophy
 {
 
-inline void swap(C* x) { swap(reinterpret_cast<uint32_t*>(x)); }
+template <> inline C* swap<C>(C* in) { swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }
 template <> A* swap<A>(A*);
 template <> B* swap<B>(B*);
 

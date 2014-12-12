@@ -115,8 +115,6 @@ def _member_access_statement(member):
     out = '&payload->%s' % member.name
     if isinstance(member, model.StructMember) and member.array:
         out = out[1:]
-    if isinstance(member.definition, model.Enum):
-        out = out.join(('reinterpret_cast<uint32_t*>(', ')'))
     return out
 
 def _generate_swap_struct(struct):
@@ -262,7 +260,8 @@ class CppGenerator(object):
 
     def generate_swap_declarations(self, nodes):
         out = ''.join(
-            'inline void swap({0}* x) {{ swap(reinterpret_cast<uint32_t*>(x)); }}\n'.format(node.name)
+            'template <> inline {0}* swap<{0}>({0}* in) {{ swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }}\n'
+            .format(node.name)
             for node in nodes
             if isinstance(node, (model.Enum))
         )
