@@ -777,6 +777,9 @@ def test_generate_swap_declarations():
         ]),
         model.Union("B", [
             (model.UnionMember("x", "u32", 1)),
+        ]),
+        model.Enum("C", [
+            model.EnumMember("E1_A", "0")
         ])
     ]
 
@@ -784,6 +787,7 @@ def test_generate_swap_declarations():
 namespace prophy
 {
 
+inline void swap(C* x) { swap(reinterpret_cast<uint32_t*>(x)); }
 template <> A* swap<A>(A*);
 template <> B* swap<B>(B*);
 
