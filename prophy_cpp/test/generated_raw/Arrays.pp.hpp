@@ -78,4 +78,23 @@ struct DyncompGreedy
     BuiltinDynamic y[1]; /// greedy array
 };
 
+namespace prophy
+{
+
+template <> Builtin* swap<Builtin>(Builtin*);
+template <> BuiltinFixed* swap<BuiltinFixed>(BuiltinFixed*);
+template <> BuiltinDynamic* swap<BuiltinDynamic>(BuiltinDynamic*);
+template <> BuiltinLimited* swap<BuiltinLimited>(BuiltinLimited*);
+template <> BuiltinGreedy* swap<BuiltinGreedy>(BuiltinGreedy*);
+template <> Fixcomp* swap<Fixcomp>(Fixcomp*);
+template <> FixcompFixed* swap<FixcompFixed>(FixcompFixed*);
+template <> FixcompDynamic* swap<FixcompDynamic>(FixcompDynamic*);
+template <> FixcompLimited* swap<FixcompLimited>(FixcompLimited*);
+template <> FixcompGreedy* swap<FixcompGreedy>(FixcompGreedy*);
+template <> Dyncomp* swap<Dyncomp>(Dyncomp*);
+template <> DyncompDynamic* swap<DyncompDynamic>(DyncompDynamic*);
+template <> DyncompGreedy* swap<DyncompGreedy>(DyncompGreedy*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_Arrays_HPP */

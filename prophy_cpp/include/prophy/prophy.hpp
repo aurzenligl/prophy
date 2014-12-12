@@ -1,10 +1,9 @@
 #ifndef _PROPHY_PROPHY_HPP
 #define _PROPHY_PROPHY_HPP
 
-#include <stddef.h>
 #include <stdint.h>
 #include <prophy/detail/align.hpp>
-#include <prophy/detail/mpl.hpp>
+#include <prophy/detail/prophy.hpp>
 
 namespace prophy
 {
@@ -67,34 +66,7 @@ inline void swap(double* in)
 }
 
 template <class T>
-inline typename detail::enable_if<detail::is_convertible<T, uint32_t>::value, void>::type swap(T* in)
-{
-    swap(reinterpret_cast<uint32_t*>(in));
-}
-
-template <typename Tp>
-typename detail::enable_if<!detail::is_convertible<Tp, uint32_t>::value, Tp*>::type swap(Tp*);
-
-template <typename Tp>
-inline Tp* swap_n_fixed(Tp* first, size_t n)
-{
-    while (n--)
-    {
-        swap(first);
-        ++first;
-    }
-    return first;
-}
-
-template <typename Tp>
-inline Tp* swap_n_dynamic(Tp* first, size_t n)
-{
-    while (n--)
-    {
-        first = swap(first);
-    }
-    return first;
-}
+T* swap(T*);
 
 } // namespace prophy
 
