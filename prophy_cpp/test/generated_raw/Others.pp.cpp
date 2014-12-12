@@ -12,7 +12,7 @@ ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum* payload)
 {
     swap_n_fixed(payload->a, CONSTANT);
     swap(&payload->b);
-    swap(&payload->c);
+    swap(reinterpret_cast<uint32_t*>(&payload->c));
     return payload + 1;
 }
 

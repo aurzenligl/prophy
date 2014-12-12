@@ -5,8 +5,6 @@
 #include <prophy/detail/align.hpp>
 #include <prophy/detail/prophy.hpp>
 
-#include <prophy/detail/mpl.hpp>
-
 namespace prophy
 {
 
@@ -68,13 +66,7 @@ inline void swap(double* in)
 }
 
 template <class T>
-inline typename detail::enable_if<detail::is_convertible<T, uint32_t>::value, void>::type swap(T* in)
-{
-    swap(reinterpret_cast<uint32_t*>(in));
-}
-
-template <typename Tp>
-typename detail::enable_if<!detail::is_convertible<Tp, uint32_t>::value, Tp*>::type swap(Tp*);
+T* swap(T*);
 
 } // namespace prophy
 
