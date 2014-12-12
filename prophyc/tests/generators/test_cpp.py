@@ -1,24 +1,26 @@
 from prophyc import model
 from prophyc.generators.cpp import CppGenerator
 
-def process_nodes(nodes):
+def process(nodes):
     model.cross_reference(nodes)
     model.evaluate_kinds(nodes)
+    model.evaluate_sizes(nodes)
+    return nodes
 
 def generate_definitions(nodes):
-    process_nodes(nodes)
+    process(nodes)
     return CppGenerator().generate_definitions(nodes)
 
 def generate_swap(nodes):
-    process_nodes(nodes)
+    process(nodes)
     return CppGenerator().generate_swap(nodes)
 
 def generate_hpp(nodes, basename):
-    process_nodes(nodes)
+    process(nodes)
     return CppGenerator().serialize_string_hpp(nodes, basename)
 
 def generate_cpp(nodes, basename):
-    process_nodes(nodes)
+    process(nodes)
     return CppGenerator().serialize_string_cpp(nodes, basename)
 
 def test_definitions_includes():
@@ -457,6 +459,93 @@ template <>
 Z* swap<Z>(Z* payload)
 {
     return cast<Z*>(&payload->z);
+}
+"""
+
+def test_swap_enum_in_struct():
+    nodes = [
+        model.Enum("E1", [
+            model.EnumMember("E1_A", "0")
+        ]),
+        model.Struct("X", [
+            (model.StructMember("x", "E1"))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+X* swap<X>(X* payload)
+{
+    swap(reinterpret_cast<uint32_t*>(&payload->x));
+    return payload + 1;
+}
+"""
+
+def test_swap_enum_in_arrays():
+    nodes = [
+        model.Enum("E1", [
+            model.EnumMember("E1_A", "0")
+        ]),
+        model.Struct("EnumArrays", [
+            (model.StructMember("a", "E1", size = 2)),
+            (model.StructMember("num_of_b", "u32")),
+            (model.StructMember("b", "E1", size = 2, bound = "num_of_b")),
+            (model.StructMember("num_of_c", "u32")),
+            (model.StructMember("c", "E1", bound = "num_of_c"))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+EnumArrays* swap<EnumArrays>(EnumArrays* payload)
+{
+    swap_n_fixed(reinterpret_cast<uint32_t*>(payload->a), 2);
+    swap(&payload->num_of_b);
+    swap_n_fixed(reinterpret_cast<uint32_t*>(payload->b), payload->num_of_b);
+    swap(&payload->num_of_c);
+    return cast<EnumArrays*>(swap_n_fixed(reinterpret_cast<uint32_t*>(payload->c), payload->num_of_c));
+}
+"""
+
+def test_swap_enum_in_greedy_array():
+    nodes = [
+        model.Enum("E1", [
+            model.EnumMember("E1_A", "0")
+        ]),
+        model.Struct("EnumGreedyArray", [
+            (model.StructMember("x", "E1", unlimited = True))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+EnumGreedyArray* swap<EnumGreedyArray>(EnumGreedyArray* payload)
+{
+    return cast<EnumGreedyArray*>(reinterpret_cast<uint32_t*>(payload->x));
+}
+"""
+
+def test_swap_enum_in_union():
+    nodes = [
+        model.Enum("E1", [
+            model.EnumMember("E1_A", "0")
+        ]),
+        model.Union("EnumUnion", [
+            (model.UnionMember("x", "E1", 1)),
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+template <>
+EnumUnion* swap<EnumUnion>(EnumUnion* payload)
+{
+    swap(reinterpret_cast<uint32_t*>(&payload->discriminator));
+    switch (payload->discriminator)
+    {
+        case EnumUnion::discriminator_x: swap(reinterpret_cast<uint32_t*>(&payload->x)); break;
+        default: break;
+    }
+    return payload + 1;
 }
 """
 

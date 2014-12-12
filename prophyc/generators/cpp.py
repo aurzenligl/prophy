@@ -111,6 +111,14 @@ def _generator_def(nodes):
         yield prepend_newline * '\n' + _generate_def_visitor[type(node)](node) + '\n'
         last_node = node
 
+def _member_access_statement(member):
+    out = '&payload->%s' % member.name
+    if isinstance(member, model.StructMember) and member.array:
+        out = out[1:]
+    if isinstance(member.definition, model.Enum):
+        out = out.join(('reinterpret_cast<uint32_t*>(', ')'))
+    return out
+
 def _generate_swap_struct(struct):
     def gen_member(member, delimiters = []):
         if member.array:
@@ -120,24 +128,23 @@ def _generate_swap_struct(struct):
                 bound = member.bound
                 if member.bound not in delimiters:
                     bound = 'payload->' + bound
-                return 'swap_n_{0}(payload->{1}, {2})'.format(
-                    swap_mode, member.name, bound)
+                return 'swap_n_{0}({1}, {2})'.format(
+                    swap_mode, _member_access_statement(member), bound)
             elif not member.bound and member.size:
-                return 'swap_n_{0}(payload->{1}, {2})'.format(
-                    swap_mode, member.name, member.size)
+                return 'swap_n_{0}({1}, {2})'.format(
+                    swap_mode, _member_access_statement(member), member.size)
         else:
             if member.optional:
                 preamble = 'swap(&payload->has_{0});\nif (payload->has_{0}) '.format(member.name)
             else:
                 preamble = ''
-            return preamble + 'swap(&payload->{0})'.format(member.name)
+            return preamble + 'swap({0})'.format(_member_access_statement(member))
 
     def gen_last_member(name, last_mem, delimiters = []):
         if last_mem.kind == model.Kind.UNLIMITED or last_mem.greedy:
-            return 'return cast<{0}*>({1}payload->{2});\n'.format(
+            return 'return cast<{0}*>({1});\n'.format(
                 name,
-                '' if last_mem.array else '&',
-                last_mem.name
+                _member_access_statement(last_mem)
             )
         elif last_mem.kind == model.Kind.DYNAMIC or last_mem.dynamic:
             return 'return cast<{0}*>({1});\n'.format(
@@ -209,7 +216,9 @@ def _generate_swap_union(union):
             '    return payload + 1;\n'
             '}}\n').format(
                 union.name,
-                ''.join(8 * ' ' + 'case {0}::discriminator_{1}: swap(&payload->{1}); break;\n'.format(union.name, m.name) for m in union.members)
+                ''.join(8 * ' ' + 'case {0}::discriminator_{1}: swap({2}); break;\n'.format(
+                    union.name, m.name, _member_access_statement(m)
+                ) for m in union.members)
             )
 
 _generate_swap_visitor = {

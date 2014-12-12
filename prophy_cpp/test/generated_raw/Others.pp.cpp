@@ -19,7 +19,7 @@ ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum* payload)
 template <>
 EnumArrays* swap<EnumArrays>(EnumArrays* payload)
 {
-    swap_n_fixed(reinterpret_cast<uint32_t*>(&payload->a), 2);
+    swap_n_fixed(reinterpret_cast<uint32_t*>(payload->a), 2);
     swap(&payload->num_of_b);
     swap_n_fixed(reinterpret_cast<uint32_t*>(payload->b), payload->num_of_b);
     swap(&payload->num_of_c);
@@ -29,7 +29,7 @@ EnumArrays* swap<EnumArrays>(EnumArrays* payload)
 template <>
 EnumGreedyArray* swap<EnumGreedyArray>(EnumGreedyArray* payload)
 {
-    return cast<EnumGreedyArray*>(reinterpret_cast<uint32_t*>(&payload->x));
+    return cast<EnumGreedyArray*>(reinterpret_cast<uint32_t*>(payload->x));
 }
 
 template <>
