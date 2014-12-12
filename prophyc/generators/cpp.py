@@ -262,6 +262,11 @@ class CppGenerator(object):
 
     def generate_swap_declarations(self, nodes):
         out = ''.join(
+            'inline void swap({0}* x) {{ swap(reinterpret_cast<uint32_t*>(x)); }}\n'.format(node.name)
+            for node in nodes
+            if isinstance(node, (model.Enum))
+        )
+        out += ''.join(
             'template <> {0}* swap<{0}>({0}*);\n'.format(node.name)
             for node in nodes
             if isinstance(node, (model.Struct, model.Union))
