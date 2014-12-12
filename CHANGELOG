@@ -1,3 +1,8 @@
+0.5.1
+-----------------------------------
+- prophyc cpp output: generated headers contain declarations of swap template functions
+- prophy cpp library: single swap function template and implementation details hidden
+
 0.5
 -----------------------------------
 - new cpp full output, exposes structs and unions as classes with value semantics,
