@@ -260,6 +260,20 @@ class CppGenerator(object):
     def generate_definitions(self, nodes):
         return ''.join(_generator_def(nodes))
 
+    def generate_swap_declarations(self, nodes):
+        out = ''.join(
+            'template <> {0}* swap<{0}>({0}*);\n'.format(node.name)
+            for node in nodes
+            if isinstance(node, (model.Struct, model.Union))
+        )
+        return out.join((
+            'namespace prophy\n'
+            '{\n'
+            '\n',
+            '\n'
+            '} // namespace prophy\n'
+        ))
+
     def generate_swap(self, nodes):
         return '\n'.join(_generator_swap(nodes))
 
@@ -267,6 +281,7 @@ class CppGenerator(object):
         return '\n'.join((
             header.format(basename),
             self.generate_definitions(nodes),
+            self.generate_swap_declarations(nodes),
             footer.format(basename)
         ))
 

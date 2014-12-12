@@ -160,6 +160,13 @@ struct Test
     uint32_t x[1]; /// dynamic array, size in x_len
 };
 
+namespace prophy
+{
+
+template <> Test* swap<Test>(Test*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
@@ -248,6 +255,13 @@ struct Test
 {
     uint32_t x;
 };
+
+namespace prophy
+{
+
+template <> Test* swap<Test>(Test*);
+
+} // namespace prophy
 
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
@@ -339,6 +353,14 @@ struct U
         uint32_t y;
     };
 };
+
+namespace prophy
+{
+
+template <> X* swap<X>(X*);
+template <> U* swap<U>(U*);
+
+} // namespace prophy
 
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """

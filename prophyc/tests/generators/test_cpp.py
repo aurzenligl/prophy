@@ -11,6 +11,10 @@ def generate_definitions(nodes):
     process(nodes)
     return CppGenerator().generate_definitions(nodes)
 
+def generate_swap_declarations(nodes):
+    process(nodes)
+    return CppGenerator().generate_swap_declarations(nodes)
+
 def generate_swap(nodes):
     process(nodes)
     return CppGenerator().generate_swap(nodes)
@@ -766,6 +770,26 @@ X* swap<X>(X* payload)
 }
 """
 
+def test_generate_swap_declarations():
+    nodes = [
+        model.Struct("A", [
+            (model.StructMember("x", "u32")),
+        ]),
+        model.Union("B", [
+            (model.UnionMember("x", "u32", 1)),
+        ])
+    ]
+
+    assert generate_swap_declarations(nodes) == """\
+namespace prophy
+{
+
+template <> A* swap<A>(A*);
+template <> B* swap<B>(B*);
+
+} // namespace prophy
+"""
+
 def test_generate_empty_file():
     assert generate_hpp([], "TestEmpty") == """\
 #ifndef _PROPHY_GENERATED_TestEmpty_HPP
@@ -773,6 +797,12 @@ def test_generate_empty_file():
 
 #include <prophy/prophy.hpp>
 
+
+namespace prophy
+{
+
+
+} // namespace prophy
 
 #endif  /* _PROPHY_GENERATED_TestEmpty_HPP */
 """
@@ -804,6 +834,13 @@ struct Struct
 {
     uint8_t a;
 };
+
+namespace prophy
+{
+
+template <> Struct* swap<Struct>(Struct*);
+
+} // namespace prophy
 
 #endif  /* _PROPHY_GENERATED_TestFile_HPP */
 """
