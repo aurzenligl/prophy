@@ -46,4 +46,14 @@ struct EnumUnion
     };
 };
 
+namespace prophy
+{
+
+template <> ConstantTypedefEnum* swap<ConstantTypedefEnum>(ConstantTypedefEnum*);
+template <> EnumArrays* swap<EnumArrays>(EnumArrays*);
+template <> EnumGreedyArray* swap<EnumGreedyArray>(EnumGreedyArray*);
+template <> EnumUnion* swap<EnumUnion>(EnumUnion*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_Others_HPP */
