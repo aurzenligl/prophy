@@ -287,7 +287,9 @@ class CppGenerator(object):
 
     def serialize_string_cpp(self, nodes, basename):
         return '\n'.join((
+            '#include <prophy/detail/prophy.hpp>\n',
             '#include "{0}.pp.hpp"\n'.format(basename),
+            'using namespace prophy::detail;\n',
             swap_header,
             self.generate_swap(nodes),
             swap_footer

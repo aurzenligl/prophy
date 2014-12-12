@@ -170,7 +170,11 @@ template <> Test* swap<Test>(Test*);
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
@@ -266,7 +270,11 @@ template <> Test* swap<Test>(Test*);
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
@@ -365,7 +373,11 @@ template <> U* swap<U>(U*);
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {

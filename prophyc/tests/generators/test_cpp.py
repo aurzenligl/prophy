@@ -808,7 +808,11 @@ namespace prophy
 """
 
     assert generate_cpp([], "TestEmpty") == """\
+#include <prophy/detail/prophy.hpp>
+
 #include \"TestEmpty.pp.hpp\"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
@@ -846,7 +850,11 @@ template <> Struct* swap<Struct>(Struct*);
 """
 
     assert generate_cpp(nodes, "TestFile") == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "TestFile.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
