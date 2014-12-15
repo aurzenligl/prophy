@@ -24,7 +24,7 @@ def call(args):
 
 def test_showing_version():
     ret, out, err = call(["--version"])
-    expected_version = '0.5'
+    expected_version = '0.5.1'
     assert ret == 0
     assert tr(out) == 'prophyc {}\n'.format(expected_version)
     assert err == ""
@@ -160,10 +160,21 @@ struct Test
     uint32_t x[1]; /// dynamic array, size in x_len
 };
 
+namespace prophy
+{
+
+template <> Test* swap<Test>(Test*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
@@ -249,10 +260,21 @@ struct Test
     uint32_t x;
 };
 
+namespace prophy
+{
+
+template <> Test* swap<Test>(Test*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
@@ -340,10 +362,22 @@ struct U
     };
 };
 
+namespace prophy
+{
+
+template <> X* swap<X>(X*);
+template <> U* swap<U>(U*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {

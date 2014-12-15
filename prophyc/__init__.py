@@ -5,7 +5,7 @@ import os
 
 from prophyc import options
 
-__version__ = '0.5'
+__version__ = '0.5.1'
 
 def get_basename(filename):
     return os.path.splitext(os.path.basename(filename))[0]

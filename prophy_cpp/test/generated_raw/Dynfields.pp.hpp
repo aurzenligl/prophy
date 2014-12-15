@@ -103,4 +103,17 @@ struct DynfieldsComp
     } _3;
 };
 
+namespace prophy
+{
+
+template <> Dynfields* swap<Dynfields>(Dynfields*);
+template <> DynfieldsMixed* swap<DynfieldsMixed>(DynfieldsMixed*);
+template <> DynfieldsOverlapped* swap<DynfieldsOverlapped>(DynfieldsOverlapped*);
+template <> DynfieldsPadded_Helper* swap<DynfieldsPadded_Helper>(DynfieldsPadded_Helper*);
+template <> DynfieldsPadded* swap<DynfieldsPadded>(DynfieldsPadded*);
+template <> DynfieldsFixtail* swap<DynfieldsFixtail>(DynfieldsFixtail*);
+template <> DynfieldsComp* swap<DynfieldsComp>(DynfieldsComp*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_Dynfields_HPP */

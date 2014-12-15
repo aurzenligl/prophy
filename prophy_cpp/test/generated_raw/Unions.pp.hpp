@@ -30,4 +30,12 @@ struct Union
     };
 };
 
+namespace prophy
+{
+
+template <> Optional* swap<Optional>(Optional*);
+template <> Union* swap<Union>(Union*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_Unions_HPP */
