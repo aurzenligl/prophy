@@ -390,8 +390,5 @@ def build_model(input, parse_error_prefix):
 
 class ProphyParser(object):
 
-    def parse_string(self, input):
-        return build_model(input, "")
-
-    def parse(self, filename):
-        return build_model(open(filename).read(), os.path.split(filename)[1])
+    def parse(self, content, path, process_file):
+        return build_model(content, path)

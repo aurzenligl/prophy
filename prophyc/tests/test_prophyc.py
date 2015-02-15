@@ -418,10 +418,10 @@ constant
                           os.path.join(str(tmpdir_cwd), "input.prophy")])
     assert ret == 1
     assert out == ""
-    assert tr(err) == """\
-input.prophy:1:11 error: syntax error at '}'
-input.prophy:2:10 error: syntax error at '}'
-"""
+    errlines = tr(err).splitlines()
+    assert len(errlines) == 2
+    assert errlines[0].endswith("input.prophy:1:11 error: syntax error at '}'")
+    assert errlines[1].endswith("input.prophy:2:10 error: syntax error at '}'")
     assert not os.path.exists("input.py")
 
 def test_cpp_full_out(tmpdir_cwd):

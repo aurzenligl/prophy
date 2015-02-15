@@ -3,7 +3,7 @@ from prophyc.parsers.isar import IsarParser
 from prophyc.parsers.isar import expand_operators
 
 def parse(xml_string):
-    return IsarParser().parse_string(xml_string)
+    return IsarParser().parse(xml_string, '', None)
 
 def test_includes_parsing():
     xml = """\

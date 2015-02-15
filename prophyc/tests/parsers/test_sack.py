@@ -10,7 +10,7 @@ def parse(content, suffix = '.hpp'):
         with tempfile.NamedTemporaryFile(suffix = suffix, delete = False) as temp:
             temp.write(content)
             temp.flush()
-            return SackParser().parse(temp.name)
+            return SackParser().parse('', temp.name, None)
     finally:
         os.unlink(temp.name)
 

@@ -119,8 +119,5 @@ class IsarParser(object):
         nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic = True) for elem in root.iterfind('.//message')))
         return nodes
 
-    def parse_string(self, string):
-        return self.__get_model(ElementTree.fromstring(string))
-
-    def parse(self, file):
-        return self.__get_model(ElementTree.parse(file))
+    def parse(self, content, path, process_file):
+        return self.__get_model(ElementTree.fromstring(content))

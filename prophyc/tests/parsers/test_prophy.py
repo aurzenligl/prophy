@@ -4,7 +4,7 @@ from prophyc import model
 from prophyc.parsers.prophy import ProphyParser, ParseError
 
 def parse(content):
-    return ProphyParser().parse_string(content)
+    return ProphyParser().parse(content, '', None)
 
 def test_constants_parsing():
     content = """\

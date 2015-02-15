@@ -120,8 +120,8 @@ class SackParser(object):
     def __init__(self, include_dirs = []):
         self.include_dirs = include_dirs
 
-    def parse(self, filename):
-        args_ = [filename] + ["-I" + x for x in self.include_dirs]
+    def parse(self, content, path, process_file):
+        args_ = [path] + ["-I" + x for x in self.include_dirs]
         index = Index.create()
         tu = index.parse(None, args_)
         return build_model(tu)
