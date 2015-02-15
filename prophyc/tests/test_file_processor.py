@@ -50,13 +50,33 @@ def test_file_processor_include_file_not_found(tmpdir_cwd):
         FileProcessor(fake_process_content, [])('main.txt')
     assert e.value.message == 'file incl.txt not found'
 
+def test_file_processor_main_self_include(tmpdir_cwd):
+    open('main.txt', 'w').write('#include <main.txt>')
+    with pytest.raises(CyclicIncludeError) as e:
+        FileProcessor(fake_process_content, ['.'])('main.txt')
+    assert e.value.message == 'file ./main.txt included again during parsing'
+
+def test_file_processor_leaf_self_include(tmpdir_cwd):
+    open('main.txt', 'w').write('#include <incl.txt>')
+    open('incl.txt', 'w').write('#include <incl.txt>')
+    with pytest.raises(CyclicIncludeError) as e:
+        FileProcessor(fake_process_content, ['.'])('main.txt')
+    assert e.value.message == 'file ./incl.txt included again during parsing'
+
+def test_file_processor_cyclic_include(tmpdir_cwd):
+    open('main.txt', 'w').write('#include <incl1.txt>')
+    open('incl1.txt', 'w').write('#include <incl2.txt>')
+    open('incl2.txt', 'w').write('#include <incl1.txt>')
+    with pytest.raises(CyclicIncludeError) as e:
+        FileProcessor(fake_process_content, ['.'])('main.txt')
+    assert e.value.message == 'file ./incl1.txt included again during parsing'
+
 def test_file_processor_include_dir_precedence(tmpdir_cwd):
     os.mkdir('x')
     os.mkdir('y')
     os.mkdir('z')
     open('main.txt', 'w').write('#include <incl.txt>')
-    def process():
-        return FileProcessor(fake_process_content, ['z', 'y', 'x'])('main.txt')
+    process = lambda: FileProcessor(fake_process_content, ['z', 'y', 'x'])('main.txt')
 
     open('x/incl.txt', 'w').write('first')
     assert process() == 'first\n'
@@ -66,3 +86,11 @@ def test_file_processor_include_dir_precedence(tmpdir_cwd):
 
     open('z/incl.txt', 'w').write('third')
     assert process() == 'third\n'
+
+def test_file_processor_nested_includes(tmpdir_cwd):
+    open('main.txt', 'w').write('#include <incl1.txt>')
+    open('incl1.txt', 'w').write('#include <incl2.txt>')
+    open('incl2.txt', 'w').write('#include <incl3.txt>')
+    open('incl3.txt', 'w').write('some text')
+
+    assert FileProcessor(fake_process_content, ['.'])('main.txt') == 'some text\n'
