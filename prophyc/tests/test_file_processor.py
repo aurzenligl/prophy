@@ -38,7 +38,12 @@ one input
 other input
 '''
 
-def test_file_processor_file_not_found_without_include_dir_even_if_in_curdir(tmpdir_cwd):
+def test_file_processor_main_file_not_found(tmpdir_cwd):
+    with pytest.raises(FileNotFoundError) as e:
+        FileProcessor(fake_process_content, [])('nonexistent.txt')
+    assert e.value.message == 'file nonexistent.txt not found'
+
+def test_file_processor_include_file_not_found(tmpdir_cwd):
     open('main.txt', 'w').write('#include <incl.txt>')
     open('incl.txt', 'w').write('xxxx')
     with pytest.raises(FileNotFoundError) as e:
