@@ -17,11 +17,24 @@ class InclContProc(object):
 
 def test_file_processor_single_curdir(tmpdir_cwd):
     open('input.txt', 'w').write('the input\n')
-    proc = FileProcessor(InclContProc(), [])
-    assert proc('input.txt') == 'the input\n'
+    assert FileProcessor(InclContProc(), [])('input.txt') == 'the input\n'
 
 def test_file_processor_single_nestdir(tmpdir_cwd):
     os.mkdir('x')
     open('x/input.txt', 'w').write('nest input\n')
-    proc = FileProcessor(InclContProc(), [])
-    assert proc('x/input.txt') == 'nest input\n'
+
+    assert FileProcessor(InclContProc(), [])('x/input.txt') == 'nest input\n'
+
+def test_file_processor_include_dirs(tmpdir_cwd):
+    os.mkdir('x')
+    os.mkdir('y')
+    open('x/x.txt', 'w').write('one input')
+    open('y/y.txt', 'w').write('other input')
+    open('input.txt', 'w').write('''\
+#include <x.txt>
+#include <y.txt>
+''')
+    assert FileProcessor(InclContProc(), ['x', 'y'])('input.txt') == '''\
+one input
+other input
+'''

@@ -28,8 +28,22 @@ class FileProcessor(object):
             if self.files[filename] is None:
                 raise CyclicIncludeError(filename)
             return self.files[filename]
-        if not os.path.exists(filename):
-            raise FileNotFoundError(filename)
+
+        if self.files:
+            path = self.get_path(filename)
+            if not path:
+                raise FileNotFoundError(filename)
+            filename = path
+        else:
+            if not os.path.exists(filename):
+                raise FileNotFoundError(filename)
+
         self.files[filename] = None # detects cyclic includes
         self.files[filename] = self.content_processor(open(filename).read(), filename, self)
         return self.files[filename]
+
+    def get_path(self, filename):
+        for dir in self.include_dirs:
+            path = os.path.join(dir, filename)
+            if os.path.exists(path):
+                return path
