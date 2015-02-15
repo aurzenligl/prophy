@@ -112,3 +112,18 @@ def test_file_processor_include_already_parsed(tmpdir_cwd):
     fake = FakeContentProcessor()
     assert FileProcessor(fake, ['.'])('main.txt') == 'text\ntext\ntext\n'
     assert fake.calls == 2
+
+def test_file_processor_multisegment_paths(tmpdir_cwd):
+    os.mkdir('proj')
+    os.mkdir('proj/include')
+    os.mkdir('proj/include/x')
+    os.mkdir('proj/include/x/y')
+    open('proj/main.txt', 'w').write('''\
+#include <a.txt>
+#include <x/b.txt>
+#include <x/y/c.txt>
+''')
+    open('proj/include/a.txt', 'w').write('one')
+    open('proj/include/x/b.txt', 'w').write('two')
+    open('proj/include/x/y/c.txt', 'w').write('three')
+    assert FileProcessor(FakeContentProcessor(), ['proj/include'])('proj/main.txt') == 'one\ntwo\nthree\n'
