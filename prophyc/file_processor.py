@@ -1,49 +1,50 @@
 import os
 
 class CyclicIncludeError(Exception):
-    def __init__(self, filename):
-        Exception.__init__(self, "file %s included again during parsing" % filename)
+    def __init__(self, path):
+        Exception.__init__(self, "file %s included again during parsing" % path)
 
 class FileNotFoundError(Exception):
-    def __init__(self, filename):
-        Exception.__init__(self, "file %s not found" % filename)
+    def __init__(self, path):
+        Exception.__init__(self, "file %s not found" % path)
 
 class FileProcessor(object):
 
     def __init__(self, content_processor, include_dirs):
         self.content_processor = content_processor
         self.include_dirs = include_dirs
-        # keys are filenames, values are None during processing
+        # keys are file paths, values are None during processing
         # and assigned with content_processor return values after
         self.files = {}
 
-    def __call__(self, filename):
+    def __call__(self, path):
         '''Processes file and its possible includes.
 
         Call this function only once during processor lifetime.
         Further calls can only be made by enclosed content processor.
         '''
 
-        if filename in self.files:
-            if self.files[filename] is None:
-                raise CyclicIncludeError(filename)
-            return self.files[filename]
+        if path in self.files:
+            if self.files[path] is None:
+                raise CyclicIncludeError(path)
+            return self.files[path]
 
         if self.files:
-            path = self.get_path(filename)
-            if not path:
-                raise FileNotFoundError(filename)
-            filename = path
+            fullpath = self.get_full_path(path)
+            if not fullpath:
+                raise FileNotFoundError(path)
+            path = fullpath
         else:
-            if not os.path.exists(filename):
-                raise FileNotFoundError(filename)
+            if not os.path.exists(path):
+                raise FileNotFoundError(path)
 
-        self.files[filename] = None # detects cyclic includes
-        self.files[filename] = self.content_processor(open(filename).read(), filename, self)
-        return self.files[filename]
+        self.files[path] = None # detects cyclic includes
+        result = self.content_processor(open(path).read(), path, self)
+        self.files[path] = result
+        return result
 
-    def get_path(self, filename):
+    def get_full_path(self, path):
         for dir in self.include_dirs:
-            path = os.path.join(dir, filename)
-            if os.path.exists(path):
-                return path
+            fullpath = os.path.join(dir, path)
+            if os.path.exists(fullpath):
+                return fullpath
