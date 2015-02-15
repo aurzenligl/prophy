@@ -44,3 +44,20 @@ def test_file_processor_file_not_found_without_include_dir_even_if_in_curdir(tmp
     with pytest.raises(FileNotFoundError) as e:
         FileProcessor(fake_process_content, [])('main.txt')
     assert e.value.message == 'file incl.txt not found'
+
+def test_file_processor_include_dir_precedence(tmpdir_cwd):
+    os.mkdir('x')
+    os.mkdir('y')
+    os.mkdir('z')
+    open('main.txt', 'w').write('#include <incl.txt>')
+    def process():
+        return FileProcessor(fake_process_content, ['z', 'y', 'x'])('main.txt')
+
+    open('x/incl.txt', 'w').write('first')
+    assert process() == 'first\n'
+
+    open('y/incl.txt', 'w').write('second')
+    assert process() == 'second\n'
+
+    open('z/incl.txt', 'w').write('third')
+    assert process() == 'third\n'
