@@ -4,13 +4,13 @@ import re
 from prophyc.file_processor import FileProcessor
 
 class InclContProc(object):
-    def __call__(self, content, path, file_processor):
+    def __call__(self, content, path, process_file):
         out = ''
         for line in content.splitlines():
             match = re.match('#include <([a-zA-Z0-9_./]*)>', line)
             if match:
                 include_path = match.groups()[0]
-                out += file_processor(include_path)
+                out += process_file(include_path)
             else:
                 out += line + '\n'
         return out
