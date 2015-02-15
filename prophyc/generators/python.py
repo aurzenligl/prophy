@@ -7,7 +7,7 @@ primitive_types = {x + y : "%s.%s" % (libname, x + y) for x in "uir" for y in ["
 primitive_types['byte'] = '%s.u8' % libname
 
 def _generate_include(include):
-    return "from %s import *" % include
+    return "from %s import *" % include.name
 
 def _generate_constant(constant):
     return "%s = %s" % constant

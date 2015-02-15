@@ -28,9 +28,9 @@ def generate_cpp(nodes, basename):
     return CppGenerator().serialize_string_cpp(nodes, basename)
 
 def test_definitions_includes():
-    nodes = [model.Include("szydlo"),
-             model.Include("mydlo"),
-             model.Include("powidlo")]
+    nodes = [model.Include("szydlo", []),
+             model.Include("mydlo", []),
+             model.Include("powidlo", [])]
 
     assert generate_definitions(nodes) == """\
 #include "szydlo.pp.hpp"

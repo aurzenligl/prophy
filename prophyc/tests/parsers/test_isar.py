@@ -2,8 +2,8 @@ from prophyc import model
 from prophyc.parsers.isar import IsarParser
 from prophyc.parsers.isar import expand_operators
 
-def parse(xml_string):
-    return IsarParser().parse(xml_string, '', None)
+def parse(xml_string, process_file = lambda path: []):
+    return IsarParser().parse(xml_string, '', process_file)
 
 def test_includes_parsing():
     xml = """\
@@ -13,9 +13,13 @@ def test_includes_parsing():
     <xi:include href="powidlo.xml"/>
 </system>
 """
-    nodes = parse(xml)
+    nodes = parse(xml, process_file = lambda path: [model.Typedef("a", "u8")])
 
-    assert [("mydlo",), ("szydlo",), ("powidlo",)] == nodes
+    assert [
+        ("mydlo", [model.Typedef("a", "u8")]),
+        ("szydlo", [model.Typedef("a", "u8")]),
+        ("powidlo", [model.Typedef("a", "u8")])
+    ] == nodes
 
 def test_constants_parsing():
     xml = """\

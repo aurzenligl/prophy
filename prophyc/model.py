@@ -34,7 +34,7 @@ ENUM_SIZE = BUILTIN_SIZES['u32']
 """ Model consists of 6 kinds of symbols:
 Includes, Constants, Enums, Typedefs, Structs, Unions. """
 
-Include = namedtuple("Include", ["name"])
+Include = namedtuple("Include", ["name", "nodes"])
 
 Constant = namedtuple("Constant", ["name", "value"])
 

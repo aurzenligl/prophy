@@ -51,8 +51,10 @@ primitive_types = {"8 bit integer unsigned": "u8",
                    "32 bit float": "r32",
                    "64 bit float": "r64"}
 
-def make_include(elem):
-    return model.Include(elem.get("href").split('.')[0])
+def make_include(elem, process_file):
+    path = elem.get("href").split('.')[0]
+    nodes = process_file(path)
+    return model.Include(path, nodes)
 
 def make_constant(elem):
     return model.Constant(elem.get("name"), expand_operators(elem.get("value")))
@@ -108,9 +110,9 @@ def make_union(elem):
 
 class IsarParser(object):
 
-    def __get_model(self, root):
+    def __get_model(self, root, process_file):
         nodes = []
-        nodes += [make_include(elem) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
+        nodes += [make_include(elem, process_file) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
         nodes += [make_constant(elem) for elem in root.iterfind('.//constant')]
         nodes += filter(None, (make_typedef(elem) for elem in root.iterfind('.//typedef')))
         nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
@@ -120,4 +122,4 @@ class IsarParser(object):
         return nodes
 
     def parse(self, content, path, process_file):
-        return self.__get_model(ElementTree.fromstring(content))
+        return self.__get_model(ElementTree.fromstring(content), process_file)

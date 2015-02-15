@@ -11,7 +11,7 @@ def process(nodes):
 @pytest.fixture(scope = 'session')
 def Include():
     return process([
-        model.Include('Arrays')
+        model.Include('Arrays', [])
     ])
 
 @pytest.fixture(scope = 'session')
