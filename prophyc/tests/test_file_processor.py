@@ -1,7 +1,7 @@
 import os
 import re
-
-from prophyc.file_processor import FileProcessor
+import pytest
+from prophyc.file_processor import FileProcessor, CyclicIncludeError, FileNotFoundError
 
 def fake_process_content(content, path, process_file):
     out = ''
@@ -37,3 +37,10 @@ def test_file_processor_include_dirs(tmpdir_cwd):
 one input
 other input
 '''
+
+def test_file_processor_file_not_found_without_include_dir_even_if_in_curdir(tmpdir_cwd):
+    open('main.txt', 'w').write('#include <incl.txt>')
+    open('incl.txt', 'w').write('xxxx')
+    with pytest.raises(FileNotFoundError) as e:
+        FileProcessor(fake_process_content, [])('main.txt')
+    assert e.value.message == 'file incl.txt not found'
