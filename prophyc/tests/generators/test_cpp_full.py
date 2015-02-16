@@ -2336,6 +2336,45 @@ template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t inden
 } // namespace prophy
 """
 
+def test_generate_hpp_with_included_struct():
+    nodes = process([
+        model.Include('Input', process([
+            model.Struct('X', [
+                model.StructMember('x', 'u64'),
+            ])
+        ])),
+        model.Struct('Y', [
+            model.StructMember('x', 'X')
+        ])
+    ])
+
+    assert """\
+namespace prophy
+{
+namespace generated
+{
+
+#include "Input.ppf.hpp"
+
+struct Y : public prophy::detail::message<Y>
+{
+    enum { encoded_byte_size = 8 };
+
+    X x;
+
+    Y() { }
+    Y(const X& _1): x(_1) { }
+
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+};
+
+} // namespace generated
+} // namespace prophy
+""" in CppFullGenerator('.').generate_hpp(nodes, 'MyFile')
+
 def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
     nodes = process([
         model.Struct('X', [
