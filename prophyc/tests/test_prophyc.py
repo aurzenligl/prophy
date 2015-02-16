@@ -148,46 +148,37 @@ def test_isar_cpp(tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert open("input.pp.hpp").read() == """\
-#ifndef _PROPHY_GENERATED_input_HPP
-#define _PROPHY_GENERATED_input_HPP
-
-#include <prophy/prophy.hpp>
-
+    assert """\
 struct Test
 {
     uint32_t x_len;
     uint32_t x[1]; /// dynamic array, size in x_len
 };
-
-namespace prophy
-{
-
-template <> Test* swap<Test>(Test*);
-
-} // namespace prophy
-
-#endif  /* _PROPHY_GENERATED_input_HPP */
-"""
-    assert open("input.pp.cpp").read() == """\
-#include <prophy/detail/prophy.hpp>
-
-#include "input.pp.hpp"
-
-using namespace prophy::detail;
-
-namespace prophy
-{
-
+""" in open("input.pp.hpp").read()
+    assert """\
 template <>
 Test* swap<Test>(Test* payload)
 {
     swap(&payload->x_len);
     return cast<Test*>(swap_n_fixed(payload->x, payload->x_len));
 }
+""" in open("input.pp.cpp").read()
 
-} // namespace prophy
-"""
+def test_isar_warnings(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <system xmlns:xi="http://www.xyz.com/1984/XInclude">
+        <xi:include href="include.xml"/>
+    </system>
+</xml>
+""")
+
+    ret, out, err = call(["--isar",
+                          "--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 0
+    assert out == ""
+    assert err == "warning: file include.xml not found\n"
 
 @pytest.clang_installed
 def test_sack_compiles_single_empty_hpp(tmpdir_cwd):

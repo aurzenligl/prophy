@@ -46,7 +46,7 @@ def get_parser(opts):
     '''Returns parser and parse_error class.'''
     if opts.isar:
         from prophyc.parsers.isar import IsarParser
-        return IsarParser(), None
+        return IsarParser(warn = emit_warning), None
     elif opts.sack:
         if not module_exists("clang"):
             sys.exit("Sack input requires clang and it's not installed")
@@ -95,6 +95,9 @@ def module_exists(module_name):
         return False
     else:
         return True
+
+def emit_warning(msg):
+    sys.stderr.write('warning: ' + msg + '\n')
 
 if __name__ == "__main__":
     main()
