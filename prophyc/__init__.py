@@ -98,7 +98,7 @@ def module_exists(module_name):
         return True
 
 def emit_warning(msg):
-    sys.stderr.write('warning: ' + msg + '\n')
+    sys.stderr.write('prophyc: warning: ' + msg + '\n')
 
 if __name__ == "__main__":
     main()
