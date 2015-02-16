@@ -180,6 +180,49 @@ def test_isar_warnings(tmpdir_cwd):
     assert out == ""
     assert err == "warning: file include.xml not found\n"
 
+def test_isar_with_includes(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <system xmlns:xi="http://www.xyz.com/1984/XInclude">
+        <xi:include href="helper.xml"/>
+    </system>
+    <struct name="X">
+        <member name="a" type="Y"/>
+    </struct>
+</xml>
+""")
+    open("helper.xml", "w").write("""
+<xml>
+    <struct name="Y">
+        <member name="a" type="u64"/>
+    </struct>
+</xml>
+""")
+
+    ret, out, err = call(["--isar",
+                          "-I", str(tmpdir_cwd),
+                          "--cpp_full_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert """\
+struct X : public prophy::detail::message<X>
+{
+    enum { encoded_byte_size = 8 };
+
+    Y a;
+
+    X() { }
+    X(const Y& _1): a(_1) { }
+
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+};
+""" in open("input.ppf.hpp").read()
+
 @pytest.clang_installed
 def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
     open("input.hpp", "w").write("")
