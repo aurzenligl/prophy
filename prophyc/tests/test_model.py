@@ -841,3 +841,21 @@ def test_evaluate_sizes_array_with_named_size():
         (4, 4, None),
         (None, None)
     ]
+
+def test_evaluate_sizes_with_include():
+    nodes = process([
+        model.Include('input', [
+            model.Enum('E', [
+                model.EnumMember('E1', '1')
+            ])
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'E'),
+            model.StructMember('y', 'i8'),
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (4, 4, 0),
+        (1, 1, 3),
+        (8, 4)
+    ]
