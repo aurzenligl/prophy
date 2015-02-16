@@ -227,12 +227,31 @@ def topological_sort(nodes):
             index = index + 1
 
 def cross_reference(nodes):
-    """Adds definition reference to Typedef and StructMember."""
-    types = {node.name: node for node in nodes}
-    constants = {x.name: x.value for x in (
-        [x for x in nodes if isinstance(x, Constant)]
-        + [m for enum in nodes if isinstance(enum, Enum) for m in enum.members]
-    )}
+    """
+    Adds definition reference to Typedef and StructMember.
+    Adds numeric_size to StructMember if it's a sized array.
+    """
+    types = {}
+    def add_types_level(nodes):
+        for node in nodes:
+            if isinstance(node, Include):
+                add_types_level(node.nodes)
+            else:
+                types[node.name] = node
+    add_types_level(nodes)
+
+    constants = {}
+    def add_constants_level(nodes):
+        for node in nodes:
+            if isinstance(node, Include):
+                add_constants_level(node.nodes)
+            elif isinstance(node, Constant):
+                constants[node.name] = node.value
+            elif isinstance(node, Enum):
+                for member in node.members:
+                    constants[member.name] = member.value
+    add_constants_level(nodes)
+
     def do_cross_reference(node):
         node.definition = types.get(node.type)
     def do_eval_numeric_sizes(node):

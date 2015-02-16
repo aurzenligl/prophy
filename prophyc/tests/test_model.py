@@ -170,12 +170,39 @@ def test_cross_reference_typedef():
     assert nodes[3].definition.name == "B"
     assert nodes[3].definition.definition.name == "A"
 
-def test_cross_reference_array_size():
+def test_cross_symbols_from_includes():
     nodes = [
-        model.Constant('NUM', '3'),
-        model.Enum('E', [
-            model.EnumMember('E1', '1'),
-            model.EnumMember('E3', 'NUM')
+        model.Include('x', [
+            model.Include('y', [
+                model.Typedef('ala', 'u32')
+            ]),
+            model.Struct('ola', [
+                model.StructMember('a', 'ala'),
+            ])
+        ]),
+        model.Struct('ula', [
+            model.StructMember('a', 'ola'),
+            model.StructMember('b', 'ala'),
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[1].members[0].definition.name == 'ola'
+    assert nodes[1].members[1].definition.name == 'ala'
+    # cross-reference only needs to link definitions of first level of nodes
+    assert nodes[0].nodes[1].members[0].definition == None
+
+def test_cross_reference_array_size_from_includes():
+    nodes = [
+        model.Include('x', [
+            model.Include('y', [
+                model.Constant('NUM', '3'),
+            ]),
+            model.Enum('E', [
+                model.EnumMember('E1', '1'),
+                model.EnumMember('E3', 'NUM')
+            ]),
         ]),
         model.Struct('X', [
             model.StructMember('x', 'u32', size = 'NUM'),
@@ -187,10 +214,10 @@ def test_cross_reference_array_size():
 
     model.cross_reference(nodes)
 
-    assert nodes[2].members[0].numeric_size == 3
-    assert nodes[2].members[1].numeric_size == 1
-    assert nodes[2].members[2].numeric_size == None
-    assert nodes[2].members[3].numeric_size == 3
+    assert nodes[1].members[0].numeric_size == 3
+    assert nodes[1].members[1].numeric_size == 1
+    assert nodes[1].members[2].numeric_size == None
+    assert nodes[1].members[3].numeric_size == 3
 
 def test_evaluate_kinds_arrays():
     nodes = [
