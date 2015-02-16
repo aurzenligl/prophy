@@ -7,7 +7,7 @@ from prophyc import options
 from prophyc import model
 from prophyc.file_processor import FileProcessor
 
-__version__ = '0.5.1'
+__version__ = '0.5.1dev'
 
 def main():
     opts = options.parse_options()
