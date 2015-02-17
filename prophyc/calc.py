@@ -26,10 +26,6 @@ class Parser(object):
 
 class Calc(Parser):
 
-    def __init__(self, vars):
-        super(Calc, self).__init__()
-        self.vars = vars
-
     tokens = ('NAME','NUMBER','LSHIFT','RSHIFT')
 
     literals = ['+','-','*','/', '(',')']
@@ -101,6 +97,11 @@ class Calc(Parser):
     def p_error(self, p):
         raise ParseError("syntax error at '%s'" % p.value)
 
+    def eval(self, expr, vars):
+        self.vars = vars
+        return super(Calc, self).eval(expr)
+
+calc = Calc()
+
 def eval(expr, vars):
-    calc = Calc(vars)
-    return calc.eval(expr)
+    return calc.eval(expr, vars)
