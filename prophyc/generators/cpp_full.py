@@ -463,7 +463,7 @@ _hpp_header = """\
 #include <prophy/detail/message.hpp>
 #include <prophy/detail/mpl.hpp>
 
-namespace prophy
+{1}namespace prophy
 {{
 namespace generated
 {{
@@ -477,7 +477,6 @@ _hpp_footer = """\
 """
 
 _hpp_visitor = {
-    model.Include: generate_include_definition,
     model.Constant: generate_constant_definition,
     model.Typedef: generate_typedef_definition,
     model.Enum: generate_enum_definition,
@@ -488,6 +487,8 @@ _hpp_visitor = {
 def _hpp_generator(nodes):
     last_node = None
     for node in nodes:
+        if isinstance(node, model.Include):
+            continue
         prepend_newline = bool(last_node
                                and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
                                     or type(last_node) is not type(node)))
@@ -538,7 +539,10 @@ class CppFullGenerator(object):
         self.output_dir = output_dir
 
     def generate_hpp(self, nodes, basename):
-        return '\n'.join((_hpp_header.format(basename), generate_hpp_content(nodes), _hpp_footer.format(basename)))
+        includes = ''.join(generate_include_definition(node) for node in nodes if isinstance(node, model.Include))
+        if includes:
+            includes += '\n'
+        return '\n'.join((_hpp_header.format(basename, includes), generate_hpp_content(nodes), _hpp_footer.format(basename)))
 
     def generate_cpp(self, nodes, basename):
         return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))

@@ -2349,12 +2349,12 @@ def test_generate_hpp_with_included_struct():
     ])
 
     assert """\
+#include "Input.ppf.hpp"
+
 namespace prophy
 {
 namespace generated
 {
-
-#include "Input.ppf.hpp"
 
 struct Y : public prophy::detail::message<Y>
 {
