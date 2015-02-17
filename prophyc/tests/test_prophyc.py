@@ -332,7 +332,7 @@ def test_clang_not_installed(tmpdir_cwd):
 
     assert ret == 1
     assert out == ""
-    assert tr(err) == "Sack input requires clang and it's not installed\n"
+    assert tr(err) == "prophyc: error: sack input requires clang and it's not installed\n"
 
 def test_prophy_language(tmpdir_cwd):
     open("input.prophy", "w").write("""\

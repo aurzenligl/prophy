@@ -50,7 +50,7 @@ def get_parser(opts):
         return IsarParser(warn = emit_warning), None
     elif opts.sack:
         if not module_exists("clang"):
-            sys.exit("Sack input requires clang and it's not installed")
+            emit_error("sack input requires clang and it's not installed")
         from prophyc.parsers.sack import SackParser
         return SackParser(opts.include_dirs), None
     else:
