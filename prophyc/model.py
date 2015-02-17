@@ -1,5 +1,6 @@
 from collections import namedtuple
 from itertools import ifilter, islice
+from prophyc import calc
 
 """ Exception types """
 class GenerateError(Exception): pass
@@ -240,31 +241,36 @@ def cross_reference(nodes):
                 types[node.name] = node
     add_types_level(nodes)
 
+    def to_int(x, default):
+        try:
+            return int(x)
+        except ValueError:
+            return default
+
     constants = {}
     def add_constants_level(nodes):
         for node in nodes:
             if isinstance(node, Include):
                 add_constants_level(node.nodes)
             elif isinstance(node, Constant):
-                constants[node.name] = node.value
+                constants[node.name] = to_int(node.value, node.value)
             elif isinstance(node, Enum):
                 for member in node.members:
-                    constants[member.name] = member.value
+                    constants[member.name] = to_int(member.value, member.value)
     add_constants_level(nodes)
 
     def do_cross_reference(node):
         node.definition = types.get(node.type)
     def do_eval_numeric_sizes(node):
-        def to_int(x, default):
-            try:
-                return int(x)
-            except ValueError:
-                return default
         if node.size:
-            constant = node.size
-            while constant in constants:
-                constant = constants[constant]
-            node.numeric_size = to_int(constant, None)
+            value = node.size
+            if isinstance(value, int):
+                node.numeric_size = value
+            else:
+                try:
+                    node.numeric_size = calc.eval(value, constants)
+                except calc.ParseError:
+                    node.numeric_size = None
     for node in nodes:
         if isinstance(node, Typedef):
             do_cross_reference(node)
