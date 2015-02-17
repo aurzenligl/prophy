@@ -10,21 +10,21 @@ from prophyc.file_processor import FileProcessor
 __version__ = '0.5.1dev'
 
 def main():
-    opts = options.parse_options()
+    opts = options.parse_options(emit_error)
 
     if opts.version:
         print "prophyc {}".format(__version__)
         sys.exit(0)
 
     if not opts.input_files:
-        sys.exit("prophyc: error: missing input file")
+        emit_error("missing input file")
 
     parser, parse_error = get_parser(opts)
     serializers = get_serializers(opts)
     patcher = get_patcher(opts)
 
     if not serializers:
-        sys.exit("Missing output directives")
+        emit_error("missing output directives")
 
     def content_parser(*parse_args):
         return parse_content(parser, patcher, *parse_args)
@@ -41,7 +41,7 @@ def main():
             try:
                 serializer.serialize(nodes, basename)
             except model.GenerateError as e:
-                sys.exit(e.message)
+                emit_error(e.message)
 
 def get_parser(opts):
     '''Returns parser and parse_error class.'''
@@ -97,8 +97,11 @@ def module_exists(module_name):
     else:
         return True
 
-def emit_warning(msg):
-    sys.stderr.write('prophyc: warning: ' + msg + '\n')
+def emit_warning(msg, location = 'prophyc'):
+    sys.stderr.write(location + ': warning: ' + msg + '\n')
+
+def emit_error(msg, location = 'prophyc'):
+    sys.exit(location + ': error: ' + msg)
 
 if __name__ == "__main__":
     main()

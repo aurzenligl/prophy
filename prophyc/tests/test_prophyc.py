@@ -48,7 +48,7 @@ def test_missing_output(tmpdir_cwd):
     ret, out, err = call(["--isar", os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "Missing output directives\n"
+    assert tr(err) == "prophyc: error: missing output directives\n"
 
 def test_passing_isar_and_sack(tmpdir_cwd):
     open("input", "w")

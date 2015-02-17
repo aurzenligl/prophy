@@ -530,7 +530,7 @@ def generate_cpp_content(nodes):
 def check_nodes(nodes):
     for n in nodes:
         if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
-            raise GenerateError('prophyc: error: {0} byte size unknown'.format(n.name))
+            raise GenerateError('{0} byte size unknown'.format(n.name))
 
 class CppFullGenerator(object):
 
