@@ -8,6 +8,8 @@ PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
 if not os.path.exists(PROPHY_DIR):
     os.makedirs(PROPHY_DIR)
 
+class ParseError(Exception): pass
+
 class Parser(object):
     """
     Base class for a lexer/parser that has the rules defined as methods
@@ -48,7 +50,7 @@ class Calc(Parser):
         t.lexer.lineno += t.value.count("\n")
 
     def t_error(self, t):
-        raise Exception('illegal character %s' % t.value[0]) 
+        raise ParseError('illegal character %s' % t.value[0])
 
     precedence = (
         ('left','+','-'),
@@ -72,6 +74,8 @@ class Calc(Parser):
         elif p[2] == '-': p[0] = p[1] - p[3]
         elif p[2] == '*': p[0] = p[1] * p[3]
         elif p[2] == '/': p[0] = p[1] / p[3]
+        elif p[2] == '<<': p[0] = p[1] << p[3]
+        elif p[2] == '>>': p[0] = p[1] >> p[3]
 
     def p_expression_uminus(self, p):
         "expression : '-' expression %prec UMINUS"
@@ -92,10 +96,10 @@ class Calc(Parser):
             while not isinstance(p[0], int):
                 p[0] = self.vars[p[0]]
         except LookupError:
-            raise Exception("undefined name '%s'" % p[1])
+            raise ParseError("undefined name '%s'" % p[1])
 
     def p_error(self, p):
-        raise Exception("syntax error at '%s'" % p.value)
+        raise ParseError("syntax error at '%s'" % p.value)
 
 def eval(expr, vars):
     calc = Calc(vars)

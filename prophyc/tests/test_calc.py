@@ -1,3 +1,4 @@
+import pytest
 from prophyc import calc
 
 def test_calc_numeric():
@@ -5,10 +6,12 @@ def test_calc_numeric():
     assert calc.eval('10 - 2', {}) == 8
     assert calc.eval('10 * 2', {}) == 20
     assert calc.eval('10 / 2', {}) == 5
+    assert calc.eval('10 << 2', {}) == 40
+    assert calc.eval('10 >> 2', {}) == 2
 
-# shifts
-
-# parens
+def test_calc_parens():
+    assert calc.eval('10 + 2 * 3', {}) == 16
+    assert calc.eval('(10 + 2) * 3', {}) == 36
 
 def test_calc_variables():
     assert calc.eval('a + b', {'a': 2, 'b': 3}) == 5
@@ -16,8 +19,15 @@ def test_calc_variables():
 def test_calc_nested_variables():
     assert calc.eval('a', {'a': 'b', 'b': 'c', 'c': 9}) == 9
 
-# illegal
+def test_calc_errors():
+    with pytest.raises(calc.ParseError) as e:
+        calc.eval('&', {})
+    assert 'illegal' in e.value.message
 
-# syntax
+    with pytest.raises(calc.ParseError) as e:
+        calc.eval('++', {})
+    assert 'syntax' in e.value.message
 
-# lookup
+    with pytest.raises(calc.ParseError) as e:
+        calc.eval('unknown', {})
+    assert 'undefined' in e.value.message
