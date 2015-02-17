@@ -101,7 +101,7 @@ class Parser(object):
     def parse(self, input, parse_error_prefix):
         self._init_parse_data(parse_error_prefix)
         self.lexer.lineno = 1
-        self.yacc.parse(input)
+        self.yacc.parse(input, lexer = self.lexer)
         return self.nodes
 
     def _init_parse_data(self, parse_error_prefix = ""):
@@ -379,7 +379,7 @@ class Parser(object):
         self._parser_error(message, line, pos)
 
 lexer = Lexer()
-parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR)
+parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_prophy')
 lexer._lexer_error = parser._parser_error
 
 def build_model(input, parse_error_prefix):
