@@ -219,6 +219,20 @@ def test_cross_reference_array_size_from_includes():
     assert nodes[1].members[2].numeric_size == None
     assert nodes[1].members[3].numeric_size == 3
 
+def test_cross_reference_numeric_size_of_expression():
+    nodes = [
+        model.Constant('A', 12),
+        model.Constant('B', 15),
+        model.Constant('C', 'A*B'),
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = 'C'),
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[3].members[0].numeric_size == 180
+
 def test_evaluate_kinds_arrays():
     nodes = [
         model.Struct("A", [

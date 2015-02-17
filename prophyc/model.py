@@ -241,36 +241,38 @@ def cross_reference(nodes):
                 types[node.name] = node
     add_types_level(nodes)
 
-    def to_int(x, default):
+    def eval_int(x, numerics):
         try:
             return int(x)
         except ValueError:
-            return default
+            try:
+                return calc.eval(x, numerics)
+            except calc.ParseError:
+                return None
 
-    constants = {}
+    numerics = {}
     def add_constants_level(nodes):
         for node in nodes:
             if isinstance(node, Include):
                 add_constants_level(node.nodes)
             elif isinstance(node, Constant):
-                constants[node.name] = to_int(node.value, node.value)
+                numerics[node.name] = eval_int(node.value, numerics)
             elif isinstance(node, Enum):
                 for member in node.members:
-                    constants[member.name] = to_int(member.value, member.value)
+                    numerics[member.name] = eval_int(member.value, numerics)
     add_constants_level(nodes)
+
+    def to_int(x):
+        try:
+            return int(x)
+        except ValueError:
+            return numerics.get(x)
 
     def do_cross_reference(node):
         node.definition = types.get(node.type)
     def do_eval_numeric_sizes(node):
         if node.size:
-            value = node.size
-            if isinstance(value, int):
-                node.numeric_size = value
-            else:
-                try:
-                    node.numeric_size = calc.eval(value, constants)
-                except calc.ParseError:
-                    node.numeric_size = None
+            node.numeric_size = to_int(node.size)
     for node in nodes:
         if isinstance(node, Typedef):
             do_cross_reference(node)
