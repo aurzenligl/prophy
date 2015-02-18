@@ -503,7 +503,7 @@ struct X : public prophy::detail::message<X>
     enum { encoded_byte_size = 16 };
 
     uint32_t x;
-    std::vector<TP> y; /// limit MAX
+    std::vector<TP> y; /// limit 4
 
     X(): x() { }
     X(uint32_t _1, const std::vector<TP>& _2): x(_1), y(_2) { }
@@ -539,8 +539,8 @@ template <endianness E>
 uint8_t* message_impl<X>::encode(const X& x, uint8_t* pos)
 {
     pos = do_encode<E>(pos, x.x);
-    pos = do_encode<E>(pos, uint32_t(std::min(x.y.size(), size_t(MAX))));
-    do_encode<E>(pos, x.y.data(), uint32_t(std::min(x.y.size(), size_t(MAX))));
+    pos = do_encode<E>(pos, uint32_t(std::min(x.y.size(), size_t(4))));
+    do_encode<E>(pos, x.y.data(), uint32_t(std::min(x.y.size(), size_t(4))));
     pos = pos + 8;
     return pos;
 }
@@ -554,7 +554,7 @@ bool message_impl<X>::decode(X& x, const uint8_t*& pos, const uint8_t* end)
 {
     return (
         do_decode<E>(x.x, pos, end) &&
-        do_decode_resize<E, uint32_t>(x.y, pos, end, MAX) &&
+        do_decode_resize<E, uint32_t>(x.y, pos, end, 4) &&
         do_decode_in_place<E>(x.y.data(), x.y.size(), pos, end) &&
         do_decode_advance(8, pos, end)
     );
@@ -567,7 +567,7 @@ template <>
 void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
 {
     do_print(out, indent, "x", x.x);
-    do_print(out, indent, "y", x.y.data(), std::min(x.y.size(), size_t(MAX)));
+    do_print(out, indent, "y", x.y.data(), std::min(x.y.size(), size_t(4)));
 }
 template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
 

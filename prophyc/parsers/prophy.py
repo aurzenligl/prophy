@@ -21,6 +21,8 @@ def get_column(input, pos):
 
 class Lexer(object):
 
+    literals = ['+','-','*','/', '(',')']
+
     keywords = (
         "const", "enum", "typedef", "struct", "union",
         "u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64",
@@ -31,8 +33,10 @@ class Lexer(object):
         "ID", "CONST8", "CONST10", "CONST16",
         # [ ] { } < >
         "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "LT", "GT",
-        # ; :  * = , ...
-        "SEMI", "COLON", "STAR", "EQUALS", "COMMA", "DOTS"
+        # ; : = , ...
+        "SEMI", "COLON", "EQUALS", "COMMA", "DOTS",
+        # << >>
+        "LSHIFT", "RSHIFT"
     )
 
     def __init__(self, **kwargs):
@@ -49,14 +53,17 @@ class Lexer(object):
 
     def t_CONST16(self, t):
         r'0x[0-9a-fA-F]+'
+        t.value = int(t.value, 16)
         return t
 
     def t_CONST8(self, t):
         r'0[0-7]+'
+        t.value = int(t.value, 8)
         return t
 
     def t_CONST10(self, t):
-        r'-?(([1-9]\d*)|0)'
+        r'(([1-9]\d*)|0)'
+        t.value = int(t.value)
         return t
 
     t_LBRACKET = r'\['
@@ -67,10 +74,11 @@ class Lexer(object):
     t_COLON = r':'
     t_LT = r'<'
     t_GT = r'>'
-    t_STAR = r'\*'
     t_EQUALS = r'='
     t_COMMA = r','
     t_DOTS = r'\.\.\.'
+    t_LSHIFT  = r'<<'
+    t_RSHIFT  = r'>>'
 
     t_ignore  = ' \t\r'
 
@@ -91,6 +99,13 @@ class Lexer(object):
         self._lexer_error("illegal character '{}'".format(t.value[0]), t.lexer.lineno, t.lexpos)
 
 class Parser(object):
+
+    precedence = (
+        ('left','+','-'),
+        ('left','*','/'),
+        ('left','LSHIFT','RSHIFT'),
+        ('right','UMINUS')
+    )
 
     def __init__(self, tokens, lexer, **kwargs):
         self._init_parse_data()
@@ -138,8 +153,8 @@ class Parser(object):
                       | union_def'''
 
     def p_constant_def(self, t):
-        '''constant_def : CONST unique_id EQUALS constant SEMI'''
-        node = Constant(t[2], t[4])
+        '''constant_def : CONST unique_id EQUALS expression SEMI'''
+        node = Constant(t[2], str(t[4]))
         self.constdecls[t[2]] = node
         self.nodes.append(node)
 
@@ -162,8 +177,8 @@ class Parser(object):
         t[0] = [t[1]]
 
     def p_enum_member(self, t):
-        '''enum_member : unique_id EQUALS value'''
-        member = EnumMember(t[1], t[3])
+        '''enum_member : unique_id EQUALS expression'''
+        member = EnumMember(t[1], str(t[3]))
         self.constdecls[t[1]] = member
         t[0] = member
 
@@ -212,9 +227,9 @@ class Parser(object):
         t[0] = [(StructMember(t[2], t[1][0], definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_2(self, t):
-        '''struct_member : bytes ID LBRACKET positive_value RBRACKET
-                         | type_spec ID LBRACKET positive_value RBRACKET'''
-        t[0] = [(StructMember(t[2], t[1][0], size = t[4], definition = t[1][1]), t.lineno(2), t.lexpos(2))]
+        '''struct_member : bytes ID LBRACKET positive_expression RBRACKET
+                         | type_spec ID LBRACKET positive_expression RBRACKET'''
+        t[0] = [(StructMember(t[2], t[1][0], size = str(t[4]), definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_3(self, t):
         '''struct_member : bytes ID LT GT
@@ -225,11 +240,11 @@ class Parser(object):
         ]
 
     def p_struct_member_4(self, t):
-        '''struct_member : bytes ID LT positive_value GT
-                         | type_spec ID LT positive_value GT'''
+        '''struct_member : bytes ID LT positive_expression GT
+                         | type_spec ID LT positive_expression GT'''
         t[0] = [
             (StructMember('num_of_' + t[2], 'u32', definition = None), t.lineno(2), t.lexpos(2)),
-            (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], size = t[4], definition = t[1][1]), t.lineno(2), t.lexpos(2))
+            (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], size = str(t[4]), definition = t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_5(self, t):
@@ -238,7 +253,7 @@ class Parser(object):
         t[0] = [(StructMember(t[2], t[1][0], unlimited = True, definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_6(self, t):
-        '''struct_member : type_spec STAR ID'''
+        '''struct_member : type_spec '*' ID'''
         t[0] = [(StructMember(t[3], t[1][0], optional = True, definition = t[1][1]), t.lineno(3), t.lexpos(3))]
 
     def p_bytes(self, t):
@@ -288,8 +303,8 @@ class Parser(object):
         t[0] = [t[1]]
 
     def p_union_member(self, t):
-        '''union_member : value COLON type_spec ID'''
-        t[0] = (UnionMember(t[4], t[3][0], t[1], definition = t[3][1]), t.lineno(4), t.lexpos(4))
+        '''union_member : expression COLON type_spec ID'''
+        t[0] = (UnionMember(t[4], t[3][0], str(t[1]), definition = t[3][1]), t.lineno(4), t.lexpos(4))
 
     def p_type_spec_1(self, t):
         '''type_spec : U8
@@ -328,40 +343,55 @@ class Parser(object):
         )
         t[0] = t[1]
 
-    def p_constant_id(self, t):
-        '''constant_id : ID'''
+    def p_positive_expression(self, t):
+        '''positive_expression : expression'''
         self._parser_check(
-            t[1] in self.constdecls,
-            "constant '{}' was not declared".format(t[1]),
-            t.lineno(1), t.lexpos(1)
-        )
-        t[0] = t[1]
-
-    def p_positive_constant(self, t):
-        '''positive_constant : CONST10
-                             | CONST8
-                             | CONST16'''
-        self._parser_check(
-            int(t[1]) > 0,
+            t[1] > 0,
             "array size '{}' non-positive".format(t[1]),
             t.lineno(1), t.lexpos(1)
         )
         t[0] = t[1]
 
+    def p_expression_binop(self, t):
+        '''expression : expression '+' expression
+                      | expression '-' expression
+                      | expression '*' expression
+                      | expression '/' expression
+                      | expression LSHIFT expression
+                      | expression RSHIFT expression'''
+        if t[2] == '+'  : t[0] = t[1] + t[3]
+        elif t[2] == '-': t[0] = t[1] - t[3]
+        elif t[2] == '*': t[0] = t[1] * t[3]
+        elif t[2] == '/': t[0] = t[1] / t[3]
+        elif t[2] == '<<': t[0] = t[1] << t[3]
+        elif t[2] == '>>': t[0] = t[1] >> t[3]
+
+    def p_expression_uminus(self, t):
+        "expression : '-' expression %prec UMINUS"
+        t[0] = -t[2]
+
+    def p_expression_group(self, t):
+        "expression : '(' expression ')'"
+        t[0] = t[2]
+
+    def p_expression_number(self, t):
+        "expression : constant"
+        t[0] = t[1]
+
+    def p_expression_name(self, t):
+        "expression : ID"
+        self._parser_check(
+            t[1] in self.constdecls,
+            "constant '{}' was not declared".format(t[1]),
+            t.lineno(1), t.lexpos(1)
+        )
+        if t[1] in self.constdecls:
+            t[0] = int(self.constdecls.get(t[1]).value)
+
     def p_constant(self, t):
         '''constant : CONST10
                     | CONST8
                     | CONST16'''
-        t[0] = t[1]
-
-    def p_positive_value(self, t):
-        '''positive_value : positive_constant
-                          | constant_id'''
-        t[0] = t[1]
-
-    def p_value(self, t):
-        '''value : constant
-                 | constant_id'''
         t[0] = t[1]
 
     def p_empty(self, t):
