@@ -525,3 +525,17 @@ def test_include_errors():
     with pytest.raises(ParseError) as e:
         parse('#include <test>')
     assert e.value.errors == [":1:10 error: syntax error at '<'"]
+
+def test_includes():
+    def parse_file(path):
+        return [model.Constant('X', '42')]
+    content = """\
+#include "const.prophy"
+const Y = X;
+"""
+    assert parse(content, parse_file) == [
+        model.Include('const', [
+            model.Constant('X', '42')
+        ]),
+        model.Constant('Y', '42')
+    ]

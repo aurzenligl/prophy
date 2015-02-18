@@ -167,7 +167,18 @@ class Parser(object):
         )
         path = t[3][1:-1]
         stem = os.path.splitext(os.path.basename(path))[0]
-        node = Include(stem, [])
+        nodes = self.parse_file(path)
+
+        for node in nodes:
+            if isinstance(node, Constant):
+                self.constdecls[node.name] = node
+            if isinstance(node, Enum):
+                for mem in node.members:
+                    self.constdecls[mem.name] = mem
+            if isinstance(node, (Typedef, Enum, Struct, Union)):
+                self.typedecls[node.name] = node
+
+        node = Include(stem, nodes)
         self.nodes.append(node)
 
     def p_constant_def(self, t):
