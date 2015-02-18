@@ -365,18 +365,26 @@ class Parser(object):
         elif t[2] == '/': t[0] = t[1] / t[3]
         elif t[2] == '<<': t[0] = t[1] << t[3]
         elif t[2] == '>>': t[0] = t[1] >> t[3]
+        t.slice[0].lineno = t.lineno(1)
+        t.slice[0].lexpos = t.lexpos(1)
 
     def p_expression_uminus(self, t):
         "expression : '-' expression %prec UMINUS"
         t[0] = -t[2]
+        t.slice[0].lineno = t.lineno(1)
+        t.slice[0].lexpos = t.lexpos(1)
 
     def p_expression_group(self, t):
         "expression : '(' expression ')'"
         t[0] = t[2]
+        t.slice[0].lineno = t.lineno(1)
+        t.slice[0].lexpos = t.lexpos(1)
 
     def p_expression_number(self, t):
         "expression : constant"
         t[0] = t[1]
+        t.slice[0].lineno = t.lineno(1)
+        t.slice[0].lexpos = t.lexpos(1)
 
     def p_expression_name(self, t):
         "expression : ID"
@@ -387,12 +395,16 @@ class Parser(object):
         )
         if t[1] in self.constdecls:
             t[0] = int(self.constdecls.get(t[1]).value)
+            t.slice[0].lineno = t.lineno(1)
+            t.slice[0].lexpos = t.lexpos(1)
 
     def p_constant(self, t):
         '''constant : CONST10
                     | CONST8
                     | CONST16'''
         t[0] = t[1]
+        t.slice[0].lineno = t.lineno(1)
+        t.slice[0].lexpos = t.lexpos(1)
 
     def p_empty(self, t):
         '''empty :'''
