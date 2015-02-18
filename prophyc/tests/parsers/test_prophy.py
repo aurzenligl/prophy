@@ -2,6 +2,7 @@ import pytest
 
 from prophyc import model
 from prophyc.parsers.prophy import ProphyParser, ParseError
+from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
 def parse(content, parse_file = lambda path: []):
     return ProphyParser().parse(content, '', parse_file)
@@ -518,7 +519,7 @@ def test_include_path():
     assert parse(' # include  "x.prophy" ') == [model.Include('x', [])]
     assert parse('\n#\ninclude\n"x.prophy"\n') == [model.Include('x', [])]
 
-def test_include_errors():
+def test_include_path_errors():
     with pytest.raises(ParseError) as e:
         parse('#notinclude "test"')
     assert e.value.errors == [":1:2 error: unknown directive 'notinclude'"]
@@ -526,16 +527,50 @@ def test_include_errors():
         parse('#include <test>')
     assert e.value.errors == [":1:10 error: syntax error at '<'"]
 
-def test_includes():
-    def parse_file(path):
-        return [model.Constant('X', '42')]
+def test_include_no_error_with_constant():
     content = """\
-#include "const.prophy"
+#include "test.prophy"
 const Y = X;
 """
-    assert parse(content, parse_file) == [
-        model.Include('const', [
-            model.Constant('X', '42')
-        ]),
-        model.Constant('Y', '42')
-    ]
+    parse(content, lambda path: [model.Constant('X', '42')])
+
+def test_include_no_error_with_typedef():
+    content = """\
+#include "test.prophy"
+typedef X Y;
+"""
+    parse(content, lambda path: [model.Typedef('X', 'u32')])
+
+def test_include_no_error_with_enum():
+    content = """\
+#include "test.prophy"
+typedef X Y;
+const Z = X1;
+"""
+    parse(content, lambda path: [model.Enum('X', [model.EnumMember('X1', '1')])])
+
+def test_include_no_error_with_struct():
+    content = """\
+#include "test.prophy"
+typedef X Y;
+"""
+    parse(content, lambda path: [model.Struct('X', [])])
+
+def test_include_no_error_with_union():
+    content = """\
+#include "test.prophy"
+typedef X Y;
+"""
+    parse(content, lambda path: [model.Union('X', [])])
+
+def test_include_errors():
+    with pytest.raises(ParseError) as e:
+        def parse_file(path):
+            raise FileNotFoundError(path)
+        parse('#include "imnotthere"', parse_file)
+    assert e.value.errors == [":1:10 error: file imnotthere not found"]
+    with pytest.raises(ParseError) as e:
+        def parse_file(path):
+            raise CyclicIncludeError(path)
+        parse('#include "includemeagain"', parse_file)
+    assert e.value.errors == [":1:10 error: file includemeagain included again during parsing"]

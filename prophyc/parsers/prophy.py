@@ -5,6 +5,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind
+from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
 PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
 
@@ -167,7 +168,12 @@ class Parser(object):
         )
         path = t[3][1:-1]
         stem = os.path.splitext(os.path.basename(path))[0]
-        nodes = self.parse_file(path)
+
+        try:
+            nodes = self.parse_file(path)
+        except (CyclicIncludeError, FileNotFoundError) as e:
+            self._parser_error(e.message, t.lineno(3), t.lexpos(3))
+            nodes = []
 
         for node in nodes:
             if isinstance(node, Constant):
