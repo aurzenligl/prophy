@@ -433,15 +433,13 @@ class Parser(object):
 
     def p_expression_name(self, t):
         "expression : ID"
+        const = self.constdecls.get(t[1])
         self._parser_check(
-            t[1] in self.constdecls,
+            const,
             "constant '{}' was not declared".format(t[1]),
             t.lineno(1), t.lexpos(1)
         )
-        if t[1] in self.constdecls:
-            t[0] = int(self.constdecls.get(t[1]).value)
-        else:
-            t[0] = 0
+        t[0] = const and int(const.value) or 0
         t.slice[0].lineno = t.lineno(1)
         t.slice[0].lexpos = t.lexpos(1)
 
