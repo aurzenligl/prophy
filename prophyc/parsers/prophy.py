@@ -397,12 +397,19 @@ class Parser(object):
                       | expression '/' expression
                       | expression LSHIFT expression
                       | expression RSHIFT expression'''
-        if t[2] == '+'  : t[0] = t[1] + t[3]
-        elif t[2] == '-': t[0] = t[1] - t[3]
-        elif t[2] == '*': t[0] = t[1] * t[3]
-        elif t[2] == '/': t[0] = t[1] / t[3]
-        elif t[2] == '<<': t[0] = t[1] << t[3]
-        elif t[2] == '>>': t[0] = t[1] >> t[3]
+        try:
+            if t[2] == '+'  : t[0] = t[1] + t[3]
+            elif t[2] == '-': t[0] = t[1] - t[3]
+            elif t[2] == '*': t[0] = t[1] * t[3]
+            elif t[2] == '/': t[0] = t[1] / t[3]
+            elif t[2] == '<<': t[0] = t[1] << t[3]
+            elif t[2] == '>>': t[0] = t[1] >> t[3]
+        except ZeroDivisionError:
+            self._parser_error(
+                'division by zero',
+                t.lineno(1), t.lexpos(1)
+            )
+            t[0] = 0
         t.slice[0].lineno = t.lineno(1)
         t.slice[0].lexpos = t.lexpos(1)
 
@@ -433,8 +440,10 @@ class Parser(object):
         )
         if t[1] in self.constdecls:
             t[0] = int(self.constdecls.get(t[1]).value)
-            t.slice[0].lineno = t.lineno(1)
-            t.slice[0].lexpos = t.lexpos(1)
+        else:
+            t[0] = 0
+        t.slice[0].lineno = t.lineno(1)
+        t.slice[0].lexpos = t.lexpos(1)
 
     def p_constant(self, t):
         '''constant : CONST10

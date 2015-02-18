@@ -39,6 +39,20 @@ const E = D << 2;
         model.Constant("E", "-12")
     ]
 
+def test_constant_expressions_errors():
+    content = """\
+const A = 2 + C;
+const B = -D;
+const C = 1 / 0;
+"""
+    with pytest.raises(ParseError) as e:
+        parse(content)
+    assert e.value.errors == [
+        ":1:15 error: constant 'C' was not declared",
+        ":2:12 error: constant 'D' was not declared",
+        ":3:11 error: division by zero"
+    ]
+
 def test_constant_with_newline():
     assert parse("const \nCONST = 0;") == [model.Constant("CONST", "0")]
 
