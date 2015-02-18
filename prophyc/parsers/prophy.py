@@ -4,7 +4,7 @@ import tempfile
 import ply.lex as lex
 import ply.yacc as yacc
 
-from prophyc.model import Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind
+from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind
 
 PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
 
@@ -21,7 +21,7 @@ def get_column(input, pos):
 
 class Lexer(object):
 
-    literals = ['+','-','*','/', '(',')']
+    literals = ['+','-','*','/', '(',')','#']
 
     keywords = (
         "const", "enum", "typedef", "struct", "union",
@@ -30,7 +30,7 @@ class Lexer(object):
     )
 
     tokens = tuple([t.upper() for t in keywords]) + (
-        "ID", "CONST8", "CONST10", "CONST16",
+        "ID", "PATH", "CONST8", "CONST10", "CONST16",
         # [ ] { } < >
         "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "LT", "GT",
         # ; : = , ...
@@ -49,6 +49,10 @@ class Lexer(object):
         r'[A-Za-z][A-Za-z0-9_]*'
         if t.value in self.keywords:
             t.type = t.value.upper()
+        return t
+
+    def t_PATH(self, t):
+        r'".*"'
         return t
 
     def t_CONST16(self, t):
@@ -77,8 +81,8 @@ class Lexer(object):
     t_EQUALS = r'='
     t_COMMA = r','
     t_DOTS = r'\.\.\.'
-    t_LSHIFT  = r'<<'
-    t_RSHIFT  = r'>>'
+    t_LSHIFT = r'<<'
+    t_RSHIFT = r'>>'
 
     t_ignore  = ' \t\r'
 
@@ -113,8 +117,9 @@ class Parser(object):
         self.lexer = lexer
         self.yacc = yacc.yacc(module = self, **kwargs)
 
-    def parse(self, input, parse_error_prefix):
+    def parse(self, input, parse_error_prefix, parse_file):
         self._init_parse_data(parse_error_prefix)
+        self.parse_file = parse_file
         self.lexer.lineno = 1
         self.yacc.parse(input, lexer = self.lexer)
         return self.nodes
@@ -146,11 +151,24 @@ class Parser(object):
                            | empty'''
 
     def p_definition(self, t):
-        '''definition : constant_def
+        '''definition : include_def
+                      | constant_def
                       | enum_def
                       | typedef_def
                       | struct_def
                       | union_def'''
+
+    def p_include_def(self, t):
+        """include_def : '#' ID PATH"""
+        self._parser_check(
+            t[2] == 'include',
+            "unknown directive '{}'".format(t[2]),
+            t.lineno(2), t.lexpos(2)
+        )
+        path = t[3][1:-1]
+        stem = os.path.splitext(os.path.basename(path))[0]
+        node = Include(stem, [])
+        self.nodes.append(node)
 
     def p_constant_def(self, t):
         '''constant_def : CONST unique_id EQUALS expression SEMI'''
@@ -424,13 +442,13 @@ lexer = Lexer()
 parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_prophy')
 lexer._lexer_error = parser._parser_error
 
-def build_model(input, parse_error_prefix):
-    parser.parse(input, parse_error_prefix)
+def build_model(input, parse_error_prefix, parse_file):
+    parser.parse(input, parse_error_prefix, parse_file)
     if parser.errors:
         raise ParseError(parser.errors)
     return parser.nodes
 
 class ProphyParser(object):
 
-    def parse(self, content, path, process_file):
-        return build_model(content, path)
+    def parse(self, content, path, parse_file):
+        return build_model(content, path, parse_file)

@@ -3,8 +3,8 @@ import pytest
 from prophyc import model
 from prophyc.parsers.prophy import ProphyParser, ParseError
 
-def parse(content):
-    return ProphyParser().parse(content, '', None)
+def parse(content, parse_file = lambda path: []):
+    return ProphyParser().parse(content, '', parse_file)
 
 def test_constants_parsing():
     content = """\
@@ -506,3 +506,22 @@ def test_error_union_member_has_unlimited_kind():
     with pytest.raises(ParseError) as e:
         parse("struct X { u32 x<...>; }; union Y { 0: X x; };")
     assert ":1:42 error: dynamic union arm 'x'" == e.value.errors[0]
+
+def test_include_path():
+    assert parse('#include "x.prophy"') == [model.Include('x', [])]
+    assert parse('#include "noext"') == [model.Include('noext', [])]
+    assert parse('#include "102.prophy"') == [model.Include('102', [])]
+    assert parse('#include "x/y/z.prophy"') == [model.Include('z', [])]
+    assert parse('#include "./x.prophy"') == [model.Include('x', [])]
+    assert parse('#include "../x.prophy"') == [model.Include('x', [])]
+    assert parse('#include "x.y.z.prophy"') == [model.Include('x.y.z', [])]
+    assert parse(' # include  "x.prophy" ') == [model.Include('x', [])]
+    assert parse('\n#\ninclude\n"x.prophy"\n') == [model.Include('x', [])]
+
+def test_include_errors():
+    with pytest.raises(ParseError) as e:
+        parse('#notinclude "test"')
+    assert e.value.errors == [":1:2 error: unknown directive 'notinclude'"]
+    with pytest.raises(ParseError) as e:
+        parse('#include <test>')
+    assert e.value.errors == [":1:10 error: syntax error at '<'"]
