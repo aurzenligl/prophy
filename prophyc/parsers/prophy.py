@@ -112,11 +112,14 @@ class Parser(object):
         ('right','UMINUS')
     )
 
-    def __init__(self, tokens, lexer, **kwargs):
+    def __init__(self, **kwargs):
+        my_lexer = Lexer()
+        tokens, lexer = my_lexer.tokens, my_lexer.lexer
         self._init_parse_data()
         self.tokens = tokens
         self.lexer = lexer
         self.yacc = yacc.yacc(module = self, **kwargs)
+        my_lexer._lexer_error = self._parser_error
 
     def parse(self, input, parse_error_prefix, parse_file):
         self._init_parse_data(parse_error_prefix)
@@ -455,12 +458,25 @@ class Parser(object):
             pos = len(self.lexer.lexdata) - 1
         self._parser_error(message, line, pos)
 
-lexer = Lexer()
-parser = Parser(lexer.tokens, lexer.lexer, debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_prophy')
-lexer._lexer_error = parser._parser_error
+"""
+Creating parsers is very expensive, so there is a need to reuse them.
+On the other hand, recursive parser usage requires a unique one for each
+level of recursion. Static stack of parsers seems to solve the issue.
+"""
+_parsers = []
+
+def _get_parser():
+    if _parsers:
+        return _parsers.pop()
+    return Parser(debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_prophy')
+
+def _push_parser(parser):
+    _parsers.append(parser)
 
 def build_model(input, parse_error_prefix, parse_file):
+    parser = _get_parser()
     parser.parse(input, parse_error_prefix, parse_file)
+    _push_parser(parser)
     if parser.errors:
         raise ParseError(parser.errors)
     return parser.nodes
