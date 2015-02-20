@@ -49,11 +49,11 @@ class Calc(Parser):
         raise ParseError('illegal character %s' % t.value[0])
 
     precedence = (
-        ('left','+','-'),
-        ('left','*','/'),
-        ('left','LSHIFT','RSHIFT'),
-        ('right','UMINUS'),
-        )
+        ('left', '+', '-'),
+        ('left', '*', '/'),
+        ('left', 'LSHIFT', 'RSHIFT'),
+        ('right', 'UMINUS'),
+    )
 
     def p_statement_expr(self, p):
         'statement : expression'

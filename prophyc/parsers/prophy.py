@@ -20,7 +20,7 @@ class ParseError(Exception):
 def get_column(input, pos):
     return pos - input.rfind('\n', 0, pos)
 
-class Lexer(object):
+class Parser(object):
 
     literals = ['+','-','*','/', '(',')','#']
 
@@ -39,12 +39,6 @@ class Lexer(object):
         # << >>
         "LSHIFT", "RSHIFT"
     )
-
-    def __init__(self, **kwargs):
-        self.lexer = lex.lex(module = self, **kwargs)
-
-    def _lexer_error(self, message, line, pos):
-        None
 
     def t_ID(self, t):
         r'[A-Za-z][A-Za-z0-9_]*'
@@ -101,25 +95,19 @@ class Lexer(object):
 
     def t_error(self, t):
         t.lexer.skip(1)
-        self._lexer_error("illegal character '{}'".format(t.value[0]), t.lexer.lineno, t.lexpos)
-
-class Parser(object):
+        self._parser_error("illegal character '{}'".format(t.value[0]), t.lexer.lineno, t.lexpos)
 
     precedence = (
-        ('left','+','-'),
-        ('left','*','/'),
-        ('left','LSHIFT','RSHIFT'),
-        ('right','UMINUS')
+        ('left', '+', '-'),
+        ('left', '*', '/'),
+        ('left', 'LSHIFT', 'RSHIFT'),
+        ('right', 'UMINUS')
     )
 
-    def __init__(self, **kwargs):
-        my_lexer = Lexer()
-        tokens, lexer = my_lexer.tokens, my_lexer.lexer
+    def __init__(self):
         self._init_parse_data()
-        self.tokens = tokens
-        self.lexer = lexer
-        self.yacc = yacc.yacc(module = self, **kwargs)
-        my_lexer._lexer_error = self._parser_error
+        self.lexer = lex.lex(module = self, debug = 0)
+        self.yacc = yacc.yacc(module = self, debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_prophy')
 
     def parse(self, input, parse_error_prefix, parse_file):
         self._init_parse_data(parse_error_prefix)
@@ -475,7 +463,7 @@ _parsers = []
 def _get_parser():
     if _parsers:
         return _parsers.pop()
-    return Parser(debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_prophy')
+    return Parser()
 
 def _push_parser(parser):
     _parsers.append(parser)
