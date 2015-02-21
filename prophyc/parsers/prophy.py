@@ -458,23 +458,21 @@ Creating parsers is very expensive, so there is a need to reuse them.
 On the other hand, recursive parser usage requires a unique one for each
 level of recursion. Static stack of parsers seems to solve the issue.
 """
-_parsers = []
-
-def _get_parser():
-    if _parsers:
-        return _parsers.pop()
-    return Parser()
-
-def _push_parser(parser):
-    _parsers.append(parser)
+from contextlib import contextmanager
+@contextmanager
+def allocate_parser(parsers = []):
+    parser = parsers and parsers.pop() or Parser()
+    try:
+        yield parser
+    finally:
+        parsers.append(parser)
 
 def build_model(input, parse_error_prefix, parse_file):
-    parser = _get_parser()
-    parser.parse(input, parse_error_prefix, parse_file)
-    _push_parser(parser)
-    if parser.errors:
-        raise ParseError(parser.errors)
-    return parser.nodes
+    with allocate_parser() as parser:
+        parser.parse(input, parse_error_prefix, parse_file)
+        if parser.errors:
+            raise ParseError(parser.errors)
+        return parser.nodes
 
 class ProphyParser(object):
 
