@@ -104,8 +104,8 @@ def test_file_processor_nested_includes(tmpdir_cwd):
 def test_file_processor_include_already_parsed(tmpdir_cwd):
     open('main.txt', 'w').write('''\
 #include <incl.txt>
-#include <incl.txt>
-#include <incl.txt>
+#include <./incl.txt>
+#include <././incl.txt>
 ''')
     open('incl.txt', 'w').write('text')
 

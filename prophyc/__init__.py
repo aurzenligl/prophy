@@ -29,8 +29,9 @@ def main():
     def content_parser(*parse_args):
         return parse_content(parser, patcher, *parse_args)
 
+    file_parser = FileProcessor(content_parser, opts.include_dirs)
+
     for input_file in opts.input_files:
-        file_parser = FileProcessor(content_parser, opts.include_dirs)
         try:
             nodes = file_parser(input_file)
         except parse_error as e:

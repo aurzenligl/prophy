@@ -21,7 +21,7 @@ class FileProcessor(object):
         '''Function object accepting arguments (content, path, process_file)'''
         self.include_dirs = include_dirs
         self.files = {}
-        '''Paths are keys, values are results of process_content calls'''
+        '''Absolute paths are keys, values are results of process_content calls'''
 
     def __call__(self, path):
         return self.process_main(path)
@@ -46,12 +46,13 @@ class FileProcessor(object):
         return self._process_file(path)
 
     def _process_file(self, path):
-        if path in self.files:
-            if self.files[path] is None:
+        abspath = os.path.abspath(path)
+        if abspath in self.files:
+            if self.files[abspath] is None:
                 raise CyclicIncludeError(path)
-            return self.files[path]
-        self.files[path] = None
+            return self.files[abspath]
+        self.files[abspath] = None
 
         result = self.process_content(open(path).read(), path, lambda leaf: self.process_leaf(leaf))
-        self.files[path] = result
+        self.files[abspath] = result
         return result
