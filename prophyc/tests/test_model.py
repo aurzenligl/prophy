@@ -289,14 +289,10 @@ def test_cross_reference_quadratic_complexity_include_performance_bug():
     compilation times can skyrocket...
     """
     FACTOR = 10
-    wrap_nodes = lambda name, nodes: [model.Include(name, nodes)] * FACTOR
 
-    nodes = [
-        model.Constant('X', 42),
-        model.Typedef('Y', 'u8')
-    ] * FACTOR
+    nodes = [model.Constant('X', 42), model.Typedef('Y', 'u8')] * FACTOR
     for i in range(FACTOR):
-        nodes = wrap_nodes('inc%s' % i, nodes)
+        nodes = [model.Include('inc%s' % i, nodes)] * FACTOR
     nodes.append(model.Struct('Z', [model.StructMember('x', 'u8', size = 'X')]))
 
     """This line will kill your cpu if cross-referencing algorithm is quadratic"""
