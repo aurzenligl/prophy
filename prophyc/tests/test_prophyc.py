@@ -590,4 +590,5 @@ def test_cpp_full_out_error(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
     assert out == ""
-    assert tr(err) == "prophyc: error: Test byte size unknown\n"
+    assert tr(err) == ("prophyc: warning: type 'Unknown' not found\n"
+                       "prophyc: error: Test byte size unknown\n")

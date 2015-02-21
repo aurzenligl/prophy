@@ -92,7 +92,7 @@ class Calc(Parser):
             while not isinstance(p[0], int):
                 p[0] = self.vars[p[0]]
         except LookupError:
-            raise ParseError("undefined name '%s'" % p[1])
+            raise ParseError("numeric constant '%s' not found" % p[1])
 
     def p_error(self, p):
         raise ParseError("syntax error at '%s'" % p.value)

@@ -30,4 +30,4 @@ def test_calc_errors():
 
     with pytest.raises(calc.ParseError) as e:
         calc.eval('unknown', {})
-    assert 'undefined' in e.value.message
+    assert 'not found' in e.value.message

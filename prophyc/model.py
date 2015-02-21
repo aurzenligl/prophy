@@ -227,7 +227,7 @@ def topological_sort(nodes):
         if not model_sort_rotate(nodes, known, available, index):
             index = index + 1
 
-def cross_reference(nodes):
+def cross_reference(nodes, warn = None):
     """
     Adds definition reference to Typedef and StructMember.
     Adds numeric_size to StructMember if it's a sized array.
@@ -267,18 +267,25 @@ def cross_reference(nodes):
             return int(x)
         except ValueError:
             val = numerics.get(x)
-            if val is not None:
-                return val
-            try:
-                return calc.eval(x, numerics)
-            except calc.ParseError:
-                return None
+            return val is not None and val or calc.eval(x, numerics)
 
     def do_cross_reference(node):
-        node.definition = types.get(node.type)
+        if node.type in BUILTIN_SIZES:
+            node.definition = None
+            return
+        found = types.get(node.type)
+        if not found:
+            if warn:
+                warn("type '%s' not found" % node.type)
+        node.definition = found
     def do_eval_numeric_sizes(node):
         if node.size:
-            node.numeric_size = to_int(node.size)
+            try:
+                node.numeric_size = to_int(node.size)
+            except calc.ParseError as e:
+                if warn:
+                    warn(e.message)
+                node.numeric_size = None
     for node in nodes:
         if isinstance(node, Typedef):
             do_cross_reference(node)

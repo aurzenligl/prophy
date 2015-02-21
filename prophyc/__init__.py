@@ -81,7 +81,7 @@ def parse_content(parser, patcher, *parse_args):
     if patcher:
         patcher(nodes)
     model.topological_sort(nodes)
-    model.cross_reference(nodes)
+    model.cross_reference(nodes, warn = emit_warning)
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes)
     return nodes

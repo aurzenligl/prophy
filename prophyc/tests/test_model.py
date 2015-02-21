@@ -244,6 +244,45 @@ def test_cross_reference_expression_as_array_size():
 
     assert nodes[0].members[0].numeric_size == 6
 
+class WarnFake(object):
+    def __init__(self):
+        self.msgs = []
+    def __call__(self, msg):
+        self.msgs.append(msg)
+
+def test_cross_reference_typedef_warnings():
+    nodes = [model.Typedef('X', 'Unknown')]
+    warn = WarnFake()
+    model.cross_reference(nodes, warn)
+    assert warn.msgs == ["type 'Unknown' not found"]
+
+def test_cross_reference_struct_warnings():
+    nodes = [model.Struct('X', [model.StructMember('x', 'TypeUnknown', size = '12 + NumUnknown')])]
+    warn = WarnFake()
+    model.cross_reference(nodes, warn)
+    assert warn.msgs == ["type 'TypeUnknown' not found", "numeric constant 'NumUnknown' not found"]
+
+def test_cross_reference_union_warnings():
+    nodes = [model.Union('X', [model.UnionMember('x', 'TypeUnknown', '42')])]
+    warn = WarnFake()
+    model.cross_reference(nodes, warn)
+    assert warn.msgs == ["type 'TypeUnknown' not found"]
+
+def test_cross_reference_no_warning_about_primitive_types():
+    warn = WarnFake()
+    model.cross_reference([model.Typedef('X', 'u8')], warn)
+    model.cross_reference([model.Typedef('X', 'u16')], warn)
+    model.cross_reference([model.Typedef('X', 'u32')], warn)
+    model.cross_reference([model.Typedef('X', 'u64')], warn)
+    model.cross_reference([model.Typedef('X', 'i8')], warn)
+    model.cross_reference([model.Typedef('X', 'i16')], warn)
+    model.cross_reference([model.Typedef('X', 'i32')], warn)
+    model.cross_reference([model.Typedef('X', 'i64')], warn)
+    model.cross_reference([model.Typedef('X', 'r32')], warn)
+    model.cross_reference([model.Typedef('X', 'r64')], warn)
+    model.cross_reference([model.Typedef('X', 'byte')], warn)
+    assert warn.msgs == []
+
 def test_evaluate_kinds_arrays():
     nodes = [
         model.Struct("A", [
