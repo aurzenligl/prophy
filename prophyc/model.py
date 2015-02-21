@@ -266,7 +266,13 @@ def cross_reference(nodes):
         try:
             return int(x)
         except ValueError:
-            return numerics.get(x)
+            val = numerics.get(x)
+            if val is not None:
+                return val
+            try:
+                return calc.eval(x, numerics)
+            except calc.ParseError:
+                return None
 
     def do_cross_reference(node):
         node.definition = types.get(node.type)
