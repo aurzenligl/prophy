@@ -232,11 +232,14 @@ def cross_reference(nodes, warn = None):
     Adds definition reference to Typedef and StructMember.
     Adds numeric_size to StructMember if it's a sized array.
     """
+    included = set()
     types = {}
     def add_types_level(nodes):
         for node in nodes:
             if isinstance(node, Include):
-                add_types_level(node.nodes)
+                if node.name not in included:
+                    included.add(node.name)
+                    add_types_level(node.nodes)
             else:
                 types[node.name] = node
     add_types_level(nodes)
@@ -250,11 +253,14 @@ def cross_reference(nodes, warn = None):
             except calc.ParseError:
                 return None
 
+    included = set()
     numerics = {}
     def add_constants_level(nodes):
         for node in nodes:
             if isinstance(node, Include):
-                add_constants_level(node.nodes)
+                if node.name not in included:
+                    included.add(node.name)
+                    add_constants_level(node.nodes)
             elif isinstance(node, Constant):
                 numerics[node.name] = eval_int(node.value, numerics)
             elif isinstance(node, Enum):

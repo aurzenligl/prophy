@@ -283,6 +283,27 @@ def test_cross_reference_no_warning_about_primitive_types():
     model.cross_reference([model.Typedef('X', 'byte')], warn)
     assert warn.msgs == []
 
+def test_cross_reference_quadratic_complexity_include_performance_bug():
+    """
+    If type and numeric definitions from includes are processed each time,
+    compilation times can skyrocket...
+    """
+    FACTOR = 10
+    wrap_nodes = lambda name, nodes: [model.Include(name, nodes)] * FACTOR
+
+    nodes = [
+        model.Constant('X', 42),
+        model.Typedef('Y', 'u8')
+    ] * FACTOR
+    for i in range(FACTOR):
+        nodes = wrap_nodes('inc%s' % i, nodes)
+    nodes.append(model.Struct('Z', [model.StructMember('x', 'u8', size = 'X')]))
+
+    """This line will kill your cpu if cross-referencing algorithm is quadratic"""
+    model.cross_reference(nodes)
+
+    assert nodes[-1].members[0].numeric_size == 42
+
 def test_evaluate_kinds_arrays():
     nodes = [
         model.Struct("A", [
