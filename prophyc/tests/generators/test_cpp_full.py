@@ -2404,3 +2404,24 @@ def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
     assert "X byte size unknown" == e.value.message
+
+def test_get_byte_size_when_array_delimiter_is_a_typedef():
+    nodes = process([
+        model.Typedef('IntType', 'u32'),
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'IntType', bound = 'num_of_x')
+        ])
+    ])
+    assert 'x.size() * 4 + 4' in generate_struct_get_byte_size(nodes[1])
+
+def test_encode_and_decode_when_array_delimiter_is_a_typedef():
+    nodes = process([
+        model.Typedef('IntType', 'u32'),
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'IntType'),
+            model.StructMember('x', 'u32', bound = 'num_of_x')
+        ])
+    ])
+    assert 'uint32_t(x.x.size())' in generate_struct_encode(nodes[1])
+    assert 'do_decode_resize<E, uint32_t>' in generate_struct_decode(nodes[1])

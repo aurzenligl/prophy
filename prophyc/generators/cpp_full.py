@@ -31,6 +31,29 @@ def _get_initializer(m):
 def _const_refize(apply, text):
     return apply and text.join(('const ', '&')) or text
 
+def _get_leaf(node):
+    """
+    Gets innermost definition of Typedef or Struct-/UnionMember.
+    Other nodes pass through.
+    """
+    while getattr(node, 'definition', None):
+        node = node.definition
+    return node
+
+def _get_byte_size(node):
+    """Gets byte size of any node."""
+    node = _get_leaf(node)
+    if isinstance(node, model.Enum):
+        return DISC_SIZE
+    elif hasattr(node, 'type'):
+        return BUILTIN_SIZES.get(node.type)
+    else:
+        return node.byte_size
+
+def _get_cpp_builtin_type(node):
+    """Gets C++ float or int type from stdint.h, or throws miserably."""
+    return BUILTIN2C[_get_leaf(node).type]
+
 def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
@@ -194,17 +217,18 @@ def generate_union_implementation(node):
 def generate_struct_encode(node):
     text = ''
     bound = {m.bound:m for m in node.members if m.bound}
-    delimiters = {bound[m.name].name:m for m in node.members if m.name in bound}
+    delimiters = {bound[m.name].name:(m, _get_cpp_builtin_type(m)) for m in node.members if m.name in bound}
     for m in node.members:
         if m.fixed:
             text += 'pos = do_encode<E>(pos, x.{0}.data(), {1});\n'.format(m.name, m.size)
         elif m.dynamic:
-            d = delimiters[m.name]
-            text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, BUILTIN2C[d.type])
+            d, dcpptype = delimiters[m.name]
+            text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, dcpptype)
         elif m.limited:
-            d = delimiters[m.name]
+            d, dcpptype = delimiters[m.name]
+            dcpptype = _get_cpp_builtin_type(d)
             text += (
-                'do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'.format(m.name, m.size, BUILTIN2C[d.type])
+                'do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'.format(m.name, m.size, dcpptype)
                 + 'pos = pos + {0};\n'.format(m.byte_size)
             )
         elif m.greedy:
@@ -213,12 +237,13 @@ def generate_struct_encode(node):
             text += 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name)
         elif m.name in bound:
             b = bound[m.name]
+            mcpptype = _get_cpp_builtin_type(m)
             if b.dynamic:
-                text += 'pos = do_encode<E>(pos, {1}(x.{0}.size()));\n'.format(b.name, BUILTIN2C[m.type])
+                text += 'pos = do_encode<E>(pos, {1}(x.{0}.size()));\n'.format(b.name, mcpptype)
             else:
                 text += (
                     'pos = do_encode<E>(pos, {2}(std::min(x.{0}.size(), size_t({1}))));\n'
-                    .format(b.name, b.size, BUILTIN2C[m.type])
+                    .format(b.name, b.size, mcpptype)
                 )
         else:
             text += 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name)
@@ -246,10 +271,11 @@ def generate_struct_decode(node):
             text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
         elif m.name in bound:
             b = bound[m.name]
+            mcpptype = _get_cpp_builtin_type(m)
             if b.dynamic:
-                text.append('do_decode_resize<E, {1}>(x.{0}, pos, end)'.format(b.name, BUILTIN2C[m.type]))
+                text.append('do_decode_resize<E, {1}>(x.{0}, pos, end)'.format(b.name, mcpptype))
             else:
-                text.append('do_decode_resize<E, {2}>(x.{0}, pos, end, {1})'.format(b.name, b.size, BUILTIN2C[m.type]))
+                text.append('do_decode_resize<E, {2}>(x.{0}, pos, end, {1})'.format(b.name, b.size, mcpptype))
         else:
             text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
         if m.padding:
@@ -287,14 +313,12 @@ def generate_struct_encoded_byte_size(node):
     return (node.kind == model.Kind.FIXED) and str(node.byte_size) or '-1'
 
 def generate_struct_get_byte_size(node):
-    def byte_size(m):
-        return BUILTIN_SIZES.get(m.type) or DISC_SIZE * isinstance(m.definition, model.Enum) or m.definition.byte_size
     bytes = 0
     elems = []
     for m in node.members:
         if m.kind == model.Kind.FIXED:
             if m.dynamic or m.greedy:
-                elems += ['{0}.size() * {1}'.format(m.name, byte_size(m))]
+                elems += ['{0}.size() * {1}'.format(m.name, _get_byte_size(m))]
             else:
                 bytes += m.byte_size + m.padding
         else:
