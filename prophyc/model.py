@@ -64,7 +64,10 @@ class Struct(object):
         self.members = members
 
         self.kind = evaluate_struct_kind(self)
-        self.byte_size = None # byte size of complete struct, dynamic/greedy arrays assumed empty
+
+        self.byte_size = None
+        """byte size of complete struct, dynamic/greedy arrays assumed empty"""
+
         self.alignment = None
 
     def __cmp__(self, other):
@@ -90,11 +93,20 @@ class StructMember(object):
         self.optional = optional
 
         self.definition = definition
-        self.numeric_size = None # integral number indicating array size (it may be a string with enum member or constant name)
-        self.kind = evaluate_member_kind(self) # type kind, not influenced by array or optional
-        self.byte_size = None # byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy
+
+        self.numeric_size = None
+        """integral number indicating array size (it may be a string with enum member or constant name)"""
+
+        self.kind = evaluate_member_kind(self)
+        """type kind, not influenced by array or optional"""
+
+        self.byte_size = None
+        """byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy"""
+
         self.alignment = None
-        self.padding = None # amount of bytes to add before next field. If field dynamic: negative alignment of next field
+
+        self.padding = None
+        """amount of bytes to add before next field. If field dynamic: negative alignment of next field"""
 
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
