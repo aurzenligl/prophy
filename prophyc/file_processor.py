@@ -1,4 +1,5 @@
 import os
+from contextlib import contextmanager
 
 class CyclicIncludeError(Exception):
     def __init__(self, path):
@@ -8,11 +9,28 @@ class FileNotFoundError(Exception):
     def __init__(self, path):
         Exception.__init__(self, "file %s not found" % path)
 
-def get_first_existing_path(leaf, dirs):
+def _get_first_existing_path(leaf, dirs):
     for dir in dirs:
         path = os.path.join(dir, leaf)
         if os.path.exists(path):
             return path
+
+@contextmanager
+def push_dir(dirs, dir):
+    try:
+        dirs.insert(0, dir)
+        yield dirs
+    finally:
+        dirs.pop(0)
+
+@contextmanager
+def swap_dir(dirs, dir):
+    try:
+        tmp = dirs[0]
+        dirs[0] = dir
+        yield dirs
+    finally:
+        dirs[0] = tmp
 
 class FileProcessor(object):
 
@@ -29,21 +47,23 @@ class FileProcessor(object):
     def process_main(self, path):
         '''Process main file.
 
-        It's meant to be called once during file processor lifetime.
+        Can be called multiple times during file processor lifetime.
         '''
         if not os.path.exists(path):
             raise FileNotFoundError(path)
-        return self._process_file(path)
+        with push_dir(self.include_dirs, os.path.dirname(path)):
+            return self._process_file(path)
 
     def process_leaf(self, leaf):
         '''Process include file.
 
-        It's meant to be called multiple times by content processor.
+        It's meant to be called multiple times recurrentially by content processor.
         '''
-        path = get_first_existing_path(leaf, self.include_dirs)
+        path = _get_first_existing_path(leaf, self.include_dirs)
         if not path:
             raise FileNotFoundError(leaf)
-        return self._process_file(path)
+        with swap_dir(self.include_dirs, os.path.dirname(path)):
+            return self._process_file(path)
 
     def _process_file(self, path):
         abspath = os.path.abspath(path)
