@@ -41,9 +41,8 @@ def parse_options(emit_error):
                         type = readable_dir,
                         action = 'append',
                         default = [],
-                        help = ('Specify the directory in which to search for '
-                                'include directories in sack mode.  '
-                                'May be specified multiple times.'))
+                        help = ('Add the directory to the list of directories to be '
+                                'searched for included files.'))
 
     parser.add_argument('-p', '--patch',
                         metavar = 'FILE',
