@@ -178,7 +178,7 @@ def test_isar_warnings(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
     assert out == ""
-    assert err == "prophyc: warning: file include.xml not found\n"
+    assert tr(err) == "prophyc: warning: file include.xml not found\n"
 
 def test_isar_with_includes(tmpdir_cwd):
     open("input.xml", "w").write("""
