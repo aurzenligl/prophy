@@ -552,6 +552,15 @@ _cpp_visitor = {
 def generate_cpp_content(nodes):
     return '\n'.join(_cpp_visitor[type(node)](node) for node in nodes if type(node) in _cpp_visitor)
 
+def generate_hpp(nodes, basename):
+    includes = ''.join(generate_include_definition(node) for node in nodes if isinstance(node, model.Include))
+    if includes:
+        includes += '\n'
+    return '\n'.join((_hpp_header.format(basename, includes), generate_hpp_content(nodes), _hpp_footer.format(basename)))
+
+def generate_cpp(nodes, basename):
+    return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
+
 def check_nodes(nodes):
     for n in nodes:
         if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
@@ -562,18 +571,9 @@ class CppFullGenerator(object):
     def __init__(self, output_dir):
         self.output_dir = output_dir
 
-    def generate_hpp(self, nodes, basename):
-        includes = ''.join(generate_include_definition(node) for node in nodes if isinstance(node, model.Include))
-        if includes:
-            includes += '\n'
-        return '\n'.join((_hpp_header.format(basename, includes), generate_hpp_content(nodes), _hpp_footer.format(basename)))
-
-    def generate_cpp(self, nodes, basename):
-        return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
-
     def serialize(self, nodes, basename):
         check_nodes(nodes)
         hpp_path = os.path.join(self.output_dir, basename + '.ppf.hpp')
         cpp_path = os.path.join(self.output_dir, basename + '.ppf.cpp')
-        open(hpp_path, 'w').write(self.generate_hpp(nodes, basename))
-        open(cpp_path, 'w').write(self.generate_cpp(nodes, basename))
+        open(hpp_path, 'w').write(generate_hpp(nodes, basename))
+        open(cpp_path, 'w').write(generate_cpp(nodes, basename))

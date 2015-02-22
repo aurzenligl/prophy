@@ -2203,7 +2203,7 @@ struct B : public prophy::detail::message<B>
 """
 
 def test_generate_hpp(Union):
-    assert CppFullGenerator('.').generate_hpp(Union, 'MyFile') == """\
+    assert generate_hpp(Union, 'MyFile') == """\
 #ifndef _PROPHY_GENERATED_FULL_MyFile_HPP
 #define _PROPHY_GENERATED_FULL_MyFile_HPP
 
@@ -2252,7 +2252,7 @@ struct X : public prophy::detail::message<X>
 """
 
 def test_generate_cpp(Struct):
-    assert CppFullGenerator('.').generate_cpp(Struct, 'MyFile') == """\
+    assert generate_cpp(Struct, 'MyFile') == """\
 #include "MyFile.ppf.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
@@ -2373,7 +2373,7 @@ struct Y : public prophy::detail::message<Y>
 
 } // namespace generated
 } // namespace prophy
-""" in CppFullGenerator('.').generate_hpp(nodes, 'MyFile')
+""" in generate_hpp(nodes, 'MyFile')
 
 def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
     nodes = process([
