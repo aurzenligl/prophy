@@ -305,14 +305,8 @@ def cross_reference(nodes, warn = None):
         elif isinstance(node, Union):
             map(cross_reference_types, node.members)
 
-def evaluate_node_kind(node):
-    while isinstance(node, Typedef):
-        node = node.definition
-    if isinstance(node, Struct):
-        return node.kind
-    else:
-        return Kind.FIXED
 def evaluate_struct_kind(node):
+    """Adds kind to Struct. Requires cross referenced nodes."""
     if node.members:
         if node.members[-1].greedy:
             return Kind.UNLIMITED
@@ -322,13 +316,23 @@ def evaluate_struct_kind(node):
             return max(x.kind for x in node.members)
     else:
         return Kind.FIXED
+
 def evaluate_member_kind(member):
+    """Adds kind to StructMember. Requires cross referenced nodes."""
+    def evaluate_node_kind(node):
+        while isinstance(node, Typedef):
+            node = node.definition
+        if isinstance(node, Struct):
+            return node.kind
+        else:
+            return Kind.FIXED
     if member.definition:
         return evaluate_node_kind(member.definition)
     else:
         return Kind.FIXED
+
 def evaluate_kinds(nodes):
-    """Adds kind to Struct and StructMember. Requires cross referenced nodes."""
+    """Adds kind to all Structs and StructMembers. Requires cross referenced nodes."""
     for node in nodes:
         if isinstance(node, Struct):
             for member in node.members:
