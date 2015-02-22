@@ -199,16 +199,13 @@ def topological_sort(nodes):
         return [member.type for member in struct.members]
     def get_union_deps(union):
         return [member.type for member in union.members]
-    deps_visitor = {
-        Include: get_include_deps,
-        Constant: get_constant_deps,
-        Typedef: get_typedef_deps,
-        Enum: get_enum_deps,
-        Struct: get_struct_deps,
-        Union: get_union_deps
-    }
     def get_deps(node):
-        return deps_visitor[type(node)](node)
+        if isinstance(node, Include): return get_include_deps(node)
+        elif isinstance(node, Constant): return get_constant_deps(node)
+        elif isinstance(node, Typedef): return get_typedef_deps(node)
+        elif isinstance(node, Enum): return get_enum_deps(node)
+        elif isinstance(node, Struct): return get_struct_deps(node)
+        elif isinstance(node, Union): return get_union_deps(node)
     def model_sort_rotate(nodes, known, available, index):
         node = nodes[index]
         for dep in get_deps(node):
