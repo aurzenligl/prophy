@@ -232,50 +232,49 @@ def cross_reference(nodes, warn = None):
     Adds definition reference to Typedef and StructMember.
     Adds numeric_size to StructMember if it's a sized array.
     """
-    included = set()
-    types = {}
-    def add_types_level(nodes):
-        for node in nodes:
-            if isinstance(node, Include):
-                if node.name not in included:
-                    included.add(node.name)
-                    add_types_level(node.nodes)
-            else:
-                types[node.name] = node
-    add_types_level(nodes)
+    def get_type_defitinions(nodes):
+        included = set()
+        types = {}
+        def add_nodes_level(nodes):
+            for node in nodes:
+                if isinstance(node, Include):
+                    if node.name not in included:
+                        included.add(node.name)
+                        add_nodes_level(node.nodes)
+                else:
+                    types[node.name] = node
+        add_nodes_level(nodes)
+        return types
 
-    def eval_int(x, numerics):
-        try:
-            return int(x)
-        except ValueError:
+    def get_constant_definitions(nodes):
+        def eval_int(x, constants):
             try:
-                return calc.eval(x, numerics)
-            except calc.ParseError:
-                return None
+                return int(x)
+            except ValueError:
+                try:
+                    return calc.eval(x, constants)
+                except calc.ParseError:
+                    return None
+        included = set()
+        constants = {}
+        def add_constants_level(nodes):
+            for node in nodes:
+                if isinstance(node, Include):
+                    if node.name not in included:
+                        included.add(node.name)
+                        add_constants_level(node.nodes)
+                elif isinstance(node, Constant):
+                    constants[node.name] = eval_int(node.value, constants)
+                elif isinstance(node, Enum):
+                    for member in node.members:
+                        constants[member.name] = eval_int(member.value, constants)
+        add_constants_level(nodes)
+        return constants
 
-    included = set()
-    numerics = {}
-    def add_constants_level(nodes):
-        for node in nodes:
-            if isinstance(node, Include):
-                if node.name not in included:
-                    included.add(node.name)
-                    add_constants_level(node.nodes)
-            elif isinstance(node, Constant):
-                numerics[node.name] = eval_int(node.value, numerics)
-            elif isinstance(node, Enum):
-                for member in node.members:
-                    numerics[member.name] = eval_int(member.value, numerics)
-    add_constants_level(nodes)
+    types = get_type_defitinions(nodes)
+    constants = get_constant_definitions(nodes)
 
-    def to_int(x):
-        try:
-            return int(x)
-        except ValueError:
-            val = numerics.get(x)
-            return val is not None and val or calc.eval(x, numerics)
-
-    def do_cross_reference(node):
+    def cross_reference_types(node):
         if node.type in BUILTIN_SIZES:
             node.definition = None
             return
@@ -284,7 +283,14 @@ def cross_reference(nodes, warn = None):
             if warn:
                 warn("type '%s' not found" % node.type)
         node.definition = found
-    def do_eval_numeric_sizes(node):
+
+    def evaluate_array_sizes(node):
+        def to_int(x):
+            try:
+                return int(x)
+            except ValueError:
+                val = constants.get(x)
+                return val is not None and val or calc.eval(x, constants)
         if node.size:
             try:
                 node.numeric_size = to_int(node.size)
@@ -292,14 +298,15 @@ def cross_reference(nodes, warn = None):
                 if warn:
                     warn(e.message)
                 node.numeric_size = None
+
     for node in nodes:
         if isinstance(node, Typedef):
-            do_cross_reference(node)
+            cross_reference_types(node)
         elif isinstance(node, Struct):
-            map(do_cross_reference, node.members)
-            map(do_eval_numeric_sizes, node.members)
+            map(cross_reference_types, node.members)
+            map(evaluate_array_sizes, node.members)
         elif isinstance(node, Union):
-            map(do_cross_reference, node.members)
+            map(cross_reference_types, node.members)
 
 def evaluate_node_kind(node):
     while isinstance(node, Typedef):
