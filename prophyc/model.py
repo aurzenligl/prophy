@@ -339,8 +339,101 @@ def evaluate_kinds(nodes):
                 member.kind = evaluate_member_kind(member)
             node.kind = evaluate_struct_kind(node)
 
+def evaluate_sizes(nodes):
+    """
+    Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
+    Requires cross referenced nodes and evaluated kinds.
+    """
+    def evaluate_node_size(node):
+        while isinstance(node, Typedef) and node.definition:
+            node = node.definition
+        if isinstance(node, (Struct, Union)):
+            return (node.byte_size, node.alignment)
+        elif isinstance(node, Enum):
+            return (ENUM_SIZE, ENUM_SIZE)
+        elif node.type in BUILTIN_SIZES:
+            byte_size = BUILTIN_SIZES[node.type]
+            return (byte_size, byte_size)
+        else:
+            return (None, None) # unknown type, e.g. empty typedef
+
+    def evaluate_array_and_optional_size(member):
+        if member.array and member.byte_size is not None:
+            member.byte_size = member.numeric_size and (member.byte_size * member.numeric_size) or 0
+        elif member.optional:
+            member.alignment = max(DISC_SIZE, member.alignment)
+            member.byte_size = member.byte_size + member.alignment
+
+    def evaluate_member_size(member):
+        if isinstance(member, StructMember) and (member.size and member.numeric_size is None):
+            size_alignment = (None, None) # unknown array size
+        elif member.definition:
+            size_alignment = evaluate_node_size(member.definition)
+        elif member.type in BUILTIN_SIZES:
+            byte_size = BUILTIN_SIZES[member.type]
+            size_alignment = (byte_size, byte_size)
+        else:
+            size_alignment = (None, None) # unknown type
+        member.byte_size, member.alignment = size_alignment
+        return size_alignment != (None, None)
+
+    def evaluate_empty_size(node):
+        node.byte_size, node.alignment = (None, None)
+
+    def evaluate_members_sizes(node):
+        if not all(map(evaluate_member_size, node.members)):
+            evaluate_empty_size(node)
+            return False
+        return True
+
+    def evaluate_partial_padding_size(node):
+        parts = split_after(node.members, lambda x: (x.kind == Kind.DYNAMIC) or (x.array and not x.size))
+        for part in [x for x in parts][1:]:
+            part[0].alignment = max(part[0].alignment, max(x.alignment for x in part))
+
+    def evaluate_struct_size(node):
+        def is_member_dynamic(m):
+            return m.dynamic or m.greedy or m.kind != Kind.FIXED
+        alignment = node.members and max(x.alignment for x in node.members) or 1
+        byte_size = 0
+        prev_member = node.members and node.members[0] or None
+        for member in node.members:
+            padding = (member.alignment - byte_size % member.alignment) % member.alignment
+            byte_size += member.byte_size + padding
+            if is_member_dynamic(prev_member) and (prev_member.alignment < member.alignment):
+                prev_member.padding = -(member.alignment)
+            else:
+                prev_member.padding = padding
+            prev_member = member
+        if node.members:
+            padding = (alignment - byte_size % alignment) % alignment
+            byte_size += padding
+            if any(is_member_dynamic(m) for m in node.members):
+                prev_member.padding = (node.members[-1].alignment < alignment) and (-alignment) or 0
+            else:
+                prev_member.padding = padding
+        node.byte_size, node.alignment = byte_size, alignment
+
+    def evaluate_union_size(node):
+        node.alignment = max(DISC_SIZE, node.members and max(x.alignment for x in node.members) or 1)
+        node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
+        node.byte_size = (node.byte_size + node.alignment - 1) / node.alignment * node.alignment
+
+    for node in nodes:
+        if isinstance(node, Struct):
+            if evaluate_members_sizes(node):
+                map(evaluate_array_and_optional_size, node.members)
+                evaluate_partial_padding_size(node)
+                evaluate_struct_size(node)
+        elif isinstance(node, Union):
+            if evaluate_members_sizes(node):
+                evaluate_union_size(node)
+
 def partition(members):
-    """Splits struct members to parts, each of which ends with dynamic field."""
+    """
+    Splits struct members to parts, each of which ends with dynamic field.
+    Requires cross referenced nodes and evaluated kinds.
+    """
     main = []
     parts = []
     current = main
@@ -352,84 +445,3 @@ def partition(members):
     if members:
         current.append(members[-1])
     return main, parts
-
-def evaluate_node_size(node):
-    while isinstance(node, Typedef) and node.definition:
-        node = node.definition
-    if isinstance(node, (Struct, Union)):
-        return (node.byte_size, node.alignment)
-    elif isinstance(node, Enum):
-        return (ENUM_SIZE, ENUM_SIZE)
-    elif node.type in BUILTIN_SIZES:
-        byte_size = BUILTIN_SIZES[node.type]
-        return (byte_size, byte_size)
-    else:
-        return (None, None) # unknown type, e.g. empty typedef
-def evaluate_array_and_optional_size(member):
-    if member.array and member.byte_size is not None:
-        member.byte_size = member.numeric_size and (member.byte_size * member.numeric_size) or 0
-    elif member.optional:
-        member.alignment = max(DISC_SIZE, member.alignment)
-        member.byte_size = member.byte_size + member.alignment
-def evaluate_member_size(member):
-    if isinstance(member, StructMember) and (member.size and member.numeric_size is None):
-        size_alignment = (None, None) # unknown array size
-    elif member.definition:
-        size_alignment = evaluate_node_size(member.definition)
-    elif member.type in BUILTIN_SIZES:
-        byte_size = BUILTIN_SIZES[member.type]
-        size_alignment = (byte_size, byte_size)
-    else:
-        size_alignment = (None, None) # unknown type
-    member.byte_size, member.alignment = size_alignment
-    return size_alignment != (None, None)
-def evaluate_empty_size(node):
-    node.byte_size, node.alignment = (None, None)
-def evaluate_members_sizes(node):
-    if not all(map(evaluate_member_size, node.members)):
-        evaluate_empty_size(node)
-        return False
-    return True
-def evaluate_partial_padding_size(node):
-    parts = split_after(node.members, lambda x: (x.kind == Kind.DYNAMIC) or (x.array and not x.size))
-    for part in [x for x in parts][1:]:
-        part[0].alignment = max(part[0].alignment, max(x.alignment for x in part))
-def evaluate_struct_size(node):
-    def is_member_dynamic(m):
-        return m.dynamic or m.greedy or m.kind != Kind.FIXED
-    alignment = node.members and max(x.alignment for x in node.members) or 1
-    byte_size = 0
-    prev_member = node.members and node.members[0] or None
-    for member in node.members:
-        padding = (member.alignment - byte_size % member.alignment) % member.alignment
-        byte_size += member.byte_size + padding
-        if is_member_dynamic(prev_member) and (prev_member.alignment < member.alignment):
-            prev_member.padding = -(member.alignment)
-        else:
-            prev_member.padding = padding
-        prev_member = member
-    if node.members:
-        padding = (alignment - byte_size % alignment) % alignment
-        byte_size += padding
-        if any(is_member_dynamic(m) for m in node.members):
-            prev_member.padding = (node.members[-1].alignment < alignment) and (-alignment) or 0
-        else:
-            prev_member.padding = padding
-    node.byte_size, node.alignment = byte_size, alignment
-def evaluate_union_size(node):
-    node.alignment = max(DISC_SIZE, node.members and max(x.alignment for x in node.members) or 1)
-    node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
-    node.byte_size = (node.byte_size + node.alignment - 1) / node.alignment * node.alignment
-def evaluate_sizes(nodes):
-    """Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
-       Requires cross referenced nodes and evaluated kinds.
-    """
-    for node in nodes:
-        if isinstance(node, Struct):
-            if evaluate_members_sizes(node):
-                map(evaluate_array_and_optional_size, node.members)
-                evaluate_partial_padding_size(node)
-                evaluate_struct_size(node)
-        elif isinstance(node, Union):
-            if evaluate_members_sizes(node):
-                evaluate_union_size(node)
