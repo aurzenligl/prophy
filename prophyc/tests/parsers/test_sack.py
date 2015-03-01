@@ -1,18 +1,11 @@
 import os
-import tempfile
 import pytest
 
 from prophyc import model
+from prophyc.parsers.sack import SackParser
 
-def parse(content, suffix = '.hpp'):
-    from prophyc.parsers.sack import SackParser
-    try:
-        with tempfile.NamedTemporaryFile(suffix = suffix, delete = False) as temp:
-            temp.write(content)
-            temp.flush()
-            return SackParser().parse('', temp.name, None)
-    finally:
-        os.unlink(temp.name)
+def parse(content, name = 'test.hpp'):
+    return SackParser().parse(content, name, None)
 
 class contains_cmp(object):
     def __init__(self, x):
@@ -475,7 +468,7 @@ struct X
     } a;
 };
 """
-    nodes = parse(hpp, suffix = '-hyphen.hpp')
+    nodes = parse(hpp, name = 'test-hyphen.hpp')
 
     assert '__hyphen__hpp__' in nodes[0].name
 

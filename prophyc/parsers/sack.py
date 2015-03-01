@@ -121,7 +121,7 @@ class SackParser(object):
         self.include_dirs = include_dirs
 
     def parse(self, content, path, process_file):
-        args_ = [path] + ["-I" + x for x in self.include_dirs]
+        args_ = ["-I" + x for x in self.include_dirs]
         index = Index.create()
-        tu = index.parse(None, args_)
+        tu = index.parse(path, args_, unsaved_files = ((path, content),))
         return build_model(tu)
