@@ -492,20 +492,24 @@ struct X
 """
     assert parse(hpp) == [model.Struct('X', [])]
 
+class WarnMock(object):
+    def __init__(self):
+        self.warnings = []
+    def __call__(self, msg, location = 'prophyc'):
+        self.warnings.append((location, msg))
+
 @pytest.clang_installed
 def test_diagnostics_error():
     content = """\
 unknown;
 """
-    warnings = []
-    def warn(msg, location = 'prophy'):
-        warnings.append((location, msg))
+    warn = WarnMock()
 
     assert parse(content,
         name = "x.cpp",
         warn = warn
     ) == []
-    assert warnings == [('x.cpp:1:1', 'C++ requires a type specifier for all declarations')]
+    assert warn.warnings == [('x.cpp:1:1', 'C++ requires a type specifier for all declarations')]
 
 @pytest.clang_installed
 def test_diagnostics_warning():
@@ -515,12 +519,10 @@ int foo()
     int x;
 }
 """
-    warnings = []
-    def warn(msg, location = 'prophy'):
-        warnings.append((location, msg))
+    warn = WarnMock()
 
     assert parse(content,
         name = "x.cpp",
         warn = warn
     ) == []
-    assert warnings == [('x.cpp:4:1', 'control reaches end of non-void function')]
+    assert warn.warnings == [('x.cpp:4:1', 'control reaches end of non-void function')]
