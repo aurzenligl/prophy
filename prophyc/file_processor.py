@@ -37,7 +37,7 @@ class FileProcessor(object):
     def __init__(self, process_content, include_dirs):
         self.process_content = process_content
         '''Function object accepting arguments (content, path, process_file)'''
-        self.include_dirs = include_dirs
+        self.include_dirs = [_ for _ in include_dirs]
         self.files = {}
         '''Absolute paths are keys, values are results of process_content calls'''
 
