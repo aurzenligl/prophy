@@ -52,7 +52,7 @@ def get_parser(opts):
         if not module_exists("clang"):
             emit_error("sack input requires clang and it's not installed")
         from prophyc.parsers.sack import SackParser
-        return SackParser(opts.include_dirs)
+        return SackParser(opts.include_dirs, warn = emit_warning)
     else:
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()

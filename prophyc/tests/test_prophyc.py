@@ -458,6 +458,34 @@ constant
     assert errlines[1].endswith("input.prophy:2:10: error: syntax error at '}'")
     assert not os.path.exists("input.py")
 
+def test_sack_parse_warnings(tmpdir_cwd):
+    open("input.cpp", "w").write("""\
+int foo() { int x; }
+rubbish;
+""")
+
+    ret, out, err = call(['--python_out', str(tmpdir_cwd), '--sack',
+                          os.path.join(str(tmpdir_cwd), 'input.cpp')])
+    assert ret == 0
+    assert out == ""
+    errlines = tr(err).splitlines()
+    assert len(errlines) == 2
+    assert 'input.cpp:1:20: warning: control reaches end of non-void function' in errlines[0]
+    assert 'input.cpp:2:1: warning: C++ requires a type specifier for all declarations' in errlines[1]
+    assert os.path.exists("input.py")
+
+def test_sack_parse_errors(tmpdir_cwd):
+    open("input.unknown", "w").write("")
+
+    ret, out, err = call(['--python_out', str(tmpdir_cwd), '--sack',
+                          os.path.join(str(tmpdir_cwd), 'input.unknown')])
+    assert ret == 1
+    assert out == ""
+    errlines = tr(err).splitlines()
+    assert len(errlines) == 1
+    assert 'input.unknown: error: error parsing translation unit' in errlines[0]
+    assert not os.path.exists("input.py")
+
 def test_cpp_full_out(tmpdir_cwd):
     open("input.prophy", "w").write("""
 typedef i16 TP;
