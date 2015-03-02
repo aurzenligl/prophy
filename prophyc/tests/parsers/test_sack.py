@@ -526,3 +526,9 @@ int foo()
         warn = warn
     ) == []
     assert warn.warnings == [('x.cpp:4:1', 'control reaches end of non-void function')]
+
+@pytest.clang_installed
+def test_libclang_parsing_error():
+    with pytest.raises(model.ParseError) as e:
+        parse('content', name = 'x')
+    assert e.value.errors == [('x', 'error parsing translation unit')]

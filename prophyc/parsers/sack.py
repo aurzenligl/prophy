@@ -1,5 +1,5 @@
 import re
-from clang.cindex import Index, CursorKind, TypeKind
+from clang.cindex import Index, CursorKind, TypeKind, TranslationUnitLoadError
 
 from prophyc import model
 
@@ -127,7 +127,10 @@ class SackParser(object):
     def parse(self, content, path, process_file):
         args_ = ["-I" + x for x in self.include_dirs]
         index = Index.create()
-        tu = index.parse(path, args_, unsaved_files = ((path, content),))
+        try:
+            tu = index.parse(path, args_, unsaved_files = ((path, content),))
+        except TranslationUnitLoadError:
+            raise model.ParseError([(path, 'error parsing translation unit')])
         if self.warn:
             for diag in tu.diagnostics:
                 self.warn(diag.spelling, location = _get_location(diag.location))
