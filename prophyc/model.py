@@ -5,6 +5,12 @@ from prophyc import calc
 """ Exception types """
 class GenerateError(Exception): pass
 
+class ParseError(Exception):
+    def __init__(self, errors):
+        Exception.__init__(self, "parsing error")
+        self.errors = errors
+        """Collection of 2-tuples of location and message."""
+
 """ Determines struct member wire format type. """
 class Kind:
     FIXED = 0

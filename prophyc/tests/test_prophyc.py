@@ -454,8 +454,8 @@ constant
     assert out == ""
     errlines = tr(err).splitlines()
     assert len(errlines) == 2
-    assert errlines[0].endswith("input.prophy:1:11 error: syntax error at '}'")
-    assert errlines[1].endswith("input.prophy:2:10 error: syntax error at '}'")
+    assert errlines[0].endswith("input.prophy:1:11: error: syntax error at '}'")
+    assert errlines[1].endswith("input.prophy:2:10: error: syntax error at '}'")
     assert not os.path.exists("input.py")
 
 def test_cpp_full_out(tmpdir_cwd):

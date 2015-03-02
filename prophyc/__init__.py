@@ -35,7 +35,7 @@ def main():
         try:
             nodes = file_parser(input_file)
         except parse_error as e:
-            sys.exit('\n'.join(e.errors))
+            sys.exit('\n'.join(('%s: error: %s' % err for err in e.errors)))
 
         for serializer in serializers:
             basename = get_basename(input_file)

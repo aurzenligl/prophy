@@ -4,18 +4,13 @@ import tempfile
 import ply.lex as lex
 import ply.yacc as yacc
 
-from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind
+from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind, ParseError
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
 PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
 
 if not os.path.exists(PROPHY_DIR):
     os.makedirs(PROPHY_DIR)
-
-class ParseError(Exception):
-    def __init__(self, errors):
-        Exception.__init__(self, "parsing error")
-        self.errors = errors
 
 def get_column(input, pos):
     return pos - input.rfind('\n', 0, pos)
@@ -124,12 +119,11 @@ class Parser(object):
         self.parse_error_prefix = parse_error_prefix
 
     def _parser_error(self, message, line, pos):
-        self.errors.append("{}:{}:{} error: {}".format(
+        self.errors.append(("{}:{}:{}".format(
             self.parse_error_prefix,
             line,
-            get_column(self.lexer.lexdata, pos),
-            message
-        ))
+            get_column(self.lexer.lexdata, pos)
+        ), message))
 
     def _parser_check(self, condition, message, line, pos):
         if not condition:
