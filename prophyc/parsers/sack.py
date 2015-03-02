@@ -116,12 +116,19 @@ def build_model(tu):
             builder.add_struct(cursor)
     return builder.nodes
 
+def _get_location(location):
+    return '%s:%s:%s' % (location.file.name, location.line, location.column)
+
 class SackParser(object):
-    def __init__(self, include_dirs = []):
+    def __init__(self, include_dirs = [], warn = None):
         self.include_dirs = include_dirs
+        self.warn = warn
 
     def parse(self, content, path, process_file):
         args_ = ["-I" + x for x in self.include_dirs]
         index = Index.create()
         tu = index.parse(path, args_, unsaved_files = ((path, content),))
+        if self.warn:
+            for diag in tu.diagnostics:
+                self.warn(diag.spelling, location = _get_location(diag.location))
         return build_model(tu)

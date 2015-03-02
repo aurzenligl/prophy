@@ -4,8 +4,8 @@ import pytest
 from prophyc import model
 from prophyc.parsers.sack import SackParser
 
-def parse(content, name = 'test.hpp'):
-    return SackParser().parse(content, name, None)
+def parse(content, name = 'test.hpp', warn = None):
+    return SackParser(warn = warn).parse(content, name, None)
 
 class contains_cmp(object):
     def __init__(self, x):
@@ -482,7 +482,7 @@ struct X;
 @pytest.clang_installed
 def test_omit_bitfields():
     hpp = """\
-typedef struct X
+struct X
 {
     unsigned a: 1;
     unsigned b: 1;
@@ -491,3 +491,18 @@ typedef struct X
 };
 """
     assert parse(hpp) == [model.Struct('X', [])]
+
+@pytest.clang_installed
+def test_diagnostics():
+    hpp = """\
+unknown;
+"""
+    warnings = []
+    def warn(msg, location = 'prophy'):
+        warnings.append((location, msg))
+
+    assert parse(hpp,
+        name = "directory/file.cpp",
+        warn = warn
+    ) == []
+    assert warnings == [('directory/file.cpp:1:1', 'C++ requires a type specifier for all declarations')]
