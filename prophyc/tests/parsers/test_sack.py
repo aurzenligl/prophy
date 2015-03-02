@@ -493,16 +493,34 @@ struct X
     assert parse(hpp) == [model.Struct('X', [])]
 
 @pytest.clang_installed
-def test_diagnostics():
-    hpp = """\
+def test_diagnostics_error():
+    content = """\
 unknown;
 """
     warnings = []
     def warn(msg, location = 'prophy'):
         warnings.append((location, msg))
 
-    assert parse(hpp,
-        name = "directory/file.cpp",
+    assert parse(content,
+        name = "x.cpp",
         warn = warn
     ) == []
-    assert warnings == [('directory/file.cpp:1:1', 'C++ requires a type specifier for all declarations')]
+    assert warnings == [('x.cpp:1:1', 'C++ requires a type specifier for all declarations')]
+
+@pytest.clang_installed
+def test_diagnostics_warning():
+    content = """\
+int foo()
+{
+    int x;
+}
+"""
+    warnings = []
+    def warn(msg, location = 'prophy'):
+        warnings.append((location, msg))
+
+    assert parse(content,
+        name = "x.cpp",
+        warn = warn
+    ) == []
+    assert warnings == [('x.cpp:4:1', 'control reaches end of non-void function')]
