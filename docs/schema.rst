@@ -3,6 +3,7 @@
 Schema language
 ====================
 
+Let's call it `prophylang`.
 Prophy messages are meant to be held in .prophy files.
 These files contain structs and unions composed with numeric types,
 constants, enums, arrays and nested structs and unions.
@@ -33,13 +34,13 @@ double  64-bit floating double-precision number
 Constant
 -----------
 
-Constants for use as array lengths or union discriminators may be defined this way::
+Constants for use as enumerator values, array lengths or union discriminators may be defined this way::
 
-    const MY_MIN = -1
-    const MY_MAX = 0xFFF
+    const MY_MIN = -1;
+    const MY_MAX = 0xFFF;
+    const MY_AVG = (MY_MIN + MY_MAX) / 2;
 
-Signed, unsigned decimal, octal and hexal numbers are allowed,
-but arithmetic expressions are not.
+Signed, unsigned decimal, octal, hexal numbers and expressions are allowed.
 
 Enum
 ---------
@@ -50,11 +51,10 @@ Enumerations may be defined in following manner::
     {
         MyEnum_1 = 1,
         MyEnum_2 = 2,
-        MyEnum_3 = 3
+        MyEnum_3 = (MyEnum_1 + MyEnum_2) << 2
     };
 
-Enumerators may contain references to other enums or constants,
-but arithmetic expressions are forbidden.
+Enumerator definitions follow the same rules as constants.
 
 Typedef
 --------------
@@ -122,6 +122,16 @@ Field may be optional::
     Optional field cannot hold dynamic nor unlimited struct.
     There's no optional array.
 
+Array field size may be given as expression::
+
+    const A = 10;
+    const B = 2;
+
+    struct X
+    {
+        u32 a[A * B];
+    };
+
 Union
 ----------
 
@@ -143,6 +153,4 @@ Discriminators may be literals or references to constants or enumerators.
 Limitations
 -------------
 
-Currently there are no includes or scoped definitions in the language.
-
-American scientists, however, do work on both.
+Currently there are no scoped definitions in the language.
