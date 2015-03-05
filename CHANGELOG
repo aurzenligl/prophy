@@ -1,3 +1,10 @@
+0.6
+-----------------------------------
+- prophyc: isar mode includes
+- prophyc: sack mode warnings and errors
+- prophyc: prophylang mode includes
+- prophyc: prophylang constant, enumerator and struct array size expressions
+
 0.5.1
 -----------------------------------
 - prophyc cpp output: generated headers contain declarations of swap template functions
