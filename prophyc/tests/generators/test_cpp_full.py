@@ -11,7 +11,7 @@ def process(nodes):
 @pytest.fixture(scope = 'session')
 def Include():
     return process([
-        model.Include('Arrays')
+        model.Include('Arrays', [])
     ])
 
 @pytest.fixture(scope = 'session')
@@ -2203,7 +2203,7 @@ struct B : public prophy::detail::message<B>
 """
 
 def test_generate_hpp(Union):
-    assert CppFullGenerator('.').generate_hpp(Union, 'MyFile') == """\
+    assert generate_hpp(Union, 'MyFile') == """\
 #ifndef _PROPHY_GENERATED_FULL_MyFile_HPP
 #define _PROPHY_GENERATED_FULL_MyFile_HPP
 
@@ -2252,7 +2252,7 @@ struct X : public prophy::detail::message<X>
 """
 
 def test_generate_cpp(Struct):
-    assert CppFullGenerator('.').generate_cpp(Struct, 'MyFile') == """\
+    assert generate_cpp(Struct, 'MyFile') == """\
 #include "MyFile.ppf.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
@@ -2336,6 +2336,45 @@ template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t inden
 } // namespace prophy
 """
 
+def test_generate_hpp_with_included_struct():
+    nodes = process([
+        model.Include('Input', process([
+            model.Struct('X', [
+                model.StructMember('x', 'u64'),
+            ])
+        ])),
+        model.Struct('Y', [
+            model.StructMember('x', 'X')
+        ])
+    ])
+
+    assert """\
+#include "Input.ppf.hpp"
+
+namespace prophy
+{
+namespace generated
+{
+
+struct Y : public prophy::detail::message<Y>
+{
+    enum { encoded_byte_size = 8 };
+
+    X x;
+
+    Y() { }
+    Y(const X& _1): x(_1) { }
+
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+};
+
+} // namespace generated
+} // namespace prophy
+""" in generate_hpp(nodes, 'MyFile')
+
 def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
     nodes = process([
         model.Struct('X', [
@@ -2344,7 +2383,7 @@ def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
-    assert "prophyc: error: X byte size unknown" == e.value.message
+    assert "X byte size unknown" == e.value.message
 
 def test_exception_when_numeric_size_is_unknown(tmpdir_cwd):
     nodes = process([
@@ -2354,7 +2393,7 @@ def test_exception_when_numeric_size_is_unknown(tmpdir_cwd):
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
-    assert "prophyc: error: X byte size unknown" == e.value.message
+    assert "X byte size unknown" == e.value.message
 
 def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
     nodes = process([
@@ -2364,4 +2403,25 @@ def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
-    assert "prophyc: error: X byte size unknown" == e.value.message
+    assert "X byte size unknown" == e.value.message
+
+def test_get_byte_size_when_array_delimiter_is_a_typedef():
+    nodes = process([
+        model.Typedef('IntType', 'u32'),
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'u32'),
+            model.StructMember('x', 'IntType', bound = 'num_of_x')
+        ])
+    ])
+    assert 'x.size() * 4 + 4' in generate_struct_get_byte_size(nodes[1])
+
+def test_encode_and_decode_when_array_delimiter_is_a_typedef():
+    nodes = process([
+        model.Typedef('IntType', 'u32'),
+        model.Struct('X', [
+            model.StructMember('num_of_x', 'IntType'),
+            model.StructMember('x', 'u32', bound = 'num_of_x')
+        ])
+    ])
+    assert 'uint32_t(x.x.size())' in generate_struct_encode(nodes[1])
+    assert 'do_decode_resize<E, uint32_t>' in generate_struct_decode(nodes[1])

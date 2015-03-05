@@ -170,12 +170,39 @@ def test_cross_reference_typedef():
     assert nodes[3].definition.name == "B"
     assert nodes[3].definition.definition.name == "A"
 
-def test_cross_reference_array_size():
+def test_cross_symbols_from_includes():
     nodes = [
-        model.Constant('NUM', '3'),
-        model.Enum('E', [
-            model.EnumMember('E1', '1'),
-            model.EnumMember('E3', 'NUM')
+        model.Include('x', [
+            model.Include('y', [
+                model.Typedef('ala', 'u32')
+            ]),
+            model.Struct('ola', [
+                model.StructMember('a', 'ala'),
+            ])
+        ]),
+        model.Struct('ula', [
+            model.StructMember('a', 'ola'),
+            model.StructMember('b', 'ala'),
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[1].members[0].definition.name == 'ola'
+    assert nodes[1].members[1].definition.name == 'ala'
+    # cross-reference only needs to link definitions of first level of nodes
+    assert nodes[0].nodes[1].members[0].definition == None
+
+def test_cross_reference_array_size_from_includes():
+    nodes = [
+        model.Include('x', [
+            model.Include('y', [
+                model.Constant('NUM', '3'),
+            ]),
+            model.Enum('E', [
+                model.EnumMember('E1', '1'),
+                model.EnumMember('E3', 'NUM')
+            ]),
         ]),
         model.Struct('X', [
             model.StructMember('x', 'u32', size = 'NUM'),
@@ -187,10 +214,91 @@ def test_cross_reference_array_size():
 
     model.cross_reference(nodes)
 
-    assert nodes[2].members[0].numeric_size == 3
-    assert nodes[2].members[1].numeric_size == 1
-    assert nodes[2].members[2].numeric_size == None
-    assert nodes[2].members[3].numeric_size == 3
+    assert nodes[1].members[0].numeric_size == 3
+    assert nodes[1].members[1].numeric_size == 1
+    assert nodes[1].members[2].numeric_size == None
+    assert nodes[1].members[3].numeric_size == 3
+
+def test_cross_reference_numeric_size_of_expression():
+    nodes = [
+        model.Constant('A', 12),
+        model.Constant('B', 15),
+        model.Constant('C', 'A*B'),
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = 'C'),
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[3].members[0].numeric_size == 180
+
+def test_cross_reference_expression_as_array_size():
+    nodes = [
+        model.Struct('X', [
+            model.StructMember('x', 'u32', size = '2 * 3'),
+        ])
+    ]
+
+    model.cross_reference(nodes)
+
+    assert nodes[0].members[0].numeric_size == 6
+
+class WarnFake(object):
+    def __init__(self):
+        self.msgs = []
+    def __call__(self, msg):
+        self.msgs.append(msg)
+
+def test_cross_reference_typedef_warnings():
+    nodes = [model.Typedef('X', 'Unknown')]
+    warn = WarnFake()
+    model.cross_reference(nodes, warn)
+    assert warn.msgs == ["type 'Unknown' not found"]
+
+def test_cross_reference_struct_warnings():
+    nodes = [model.Struct('X', [model.StructMember('x', 'TypeUnknown', size = '12 + NumUnknown')])]
+    warn = WarnFake()
+    model.cross_reference(nodes, warn)
+    assert warn.msgs == ["type 'TypeUnknown' not found", "numeric constant 'NumUnknown' not found"]
+
+def test_cross_reference_union_warnings():
+    nodes = [model.Union('X', [model.UnionMember('x', 'TypeUnknown', '42')])]
+    warn = WarnFake()
+    model.cross_reference(nodes, warn)
+    assert warn.msgs == ["type 'TypeUnknown' not found"]
+
+def test_cross_reference_no_warning_about_primitive_types():
+    warn = WarnFake()
+    model.cross_reference([model.Typedef('X', 'u8')], warn)
+    model.cross_reference([model.Typedef('X', 'u16')], warn)
+    model.cross_reference([model.Typedef('X', 'u32')], warn)
+    model.cross_reference([model.Typedef('X', 'u64')], warn)
+    model.cross_reference([model.Typedef('X', 'i8')], warn)
+    model.cross_reference([model.Typedef('X', 'i16')], warn)
+    model.cross_reference([model.Typedef('X', 'i32')], warn)
+    model.cross_reference([model.Typedef('X', 'i64')], warn)
+    model.cross_reference([model.Typedef('X', 'r32')], warn)
+    model.cross_reference([model.Typedef('X', 'r64')], warn)
+    model.cross_reference([model.Typedef('X', 'byte')], warn)
+    assert warn.msgs == []
+
+def test_cross_reference_quadratic_complexity_include_performance_bug():
+    """
+    If type and numeric definitions from includes are processed each time,
+    compilation times can skyrocket...
+    """
+    FACTOR = 10
+
+    nodes = [model.Constant('X', 42), model.Typedef('Y', 'u8')] * FACTOR
+    for i in range(FACTOR):
+        nodes = [model.Include('inc%s' % i, nodes)] * FACTOR
+    nodes.append(model.Struct('Z', [model.StructMember('x', 'u8', size = 'X')]))
+
+    """This line will kill your cpu if cross-referencing algorithm is quadratic"""
+    model.cross_reference(nodes)
+
+    assert nodes[-1].members[0].numeric_size == 42
 
 def test_evaluate_kinds_arrays():
     nodes = [
@@ -813,4 +921,22 @@ def test_evaluate_sizes_array_with_named_size():
         (None, None, None),
         (4, 4, None),
         (None, None)
+    ]
+
+def test_evaluate_sizes_with_include():
+    nodes = process([
+        model.Include('input', [
+            model.Enum('E', [
+                model.EnumMember('E1', '1')
+            ])
+        ]),
+        model.Struct('X', [
+            model.StructMember('x', 'E'),
+            model.StructMember('y', 'i8'),
+        ])
+    ])
+    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+        (4, 4, 0),
+        (1, 1, 3),
+        (8, 4)
     ]

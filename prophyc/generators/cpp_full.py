@@ -31,6 +31,29 @@ def _get_initializer(m):
 def _const_refize(apply, text):
     return apply and text.join(('const ', '&')) or text
 
+def _get_leaf(node):
+    """
+    Gets innermost definition of Typedef or Struct-/UnionMember.
+    Other nodes pass through.
+    """
+    while getattr(node, 'definition', None):
+        node = node.definition
+    return node
+
+def _get_byte_size(node):
+    """Gets byte size of any node."""
+    node = _get_leaf(node)
+    if isinstance(node, model.Enum):
+        return DISC_SIZE
+    elif hasattr(node, 'type'):
+        return BUILTIN_SIZES.get(node.type)
+    else:
+        return node.byte_size
+
+def _get_cpp_builtin_type(node):
+    """Gets C++ float or int type from stdint.h, or throws miserably."""
+    return BUILTIN2C[_get_leaf(node).type]
+
 def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
@@ -194,17 +217,18 @@ def generate_union_implementation(node):
 def generate_struct_encode(node):
     text = ''
     bound = {m.bound:m for m in node.members if m.bound}
-    delimiters = {bound[m.name].name:m for m in node.members if m.name in bound}
+    delimiters = {bound[m.name].name:(m, _get_cpp_builtin_type(m)) for m in node.members if m.name in bound}
     for m in node.members:
         if m.fixed:
             text += 'pos = do_encode<E>(pos, x.{0}.data(), {1});\n'.format(m.name, m.size)
         elif m.dynamic:
-            d = delimiters[m.name]
-            text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, BUILTIN2C[d.type])
+            d, dcpptype = delimiters[m.name]
+            text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, dcpptype)
         elif m.limited:
-            d = delimiters[m.name]
+            d, dcpptype = delimiters[m.name]
+            dcpptype = _get_cpp_builtin_type(d)
             text += (
-                'do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'.format(m.name, m.size, BUILTIN2C[d.type])
+                'do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'.format(m.name, m.size, dcpptype)
                 + 'pos = pos + {0};\n'.format(m.byte_size)
             )
         elif m.greedy:
@@ -213,12 +237,13 @@ def generate_struct_encode(node):
             text += 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name)
         elif m.name in bound:
             b = bound[m.name]
+            mcpptype = _get_cpp_builtin_type(m)
             if b.dynamic:
-                text += 'pos = do_encode<E>(pos, {1}(x.{0}.size()));\n'.format(b.name, BUILTIN2C[m.type])
+                text += 'pos = do_encode<E>(pos, {1}(x.{0}.size()));\n'.format(b.name, mcpptype)
             else:
                 text += (
                     'pos = do_encode<E>(pos, {2}(std::min(x.{0}.size(), size_t({1}))));\n'
-                    .format(b.name, b.size, BUILTIN2C[m.type])
+                    .format(b.name, b.size, mcpptype)
                 )
         else:
             text += 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name)
@@ -246,10 +271,11 @@ def generate_struct_decode(node):
             text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
         elif m.name in bound:
             b = bound[m.name]
+            mcpptype = _get_cpp_builtin_type(m)
             if b.dynamic:
-                text.append('do_decode_resize<E, {1}>(x.{0}, pos, end)'.format(b.name, BUILTIN2C[m.type]))
+                text.append('do_decode_resize<E, {1}>(x.{0}, pos, end)'.format(b.name, mcpptype))
             else:
-                text.append('do_decode_resize<E, {2}>(x.{0}, pos, end, {1})'.format(b.name, b.size, BUILTIN2C[m.type]))
+                text.append('do_decode_resize<E, {2}>(x.{0}, pos, end, {1})'.format(b.name, b.size, mcpptype))
         else:
             text.append('do_decode<E>(x.{0}, pos, end)'.format(m.name))
         if m.padding:
@@ -287,14 +313,12 @@ def generate_struct_encoded_byte_size(node):
     return (node.kind == model.Kind.FIXED) and str(node.byte_size) or '-1'
 
 def generate_struct_get_byte_size(node):
-    def byte_size(m):
-        return BUILTIN_SIZES.get(m.type) or DISC_SIZE * isinstance(m.definition, model.Enum) or m.definition.byte_size
     bytes = 0
     elems = []
     for m in node.members:
         if m.kind == model.Kind.FIXED:
             if m.dynamic or m.greedy:
-                elems += ['{0}.size() * {1}'.format(m.name, byte_size(m))]
+                elems += ['{0}.size() * {1}'.format(m.name, _get_byte_size(m))]
             else:
                 bytes += m.byte_size + m.padding
         else:
@@ -463,7 +487,7 @@ _hpp_header = """\
 #include <prophy/detail/message.hpp>
 #include <prophy/detail/mpl.hpp>
 
-namespace prophy
+{1}namespace prophy
 {{
 namespace generated
 {{
@@ -477,7 +501,6 @@ _hpp_footer = """\
 """
 
 _hpp_visitor = {
-    model.Include: generate_include_definition,
     model.Constant: generate_constant_definition,
     model.Typedef: generate_typedef_definition,
     model.Enum: generate_enum_definition,
@@ -488,6 +511,8 @@ _hpp_visitor = {
 def _hpp_generator(nodes):
     last_node = None
     for node in nodes:
+        if isinstance(node, model.Include):
+            continue
         prepend_newline = bool(last_node
                                and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
                                     or type(last_node) is not type(node)))
@@ -527,25 +552,28 @@ _cpp_visitor = {
 def generate_cpp_content(nodes):
     return '\n'.join(_cpp_visitor[type(node)](node) for node in nodes if type(node) in _cpp_visitor)
 
+def generate_hpp(nodes, basename):
+    includes = ''.join(generate_include_definition(node) for node in nodes if isinstance(node, model.Include))
+    if includes:
+        includes += '\n'
+    return '\n'.join((_hpp_header.format(basename, includes), generate_hpp_content(nodes), _hpp_footer.format(basename)))
+
+def generate_cpp(nodes, basename):
+    return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
+
 def check_nodes(nodes):
     for n in nodes:
         if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
-            raise GenerateError('prophyc: error: {0} byte size unknown'.format(n.name))
+            raise GenerateError('{0} byte size unknown'.format(n.name))
 
 class CppFullGenerator(object):
 
     def __init__(self, output_dir):
         self.output_dir = output_dir
 
-    def generate_hpp(self, nodes, basename):
-        return '\n'.join((_hpp_header.format(basename), generate_hpp_content(nodes), _hpp_footer.format(basename)))
-
-    def generate_cpp(self, nodes, basename):
-        return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
-
     def serialize(self, nodes, basename):
         check_nodes(nodes)
         hpp_path = os.path.join(self.output_dir, basename + '.ppf.hpp')
         cpp_path = os.path.join(self.output_dir, basename + '.ppf.cpp')
-        open(hpp_path, 'w').write(self.generate_hpp(nodes, basename))
-        open(cpp_path, 'w').write(self.generate_cpp(nodes, basename))
+        open(hpp_path, 'w').write(generate_hpp(nodes, basename))
+        open(cpp_path, 'w').write(generate_cpp(nodes, basename))

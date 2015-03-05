@@ -1,5 +1,4 @@
 import os
-import sys
 import argparse
 
 def readable_dir(string):
@@ -12,10 +11,10 @@ def readable_file(string):
         raise argparse.ArgumentTypeError("%s file not found" % string)
     return string
 
-def parse_options():
+def parse_options(emit_error):
     class ArgumentParser(argparse.ArgumentParser):
         def error(self, message):
-            self.exit(1, '%s: error: %s\n' % (self.prog, message))
+            emit_error(message)
 
     parser = ArgumentParser('prophyc',
                             description = ('Parse input files and generate '
@@ -42,9 +41,8 @@ def parse_options():
                         type = readable_dir,
                         action = 'append',
                         default = [],
-                        help = ('Specify the directory in which to search for '
-                                'include directories in sack mode.  '
-                                'May be specified multiple times.'))
+                        help = ('Add the directory to the list of directories to be '
+                                'searched for included files.'))
 
     parser.add_argument('-p', '--patch',
                         metavar = 'FILE',
