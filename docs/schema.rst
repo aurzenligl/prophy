@@ -150,6 +150,22 @@ Discriminators may be literals or references to constants or enumerators.
 .. note::
     Union arm cannot hold dynamic nor unlimited struct, nor array.
 
+Include
+-------------
+
+Prophy files may include definitions and constants from different files
+using the usual include syntax borrowed from C language::
+
+    #include "A_is_inside.prophy"
+
+    struct X
+    {
+        A x;
+    }
+
+File "A_is_inside.prophy" may exist in current directory of including file
+or in any directory provided as include dir in compiler invocation.
+
 Limitations
 -------------
 
