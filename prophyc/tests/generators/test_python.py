@@ -5,9 +5,9 @@ def serialize(nodes):
     return PythonGenerator().generate_definitions(nodes)
 
 def test_includes_rendering():
-    nodes = [model.Include("szydlo"),
-             model.Include("mydlo"),
-             model.Include("powidlo")]
+    nodes = [model.Include("szydlo", []),
+             model.Include("mydlo", []),
+             model.Include("powidlo", [])]
 
     ref = """\
 from szydlo import *
@@ -164,7 +164,7 @@ def test_of_PythonGenerator():
     ih = []
     th = []
     for x in range(20, 200, 60):
-        ih.append(model.Include("test_include_" + str(x)))
+        ih.append(model.Include("test_include_" + str(x), []))
         th.append(model.Typedef("td_elem_name_" + str(x), "td_elem_val_" + str(x)))
         th.append(model.Typedef("td_elem_name_" + str(x), "i_td_elem_val_" + str(x)))
         th.append(model.Typedef("td_elem_name_" + str(x), "u_td_elem_val_" + str(x)))

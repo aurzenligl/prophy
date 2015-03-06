@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ElementTree
 from itertools import ifilter, islice
 
 from prophyc import model
+from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
 def extract_operator_args(string_, pos):
     brackets = 0
@@ -51,8 +52,15 @@ primitive_types = {"8 bit integer unsigned": "u8",
                    "32 bit float": "r32",
                    "64 bit float": "r64"}
 
-def make_include(elem):
-    return model.Include(elem.get("href").split('.')[0])
+def make_include(elem, process_file, warn):
+    path = elem.get("href")
+    try:
+        nodes = process_file(path)
+    except (CyclicIncludeError, FileNotFoundError) as e:
+        if warn:
+            warn(e.message)
+        nodes = []
+    return model.Include(path.split('.')[0], nodes)
 
 def make_constant(elem):
     return model.Constant(elem.get("name"), expand_operators(elem.get("value")))
@@ -108,9 +116,12 @@ def make_union(elem):
 
 class IsarParser(object):
 
-    def __get_model(self, root):
+    def __init__(self, warn = None):
+        self.warn = warn
+
+    def __get_model(self, root, process_file):
         nodes = []
-        nodes += [make_include(elem) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
+        nodes += [make_include(elem, process_file, self.warn) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
         nodes += [make_constant(elem) for elem in root.iterfind('.//constant')]
         nodes += filter(None, (make_typedef(elem) for elem in root.iterfind('.//typedef')))
         nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
@@ -119,8 +130,5 @@ class IsarParser(object):
         nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic = True) for elem in root.iterfind('.//message')))
         return nodes
 
-    def parse_string(self, string):
-        return self.__get_model(ElementTree.fromstring(string))
-
-    def parse(self, file):
-        return self.__get_model(ElementTree.parse(file))
+    def parse(self, content, path, process_file):
+        return self.__get_model(ElementTree.fromstring(content), process_file)
