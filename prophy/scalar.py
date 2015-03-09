@@ -123,7 +123,7 @@ def add_enum_attributes(cls, enumerators):
     int_to_name = {value:name for name, value in enumerators}
     if len(name_to_int) < len(enumerators):
         raise ProphyError("names overlap")
-    map(cls._check, (value for _, value in enumerators))
+    list(map(cls._check, (value for _, value in enumerators)))
     cls._DEFAULT = cls(enumerators[0][1])
     cls._name_to_int = name_to_int
     cls._int_to_name = int_to_name
@@ -151,7 +151,7 @@ class enum(u32):
 class enum8(u8, enum):
     __slots__ = []
 
-def bytes(**kwargs):
+def bytes_(**kwargs):
     size = kwargs.pop("size", 0)
     bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
@@ -160,11 +160,11 @@ def bytes(**kwargs):
     if kwargs:
         raise ProphyError("unknown arguments to bytes field")
 
-    class _bytes(str):
+    class _bytes(bytes):
         _SIZE = size
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
-        _DEFAULT = "\x00" * size if size and not bound else ""
+        _DEFAULT = b"\x00" * size if size and not bound else ""
         _OPTIONAL = False
         _ALIGNMENT = 1
         _BOUND = bound
@@ -173,17 +173,17 @@ def bytes(**kwargs):
 
         @staticmethod
         def _check(value):
-            if not isinstance(value, str):
-                raise ProphyError("not a str")
+            if not isinstance(value, bytes):
+                raise ProphyError("not a bytes")
             if size and len(value) > size:
                 raise ProphyError("too long")
             if size and not bound:
-                return value.ljust(size, '\x00')
+                return value.ljust(size, b'\x00')
             return value
 
         @staticmethod
         def _encode(value):
-            return value.ljust(size, '\x00')
+            return value.ljust(size, b'\x00')
 
         @staticmethod
         def _decode(data, pos, len_hint):

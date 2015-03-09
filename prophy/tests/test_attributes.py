@@ -75,7 +75,7 @@ def test_bytes_static_attributes():
     assert 3 == B._SIZE
     assert False == B._DYNAMIC
     assert False == B._UNLIMITED
-    assert '\x00\x00\x00' == B._DEFAULT
+    assert b'\x00\x00\x00' == B._DEFAULT
     assert False == B._OPTIONAL
     assert 1 == B._ALIGNMENT
     assert B._BOUND is None

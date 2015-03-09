@@ -11,7 +11,7 @@ from .scalar import r64
 from .scalar import enum
 from .scalar import enum8
 from .scalar import enum_generator
-from .scalar import bytes
+from .scalar import bytes_ as bytes
 from .optional import optional
 from .container import array
 from .composite import struct

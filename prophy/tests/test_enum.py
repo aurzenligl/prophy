@@ -3,8 +3,7 @@ import pytest
 
 @pytest.fixture(scope = 'session')
 def Enumeration():
-    class Enumeration(prophy.enum):
-        __metaclass__ = prophy.enum_generator
+    class Enumeration(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("Enumeration_One", 1),
                         ("Enumeration_Two", 2),
                         ("Enumeration_Three", 3)]
@@ -12,8 +11,7 @@ def Enumeration():
 
 @pytest.fixture(scope = 'session')
 def Enumeration8():
-    class Enumeration8(prophy.enum8):
-        __metaclass__ = prophy.enum_generator
+    class Enumeration8(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("Enumeration_One", 1),
                         ("Enumeration_Two", 2),
                         ("Enumeration_Three", 3)]
@@ -21,29 +19,25 @@ def Enumeration8():
 
 @pytest.fixture(scope = 'session')
 def Enum(Enumeration):
-    class Enum(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class Enum(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration)]
     return Enum
 
 @pytest.fixture(scope = 'session')
 def Enum8(Enumeration8):
-    class Enum8(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class Enum8(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration8)]
     return Enum8
 
 @pytest.fixture(scope = 'session')
 def EnumFixedArray(Enumeration):
-    class EnumFixedArray(prophy.struct_packed):
-         __metaclass__ = prophy.struct_generator
+    class EnumFixedArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
          _descriptor = [("value", prophy.array(Enumeration, size = 2))]
     return EnumFixedArray
 
 @pytest.fixture(scope = 'session')
 def EnumBoundArray(Enumeration):
-    class EnumBoundArray(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class EnumBoundArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.array(Enumeration, bound = "value_len"))]
     return EnumBoundArray
@@ -74,35 +68,33 @@ def test_enum_encoding(Enum):
     x.value = 2
     assert str(x) == "value: Enumeration_Two\n"
 
-    assert x.encode(">") == "\x00\x00\x00\x02"
+    assert x.encode(">") == b"\x00\x00\x00\x02"
 
-    x.decode("\x00\x00\x00\x03", ">")
+    x.decode(b"\x00\x00\x00\x03", ">")
     assert x.value == 3
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.decode("\x00\x00\x00\x09", ">")
-    assert 'unknown enumerator value' in e.value.message
+        x.decode(b"\x00\x00\x00\x09", ">")
+    assert 'unknown enumerator value' in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.decode("\x00\x00\x01", ">")
-    assert 'too few bytes to decode integer' in e.value.message
+        x.decode(b"\x00\x00\x01", ">")
+    assert 'too few bytes to decode integer' in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.decode("\x00\x00\x00\x01\x01", ">")
-    assert 'not all bytes read' in e.value.message
+        x.decode(b"\x00\x00\x00\x01\x01", ">")
+    assert 'not all bytes read' in str(e.value)
 
 def test_enum_exceptions():
     with pytest.raises(Exception):
-        class NoEnumerators(prophy.enum):
-            __metaclass__ = prophy.enum_generator
+        class NoEnumerators(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+            pass
     with pytest.raises(Exception):
-        class NamesOverlapping(prophy.enum):
-            __metaclass__ = prophy.enum_generator
+        class NamesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("NamesOverlapping_Overlap", 1),
                             ("NamesOverlapping_Overlap", 2)]
     with pytest.raises(Exception):
-        class ValueOutOfBounds(prophy.enum):
-            __metaclass__ = prophy.enum_generator
+        class ValueOutOfBounds(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("OutOfBounds", 0xFFFFFFFF + 1)]
 
 def test_enum8_encoding(Enum8):
@@ -111,30 +103,28 @@ def test_enum8_encoding(Enum8):
     assert str(x) == "value: Enumeration_Two\n"
 
     x.value = 2
-    assert x.encode(">") == "\x02"
+    assert x.encode(">") == b"\x02"
 
-    x.decode("\x02", ">")
+    x.decode(b"\x02", ">")
     assert x.value == 2
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.decode("\x09", ">")
-    assert 'unknown enumerator value' in e.value.message
+        x.decode(b"\x09", ">")
+    assert 'unknown enumerator value' in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.decode("", ">")
-    assert 'too few bytes to decode integer' in e.value.message
+        x.decode(b"", ">")
+    assert 'too few bytes to decode integer' in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.decode("\x01\x01", ">")
-    assert 'not all bytes read' in e.value.message
+        x.decode(b"\x01\x01", ">")
+    assert 'not all bytes read' in str(e.value)
 
 def test_enum_with_overlapping_values():
-    class ValuesOverlapping(prophy.enum8):
-        __metaclass__ = prophy.enum_generator
+    class ValuesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("ValuesOverlapping_First", 42),
                         ("ValuesOverlapping_Second", 42)]
-    class X(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", ValuesOverlapping)]
 
     x = X()
@@ -168,9 +158,9 @@ def test_enum_fixed_array_encoding(EnumFixedArray):
                       "value: Enumeration_Two\n")
 
     x.value[:] = [2, 2]
-    assert x.encode(">") == "\x00\x00\x00\x02\x00\x00\x00\x02"
+    assert x.encode(">") == b"\x00\x00\x00\x02\x00\x00\x00\x02"
 
-    x.decode("\x00\x00\x00\x02\x00\x00\x00\x02", ">")
+    x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x02", ">")
     assert x.value[0] == 2
     assert x.value[1] == 2
 
@@ -192,25 +182,22 @@ def test_enum_bound_array_encoding(EnumBoundArray):
                       "value: Enumeration_Two\n")
 
     x.value[:] = [2, 2]
-    assert x.encode(">") == "\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02"
+    assert x.encode(">") == b"\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02"
 
-    x.decode("\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02", ">")
+    x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x02", ">")
     assert x.value[0] == 2
     assert x.value[1] == 2
 
 def test_enum_with_0xFFFFFFFF_value():
-    class Enum(prophy.enum):
-        __metaclass__ = prophy.enum_generator
+    class Enum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [('Enum_Infinity', 0xFFFFFFFF)]
-    class Enclosing(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class Enclosing(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enum)]
 
     assert Enclosing().value == 0xFFFFFFFF
 
 def test_enum_access_to_members():
-    class E(prophy.enum):
-        __metaclass__ = prophy.enum_generator
+    class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("E_1", 1),
                         ("E_2", 2),
                         ("E_3", 3)]
@@ -219,10 +206,9 @@ def test_enum_access_to_members():
 
     with pytest.raises(Exception) as e:
         x.not_available = 102
-    assert "has no attribute" in e.value.message
+    assert "has no attribute" in str(e.value)
 
-    class S(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", E),
                        ("b", prophy.array(E))]
 
@@ -239,12 +225,11 @@ def test_enum_access_to_members():
     assert y.a.name == "E_1"
     assert y.a.number == 1
 
-    y.decode('\x00\x00\x00\x01\x00\x00\x00\x01', '>')
+    y.decode(b'\x00\x00\x00\x01\x00\x00\x00\x01', '>')
     assert y.a.__class__ == E
     assert y.b[0].__class__ == E
 
-    class U(prophy.union):
-        __metaclass__ = prophy.union_generator
+    class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", E, 0)]
 
     z = U()

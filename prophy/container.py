@@ -92,7 +92,7 @@ class bound_scalar_array(base_array):
     def __setitem__(self, idx, value):
         if isinstance(idx, slice):
             self.__setslice__(idx.start, idx.stop, value)
-        else: 
+        else:
             value = self._TYPE._check(value)
             self._values[idx] = value
 
@@ -198,7 +198,7 @@ def array(type, **kwargs):
 
     if issubclass(type, base_array):
         raise ProphyError("array of arrays not allowed")
-    if issubclass(type, str):
+    if issubclass(type, bytes):
         raise ProphyError("array of strings not allowed")
     if size and type._DYNAMIC:
         raise ProphyError("static/limited array of dynamic type not allowed")

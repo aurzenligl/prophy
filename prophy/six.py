@@ -2,13 +2,19 @@
 
 import sys
 
-if sys.version > '3':
+if sys.version < '3':
+    long = long
+    from itertools import ifilter
+
+    def b(x):
+        return x
+else:
     long = int
     ifilter = filter
     xrange = range
-else:
-    long = long
-    from itertools import ifilter
+
+    def b(x):
+        return x.decode()
 
 def cmp(a, b):
     return (a > b) - (a < b)

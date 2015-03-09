@@ -1,4 +1,4 @@
-from .six import ifilter, long
+from .six import ifilter, long, b
 
 from . import scalar
 from .exception import ProphyError
@@ -20,7 +20,7 @@ def add_attributes(cls, descriptor):
 
     alignment = 1
     for _, tp in reversed(descriptor):
-        if issubclass(tp, (base_array, str)) and tp._DYNAMIC:
+        if issubclass(tp, (base_array, bytes)) and tp._DYNAMIC:
             tp._PARTIAL_ALIGNMENT = alignment
             alignment = 1
         alignment = max(tp._ALIGNMENT, alignment)
@@ -147,7 +147,7 @@ def get_encode_function(type):
         return encode_array
     elif issubclass(type, (struct, union)):
         return encode_composite
-    elif issubclass(type, str):
+    elif issubclass(type, bytes):
         return encode_bytes
     else:
         return encode_scalar
@@ -185,7 +185,7 @@ def get_decode_function(type):
         return decode_array
     elif issubclass(type, (struct, union)):
         return decode_composite
-    elif issubclass(type, str):
+    elif issubclass(type, bytes):
         return decode_bytes
     else:
         return decode_scalar
@@ -228,8 +228,8 @@ def field_to_string(name, type, value):
         return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
     elif issubclass(type, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
-    elif issubclass(type, str):
-        return "%s: %s\n" % (name, repr(value))
+    elif issubclass(type, bytes):
+        return "%s: %s\n" % (name, repr(b(value)))
     elif issubclass(type, scalar.enum):
         return "%s: %s\n" % (name, type._int_to_name[value])
     else:
@@ -270,6 +270,14 @@ class struct(object):
                 out += field_to_string(name, tp, value)
         return out
 
+    def __bytes__(self):
+        out = b""
+        for name, tp, _, _ in self._descriptor:
+            value = getattr(self, name, None)
+            if value is not None:
+                out += field_to_string(name, tp, value).encode()
+        return out
+
     @staticmethod
     def _get_padding(offset, alignment):
         remainder = offset % alignment
@@ -291,7 +299,7 @@ class struct(object):
             if tp._PARTIAL_ALIGNMENT:
                 data += self._get_padding(len(data), tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (base_array, str))):
+        if not (self._descriptor and terminal and issubclass(tp, (base_array, bytes))):
             data += self._get_padding(len(data), self._ALIGNMENT)
 
         return data
@@ -309,7 +317,7 @@ class struct(object):
             if tp._PARTIAL_ALIGNMENT:
                 pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
-        if not (self._descriptor and terminal and issubclass(tp, (base_array, str))):
+        if not (self._descriptor and terminal and issubclass(tp, (base_array, bytes))):
             pos += self._get_padding_size(pos, self._ALIGNMENT)
 
         if terminal and pos < len(data):
