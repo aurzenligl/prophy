@@ -155,7 +155,7 @@ def get_encode_function(type):
 def encode_optional(parent, type, value, endianness):
     if value is None:
         return (type._optional_type._encode(False, endianness) +
-                "\x00" * type._SIZE)
+                b"\x00" * type._SIZE)
     else:
         return (type._optional_type._encode(True, endianness) +
                 type._encode(parent, type.__bases__[0], value, endianness))
@@ -451,7 +451,7 @@ class union(object):
         value = getattr(self, name)
         data = (self._discriminator_type._encode(disc, endianness) +
                 encode_(self, tp, value, endianness))
-        return data.ljust(self._SIZE, '\x00')
+        return data.ljust(self._SIZE, b'\x00')
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal = True)

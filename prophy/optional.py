@@ -1,11 +1,11 @@
 from . import scalar
-from . import container
 from .exception import ProphyError
+from .base_array import base_array
 
 def optional(cls):
-    if issubclass(cls, str):
+    if issubclass(cls, bytes):
         raise ProphyError("optional bytes not implemented")
-    if issubclass(cls, container.base_array):
+    if issubclass(cls, base_array):
         raise ProphyError("optional array not implemented")
     if cls._DYNAMIC:
         raise ProphyError("optional dynamic fields not implemented")
