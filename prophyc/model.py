@@ -1,5 +1,7 @@
 from collections import namedtuple
-from itertools import ifilter, islice
+from itertools import islice
+
+from .six import ifilter, reduce
 
 class Kind:
     FIXED = 0
@@ -16,6 +18,18 @@ Constant = namedtuple("Constant", ["name", "value"])
 Enum = namedtuple("Enum", ["name", "members"])
 EnumMember = namedtuple("EnumMember", ["name", "value"])
 
+class MyEnum(Enum):
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.members == other.members))
+
+class MyEnumMember(EnumMember):
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.value == other.value))
+
 class Typedef(object):
 
     def __init__(self, name, type, **kwargs):
@@ -27,6 +41,10 @@ class Typedef(object):
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
                 cmp(self.type, other.type))
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.type == other.type))
 
     def __repr__(self):
         return '{0} {1}'.format(self.type, self.name)
@@ -42,6 +60,10 @@ class Struct(object):
     def __cmp__(self, other):
         return (cmp(self.name, other.name) or
                 cmp(self.members, other.members))
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.members == other.members))
 
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
@@ -71,6 +93,14 @@ class StructMember(object):
                 cmp(self.bound, other.bound) or
                 cmp(self.size, other.size) or
                 cmp(self.optional, other.optional))
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.type == other.type) or
+                (self.array == other.array) or
+                (self.bound == other.bound) or
+                (self.size == other.size) or
+                (self.optional == other.optional))
 
     def __repr__(self):
         fmts = {
@@ -110,6 +140,11 @@ class UnionMember(object):
         return (cmp(self.name, other.name) or
                 cmp(self.type, other.type) or
                 cmp(self.discriminator, other.discriminator))
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.type == other.type) or
+                (self.discriminator == other.discriminator))
 
     def __repr__(self):
         return '{0}: {1} {2}'.format(self.discriminator, self.type, self.name)
@@ -168,7 +203,7 @@ def cross_reference(nodes):
         if isinstance(node, Typedef):
             do_cross_reference(node)
         elif isinstance(node, Struct):
-            map(do_cross_reference, node.members)
+            list(map(do_cross_reference, node.members))
 
 def evaluate_node_kind(node):
     if isinstance(node, Typedef):

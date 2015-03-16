@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ElementTree
-from itertools import ifilter, islice
+from itertools import islice
 
+from ..six import ifilter, reduce
 from prophyc import model
 
 def extract_operator_args(string_, pos):

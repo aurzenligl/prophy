@@ -1,5 +1,5 @@
-import model
 from collections import namedtuple
+from . import model
 
 Action = namedtuple("Action", ["action", "params"])
 
