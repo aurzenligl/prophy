@@ -22,7 +22,7 @@ class contains_cmp(object):
 
 @pytest.clang_installed
 def test_simple_struct():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 struct X
 {
@@ -41,7 +41,7 @@ struct X
 
 @pytest.clang_installed
 def test_ints():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 struct X
 {
@@ -84,7 +84,7 @@ struct X
 
 @pytest.clang_installed
 def test_nested_typedefs():
-    hpp = """\
+    hpp = b"""\
 typedef int my_int;
 typedef my_int i_like_typedefs;
 typedef i_like_typedefs i_really_do;
@@ -97,7 +97,7 @@ struct X
 
 @pytest.clang_installed
 def test_typedefed_struct():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 typedef struct
 {
@@ -115,7 +115,7 @@ struct X
 
 @pytest.clang_installed
 def test_namespaced_struct():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 namespace m
 {
@@ -139,7 +139,7 @@ struct X
 
 @pytest.clang_installed
 def test_array():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 struct X
 {
@@ -150,7 +150,7 @@ struct X
 
 @pytest.clang_installed
 def test_enum():
-    hpp = """\
+    hpp = b"""\
 enum Enum
 {
     Enum_One = 1,
@@ -163,10 +163,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.Enum("Enum", [
-            model.EnumMember("Enum_One", "1"),
-            model.EnumMember("Enum_Two", "2"),
-            model.EnumMember("Enum_Three", "3")
+        model.MyEnum("Enum", [
+            model.MyEnumMember("Enum_One", "1"),
+            model.MyEnumMember("Enum_Two", "2"),
+            model.MyEnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")
@@ -175,7 +175,7 @@ struct X
 
 @pytest.clang_installed
 def test_typedefed_enum():
-    hpp = """\
+    hpp = b"""\
 typedef enum Enum
 {
     Enum_One = 1,
@@ -188,10 +188,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.Enum("Enum", [
-            model.EnumMember("Enum_One", "1"),
-            model.EnumMember("Enum_Two", "2"),
-            model.EnumMember("Enum_Three", "3")
+        model.MyEnum("Enum", [
+            model.MyEnumMember("Enum_One", "1"),
+            model.MyEnumMember("Enum_Two", "2"),
+            model.MyEnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")
@@ -200,7 +200,7 @@ struct X
 
 @pytest.clang_installed
 def test_namespaced_enum():
-    hpp = """\
+    hpp = b"""\
 namespace m
 {
 namespace n
@@ -219,10 +219,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.Enum("m__n__Enum", [
-            model.EnumMember("Enum_One", "1"),
-            model.EnumMember("Enum_Two", "2"),
-            model.EnumMember("Enum_Three", "3")
+        model.MyEnum("m__n__Enum", [
+            model.MyEnumMember("Enum_One", "1"),
+            model.MyEnumMember("Enum_Two", "2"),
+            model.MyEnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "m__n__Enum")
@@ -231,7 +231,7 @@ struct X
 
 @pytest.clang_installed
 def test_enum_with_negative_one_values():
-    hpp = """\
+    hpp = b"""\
 enum Enum
 {
     Enum_MinusOne = -1,
@@ -244,10 +244,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.Enum("Enum", [
-            model.EnumMember("Enum_MinusOne", "0xFFFFFFFF"),
-            model.EnumMember("Enum_MinusTwo", "0xFFFFFFFE"),
-            model.EnumMember("Enum_MinusThree", "0xFFFFFFFD")
+        model.MyEnum("Enum", [
+            model.MyEnumMember("Enum_MinusOne", "0xFFFFFFFF"),
+            model.MyEnumMember("Enum_MinusTwo", "0xFFFFFFFE"),
+            model.MyEnumMember("Enum_MinusThree", "0xFFFFFFFD")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")
@@ -256,7 +256,7 @@ struct X
 
 @pytest.clang_installed
 def test_multiple_enums():
-    hpp = """\
+    hpp = b"""\
 typedef enum Enum
 {
     Enum_One = 1,
@@ -271,10 +271,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.Enum("Enum", [
-            model.EnumMember("Enum_One", "1"),
-            model.EnumMember("Enum_Two", "2"),
-            model.EnumMember("Enum_Three", "3")
+        model.MyEnum("Enum", [
+            model.MyEnumMember("Enum_One", "1"),
+            model.MyEnumMember("Enum_Two", "2"),
+            model.MyEnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum"),
@@ -285,7 +285,7 @@ struct X
 
 @pytest.clang_installed
 def test_c_enum():
-    hpp = """\
+    hpp = b"""\
 typedef enum
 {
     Enum_One = 1,
@@ -298,10 +298,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.Enum("Enum", [
-            model.EnumMember("Enum_One", "1"),
-            model.EnumMember("Enum_Two", "2"),
-            model.EnumMember("Enum_Three", "3")
+        model.MyEnum("Enum", [
+            model.MyEnumMember("Enum_One", "1"),
+            model.MyEnumMember("Enum_Two", "2"),
+            model.MyEnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")
@@ -310,7 +310,7 @@ struct X
 
 @pytest.clang_installed
 def test_union():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 union Union
 {
@@ -336,7 +336,7 @@ struct X
 
 @pytest.clang_installed
 def test_typedefed_union():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 typedef union
 {
@@ -358,7 +358,7 @@ struct X
 
 @pytest.clang_installed
 def test_multiple_structs():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 struct X
 {
@@ -389,7 +389,7 @@ struct Z
 
 @pytest.clang_installed
 def test_class_template():
-    hpp = """\
+    hpp = b"""\
 #include <stdint.h>
 #include <stddef.h>
 template<typename T, size_t N>
@@ -418,7 +418,7 @@ struct X
 
 @pytest.clang_installed
 def test_c_struct():
-    hpp = """\
+    hpp = b"""\
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -435,7 +435,7 @@ typedef struct X X;
 
 @pytest.clang_installed
 def test_struct_with_anonymous_struct():
-    hpp = """\
+    hpp = b"""\
 struct X
 {
     struct
@@ -456,7 +456,7 @@ struct X
 
 @pytest.clang_installed
 def test_struct_with_incomplete_array():
-    hpp = """\
+    hpp = b"""\
 struct X
 {
     char b[];
@@ -466,7 +466,7 @@ struct X
 
 @pytest.clang_installed
 def test_struct_with_incomplete_array_in_file_with_hyphen():
-    hpp = """\
+    hpp = b"""\
 struct X
 {
     struct
@@ -481,14 +481,14 @@ struct X
 
 @pytest.clang_installed
 def test_forward_declared_struct():
-    hpp = """\
+    hpp = b"""\
 struct X;
 """
     assert parse(hpp) == []
 
 @pytest.clang_installed
 def test_omit_bitfields():
-    hpp = """\
+    hpp = b"""\
 typedef struct X
 {
     unsigned a: 1;

@@ -1,5 +1,4 @@
 import os
-import sys
 import subprocess
 
 import pytest
@@ -12,7 +11,7 @@ import prophy
 
 def tr(str_):
     """ Facilitates testing strings output from windows cmd-line programs. """
-    return str_.translate(None, '\r')
+    return str_.translate(None, b'\r')
 
 def call(args):
     popen = subprocess.Popen(["python", "-m", "prophyc"] + args,
@@ -24,47 +23,47 @@ def call(args):
 
 def test_showing_version():
     ret, out, err = call(["--version"])
-    expected_version = '0.4.2'
+    expected_version = b'0.4.2'
     assert ret == 0
-    assert tr(out) == 'prophyc {}\n'.format(expected_version)
-    assert err == ""
+    assert tr(out) == b'prophyc ' + expected_version + b'\n'
+    assert err == b""
 
 def test_missing_input():
     ret, out, err = call([])
     assert ret == 1
-    assert out == ""
-    assert tr(err) == "prophyc: error: missing input file\n"
+    assert out == b""
+    assert tr(err) == b"prophyc: error: missing input file\n"
 
 def test_no_output_directory(tmpdir_cwd):
     open("input.xml", "w").write("")
     ret, out, err = call(["--python_out", "no_dir",
                           os.path.join(str(tmpdir_cwd), "input_xml")])
     assert ret == 1
-    assert out == ""
-    assert tr(err) == "prophyc: error: argument --python_out: no_dir directory not found\n"
+    assert out == b""
+    assert tr(err) == b"prophyc: error: argument --python_out: no_dir directory not found\n"
 
 def test_missing_output(tmpdir_cwd):
     open("input.xml", "w")
     ret, out, err = call(["--isar", os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
-    assert out == ""
-    assert tr(err) == "Missing output directives\n"
+    assert out == b""
+    assert tr(err) == b"Missing output directives\n"
 
 def test_passing_isar_and_sack(tmpdir_cwd):
     open("input", "w")
     ret, out, err = call(["--isar", "--sack", "--python_out", ".",
                           os.path.join(str(tmpdir_cwd), "input")])
     assert ret == 1
-    assert out == ""
-    assert tr(err) == "prophyc: error: argument --sack: not allowed with argument --isar\n"
+    assert out == b""
+    assert tr(err) == b"prophyc: error: argument --sack: not allowed with argument --isar\n"
 
 def test_isar_compiles_single_empty_xml(tmpdir_cwd):
     open("input.xml", "w").write("<struct/>")
     ret, out, err = call(["--isar", "--python_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert empty_python_output == open("input.py").read()
 
 def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
@@ -78,8 +77,8 @@ def test_isar_compiles_multiple_empty_xmls(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), "input2.xml"),
                           os.path.join(str(tmpdir_cwd), "input3.xml")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert empty_python_output == open("input1.py").read()
     assert empty_python_output == open("input2.py").read()
     assert empty_python_output == open("input3.py").read()
@@ -91,8 +90,8 @@ def test_outputs_to_correct_directory(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), "output"),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert empty_python_output == open(os.path.join("output", "input.py")).read()
 
 def test_isar_patch(tmpdir_cwd):
@@ -117,16 +116,14 @@ B dynamic b a
                           str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert empty_python_output + """\
 
-class A(prophy.struct):
-    __metaclass__ = prophy.struct_generator
+class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('a', prophy.u8)]
 
-class B(prophy.struct):
-    __metaclass__ = prophy.struct_generator
+class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('a', prophy.u8),
                    ('b', prophy.array(A, bound = 'a'))]
 """ == open("input.py").read()
@@ -146,8 +143,8 @@ def test_isar_cpp(tmpdir_cwd):
                           "--cpp_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert open("input.pp.hpp").read() == """\
 #ifndef _PROPHY_GENERATED_input_HPP
 #define _PROPHY_GENERATED_input_HPP
@@ -185,8 +182,8 @@ def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
                           str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.hpp")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert empty_python_output == open("input.py").read()
 
 @pytest.clang_installed
@@ -205,12 +202,11 @@ X type x r64
                           "--python_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.hpp")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert empty_python_output + """\
 
-class X(prophy.struct):
-    __metaclass__ = prophy.struct_generator
+class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('x', prophy.r64)]
 """ == open("input.py").read()
 
@@ -229,13 +225,12 @@ def test_multiple_outputs(tmpdir_cwd):
                           "--cpp_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert open("input.py").read() == """\
 import prophy
 
-class Test(prophy.struct):
-    __metaclass__ = prophy.struct_generator
+class Test(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('x', prophy.u32)]
 """
     assert open("input.pp.hpp").read() == """\
@@ -275,8 +270,8 @@ def test_clang_not_installed(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), "input.hpp")])
 
     assert ret == 1
-    assert out == ""
-    assert tr(err) == "Sack input requires clang and it's not installed\n"
+    assert out == b""
+    assert tr(err) == b"Sack input requires clang and it's not installed\n"
 
 def test_prophy_language(tmpdir_cwd):
     open("input.prophy", "w").write("""\
@@ -296,19 +291,17 @@ union U
                           "--cpp_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.prophy")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert open("input.py").read() == """\
 import prophy
 
-class X(prophy.struct):
-    __metaclass__ = prophy.struct_generator
+class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('x', prophy.array(prophy.u32, size = 5)),
                    ('num_of_y', prophy.u32),
                    ('y', prophy.array(prophy.u64, bound = 'num_of_y', size = 2))]
 
-class U(prophy.union):
-    __metaclass__ = prophy.union_generator
+class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
     _descriptor = [('x', X, 1),
                    ('y', prophy.u32, 2)]
 """
@@ -383,8 +376,8 @@ constant
     ret, out, err = call(["--python_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.prophy")])
     assert ret == 1
-    assert out == ""
-    assert tr(err) == """\
+    assert out == b""
+    assert tr(err) == b"""\
 input.prophy:1:11 error: syntax error at '}'
 input.prophy:2:10 error: syntax error at '}'
 """
