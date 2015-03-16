@@ -1,5 +1,6 @@
 import os
 import subprocess
+import pytest
 
 main_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
@@ -47,6 +48,7 @@ def test_isar_input(tmpdir_cwd):
 
     assert b"\x00\x00\x00\x01\x12\x31\x00\x00" == s.encode(">")
 
+@pytest.clang_installed
 def test_sack_input(tmpdir_cwd):
     content = """\
 #include <stdint.h>

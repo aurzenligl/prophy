@@ -1,5 +1,5 @@
 import re
-from clang.cindex import Index, CursorKind, TypeKind
+from clang.cindex import Index, CursorKind, TypeKind, TranslationUnitLoadError
 
 from prophyc import model
 
@@ -116,12 +116,22 @@ def build_model(tu):
             builder.add_struct(cursor)
     return builder.nodes
 
-class SackParser(object):
-    def __init__(self, include_dirs = []):
-        self.include_dirs = include_dirs
+def _get_location(location):
+    return '%s:%s:%s' % (location.file.name, location.line, location.column)
 
-    def parse(self, filename):
-        args_ = [filename] + ["-I" + x for x in self.include_dirs]
+class SackParser(object):
+    def __init__(self, include_dirs = [], warn = None):
+        self.include_dirs = include_dirs
+        self.warn = warn
+
+    def parse(self, content, path, process_file):
+        args_ = ["-I" + x for x in self.include_dirs]
         index = Index.create()
-        tu = index.parse(None, args_)
+        try:
+            tu = index.parse(path, args_, unsaved_files = ((path, content),))
+        except TranslationUnitLoadError:
+            raise model.ParseError([(path, 'error parsing translation unit')])
+        if self.warn:
+            for diag in tu.diagnostics:
+                self.warn(diag.spelling, location = _get_location(diag.location))
         return build_model(tu)

@@ -1,21 +1,74 @@
 from prophyc import model
 from prophyc.parsers.isar import IsarParser
 from prophyc.parsers.isar import expand_operators
+from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
-def parse(xml_string):
-    return IsarParser().parse_string(xml_string)
+def parse(xml_string, process_file = lambda path: [], warn = None):
+    return IsarParser(warn = warn).parse(xml_string, '', process_file)
 
 def test_includes_parsing():
     xml = """\
-<system xmlns:xi="http://www.nsn.com/2008/XInclude">
+<system xmlns:xi="http://www.xyz.com/1984/XInclude">
     <xi:include href="mydlo.xml"/>
     <xi:include href="szydlo.xml"/>
     <xi:include href="powidlo.xml"/>
 </system>
 """
-    nodes = parse(xml)
+    nodes = parse(xml, process_file = lambda path: [model.Typedef("a", "u8")])
 
-    assert [("mydlo",), ("szydlo",), ("powidlo",)] == nodes
+    assert [
+        ("mydlo", [model.Typedef("a", "u8")]),
+        ("szydlo", [model.Typedef("a", "u8")]),
+        ("powidlo", [model.Typedef("a", "u8")])
+    ] == nodes
+
+def test_includes_call_file_process_with_proper_path():
+    xml = """\
+<system xmlns:xi="http://www.xyz.com/1984/XInclude">
+    <xi:include href="input.xml"/>
+</system>
+"""
+    processed_paths = []
+    def process_file(path):
+        processed_paths.append(path)
+        return []
+    nodes = parse(xml, process_file = process_file)
+
+    assert processed_paths == ['input.xml']
+
+def test_includes_cyclic_include_error():
+    xml = """\
+<system xmlns:xi="http://www.xyz.com/1984/XInclude">
+    <xi:include href="input.xml"/>
+</system>
+"""
+    def process_file_with_error(path):
+        raise CyclicIncludeError(path)
+    warnings = []
+
+    nodes = parse(xml,
+        process_file = process_file_with_error,
+        warn = lambda msg: warnings.append(msg))
+
+    assert nodes == [('input', [])]
+    assert warnings == ['file input.xml included again during parsing']
+
+def test_includes_file_not_found_error():
+    xml = """\
+<system xmlns:xi="http://www.xyz.com/1984/XInclude">
+    <xi:include href="input.xml"/>
+</system>
+"""
+    def process_file_with_error(path):
+        raise FileNotFoundError(path)
+    warnings = []
+
+    nodes = parse(xml,
+        process_file = process_file_with_error,
+        warn = lambda msg: warnings.append(msg))
+
+    assert nodes == [('input', [])]
+    assert warnings == ['file input.xml not found']
 
 def test_constants_parsing():
     xml = """\

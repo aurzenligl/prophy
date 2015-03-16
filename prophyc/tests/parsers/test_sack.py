@@ -1,18 +1,11 @@
 import os
-import tempfile
 import pytest
 
 from prophyc import model
+from prophyc.parsers.sack import SackParser
 
-def parse(content, suffix = '.hpp'):
-    from prophyc.parsers.sack import SackParser
-    try:
-        with tempfile.NamedTemporaryFile(suffix = suffix, delete = False) as temp:
-            temp.write(content)
-            temp.flush()
-            return SackParser().parse(temp.name)
-    finally:
-        os.unlink(temp.name)
+def parse(content, name = 'test.hpp', warn = None):
+    return SackParser(warn = warn).parse(content, name, None)
 
 class contains_cmp(object):
     def __init__(self, x):
@@ -475,7 +468,7 @@ struct X
     } a;
 };
 """
-    nodes = parse(hpp, suffix = '-hyphen.hpp')
+    nodes = parse(hpp, name = 'test-hyphen.hpp')
 
     assert '__hyphen__hpp__' in nodes[0].name
 
@@ -489,7 +482,7 @@ struct X;
 @pytest.clang_installed
 def test_omit_bitfields():
     hpp = b"""\
-typedef struct X
+struct X
 {
     unsigned a: 1;
     unsigned b: 1;
@@ -498,3 +491,44 @@ typedef struct X
 };
 """
     assert parse(hpp) == [model.Struct('X', [])]
+
+class WarnMock(object):
+    def __init__(self):
+        self.warnings = []
+    def __call__(self, msg, location = 'prophyc'):
+        self.warnings.append((location, msg))
+
+@pytest.clang_installed
+def test_diagnostics_error():
+    content = """\
+unknown;
+"""
+    warn = WarnMock()
+
+    assert parse(content,
+        name = "x.cpp",
+        warn = warn
+    ) == []
+    assert warn.warnings == [('x.cpp:1:1', 'C++ requires a type specifier for all declarations')]
+
+@pytest.clang_installed
+def test_diagnostics_warning():
+    content = """\
+int foo()
+{
+    int x;
+}
+"""
+    warn = WarnMock()
+
+    assert parse(content,
+        name = "x.cpp",
+        warn = warn
+    ) == []
+    assert warn.warnings == [('x.cpp:4:1', 'control reaches end of non-void function')]
+
+@pytest.clang_installed
+def test_libclang_parsing_error():
+    with pytest.raises(model.ParseError) as e:
+        parse('content', name = 'x')
+    assert e.value.errors == [('x', 'error parsing translation unit')]

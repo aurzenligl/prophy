@@ -13,6 +13,8 @@ def optional(cls):
     class _optional(cls):
         pass
 
+    _optional._OPTIONAL_ALIGNMENT = max(scalar.u32._ALIGNMENT, cls._ALIGNMENT)
+    _optional._OPTIONAL_SIZE = _optional._OPTIONAL_ALIGNMENT + cls._SIZE
     _optional._OPTIONAL = True
     _optional._optional_type = scalar.u32
     return _optional

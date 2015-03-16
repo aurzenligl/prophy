@@ -23,7 +23,7 @@ def call(args):
 
 def test_showing_version():
     ret, out, err = call(["--version"])
-    expected_version = b'0.4.2'
+    expected_version = '0.5.1dev'
     assert ret == 0
     assert tr(out) == b'prophyc ' + expected_version + b'\n'
     assert err == b""
@@ -47,7 +47,7 @@ def test_missing_output(tmpdir_cwd):
     ret, out, err = call(["--isar", os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
     assert out == b""
-    assert tr(err) == b"Missing output directives\n"
+    assert tr(err) == "prophyc: error: missing output directives\n"
 
 def test_passing_isar_and_sack(tmpdir_cwd):
     open("input", "w")
@@ -145,35 +145,80 @@ def test_isar_cpp(tmpdir_cwd):
     assert ret == 0
     assert out == b""
     assert err == b""
-    assert open("input.pp.hpp").read() == """\
-#ifndef _PROPHY_GENERATED_input_HPP
-#define _PROPHY_GENERATED_input_HPP
-
-#include <prophy/prophy.hpp>
-
+    assert """\
 struct Test
 {
     uint32_t x_len;
     uint32_t x[1]; /// dynamic array, size in x_len
 };
-
-#endif  /* _PROPHY_GENERATED_input_HPP */
-"""
-    assert open("input.pp.cpp").read() == """\
-#include "input.pp.hpp"
-
-namespace prophy
-{
-
+""" in open("input.pp.hpp").read()
+    assert """\
 template <>
 Test* swap<Test>(Test* payload)
 {
     swap(&payload->x_len);
     return cast<Test*>(swap_n_fixed(payload->x, payload->x_len));
 }
+""" in open("input.pp.cpp").read()
 
-} // namespace prophy
-"""
+def test_isar_warnings(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <system xmlns:xi="http://www.xyz.com/1984/XInclude">
+        <xi:include href="include.xml"/>
+    </system>
+</xml>
+""")
+
+    ret, out, err = call(["--isar",
+                          "--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 0
+    assert out == ""
+    assert tr(err) == "prophyc: warning: file include.xml not found\n"
+
+def test_isar_with_includes(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <system xmlns:xi="http://www.xyz.com/1984/XInclude">
+        <xi:include href="helper.xml"/>
+    </system>
+    <struct name="X">
+        <member name="a" type="Y"/>
+    </struct>
+</xml>
+""")
+    open("helper.xml", "w").write("""
+<xml>
+    <struct name="Y">
+        <member name="a" type="u64"/>
+    </struct>
+</xml>
+""")
+
+    ret, out, err = call(["--isar",
+                          "-I", str(tmpdir_cwd),
+                          "--cpp_full_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+    assert """\
+struct X : public prophy::detail::message<X>
+{
+    enum { encoded_byte_size = 8 };
+
+    Y a;
+
+    X() { }
+    X(const Y& _1): a(_1) { }
+
+    size_t get_byte_size() const
+    {
+        return 8;
+    }
+};
+""" in open("input.ppf.hpp").read()
 
 @pytest.clang_installed
 def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
@@ -244,10 +289,21 @@ struct Test
     uint32_t x;
 };
 
+namespace prophy
+{
+
+template <> Test* swap<Test>(Test*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
@@ -271,7 +327,7 @@ def test_clang_not_installed(tmpdir_cwd):
 
     assert ret == 1
     assert out == b""
-    assert tr(err) == b"Sack input requires clang and it's not installed\n"
+    assert tr(err) == "prophyc: error: sack input requires clang and it's not installed\n"
 
 def test_prophy_language(tmpdir_cwd):
     open("input.prophy", "w").write("""\
@@ -333,10 +389,22 @@ struct U
     };
 };
 
+namespace prophy
+{
+
+template <> X* swap<X>(X*);
+template <> U* swap<U>(U*);
+
+} // namespace prophy
+
 #endif  /* _PROPHY_GENERATED_input_HPP */
 """
     assert open("input.pp.cpp").read() == """\
+#include <prophy/detail/prophy.hpp>
+
 #include "input.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {
@@ -377,8 +445,171 @@ constant
                           os.path.join(str(tmpdir_cwd), "input.prophy")])
     assert ret == 1
     assert out == b""
-    assert tr(err) == b"""\
-input.prophy:1:11 error: syntax error at '}'
-input.prophy:2:10 error: syntax error at '}'
-"""
+    errlines = tr(err).splitlines()
+    assert len(errlines) == 2
+    assert errlines[0].endswith("input.prophy:1:11: error: syntax error at '}'")
+    assert errlines[1].endswith("input.prophy:2:10: error: syntax error at '}'")
     assert not os.path.exists("input.py")
+
+def test_sack_parse_warnings(tmpdir_cwd):
+    open("input.cpp", "w").write("""\
+int foo() { int x; }
+rubbish;
+""")
+
+    ret, out, err = call(['--python_out', str(tmpdir_cwd), '--sack',
+                          os.path.join(str(tmpdir_cwd), 'input.cpp')])
+    assert ret == 0
+    assert out == ""
+    errlines = tr(err).splitlines()
+    assert len(errlines) == 2
+    assert 'input.cpp:1:20: warning: control reaches end of non-void function' in errlines[0]
+    assert 'input.cpp:2:1: warning: C++ requires a type specifier for all declarations' in errlines[1]
+    assert os.path.exists("input.py")
+
+def test_sack_parse_errors(tmpdir_cwd):
+    open("input.unknown", "w").write("")
+
+    ret, out, err = call(['--python_out', str(tmpdir_cwd), '--sack',
+                          os.path.join(str(tmpdir_cwd), 'input.unknown')])
+    assert ret == 1
+    assert out == ""
+    errlines = tr(err).splitlines()
+    assert len(errlines) == 1
+    assert 'input.unknown: error: error parsing translation unit' in errlines[0]
+    assert not os.path.exists("input.py")
+
+def test_cpp_full_out(tmpdir_cwd):
+    open("input.prophy", "w").write("""
+typedef i16 TP;
+const MAX = 4;
+struct X {
+    u32 x;
+    TP y<MAX>;
+};
+""")
+
+    ret, out, err = call(["--cpp_full_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.prophy")])
+    assert ret == 0
+    assert out == ""
+    assert err == ""
+
+    assert open("input.ppf.hpp").read() == """\
+#ifndef _PROPHY_GENERATED_FULL_input_HPP
+#define _PROPHY_GENERATED_FULL_input_HPP
+
+#include <stdint.h>
+#include <numeric>
+#include <vector>
+#include <string>
+#include <prophy/array.hpp>
+#include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
+#include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
+
+namespace prophy
+{
+namespace generated
+{
+
+typedef int16_t TP;
+
+enum { MAX = 4 };
+
+struct X : public prophy::detail::message<X>
+{
+    enum { encoded_byte_size = 16 };
+
+    uint32_t x;
+    std::vector<TP> y; /// limit 4
+
+    X(): x() { }
+    X(uint32_t _1, const std::vector<TP>& _2): x(_1), y(_2) { }
+
+    size_t get_byte_size() const
+    {
+        return 16;
+    }
+};
+
+} // namespace generated
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_FULL_input_HPP */
+"""
+    assert open("input.ppf.cpp").read() == """\
+#include "input.ppf.hpp"
+#include <algorithm>
+#include <prophy/detail/encoder.hpp>
+#include <prophy/detail/decoder.hpp>
+#include <prophy/detail/printer.hpp>
+#include <prophy/detail/align.hpp>
+
+using namespace prophy::generated;
+
+namespace prophy
+{
+namespace detail
+{
+
+template <>
+template <endianness E>
+uint8_t* message_impl<X>::encode(const X& x, uint8_t* pos)
+{
+    pos = do_encode<E>(pos, x.x);
+    pos = do_encode<E>(pos, uint32_t(std::min(x.y.size(), size_t(4))));
+    do_encode<E>(pos, x.y.data(), uint32_t(std::min(x.y.size(), size_t(4))));
+    pos = pos + 8;
+    return pos;
+}
+template uint8_t* message_impl<X>::encode<native>(const X& x, uint8_t* pos);
+template uint8_t* message_impl<X>::encode<little>(const X& x, uint8_t* pos);
+template uint8_t* message_impl<X>::encode<big>(const X& x, uint8_t* pos);
+
+template <>
+template <endianness E>
+bool message_impl<X>::decode(X& x, const uint8_t*& pos, const uint8_t* end)
+{
+    return (
+        do_decode<E>(x.x, pos, end) &&
+        do_decode_resize<E, uint32_t>(x.y, pos, end, 4) &&
+        do_decode_in_place<E>(x.y.data(), x.y.size(), pos, end) &&
+        do_decode_advance(8, pos, end)
+    );
+}
+template bool message_impl<X>::decode<native>(X& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<X>::decode<little>(X& x, const uint8_t*& pos, const uint8_t* end);
+template bool message_impl<X>::decode<big>(X& x, const uint8_t*& pos, const uint8_t* end);
+
+template <>
+void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
+{
+    do_print(out, indent, "x", x.x);
+    do_print(out, indent, "y", x.y.data(), std::min(x.y.size(), size_t(4)));
+}
+template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
+
+} // namespace detail
+} // namespace prophy
+"""
+
+def test_cpp_full_out_error(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <struct name="Test">
+        <member name="x" type="Unknown">
+            <dimension isVariableSize="true"/>
+        </member>
+    </struct>
+</xml>
+""")
+
+    ret, out, err = call(["--isar", "--cpp_full_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 1
+    assert out == ""
+    assert tr(err) == ("prophyc: warning: type 'Unknown' not found\n"
+                       "prophyc: error: Test byte size unknown\n")
