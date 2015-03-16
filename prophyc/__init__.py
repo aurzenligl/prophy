@@ -22,7 +22,7 @@ def main():
     opts = options.parse_options()
 
     if opts.version:
-        print "prophyc {}".format(__version__)
+        print("prophyc {}".format(__version__))
         sys.exit(0)
 
     if not opts.input_files:
