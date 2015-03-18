@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import pytest
 
@@ -8,7 +9,7 @@ def write(filename, content):
     open(filename, "w").write(content)
 
 def compile(filename, mode, tmpdir):
-    cmd = " ".join(["python", "-m", "prophyc", mode, "--python_out",
+    cmd = " ".join([sys.executable, "-m", "prophyc", mode, "--python_out",
                     tmpdir, os.path.join(tmpdir, filename)])
     subprocess.check_call(cmd, cwd = main_dir, shell = True)
 
