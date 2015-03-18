@@ -15,7 +15,7 @@ class contains_cmp(object):
 
 @pytest.clang_installed
 def test_simple_struct():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 struct X
 {
@@ -34,7 +34,7 @@ struct X
 
 @pytest.clang_installed
 def test_ints():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 struct X
 {
@@ -77,7 +77,7 @@ struct X
 
 @pytest.clang_installed
 def test_nested_typedefs():
-    hpp = b"""\
+    hpp = """\
 typedef int my_int;
 typedef my_int i_like_typedefs;
 typedef i_like_typedefs i_really_do;
@@ -90,7 +90,7 @@ struct X
 
 @pytest.clang_installed
 def test_typedefed_struct():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 typedef struct
 {
@@ -108,7 +108,7 @@ struct X
 
 @pytest.clang_installed
 def test_namespaced_struct():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 namespace m
 {
@@ -132,7 +132,7 @@ struct X
 
 @pytest.clang_installed
 def test_array():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 struct X
 {
@@ -143,7 +143,7 @@ struct X
 
 @pytest.clang_installed
 def test_enum():
-    hpp = b"""\
+    hpp = """\
 enum Enum
 {
     Enum_One = 1,
@@ -168,7 +168,7 @@ struct X
 
 @pytest.clang_installed
 def test_typedefed_enum():
-    hpp = b"""\
+    hpp = """\
 typedef enum Enum
 {
     Enum_One = 1,
@@ -193,7 +193,7 @@ struct X
 
 @pytest.clang_installed
 def test_namespaced_enum():
-    hpp = b"""\
+    hpp = """\
 namespace m
 {
 namespace n
@@ -224,7 +224,7 @@ struct X
 
 @pytest.clang_installed
 def test_enum_with_negative_one_values():
-    hpp = b"""\
+    hpp = """\
 enum Enum
 {
     Enum_MinusOne = -1,
@@ -249,7 +249,7 @@ struct X
 
 @pytest.clang_installed
 def test_multiple_enums():
-    hpp = b"""\
+    hpp = """\
 typedef enum Enum
 {
     Enum_One = 1,
@@ -278,7 +278,7 @@ struct X
 
 @pytest.clang_installed
 def test_c_enum():
-    hpp = b"""\
+    hpp = """\
 typedef enum
 {
     Enum_One = 1,
@@ -303,7 +303,7 @@ struct X
 
 @pytest.clang_installed
 def test_union():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 union Union
 {
@@ -329,7 +329,7 @@ struct X
 
 @pytest.clang_installed
 def test_typedefed_union():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 typedef union
 {
@@ -351,7 +351,7 @@ struct X
 
 @pytest.clang_installed
 def test_multiple_structs():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 struct X
 {
@@ -382,7 +382,7 @@ struct Z
 
 @pytest.clang_installed
 def test_class_template():
-    hpp = b"""\
+    hpp = """\
 #include <stdint.h>
 #include <stddef.h>
 template<typename T, size_t N>
@@ -411,7 +411,7 @@ struct X
 
 @pytest.clang_installed
 def test_c_struct():
-    hpp = b"""\
+    hpp = """\
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -428,7 +428,7 @@ typedef struct X X;
 
 @pytest.clang_installed
 def test_struct_with_anonymous_struct():
-    hpp = b"""\
+    hpp = """\
 struct X
 {
     struct
@@ -449,7 +449,7 @@ struct X
 
 @pytest.clang_installed
 def test_struct_with_incomplete_array():
-    hpp = b"""\
+    hpp = """\
 struct X
 {
     char b[];
@@ -459,7 +459,7 @@ struct X
 
 @pytest.clang_installed
 def test_struct_with_incomplete_array_in_file_with_hyphen():
-    hpp = b"""\
+    hpp = """\
 struct X
 {
     struct
@@ -474,14 +474,14 @@ struct X
 
 @pytest.clang_installed
 def test_forward_declared_struct():
-    hpp = b"""\
+    hpp = """\
 struct X;
 """
     assert parse(hpp) == []
 
 @pytest.clang_installed
 def test_omit_bitfields():
-    hpp = b"""\
+    hpp = """\
 struct X
 {
     unsigned a: 1;

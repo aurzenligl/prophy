@@ -59,7 +59,7 @@ def make_include(elem, process_file, warn):
         nodes = process_file(path)
     except (CyclicIncludeError, FileNotFoundError) as e:
         if warn:
-            warn(e.message)
+            warn(str(e))
         nodes = []
     return model.Include(path.split('.')[0], nodes)
 
