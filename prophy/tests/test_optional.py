@@ -79,10 +79,10 @@ def test_optional_union():
         _descriptor = [("a", prophy.optional(U))]
 
     x = O()
-    assert "\x00\x00\x00\x00" "\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+    assert b"\x00\x00\x00\x00" b"\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
 
     x.a = True
-    assert "\x00\x00\x00\x01" "\x00\x00\x00\x05" "\x00\x00\x00\x00" == x.encode(">")
+    assert b"\x00\x00\x00\x01" b"\x00\x00\x00\x05" b"\x00\x00\x00\x00" == x.encode(">")
 
     x.a.a = 3
     assert b"\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x03" == x.encode(">")
@@ -156,8 +156,7 @@ def test_optional_array():
     assert "array of optional type not allowed" == str(e.value)
 
 def test_optional_padded():
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('x', prophy.optional(prophy.u8)),
                        ('y', prophy.optional(prophy.u64))]
 
@@ -165,16 +164,16 @@ def test_optional_padded():
     x.x = 1
     x.y = 2
     assert x.encode('>') == (
-        '\x00\x00\x00\x01'
-        '\x01\x00\x00\x00'
-        '\x00\x00\x00\x01\x00\x00\x00\x00'
-        '\x00\x00\x00\x00\x00\x00\x00\x02'
+        b'\x00\x00\x00\x01'
+        b'\x01\x00\x00\x00'
+        b'\x00\x00\x00\x01\x00\x00\x00\x00'
+        b'\x00\x00\x00\x00\x00\x00\x00\x02'
     )
     x.decode(
-        '\x00\x00\x00\x01'
-        '\x03\x00\x00\x00'
-        '\x00\x00\x00\x01\x00\x00\x00\x00'
-        '\x00\x00\x00\x00\x00\x00\x00\x04',
+        b'\x00\x00\x00\x01'
+        b'\x03\x00\x00\x00'
+        b'\x00\x00\x00\x01\x00\x00\x00\x00'
+        b'\x00\x00\x00\x00\x00\x00\x00\x04',
         '>'
     )
     assert x.x == 3

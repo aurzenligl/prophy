@@ -153,9 +153,9 @@ def get_encode_function(type):
 
 def encode_optional(parent, type, value, endianness):
     if value is None:
-        return "\x00" * type._OPTIONAL_SIZE
+        return b"\x00" * type._OPTIONAL_SIZE
     else:
-        return (type._optional_type._encode(True, endianness).ljust(type._OPTIONAL_ALIGNMENT, '\x00')
+        return (type._optional_type._encode(True, endianness).ljust(type._OPTIONAL_ALIGNMENT, b'\x00')
                 + type._encode(parent, type.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type, value, endianness):
@@ -449,7 +449,7 @@ class union(object):
     def encode(self, endianness, terminal = True):
         name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, '\x00')
+        data = (self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, b'\x00')
                 + encode_(self, tp, value, endianness))
         return data.ljust(self._SIZE, b'\x00')
 

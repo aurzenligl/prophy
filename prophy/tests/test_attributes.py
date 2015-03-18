@@ -388,11 +388,9 @@ def test_union_attributes():
     assert U._PARTIAL_ALIGNMENT is None
 
 def test_union_with_discriminator_padding_attributes():
-    class U1(prophy.union):
-        __metaclass__ = prophy.union_generator
+    class U1(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a1", prophy.u8, 0)]
-    class U2(prophy.union):
-        __metaclass__ = prophy.union_generator
+    class U2(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a2", prophy.u64, 0)]
 
     assert 8 == U1._SIZE
