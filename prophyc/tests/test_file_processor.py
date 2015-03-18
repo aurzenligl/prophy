@@ -47,7 +47,7 @@ other input
 def test_file_processor_main_file_not_found(tmpdir_cwd):
     with pytest.raises(FileNotFoundError) as e:
         FileProcessor(FakeContentProcessor(), [])('nonexistent.txt')
-    assert e.value.message == 'file nonexistent.txt not found'
+    assert str(e.value) == 'file nonexistent.txt not found'
 
 def test_file_processor_include_file_not_found(tmpdir_cwd):
     os.mkdir('x')
@@ -55,20 +55,20 @@ def test_file_processor_include_file_not_found(tmpdir_cwd):
     open('x/incl.txt', 'w').write('xxxx')
     with pytest.raises(FileNotFoundError) as e:
         FileProcessor(FakeContentProcessor(), [])('main.txt')
-    assert e.value.message == 'file incl.txt not found'
+    assert str(e.value) == 'file incl.txt not found'
 
 def test_file_processor_main_self_include(tmpdir_cwd):
     open('main.txt', 'w').write('#include <main.txt>')
     with pytest.raises(CyclicIncludeError) as e:
         FileProcessor(FakeContentProcessor(), [])('main.txt')
-    assert e.value.message == 'file main.txt included again during parsing'
+    assert str(e.value) == 'file main.txt included again during parsing'
 
 def test_file_processor_leaf_self_include(tmpdir_cwd):
     open('main.txt', 'w').write('#include <incl.txt>')
     open('incl.txt', 'w').write('#include <incl.txt>')
     with pytest.raises(CyclicIncludeError) as e:
         FileProcessor(FakeContentProcessor(), [])('main.txt')
-    assert e.value.message == 'file incl.txt included again during parsing'
+    assert str(e.value) == 'file incl.txt included again during parsing'
 
 def test_file_processor_cyclic_include(tmpdir_cwd):
     open('main.txt', 'w').write('#include <incl1.txt>')
@@ -76,7 +76,7 @@ def test_file_processor_cyclic_include(tmpdir_cwd):
     open('incl2.txt', 'w').write('#include <incl1.txt>')
     with pytest.raises(CyclicIncludeError) as e:
         FileProcessor(FakeContentProcessor(), [])('main.txt')
-    assert e.value.message == 'file incl1.txt included again during parsing'
+    assert str(e.value) == 'file incl1.txt included again during parsing'
 
 def test_file_processor_include_dir_precedence(tmpdir_cwd):
     os.mkdir('x')
@@ -146,7 +146,7 @@ def test_file_processor_main_directory_implicit_include_directory_taken_over_by_
 
     with pytest.raises(FileNotFoundError) as e:
         processor('x/main2.txt')
-    assert e.value.message == 'file incl2.txt not found'
+    assert str(e.value) == 'file incl2.txt not found'
 
 def test_file_processor_leaf_directory_takes_over_as_an_implicit_include_directory(tmpdir_cwd):
     os.makedirs('x/y/z')
@@ -165,4 +165,4 @@ def test_file_processor_leaf_directory_takes_over_as_an_implicit_include_directo
 
     with pytest.raises(FileNotFoundError) as e:
         FileProcessor(FakeContentProcessor(), [])('main.txt')
-    assert e.value.message == 'file incl2.txt not found'
+    assert str(e.value) == 'file incl2.txt not found'

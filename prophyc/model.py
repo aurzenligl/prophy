@@ -2,7 +2,7 @@ from collections import namedtuple
 from itertools import islice
 
 from .six import ifilter, reduce
-from prophyc import calc
+from . import calc
 
 """ Exception types """
 class GenerateError(Exception): pass
@@ -194,6 +194,10 @@ class Union(object):
         return (cmp(self.name, other.name) or
                 cmp(self.members, other.members))
 
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.members == other.members))
+
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
 
@@ -346,17 +350,17 @@ def cross_reference(nodes, warn = None):
                 node.numeric_size = to_int(node.size)
             except calc.ParseError as e:
                 if warn:
-                    warn(e.message)
+                    warn(str(e))
                 node.numeric_size = None
 
     for node in nodes:
         if isinstance(node, Typedef):
             cross_reference_types(node)
         elif isinstance(node, Struct):
-            map(cross_reference_types, node.members)
-            map(evaluate_array_sizes, node.members)
+            list(map(cross_reference_types, node.members))
+            list(map(evaluate_array_sizes, node.members))
         elif isinstance(node, Union):
-            map(cross_reference_types, node.members)
+            list(map(cross_reference_types, node.members))
 
 def evaluate_struct_kind(node):
     """Adds kind to Struct. Requires cross referenced nodes."""
@@ -434,7 +438,7 @@ def evaluate_sizes(nodes):
         node.byte_size, node.alignment = (None, None)
 
     def evaluate_members_sizes(node):
-        if not all(map(evaluate_member_size, node.members)):
+        if not all(list(map(evaluate_member_size, node.members))):
             evaluate_empty_size(node)
             return False
         return True
@@ -470,12 +474,12 @@ def evaluate_sizes(nodes):
     def evaluate_union_size(node):
         node.alignment = max(DISC_SIZE, node.members and max(x.alignment for x in node.members) or 1)
         node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
-        node.byte_size = (node.byte_size + node.alignment - 1) / node.alignment * node.alignment
+        node.byte_size = int((node.byte_size + node.alignment - 1) / node.alignment) * node.alignment
 
     for node in nodes:
         if isinstance(node, Struct):
             if evaluate_members_sizes(node):
-                map(evaluate_array_and_optional_size, node.members)
+                list(map(evaluate_array_and_optional_size, node.members))
                 evaluate_partial_padding_size(node)
                 evaluate_struct_size(node)
         elif isinstance(node, Union):
