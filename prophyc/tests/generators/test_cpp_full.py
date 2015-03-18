@@ -2383,7 +2383,7 @@ def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
-    assert "X byte size unknown" == e.value.message
+    assert "X byte size unknown" == str(e.value)
 
 def test_exception_when_numeric_size_is_unknown(tmpdir_cwd):
     nodes = process([
@@ -2393,7 +2393,7 @@ def test_exception_when_numeric_size_is_unknown(tmpdir_cwd):
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
-    assert "X byte size unknown" == e.value.message
+    assert "X byte size unknown" == str(e.value)
 
 def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
     nodes = process([
@@ -2403,7 +2403,7 @@ def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
-    assert "X byte size unknown" == e.value.message
+    assert "X byte size unknown" == str(e.value)
 
 def test_get_byte_size_when_array_delimiter_is_a_typedef():
     nodes = process([
