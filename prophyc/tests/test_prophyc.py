@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 
 import pytest
@@ -14,7 +15,7 @@ def tr(str_):
     return str_.translate(None, b'\r')
 
 def call(args):
-    popen = subprocess.Popen(["python", "-m", "prophyc"] + args,
+    popen = subprocess.Popen([sys.executable, "-m", "prophyc"] + args,
                              cwd = main_dir,
                              stdout = subprocess.PIPE,
                              stderr = subprocess.PIPE)
@@ -23,7 +24,7 @@ def call(args):
 
 def test_showing_version():
     ret, out, err = call(["--version"])
-    expected_version = '0.5.1dev'
+    expected_version = b'0.5.1dev'
     assert ret == 0
     assert tr(out) == b'prophyc ' + expected_version + b'\n'
     assert err == b""
@@ -47,7 +48,7 @@ def test_missing_output(tmpdir_cwd):
     ret, out, err = call(["--isar", os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
     assert out == b""
-    assert tr(err) == "prophyc: error: missing output directives\n"
+    assert tr(err) == b"prophyc: error: missing output directives\n"
 
 def test_passing_isar_and_sack(tmpdir_cwd):
     open("input", "w")
@@ -174,8 +175,8 @@ def test_isar_warnings(tmpdir_cwd):
                           "--python_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
-    assert out == ""
-    assert tr(err) == "prophyc: warning: file include.xml not found\n"
+    assert out == b""
+    assert tr(err) == b"prophyc: warning: file include.xml not found\n"
 
 def test_isar_with_includes(tmpdir_cwd):
     open("input.xml", "w").write("""
@@ -201,8 +202,8 @@ def test_isar_with_includes(tmpdir_cwd):
                           "--cpp_full_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
     assert """\
 struct X : public prophy::detail::message<X>
 {
@@ -226,6 +227,7 @@ def test_sack_compiles_single_empty_hpp(tmpdir_cwd):
     ret, out, err = call(["--sack", "--python_out",
                           str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.hpp")])
+
     assert ret == 0
     assert out == b""
     assert err == b""
@@ -327,7 +329,7 @@ def test_clang_not_installed(tmpdir_cwd):
 
     assert ret == 1
     assert out == b""
-    assert tr(err) == "prophyc: error: sack input requires clang and it's not installed\n"
+    assert tr(err) == b"prophyc: error: sack input requires clang and it's not installed\n"
 
 def test_prophy_language(tmpdir_cwd):
     open("input.prophy", "w").write("""\
@@ -447,8 +449,8 @@ constant
     assert out == b""
     errlines = tr(err).splitlines()
     assert len(errlines) == 2
-    assert errlines[0].endswith("input.prophy:1:11: error: syntax error at '}'")
-    assert errlines[1].endswith("input.prophy:2:10: error: syntax error at '}'")
+    assert errlines[0].endswith(b"input.prophy:1:11: error: syntax error at '}'")
+    assert errlines[1].endswith(b"input.prophy:2:10: error: syntax error at '}'")
     assert not os.path.exists("input.py")
 
 def test_sack_parse_warnings(tmpdir_cwd):
@@ -460,11 +462,11 @@ rubbish;
     ret, out, err = call(['--python_out', str(tmpdir_cwd), '--sack',
                           os.path.join(str(tmpdir_cwd), 'input.cpp')])
     assert ret == 0
-    assert out == ""
+    assert out == b""
     errlines = tr(err).splitlines()
     assert len(errlines) == 2
-    assert 'input.cpp:1:20: warning: control reaches end of non-void function' in errlines[0]
-    assert 'input.cpp:2:1: warning: C++ requires a type specifier for all declarations' in errlines[1]
+    assert b'input.cpp:1:20: warning: control reaches end of non-void function' in errlines[0]
+    assert b'input.cpp:2:1: warning: C++ requires a type specifier for all declarations' in errlines[1]
     assert os.path.exists("input.py")
 
 def test_sack_parse_errors(tmpdir_cwd):
@@ -473,10 +475,10 @@ def test_sack_parse_errors(tmpdir_cwd):
     ret, out, err = call(['--python_out', str(tmpdir_cwd), '--sack',
                           os.path.join(str(tmpdir_cwd), 'input.unknown')])
     assert ret == 1
-    assert out == ""
+    assert out == b""
     errlines = tr(err).splitlines()
     assert len(errlines) == 1
-    assert 'input.unknown: error: error parsing translation unit' in errlines[0]
+    assert b'input.unknown: error: error parsing translation unit' in errlines[0]
     assert not os.path.exists("input.py")
 
 def test_cpp_full_out(tmpdir_cwd):
@@ -492,8 +494,8 @@ struct X {
     ret, out, err = call(["--cpp_full_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.prophy")])
     assert ret == 0
-    assert out == ""
-    assert err == ""
+    assert out == b""
+    assert err == b""
 
     assert open("input.ppf.hpp").read() == """\
 #ifndef _PROPHY_GENERATED_FULL_input_HPP
@@ -610,6 +612,6 @@ def test_cpp_full_out_error(tmpdir_cwd):
     ret, out, err = call(["--isar", "--cpp_full_out", str(tmpdir_cwd),
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
-    assert out == ""
-    assert tr(err) == ("prophyc: warning: type 'Unknown' not found\n"
-                       "prophyc: error: Test byte size unknown\n")
+    assert out == b""
+    assert tr(err) == (b"prophyc: warning: type 'Unknown' not found\n"
+                       b"prophyc: error: Test byte size unknown\n")
