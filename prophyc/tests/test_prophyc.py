@@ -478,9 +478,7 @@ def test_sack_parse_errors(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), 'input.unknown')])
     assert ret == 1
     assert out == b""
-    errlines = tr(err).splitlines()
-    assert len(errlines) == 1
-    assert b'input.unknown: error: error parsing translation unit' in errlines[0]
+    assert b'input.unknown: error: error parsing translation unit' in tr(err)
     assert not os.path.exists("input.py")
 
 def test_cpp_full_out(tmpdir_cwd):
