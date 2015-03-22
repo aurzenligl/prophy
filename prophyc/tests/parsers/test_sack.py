@@ -2,9 +2,9 @@ import os
 import pytest
 
 from prophyc import model
-from prophyc.parsers.sack import SackParser
 
 def parse(content, name = 'test.hpp', warn = None):
+    from prophyc.parsers.sack import SackParser
     return SackParser(warn = warn).parse(content, name, None)
 
 class contains_cmp(object):
