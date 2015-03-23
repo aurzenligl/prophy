@@ -70,7 +70,7 @@ def test_fixed_bytes_copy_from(FixedBytes):
 def test_fixed_bytes_encoding(FixedBytes):
     x = FixedBytes()
     x.value = b"abc\x00"
-    assert bytes(x) == b"value: \'abc\\x00\\x00\'\n"
+    assert str(x) == "value: \'abc\\x00\\x00\'\n"
 
     assert x.encode(">") == b"abc\x00\x00"
 
@@ -93,7 +93,7 @@ def test_fixed_bytes_twice_in_struct():
     x = X()
     x.x = b"abcde"
     x.y = b"fghij"
-    assert bytes(x) == b"""\
+    assert str(x) == """\
 x: 'abcde'
 y: 'fghij'
 """
@@ -135,13 +135,13 @@ def test_bound_bytes_copy_from(BoundBytes):
 def test_bound_bytes_encoding(BoundBytes):
     x = BoundBytes()
     x.value = b"abc"
-    assert bytes(x) == b"value: \'abc\'\n"
+    assert str(x) == "value: \'abc\'\n"
 
     x.value = b"\x00\x01"
-    assert bytes(x) == b"value: \'\\x00\\x01\'\n"
+    assert str(x) == "value: \'\\x00\\x01\'\n"
 
     x.value = b"ab\x00"
-    assert bytes(x) == b"value: \'ab\\x00\'\n"
+    assert str(x) == "value: \'ab\\x00\'\n"
 
     x.value = b"abc"
     assert x.encode(">") == b"\x00\x00\x00\x03abc"
@@ -164,8 +164,8 @@ def test_bound_bytes_twice_in_struct():
     x = X()
     x.x = b"abcde"
     x.y = b"fghij"
-    assert bytes(x) == (b"x: \'abcde\'\n"
-                        b"y: \'fghij\'\n")
+    assert str(x) == ("x: \'abcde\'\n"
+                      "y: \'fghij\'\n")
     assert x.encode(">") == b"\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij"
 
     x.decode(b"\x00\x00\x00\x05\x00\x00\x00\x05abcdefghij", ">")
@@ -253,11 +253,11 @@ def test_limited_bytes_copy_from(LimitedBytes):
 def test_limited_bytes_encoding(LimitedBytes):
     x = LimitedBytes()
     x.value = b"abc"
-    assert bytes(x) == b"value: \'abc\'\n"
+    assert str(x) == "value: \'abc\'\n"
     x.value = b"\x00\x01"
-    assert bytes(x) == b"value: \'\\x00\\x01\'\n"
+    assert str(x) == "value: \'\\x00\\x01\'\n"
     x.value = b"ab\x00"
-    assert bytes(x) == b"value: \'ab\\x00\'\n"
+    assert str(x) == "value: \'ab\\x00\'\n"
 
     x.value = b"abc"
     assert x.encode(">") == b"\x00\x00\x00\x03abc\x00\x00"
@@ -279,8 +279,8 @@ def test_limited_bytes_twice_in_struct():
     x = X()
     x.x = b"abc"
     x.y = b"efgh"
-    assert bytes(x) == (b"x: \'abc\'\n"
-                        b"y: \'efgh\'\n")
+    assert str(x) == ("x: \'abc\'\n"
+                      "y: \'efgh\'\n")
     assert x.encode(">") == b"\x00\x00\x00\x03\x00\x00\x00\x04abc\x00\x00efgh\x00"
 
     x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x03ab\x00\x00\x00fgh\x00\x00", ">")
@@ -314,11 +314,11 @@ def test_greedy_bytes_copy_from(GreedyBytes):
 def test_greedy_bytes_encoding(GreedyBytes):
     x = GreedyBytes()
     x.value = b"abc"
-    assert bytes(x) == b"value: \'abc\'\n"
+    assert str(x) == "value: \'abc\'\n"
     x.value = b"\x00\x01"
-    assert bytes(x) == b"value: \'\\x00\\x01\'\n"
+    assert str(x) == "value: \'\\x00\\x01\'\n"
     x.value = b"ab\x00"
-    assert bytes(x) == b"value: \'ab\\x00\'\n"
+    assert str(x) == "value: \'ab\\x00\'\n"
 
     x.value = b"abc"
     assert x.encode(">") == b"abc"
@@ -337,8 +337,8 @@ def test_greedy_bytes_as_last_field():
     x = X()
     x.x = 1
     x.y = b"fgh"
-    assert bytes(x) == (b"x: 1\n"
-                        b"y: \'fgh\'\n")
+    assert str(x) == ("x: 1\n"
+                      "y: \'fgh\'\n")
     assert x.encode(">") == b"\x00\x00\x00\x01fgh"
 
     x.decode(b"\x00\x00\x00\x01fgh", ">")

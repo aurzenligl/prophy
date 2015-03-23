@@ -268,14 +268,6 @@ class struct(object):
                 out += field_to_string(name, tp, value)
         return out
 
-    def __bytes__(self):
-        out = b""
-        for name, tp, _, _ in self._descriptor:
-            value = getattr(self, name, None)
-            if value is not None:
-                out += field_to_string(name, tp, value).encode()
-        return out
-
     @staticmethod
     def _get_padding(offset, alignment):
         remainder = offset % alignment
