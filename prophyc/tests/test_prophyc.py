@@ -453,6 +453,7 @@ constant
     assert errlines[1].endswith(b"input.prophy:2:10: error: syntax error at '}'")
     assert not os.path.exists("input.py")
 
+@pytest.clang_installed
 def test_sack_parse_warnings(tmpdir_cwd):
     open("input.cpp", "w").write("""\
 int foo() { int x; }
@@ -469,6 +470,7 @@ rubbish;
     assert b'input.cpp:2:1: warning: C++ requires a type specifier for all declarations' in errlines[1]
     assert os.path.exists("input.py")
 
+@pytest.clang_installed
 def test_sack_parse_errors(tmpdir_cwd):
     open("input.unknown", "w").write("")
 
@@ -476,9 +478,7 @@ def test_sack_parse_errors(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), 'input.unknown')])
     assert ret == 1
     assert out == b""
-    errlines = tr(err).splitlines()
-    assert len(errlines) == 1
-    assert b'input.unknown: error: error parsing translation unit' in errlines[0]
+    assert b'input.unknown: error: error parsing translation unit' in tr(err)
     assert not os.path.exists("input.py")
 
 def test_cpp_full_out(tmpdir_cwd):
