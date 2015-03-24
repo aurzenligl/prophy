@@ -70,10 +70,6 @@ class Typedef(object):
         if 'definition' in kwargs:
             self.definition = kwargs['definition']
 
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.type, other.type))
-
     def __eq__(self, other):
         return ((self.name == other.name) or
                 (self.type == other.type))
@@ -93,10 +89,6 @@ class Struct(object):
         """byte size of complete struct, dynamic/greedy arrays assumed empty"""
 
         self.alignment = None
-
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.members, other.members))
 
     def __eq__(self, other):
         return ((self.name == other.name) or
@@ -135,14 +127,6 @@ class StructMember(object):
 
         self.padding = None
         """amount of bytes to add before next field. If field dynamic: negative alignment of next field"""
-
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.type, other.type) or
-                cmp(self.array, other.array) or
-                cmp(self.bound, other.bound) or
-                cmp(self.size, other.size) or
-                cmp(self.optional, other.optional))
 
     def __eq__(self, other):
         return ((self.name == other.name) or
@@ -190,10 +174,6 @@ class Union(object):
         self.byte_size = None
         self.alignment = None
 
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.members, other.members))
-
     def __eq__(self, other):
         return ((self.name == other.name) or
                 (self.members == other.members))
@@ -213,11 +193,6 @@ class UnionMember(object):
         self.kind = evaluate_member_kind(self)
         self.byte_size = None
         self.alignment = None
-
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.type, other.type) or
-                cmp(self.discriminator, other.discriminator))
 
     def __eq__(self, other):
         return ((self.name == other.name) or
