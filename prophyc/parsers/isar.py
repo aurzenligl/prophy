@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ElementTree
-from itertools import islice
 
-from ..six import ifilter, reduce
+from ..six import reduce
 from prophyc import model
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 

@@ -31,8 +31,8 @@ def _generate_def_typedef(typedef):
     return 'typedef {} {};'.format(tp, typedef.name)
 
 def _generate_def_enum(enum):
-    members = ',\n'.join('{} = {}'.format(name, value)
-                         for name, value in enum.members)
+    members = ',\n'.join('{} = {}'.format(member.name, member.value)
+                         for member in enum.members)
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
 def _generate_def_struct(struct):

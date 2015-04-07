@@ -47,20 +47,31 @@ Include = namedtuple("Include", ["name", "nodes"])
 
 Constant = namedtuple("Constant", ["name", "value"])
 
-Enum = namedtuple("Enum", ["name", "members"])
-EnumMember = namedtuple("EnumMember", ["name", "value"])
+class Enum(object):
 
-class MyEnum(Enum):
+    def __init__(self, name, members):
+        self.name = name
+        self.members = members
 
     def __eq__(self, other):
         return ((self.name == other.name) or
                 (self.members == other.members))
 
-class MyEnumMember(EnumMember):
+    def __repr__(self):
+        return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
+
+class EnumMember(object):
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
 
     def __eq__(self, other):
         return ((self.name == other.name) or
                 (self.value == other.value))
+
+    def __repr__(self):
+        return '{0} {1}'.format(self.name, self.value)
 
 class Typedef(object):
 
@@ -226,7 +237,7 @@ def topological_sort(nodes):
     def get_typedef_deps(typedef):
         return [typedef.type]
     def get_enum_deps(enum):
-        return []
+        return [member.name for member in enum.members]
     def get_struct_deps(struct):
         return [member.type for member in struct.members]
     def get_union_deps(union):

@@ -19,10 +19,10 @@ def _generate_typedef(typedef):
         else typedef.type)
 
 def _generate_enum_members(members):
-    return (",\n" + " " * 21).join(("('%s', %s)" % (name, value) for name, value in members))
+    return (",\n" + " " * 21).join(("('%s', %s)" % (member.name, member.value) for member in members))
 
 def _generate_enum_constants(members):
-    return "\n".join(("%s = %s" % (name, value) for name, value in members))
+    return "\n".join(("%s = %s" % (member.name, member.value) for member in members))
 
 def _generate_enum(enum):
     return ("class {1}({0}.with_metaclass({0}.enum_generator, {0}.enum)):\n"

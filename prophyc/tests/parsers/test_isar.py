@@ -127,11 +127,13 @@ def test_enums_parsing():
     </enum>
 </x>
 """
-    nodes = parse(xml)
-
-    assert 1 == len(nodes)
-    assert "EEnum" == nodes[0][0]
-    assert [("EEnum_A", "0"), ("EEnum_B", "1"), (u"EEnum_C", "0xFFFFFFFF")] == nodes[0][1]
+    assert parse(xml) == [
+        model.Enum("EEnum", [
+            model.EnumMember("EEnum_A", "0"),
+            model.EnumMember("EEnum_B", "1"),
+            model.EnumMember("EEnum_C", "-1"),
+        ])
+    ]
 
 def test_struct_parsing():
     xml = """\
@@ -421,7 +423,7 @@ def test_operator_expansion_in_enum_and_constant():
 
     assert nodes == [
         ("Constant", "((value_one) | (value_two))"),
-        ("Enum", [
-            ("Enum_A", "((Constant) << (16))")
+        (model.Enum("Enum", [
+            model.EnumMember("Enum_A", "((Constant) << (16))")
         ])
-    ]
+    )]

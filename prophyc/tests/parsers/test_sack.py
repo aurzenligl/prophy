@@ -156,10 +156,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.MyEnum("Enum", [
-            model.MyEnumMember("Enum_One", "1"),
-            model.MyEnumMember("Enum_Two", "2"),
-            model.MyEnumMember("Enum_Three", "3")
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")
@@ -181,10 +181,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.MyEnum("Enum", [
-            model.MyEnumMember("Enum_One", "1"),
-            model.MyEnumMember("Enum_Two", "2"),
-            model.MyEnumMember("Enum_Three", "3")
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")
@@ -212,10 +212,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.MyEnum("m__n__Enum", [
-            model.MyEnumMember("Enum_One", "1"),
-            model.MyEnumMember("Enum_Two", "2"),
-            model.MyEnumMember("Enum_Three", "3")
+        model.Enum("m__n__Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "m__n__Enum")
@@ -237,10 +237,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.MyEnum("Enum", [
-            model.MyEnumMember("Enum_MinusOne", "0xFFFFFFFF"),
-            model.MyEnumMember("Enum_MinusTwo", "0xFFFFFFFE"),
-            model.MyEnumMember("Enum_MinusThree", "0xFFFFFFFD")
+        model.Enum("Enum", [
+            model.EnumMember("Enum_MinusOne", "0xFFFFFFFF"),
+            model.EnumMember("Enum_MinusTwo", "0xFFFFFFFE"),
+            model.EnumMember("Enum_MinusThree", "0xFFFFFFFD")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")
@@ -264,10 +264,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.MyEnum("Enum", [
-            model.MyEnumMember("Enum_One", "1"),
-            model.MyEnumMember("Enum_Two", "2"),
-            model.MyEnumMember("Enum_Three", "3")
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum"),
@@ -291,10 +291,10 @@ struct X
 };
 """
     assert parse(hpp) == [
-        model.MyEnum("Enum", [
-            model.MyEnumMember("Enum_One", "1"),
-            model.MyEnumMember("Enum_Two", "2"),
-            model.MyEnumMember("Enum_Three", "3")
+        model.Enum("Enum", [
+            model.EnumMember("Enum_One", "1"),
+            model.EnumMember("Enum_Two", "2"),
+            model.EnumMember("Enum_Three", "3")
         ]),
         model.Struct("X", [
             model.StructMember("a", "Enum")

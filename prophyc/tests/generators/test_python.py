@@ -35,9 +35,9 @@ a = b
     assert ref == serialize(nodes)
 
 def test_enums_rendering():
-    nodes = [model.Enum("EEnum", [("EEnum_A", "0"),
-                                  ("EEnum_B", "1"),
-                                  ("EEnum_C", "2")])]
+    nodes = [model.Enum("EEnum", [(model.EnumMember("EEnum_A", "0")),
+                                  (model.EnumMember("EEnum_B", "1")),
+                                  (model.EnumMember("EEnum_C", "2"))])]
 
     ref = """\
 class EEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
@@ -161,7 +161,7 @@ def test_of_PythonGenerator():
 
     enum = []
     for x in range(1, 100, 30):
-        enum.append(("elem_" + str(x), "val_" + str(x)))
+        enum.append((model.EnumMember("elem_" + str(x), "val_" + str(x))))
 
     name = "MAC_L2CallConfigResp"
     members = [model.StructMember('messageResult', 'SMessageResult')]
