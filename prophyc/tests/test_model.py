@@ -539,7 +539,7 @@ def test_evaluate_sizes_struct():
             model.StructMember('y', 'u8')
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (2, 2, 0),
         (1, 1, 1),
         (4, 2)
@@ -555,7 +555,7 @@ def test_evaluate_sizes_nested_struct():
             model.StructMember('y', 'U16'),
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (1, 1, 1),
         (2, 2, 0),
         (4, 2)
@@ -568,7 +568,7 @@ def test_evaluate_sizes_fixed_array():
             model.StructMember('y', 'u8', size = '3')
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (4, 4, 0),
         (3, 1, 1),
         (8, 4)
@@ -590,18 +590,18 @@ def test_evaluate_sizes_dynamic_array():
             model.StructMember('y', 'u64')
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (4, 4, 0),
         (0, 1, -4),
         (4, 4)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (1, 1, 3),
         (4, 4, 0),
         (1, 1, -4),
         (12, 4)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[2]))) == [
         (4, 4, -8),
         (8, 8, 0),
         (16, 8)
@@ -614,7 +614,7 @@ def test_evaluate_sizes_limited_array():
             model.StructMember('x', 'u8', bound = 'num_of_x', size = '2'),
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (4, 4, 0),
         (2, 1, 2),
         (8, 4)
@@ -627,7 +627,7 @@ def test_evaluate_sizes_greedy_array():
             model.StructMember('x', 'u8', unlimited = True),
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (4, 4, 0),
         (0, 1, -4),
         (4, 4)
@@ -669,21 +669,21 @@ def test_evaluate_sizes_partial_padding():
         ]),
     ])
 
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (4, 4, 0),
         (0, 1, -8),
         (1, 8, 7),
         (8, 8, 0),
         (24, 8)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[2]))) == [
         (4, 4, 0),
         (0, 1, -8),
         (4, 8, 4),
         (0, 8, 0),
         (16, 8)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[3]))) == [
         (4, 4, 0),
         (1, 4, 3),
         (4, 4, -8),
@@ -695,7 +695,7 @@ def test_evaluate_sizes_partial_padding():
         (2, 2, -8),
         (40, 8)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[4])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[4]))) == [
         (4, 4, 0),
         (0, 2, 0),
         (2, 2, -4),
@@ -713,11 +713,11 @@ def test_evaluate_sizes_typedef():
             model.StructMember('x', 'T2'),
         ]),
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (4, 4, 0),
         (4, 4)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[3]))) == [
         (4, 4, 0),
         (4, 4)
     ]
@@ -732,7 +732,7 @@ def test_evaluate_sizes_enum():
             model.StructMember('y', 'i8'),
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (4, 4, 0),
         (1, 1, 3),
         (8, 4)
@@ -745,7 +745,7 @@ def test_evaluate_sizes_floats():
             model.StructMember('y', 'r64'),
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (4, 4, 4),
         (8, 8, 0),
         (16, 8)
@@ -760,7 +760,7 @@ def test_evaluate_sizes_bytes():
             model.StructMember('z', 'byte', bound = 'num_of_z')
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (1, 1, 0),
         (3, 1, 0),
         (4, 4, 0),
@@ -783,14 +783,14 @@ def test_evaluate_sizes_optional():
             model.StructMember('x', 'X', optional = True)
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (5, 4, 3),
         (6, 4, 2),
         (8, 4, 0),
         (16, 8, 0),
         (40, 8)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[2]))) == [
         (8, 4, 0),
         (8, 4)
     ]
@@ -810,17 +810,17 @@ def test_evaluate_sizes_union():
             model.UnionMember('y', 'Y', '2')
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (4, 4),
         (4, 4),
         (4, 4),
         (8, 4)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (8, 8),
         (16, 8)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[2]))) == [
         (8, 4),
         (16, 8),
         (24, 8)
@@ -836,11 +836,11 @@ def test_evaluate_sizes_union_with_padding():
             model.UnionMember('y', 'u64', '2')
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (1, 1),
         (8, 4)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (1, 1),
         (8, 8),
         (16, 8)
@@ -851,10 +851,10 @@ def test_evaluate_sizes_empty():
         model.Struct('X', []),
         model.Union('X', []),
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (0, 1)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (4, 4)
     ]
 
@@ -875,19 +875,19 @@ def test_evaluate_sizes_unknown():
             model.StructMember('x', 'U16'),
         ]),
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[0])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (1, 1, None),
         (None, None, None),
         (4, 4, None),
         (None, None)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (4, 4),
         (None, None),
         (4, 4),
         (None, None)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[3]))) == [
         (None, None, None),
         (None, None)
     ]
@@ -911,13 +911,13 @@ def test_evaluate_sizes_array_with_named_size():
 
     ])
 
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[2])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[2]))) == [
         (12, 4, 0),
         (4, 4, 0),
         (12, 4, 0),
         (28, 4)
     ]
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[3])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[3]))) == [
         (None, None, None),
         (4, 4, None),
         (None, None)
@@ -935,7 +935,7 @@ def test_evaluate_sizes_with_include():
             model.StructMember('y', 'i8'),
         ])
     ])
-    assert map(get_size_alignment_padding, get_members_and_node(nodes[1])) == [
+    assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
         (4, 4, 0),
         (1, 1, 3),
         (8, 4)

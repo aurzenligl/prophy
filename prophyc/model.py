@@ -1,6 +1,8 @@
 from collections import namedtuple
-from itertools import ifilter, islice
-from prophyc import calc
+from itertools import islice
+
+from .six import ifilter, reduce
+from . import calc
 
 """ Exception types """
 class GenerateError(Exception): pass
@@ -45,8 +47,31 @@ Include = namedtuple("Include", ["name", "nodes"])
 
 Constant = namedtuple("Constant", ["name", "value"])
 
-Enum = namedtuple("Enum", ["name", "members"])
-EnumMember = namedtuple("EnumMember", ["name", "value"])
+class Enum(object):
+
+    def __init__(self, name, members):
+        self.name = name
+        self.members = members
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.members == other.members))
+
+    def __repr__(self):
+        return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
+
+class EnumMember(object):
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.value == other.value))
+
+    def __repr__(self):
+        return '{0} {1}'.format(self.name, self.value)
 
 class Typedef(object):
 
@@ -56,9 +81,9 @@ class Typedef(object):
         if 'definition' in kwargs:
             self.definition = kwargs['definition']
 
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.type, other.type))
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.type == other.type))
 
     def __repr__(self):
         return '{0} {1}'.format(self.type, self.name)
@@ -76,9 +101,9 @@ class Struct(object):
 
         self.alignment = None
 
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.members, other.members))
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.members == other.members))
 
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
@@ -114,13 +139,13 @@ class StructMember(object):
         self.padding = None
         """amount of bytes to add before next field. If field dynamic: negative alignment of next field"""
 
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.type, other.type) or
-                cmp(self.array, other.array) or
-                cmp(self.bound, other.bound) or
-                cmp(self.size, other.size) or
-                cmp(self.optional, other.optional))
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.type == other.type) or
+                (self.array == other.array) or
+                (self.bound == other.bound) or
+                (self.size == other.size) or
+                (self.optional == other.optional))
 
     def __repr__(self):
         fmts = {
@@ -160,9 +185,9 @@ class Union(object):
         self.byte_size = None
         self.alignment = None
 
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.members, other.members))
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.members == other.members))
 
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
@@ -180,10 +205,10 @@ class UnionMember(object):
         self.byte_size = None
         self.alignment = None
 
-    def __cmp__(self, other):
-        return (cmp(self.name, other.name) or
-                cmp(self.type, other.type) or
-                cmp(self.discriminator, other.discriminator))
+    def __eq__(self, other):
+        return ((self.name == other.name) or
+                (self.type == other.type) or
+                (self.discriminator == other.discriminator))
 
     def __repr__(self):
         return '{0}: {1} {2}'.format(self.discriminator, self.type, self.name)
@@ -212,7 +237,7 @@ def topological_sort(nodes):
     def get_typedef_deps(typedef):
         return [typedef.type]
     def get_enum_deps(enum):
-        return []
+        return [member.name for member in enum.members]
     def get_struct_deps(struct):
         return [member.type for member in struct.members]
     def get_union_deps(union):
@@ -311,17 +336,17 @@ def cross_reference(nodes, warn = None):
                 node.numeric_size = to_int(node.size)
             except calc.ParseError as e:
                 if warn:
-                    warn(e.message)
+                    warn(str(e))
                 node.numeric_size = None
 
     for node in nodes:
         if isinstance(node, Typedef):
             cross_reference_types(node)
         elif isinstance(node, Struct):
-            map(cross_reference_types, node.members)
-            map(evaluate_array_sizes, node.members)
+            list(map(cross_reference_types, node.members))
+            list(map(evaluate_array_sizes, node.members))
         elif isinstance(node, Union):
-            map(cross_reference_types, node.members)
+            list(map(cross_reference_types, node.members))
 
 def evaluate_struct_kind(node):
     """Adds kind to Struct. Requires cross referenced nodes."""
@@ -399,7 +424,7 @@ def evaluate_sizes(nodes):
         node.byte_size, node.alignment = (None, None)
 
     def evaluate_members_sizes(node):
-        if not all(map(evaluate_member_size, node.members)):
+        if not all(list(map(evaluate_member_size, node.members))):
             evaluate_empty_size(node)
             return False
         return True
@@ -435,12 +460,12 @@ def evaluate_sizes(nodes):
     def evaluate_union_size(node):
         node.alignment = max(DISC_SIZE, node.members and max(x.alignment for x in node.members) or 1)
         node.byte_size = (node.members and max(x.byte_size for x in node.members) or 0) + node.alignment
-        node.byte_size = (node.byte_size + node.alignment - 1) / node.alignment * node.alignment
+        node.byte_size = int((node.byte_size + node.alignment - 1) / node.alignment) * node.alignment
 
     for node in nodes:
         if isinstance(node, Struct):
             if evaluate_members_sizes(node):
-                map(evaluate_array_and_optional_size, node.members)
+                list(map(evaluate_array_and_optional_size, node.members))
                 evaluate_partial_padding_size(node)
                 evaluate_struct_size(node)
         elif isinstance(node, Union):

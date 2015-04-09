@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ElementTree
-from itertools import ifilter, islice
 
+from ..six import reduce
 from prophyc import model
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
@@ -58,7 +58,7 @@ def make_include(elem, process_file, warn):
         nodes = process_file(path)
     except (CyclicIncludeError, FileNotFoundError) as e:
         if warn:
-            warn(e.message)
+            warn(str(e))
         nodes = []
     return model.Include(path.split('.')[0], nodes)
 

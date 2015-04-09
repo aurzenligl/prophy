@@ -3,24 +3,21 @@ import pytest
 
 @pytest.fixture(scope = 'session')
 def Struct():
-    class Struct(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.u32),
                        ("y", prophy.u32)]
     return Struct
 
 @pytest.fixture(scope = 'session')
 def NestedStruct(Struct):
-    class NestedStruct(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class NestedStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", Struct),
                        ("b", Struct)]
     return NestedStruct
 
 @pytest.fixture(scope = 'session')
 def DeeplyNestedStruct(NestedStruct, Struct):
-    class DeeplyNestedStruct(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class DeeplyNestedStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("m", NestedStruct),
                        ("n", Struct),
                        ("o", prophy.u32)]
@@ -62,13 +59,13 @@ def test_struct_encode(Struct):
     x = Struct()
     x.x = 1
     x.y = 2
-    assert x.encode(">") == ("\x00\x00\x00\x01"
-                             "\x00\x00\x00\x02")
+    assert x.encode(">") == (b"\x00\x00\x00\x01"
+                             b"\x00\x00\x00\x02")
 
 def test_struct_decode(Struct):
     x = Struct()
-    x.decode(("\x00\x00\x00\x01"
-              "\x00\x00\x00\x02"), ">")
+    x.decode((b"\x00\x00\x00\x01"
+              b"\x00\x00\x00\x02"), ">")
     assert x.x == 1
     assert x.y == 2
 
@@ -120,17 +117,17 @@ def test_nested_struct_encode(NestedStruct):
     y.a.y = 2
     y.b.x = 3
     y.b.y = 4
-    assert y.encode(">") == ("\x00\x00\x00\x01"
-                             "\x00\x00\x00\x02"
-                             "\x00\x00\x00\x03"
-                             "\x00\x00\x00\x04")
+    assert y.encode(">") == (b"\x00\x00\x00\x01"
+                             b"\x00\x00\x00\x02"
+                             b"\x00\x00\x00\x03"
+                             b"\x00\x00\x00\x04")
 
 def test_nested_struct_decode(NestedStruct):
     y = NestedStruct()
-    y.decode(("\x00\x00\x00\x01"
-              "\x00\x00\x00\x02"
-              "\x00\x00\x00\x03"
-              "\x00\x00\x00\x04"), ">")
+    y.decode((b"\x00\x00\x00\x01"
+              b"\x00\x00\x00\x02"
+              b"\x00\x00\x00\x03"
+              b"\x00\x00\x00\x04"), ">")
     assert y.a.x == 1
     assert y.a.y == 2
     assert y.b.x == 3
@@ -214,23 +211,23 @@ def test_deeply_nested_struct_encode(DeeplyNestedStruct):
     z.n.x = 5
     z.n.y = 6
     z.o = 7
-    assert z.encode(">") == ("\x00\x00\x00\x01"
-                             "\x00\x00\x00\x02"
-                             "\x00\x00\x00\x03"
-                             "\x00\x00\x00\x04"
-                             "\x00\x00\x00\x05"
-                             "\x00\x00\x00\x06"
-                             "\x00\x00\x00\x07")
+    assert z.encode(">") == (b"\x00\x00\x00\x01"
+                             b"\x00\x00\x00\x02"
+                             b"\x00\x00\x00\x03"
+                             b"\x00\x00\x00\x04"
+                             b"\x00\x00\x00\x05"
+                             b"\x00\x00\x00\x06"
+                             b"\x00\x00\x00\x07")
 
 def test_deeply_nested_struct_decode(DeeplyNestedStruct):
     z = DeeplyNestedStruct()
-    z.decode(("\x00\x00\x00\x01"
-              "\x00\x00\x00\x02"
-              "\x00\x00\x00\x03"
-              "\x00\x00\x00\x04"
-              "\x00\x00\x00\x05"
-              "\x00\x00\x00\x06"
-              "\x00\x00\x00\x07"), ">")
+    z.decode((b"\x00\x00\x00\x01"
+              b"\x00\x00\x00\x02"
+              b"\x00\x00\x00\x03"
+              b"\x00\x00\x00\x04"
+              b"\x00\x00\x00\x05"
+              b"\x00\x00\x00\x06"
+              b"\x00\x00\x00\x07"), ">")
     assert z.m.a.x == 1
     assert z.m.a.y == 2
     assert z.m.b.x == 3
@@ -240,18 +237,16 @@ def test_deeply_nested_struct_decode(DeeplyNestedStruct):
     assert z.o == 7
 
 def test_empty_struct():
-    class Empty(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class Empty(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = []
 
     x = Empty()
 
     assert "" == str(x)
-    assert "" == x.encode(">")
+    assert b"" == x.encode(">")
     assert 0 == x.decode("", ">")
 
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", Empty)]
 
     x = X()
@@ -260,12 +255,11 @@ def test_empty_struct():
 a {
 }
 """ == str(x)
-    assert "" == x.encode(">")
+    assert b"" == x.encode(">")
     assert 0 == x.decode("", ">")
 
 def test_struct_with_dynamic_fields():
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u32),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
                        ("y", prophy.u32)]
@@ -275,15 +269,14 @@ def test_struct_with_dynamic_fields():
     x = X()
     x.x[:] = [1, 2, 3]
     x.y = 4
-    assert '\x03\x00\x00\x00\x01\x02\x03\x00\x04\x00\x00\x00' == x.encode('<')
+    assert b'\x03\x00\x00\x00\x01\x02\x03\x00\x04\x00\x00\x00' == x.encode('<')
 
-    x.decode('\x01\x00\x00\x00\x01\x00\x00\x00\x08\x00\x00\x00', '<')
+    x.decode(b'\x01\x00\x00\x00\x01\x00\x00\x00\x08\x00\x00\x00', '<')
     assert x.x[:] == [1]
     assert x.y == 8
 
 def test_struct_with_many_arrays():
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u32),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
                        ("y_len", prophy.u16),
@@ -295,19 +288,18 @@ def test_struct_with_many_arrays():
     x.y[:] = [1, 2]
     x.z[:] = [1, 2, 3]
 
-    assert ("\x00\x00\x00\x05"
-            "\x01\x02\x03\x04"
-            "\x05\x00"
-            "\x00\x02\x00\x01"
-            "\x00\x02"
-            "\x03\x00\x00\x00\x00\x00\x00\x00"
-            "\x00\x00\x00\x00\x00\x00\x00\x01"
-            "\x00\x00\x00\x00\x00\x00\x00\x02"
-            "\x00\x00\x00\x00\x00\x00\x00\x03") == x.encode('>')
+    assert (b"\x00\x00\x00\x05"
+            b"\x01\x02\x03\x04"
+            b"\x05\x00"
+            b"\x00\x02\x00\x01"
+            b"\x00\x02"
+            b"\x03\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x01"
+            b"\x00\x00\x00\x00\x00\x00\x00\x02"
+            b"\x00\x00\x00\x00\x00\x00\x00\x03") == x.encode('>')
 
 def test_struct_with_many_arrays_mixed():
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u32),
                        ("y_len", prophy.u16),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
@@ -316,22 +308,20 @@ def test_struct_with_many_arrays_mixed():
     x.x[:] = [1, 2, 3, 4, 5]
     x.y[:] = [1, 2]
 
-    assert ("\x00\x00\x00\x05"
-            "\x00\x02"
-            "\x01\x02\x03\x04"
-            "\x05\x00"
-            "\x00\x01\x00\x02") == x.encode('>')
+    assert (b"\x00\x00\x00\x05"
+            b"\x00\x02"
+            b"\x01\x02\x03\x04"
+            b"\x05\x00"
+            b"\x00\x01\x00\x02") == x.encode('>')
 
 def test_struct_with_many_arrays_padding():
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u8),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
                        ("y_len", prophy.u32),
                        ("y", prophy.array(prophy.u8, bound = "y_len")),
                        ("z", prophy.u64)]
-    class Y(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.u8),
                        ("y", X)]
 
@@ -341,31 +331,30 @@ def test_struct_with_many_arrays_padding():
     x.y.y[:] = [4, 5]
     x.y.z = 6
 
-    assert x.encode('>') == ('\x01\x00\x00\x00'
-                             '\x00\x00\x00\x00'
-                             '\x02\x02\x03\x00'
-                             '\x00\x00\x00\x02'
-                             '\x04\x05\x00\x00'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x06')
+    assert x.encode('>') == (b'\x01\x00\x00\x00'
+                             b'\x00\x00\x00\x00'
+                             b'\x02\x02\x03\x00'
+                             b'\x00\x00\x00\x02'
+                             b'\x04\x05\x00\x00'
+                             b'\x00\x00\x00\x00'
+                             b'\x00\x00\x00\x00'
+                             b'\x00\x00\x00\x06')
 
-    x.decode('\x05\x00\x00\x00'
-             '\x00\x00\x00\x00'
-             '\x04\x02\x03\x04'
-             '\x05\x00\x00\x00'
-             '\x00\x00\x00\x03'
-             '\x04\x05\x06\x00'
-             '\x00\x00\x00\x00'
-             '\x00\x00\x00\x06', '>')
+    x.decode(b'\x05\x00\x00\x00'
+             b'\x00\x00\x00\x00'
+             b'\x04\x02\x03\x04'
+             b'\x05\x00\x00\x00'
+             b'\x00\x00\x00\x03'
+             b'\x04\x05\x06\x00'
+             b'\x00\x00\x00\x00'
+             b'\x00\x00\x00\x06', '>')
     assert x.x == 5
     assert x.y.x == [2, 3, 4, 5]
     assert x.y.y == [4, 5, 6]
     assert x.y.z == 6
 
 def test_struct_with_many_arrays_fixed_tail():
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u8),
                        ("x", prophy.array(prophy.u8, bound = "x_len")),
                        ("y", prophy.u32),
@@ -376,33 +365,31 @@ def test_struct_with_many_arrays_fixed_tail():
     x.y = 4
     x.z = 5
 
-    assert x.encode('>') == ('\x02\x02\x03\x00'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x04'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x00'
-                             '\x00\x00\x00\x05')
+    assert x.encode('>') == (b'\x02\x02\x03\x00'
+                             b'\x00\x00\x00\x00'
+                             b'\x00\x00\x00\x04'
+                             b'\x00\x00\x00\x00'
+                             b'\x00\x00\x00\x00'
+                             b'\x00\x00\x00\x05')
 
-    x.decode(('\x04\x06\x07\x08'
-              '\x09\x00\x00\x00'
-              '\x00\x00\x00\x05'
-              '\x00\x00\x00\x00'
-              '\x00\x00\x00\x00'
-              '\x00\x00\x00\x06'), '>')
+    x.decode((b'\x04\x06\x07\x08'
+              b'\x09\x00\x00\x00'
+              b'\x00\x00\x00\x05'
+              b'\x00\x00\x00\x00'
+              b'\x00\x00\x00\x00'
+              b'\x00\x00\x00\x06'), '>')
     assert x.x == [6, 7, 8, 9]
     assert x.y == 5
     assert x.z == 6
 
 def test_struct_exception_with_access_to_nonexistent_field():
     with pytest.raises(AttributeError):
-        class X(prophy.struct):
-            __metaclass__ = prophy.struct_generator
+        class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
             _descriptor = [("a", prophy.u32)]
         X().im_not_there
 
 def test_struct_encoding_with_scalars():
-    class S(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u16),
                        ("c", prophy.u8)]
@@ -411,23 +398,21 @@ def test_struct_encoding_with_scalars():
     x.a = 1
     x.b = 2
     x.c = 3
-    assert "\x01\x00\x00\x02\x03\x00" == x.encode(">")
-    assert "\x01\x00\x02\x00\x03\x00" == x.encode("<")
+    assert b"\x01\x00\x00\x02\x03\x00" == x.encode(">")
+    assert b"\x01\x00\x02\x00\x03\x00" == x.encode("<")
 
-    assert 6 == x.decode("\x06\x00\x00\x07\x08\x00", ">")
+    assert 6 == x.decode(b"\x06\x00\x00\x07\x08\x00", ">")
     assert 6 == x.a
     assert 7 == x.b
     assert 8 == x.c
 
 def test_struct_encoding_with_inner_struct():
 
-    class A(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u16),
                        ("b", prophy.u8)]
 
-    class B(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", A),
                        ("b", prophy.u64)]
 
@@ -436,16 +421,15 @@ def test_struct_encoding_with_inner_struct():
     x.a.a = 1
     x.a.b = 2
     x.b = 3
-    assert "\x00\x01\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03" == x.encode(">")
+    assert b"\x00\x01\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03" == x.encode(">")
 
-    assert 16 == x.decode("\x00\x0a\x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0c", ">")
+    assert 16 == x.decode(b"\x00\x0a\x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0c", ">")
     assert 0xa == x.a.a
     assert 0xb == x.a.b
     assert 0xc == x.b
 
 def test_struct_encoding_with_arrays():
-    class A(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.array(prophy.u8, size = 3)),
                        ("b_len", prophy.u16),
                        ("b", prophy.array(prophy.u32, bound = "b_len"))]
@@ -454,19 +438,18 @@ def test_struct_encoding_with_arrays():
 
     x.a[:] = [1, 2, 3]
     x.b[:] = [4, 5, 6]
-    assert ("\x01\x02\x03\x00"
-            "\x00\x03\x00\x00"
-            "\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06") == x.encode(">")
+    assert (b"\x01\x02\x03\x00"
+            b"\x00\x03\x00\x00"
+            b"\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06") == x.encode(">")
 
-    assert 16 == x.decode(("\x04\x05\x06\x00"
-                           "\x00\x02\x00\x00"
-                           "\x00\x00\x00\x01\x00\x00\x00\x02"), ">")
+    assert 16 == x.decode((b"\x04\x05\x06\x00"
+                           b"\x00\x02\x00\x00"
+                           b"\x00\x00\x00\x01\x00\x00\x00\x02"), ">")
     assert [4, 5, 6] == x.a[:]
     assert [1, 2] == x.b[:]
 
 def test_struct_with_multiple_dynamic_fields():
-    class A(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a_len", prophy.u16),
                        ("b_len", prophy.u8),
                        ("a", prophy.array(prophy.u32, bound = "a_len")),
@@ -475,39 +458,36 @@ def test_struct_with_multiple_dynamic_fields():
     x.a[:] = [1, 2]
     x.b[:] = [3, 4]
 
-    assert '\x00\x02\x02\x00\x00\x00\x00\x01\x00\x00\x00\x02\x03\x04\x00\x00' == x.encode('>')
-    assert '\x02\x00\x02\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x04\x00\x00' == x.encode('<')
+    assert b'\x00\x02\x02\x00\x00\x00\x00\x01\x00\x00\x00\x02\x03\x04\x00\x00' == x.encode('>')
+    assert b'\x02\x00\x02\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x04\x00\x00' == x.encode('<')
 
-    x.decode('\x01\x00\x03\x00\x05\x00\x00\x00\x02\x01\x00', '<')
+    x.decode(b'\x01\x00\x03\x00\x05\x00\x00\x00\x02\x01\x00', '<')
     assert [5] == x.a[:]
     assert [2, 1, 0] == x.b[:]
 
 def test_struct_with_greedy_bytes():
-    class A(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a_len", prophy.u16),
                        ("a", prophy.array(prophy.u16, bound = "a_len")),
                        ("b", prophy.bytes())]
     x = A()
     x.a[:] = [5, 6, 7]
-    x.b = 'ala ma kota'
+    x.b = b'ala ma kota'
 
-    assert '\x00\x03\x00\x05\x00\x06\x00\x07ala ma kota\x00' == x.encode('>')
-    assert '\x03\x00\x05\x00\x06\x00\x07\x00ala ma kota\x00' == x.encode('<')
+    assert b'\x00\x03\x00\x05\x00\x06\x00\x07ala ma kota\x00' == x.encode('>')
+    assert b'\x03\x00\x05\x00\x06\x00\x07\x00ala ma kota\x00' == x.encode('<')
 
-    x.decode('\x00\x01\x00\x08abacus\x00\x00', '>')
+    x.decode(b'\x00\x01\x00\x08abacus\x00\x00', '>')
     assert [8] == x.a[:]
-    assert 'abacus\x00\x00' == x.b
+    assert b'abacus\x00\x00' == x.b
 
 def test_struct_with_and_without_padding():
-    class A(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u16),
                        ("c", prophy.u64),
                        ("d", prophy.u8)]
-    class B(prophy.struct_packed):
-        __metaclass__ = prophy.struct_generator
+    class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u16),
                        ("c", prophy.u64),
@@ -519,8 +499,8 @@ def test_struct_with_and_without_padding():
     x.c = 3
     x.d = 4
 
-    assert '\x01\x00''\x02\x00\x00\x00\x00\x00''\x03\x00\x00\x00\x00\x00\x00\x00''\x04\x00\x00\x00\x00\x00\x00\x00' == x.encode('<')
-    x.decode('\x04\x00''\x05\x00\x00\x00\x00\x00''\x06\x00\x00\x00\x00\x00\x00\x00''\x07\x00\x00\x00\x00\x00\x00\x00', '<')
+    assert b'\x01\x00'b'\x02\x00\x00\x00\x00\x00'b'\x03\x00\x00\x00\x00\x00\x00\x00'b'\x04\x00\x00\x00\x00\x00\x00\x00' == x.encode('<')
+    x.decode(b'\x04\x00'b'\x05\x00\x00\x00\x00\x00'b'\x06\x00\x00\x00\x00\x00\x00\x00'b'\x07\x00\x00\x00\x00\x00\x00\x00', '<')
     assert x.a == 4
     assert x.b == 5
     assert x.c == 6
@@ -532,20 +512,18 @@ def test_struct_with_and_without_padding():
     x.c = 3
     x.d = 4
 
-    assert '\x01''\x02\x00''\x03\x00\x00\x00\x00\x00\x00\x00''\x04' == x.encode('<')
-    x.decode('\x04''\x05\x00''\x06\x00\x00\x00\x00\x00\x00\x00''\x07', '<')
+    assert b'\x01'b'\x02\x00'b'\x03\x00\x00\x00\x00\x00\x00\x00'b'\x04' == x.encode('<')
+    x.decode(b'\x04'b'\x05\x00'b'\x06\x00\x00\x00\x00\x00\x00\x00'b'\x07', '<')
     assert x.a == 4
     assert x.b == 5
     assert x.c == 6
     assert x.d == 7
 
 def test_struct_with_substruct_with_bytes():
-    class A(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("num_of_x", prophy.u32),
                        ("x", prophy.array(prophy.u8, bound = "num_of_x"))]
-    class B(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("num_of_x", prophy.u32),
                        ("x", prophy.array(A, bound = "num_of_x"))]
 
@@ -554,21 +532,20 @@ def test_struct_with_substruct_with_bytes():
     x.x.add().x[:] = [1, 2, 3]
     x.x.add().x[:] = [1, 2, 3, 4, 5, 6, 7]
 
-    assert ('\x03\x00\x00\x00'
-            '\x01\x00\x00\x00\x01\x00\x00\x00'
-            '\x03\x00\x00\x00\x01\x02\x03\x00'
-            '\x07\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x00') == x.encode('<')
+    assert (b'\x03\x00\x00\x00'
+            b'\x01\x00\x00\x00\x01\x00\x00\x00'
+            b'\x03\x00\x00\x00\x01\x02\x03\x00'
+            b'\x07\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x00') == x.encode('<')
 
-    x.decode(('\x02\x00\x00\x00'
-              '\x01\x00\x00\x00\x06\x00\x00\x00'
-              '\x07\x00\x00\x00\x07\x08\x09\x0a\x0b\x0c\x0d\x00'), '<')
+    x.decode((b'\x02\x00\x00\x00'
+              b'\x01\x00\x00\x00\x06\x00\x00\x00'
+              b'\x07\x00\x00\x00\x07\x08\x09\x0a\x0b\x0c\x0d\x00'), '<')
     assert x.x[0].x[:] == [6]
     assert x.x[1].x[:] == [7, 8, 9, 10, 11, 12, 13]
 
-    class C(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class C(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", A)]
 
     x = C()
     x.x.x[:] = [1]
-    assert '\x01\x00\x00\x00\x01\x00\x00\x00' == x.encode('<')
+    assert b'\x01\x00\x00\x00\x01\x00\x00\x00' == x.encode('<')

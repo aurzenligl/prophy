@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import pytest
 
@@ -8,7 +9,7 @@ def write(filename, content):
     open(filename, "w").write(content)
 
 def compile(filename, mode, tmpdir):
-    cmd = " ".join(["python", "-m", "prophyc", mode, "--python_out",
+    cmd = " ".join([sys.executable, "-m", "prophyc", mode, "--python_out",
                     tmpdir, os.path.join(tmpdir, filename)])
     subprocess.check_call(cmd, cwd = main_dir, shell = True)
 
@@ -46,7 +47,7 @@ def test_isar_input(tmpdir_cwd):
     s.l2NodeType = "EL2DeployableNode_Basic2"
     s.nodeAddr = 0x1231
 
-    assert "\x00\x00\x00\x01\x12\x31\x00\x00" == s.encode(">")
+    assert b"\x00\x00\x00\x01\x12\x31\x00\x00" == s.encode(">")
 
 @pytest.clang_installed
 def test_sack_input(tmpdir_cwd):
@@ -69,4 +70,4 @@ struct X
     x.b = 2
     x.c = 3
 
-    assert "\x00\x00\x00\x01\x00\x02\x03\x00" == x.encode(">")
+    assert b"\x00\x00\x00\x01\x00\x02\x03\x00" == x.encode(">")

@@ -1,4 +1,4 @@
 import sys
-from prophyc import main
+from . import main
 
 sys.exit(main())

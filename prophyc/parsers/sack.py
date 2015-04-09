@@ -14,7 +14,7 @@ unambiguous_builtins = {
 }
 
 def alphanumeric_name(cursor):
-    return re.sub('[^0-9a-zA-Z_]+', '__', cursor.type.spelling)
+    return re.sub('[^0-9a-zA-Z_]+', '__', cursor.type.spelling.decode())
 
 def get_enum_member(cursor):
     name = cursor.spelling
@@ -75,14 +75,14 @@ class Builder(object):
         return unambiguous_builtins[tp.kind]
 
     def _build_struct_member(self, cursor):
-        name = cursor.spelling
+        name = cursor.spelling.decode()
         type_name = self._build_field_type_name(cursor.type)
         array_len = self._get_field_array_len(cursor.type)
         is_array = None if array_len is None else True
         return model.StructMember(name, type_name, size = array_len)
 
     def _build_union_member(self, cursor, disc):
-        name = cursor.spelling
+        name = cursor.spelling.decode()
         type_name = self._build_field_type_name(cursor.type)
         return model.UnionMember(name, type_name, str(disc))
 
@@ -117,7 +117,7 @@ def build_model(tu):
     return builder.nodes
 
 def _get_location(location):
-    return '%s:%s:%s' % (location.file.name, location.line, location.column)
+    return '%s:%s:%s' % (location.file.name.decode(), location.line, location.column)
 
 class SackParser(object):
     def __init__(self, include_dirs = [], warn = None):
@@ -127,11 +127,13 @@ class SackParser(object):
     def parse(self, content, path, process_file):
         args_ = ["-I" + x for x in self.include_dirs]
         index = Index.create()
+        path = path.encode()
+        content = content.encode()
         try:
             tu = index.parse(path, args_, unsaved_files = ((path, content),))
         except TranslationUnitLoadError:
-            raise model.ParseError([(path, 'error parsing translation unit')])
+            raise model.ParseError([(path.decode(), 'error parsing translation unit')])
         if self.warn:
             for diag in tu.diagnostics:
-                self.warn(diag.spelling, location = _get_location(diag.location))
+                self.warn(diag.spelling.decode(), location = _get_location(diag.location))
         return build_model(tu)
