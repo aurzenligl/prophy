@@ -7,7 +7,7 @@ from . import options
 from . import model
 from .file_processor import FileProcessor
 
-__version__ = '0.5.1dev'
+__version__ = '0.7'
 
 def main():
     opts = options.parse_options(emit_error)
