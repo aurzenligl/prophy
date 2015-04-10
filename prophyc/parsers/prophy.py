@@ -157,7 +157,7 @@ class Parser(object):
         try:
             nodes = self.parse_file(path)
         except (CyclicIncludeError, FileNotFoundError) as e:
-            self._parser_error(e.message, t.lineno(3), t.lexpos(3))
+            self._parser_error(str(e), t.lineno(3), t.lexpos(3))
             nodes = []
 
         for node in nodes:

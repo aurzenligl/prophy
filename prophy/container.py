@@ -1,5 +1,7 @@
-import composite
-from exception import ProphyError
+from . import composite
+from .exception import ProphyError
+from .base_array import base_array
+from .six import *
 
 def decode_scalar_array(tp, data, pos, endianness, count):
     if count is None:
@@ -30,33 +32,6 @@ def composite_array_eq(self, other):
                           'other repeated composite fields.')
     return self._values == other._values
 
-class base_array(object):
-    __slots__ = ['_values']
-
-    def __init__(self):
-        self._values = []
-
-    def __getitem__(self, idx):
-        return self._values[idx]
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
-
-    def __len__(self):
-        return len(self._values)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        raise TypeError('unhashable object')
-
-    def __repr__(self):
-        return repr(self._values)
-
-    def sort(self, sort_function = cmp):
-        self._values.sort(sort_function)
-
 class fixed_scalar_array(base_array):
     __slots__ = []
 
@@ -65,8 +40,11 @@ class fixed_scalar_array(base_array):
         self._values = [self._TYPE._DEFAULT] * self._max_len
 
     def __setitem__(self, idx, value):
-        value = self._TYPE._check(value)
-        self._values[idx] = value
+        if isinstance(idx, slice):
+            self.__setslice__(idx.start, idx.stop, value)
+        else:
+            value = self._TYPE._check(value)
+            self._values[idx] = value
 
     def __setslice__(self, start, stop, values):
         if len(self._values[start:stop]) != len(values):
@@ -77,7 +55,7 @@ class fixed_scalar_array(base_array):
         return scalar_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(self._TYPE._encode(value, endianness) for value in self)
+        return b"".join(self._TYPE._encode(value, endianness) for value in self)
 
     def _decode_impl(self, data, pos, endianness, _):
         self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len(self))
@@ -112,8 +90,11 @@ class bound_scalar_array(base_array):
         self._values.remove(elem)
 
     def __setitem__(self, idx, value):
-        value = self._TYPE._check(value)
-        self._values[idx] = value
+        if isinstance(idx, slice):
+            self.__setslice__(idx.start, idx.stop, value)
+        else:
+            value = self._TYPE._check(value)
+            self._values[idx] = value
 
     def __setslice__(self, start, stop, values):
         if self._max_len and len(self) + len(values) - len(self._values[start:stop]) > self._max_len:
@@ -130,7 +111,7 @@ class bound_scalar_array(base_array):
         return scalar_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, "\x00")
+        return b"".join(self._TYPE._encode(value, endianness) for value in self).ljust(self._SIZE, b"\x00")
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
@@ -150,7 +131,7 @@ class fixed_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(value.encode(endianness, terminal = False) for value in self)
+        return b"".join(value.encode(endianness, terminal = False) for value in self)
 
     def _decode_impl(self, data, pos, endianness, _):
         cursor = 0
@@ -193,7 +174,7 @@ class bound_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return "".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, "\x00")
+        return b"".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, b"\x00")
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
@@ -217,7 +198,7 @@ def array(type, **kwargs):
 
     if issubclass(type, base_array):
         raise ProphyError("array of arrays not allowed")
-    if issubclass(type, str):
+    if issubclass(type, bytes):
         raise ProphyError("array of strings not allowed")
     if size and type._DYNAMIC:
         raise ProphyError("static/limited array of dynamic type not allowed")

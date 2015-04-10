@@ -19,14 +19,13 @@ def _generate_typedef(typedef):
         else typedef.type)
 
 def _generate_enum_members(members):
-    return (",\n" + " " * 21).join(("('%s', %s)" % (name, value) for name, value in members))
+    return (",\n" + " " * 21).join(("('%s', %s)" % (member.name, member.value) for member in members))
 
 def _generate_enum_constants(members):
-    return "\n".join(("%s = %s" % (name, value) for name, value in members))
+    return "\n".join(("%s = %s" % (member.name, member.value) for member in members))
 
 def _generate_enum(enum):
-    return ("class {1}({0}.enum):\n"
-            "    __metaclass__ = {0}.enum_generator\n"
+    return ("class {1}({0}.with_metaclass({0}.enum_generator, {0}.enum)):\n"
             "    _enumerators  = [{2}]\n"
             "\n"
             "{3}").format(libname,
@@ -54,8 +53,7 @@ def _generate_struct_members(keys):
     return (",\n" + " " * 19).join((_generate_struct_member(member) for member in keys))
 
 def _generate_struct(struct):
-    return ("class {1}({0}.struct):\n"
-            "    __metaclass__ = {0}.struct_generator\n"
+    return ("class {1}({0}.with_metaclass({0}.struct_generator, {0}.struct)):\n"
             "    _descriptor = [{2}]").format(libname,
                                               struct.name,
                                               _generate_struct_members(struct.members))
@@ -68,8 +66,7 @@ def _generate_union_members(members):
     return (",\n" + " "*19).join(_generate_union_member(member) for member in members)
 
 def _generate_union(union):
-    return ("class {1}({0}.union):\n"
-            "    __metaclass__ = {0}.union_generator\n"
+    return ("class {1}({0}.with_metaclass({0}.union_generator, {0}.union)):\n"
             "    _descriptor = [{2}]").format(libname,
                                               union.name,
                                               _generate_union_members(union.members))

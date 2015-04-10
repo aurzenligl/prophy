@@ -1,8 +1,8 @@
-from itertools import ifilter
+from .six import ifilter, long, b
 
-import scalar
-import container
-from exception import ProphyError
+from . import scalar
+from .exception import ProphyError
+from .base_array import base_array
 
 def validate(descriptor):
     if any(type._UNLIMITED for _, type in descriptor[:-1]):
@@ -19,7 +19,7 @@ def add_attributes(cls, descriptor):
 
     alignment = 1
     for _, tp in reversed(descriptor):
-        if issubclass(tp, (container.base_array, str)) and tp._DYNAMIC:
+        if issubclass(tp, (base_array, bytes)) and tp._DYNAMIC:
             tp._PARTIAL_ALIGNMENT = alignment
             alignment = 1
         alignment = max(tp._ALIGNMENT, alignment)
@@ -44,7 +44,7 @@ def add_padding(cls, descriptor):
 
 def add_properties(cls, descriptor):
     for name, tp in descriptor:
-        if issubclass(tp, container.base_array):
+        if issubclass(tp, base_array):
             add_repeated(cls, name, tp)
         elif issubclass(tp, (struct, union)):
             add_composite(cls, name, tp)
@@ -102,7 +102,7 @@ def add_composite(cls, name, tp):
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
-    index, field = ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)).next()
+    index, field = next(ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)))
     name, tp = field
     bound_shift = container_tp._BOUND_SHIFT
 
@@ -142,20 +142,20 @@ def get_encode_function(type):
         return encode_optional
     elif type._BOUND and issubclass(type, (int, long)):
         return encode_array_delimiter
-    elif issubclass(type, container.base_array):
+    elif issubclass(type, base_array):
         return encode_array
     elif issubclass(type, (struct, union)):
         return encode_composite
-    elif issubclass(type, str):
+    elif issubclass(type, bytes):
         return encode_bytes
     else:
         return encode_scalar
 
 def encode_optional(parent, type, value, endianness):
     if value is None:
-        return "\x00" * type._OPTIONAL_SIZE
+        return b"\x00" * type._OPTIONAL_SIZE
     else:
-        return (type._optional_type._encode(True, endianness).ljust(type._OPTIONAL_ALIGNMENT, '\x00')
+        return (type._optional_type._encode(True, endianness).ljust(type._OPTIONAL_ALIGNMENT, b'\x00')
                 + type._encode(parent, type.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type, value, endianness):
@@ -179,11 +179,11 @@ def get_decode_function(type):
         return decode_optional
     elif type._BOUND and issubclass(type, (int, long)):
         return decode_array_delimiter
-    elif issubclass(type, container.base_array):
+    elif issubclass(type, base_array):
         return decode_array
     elif issubclass(type, (struct, union)):
         return decode_composite
-    elif issubclass(type, str):
+    elif issubclass(type, bytes):
         return decode_bytes
     else:
         return decode_scalar
@@ -222,12 +222,12 @@ def indent(text, spaces):
     return '\n'.join(x and spaces * ' ' + x or '' for x in text.split('\n'))
 
 def field_to_string(name, type, value):
-    if issubclass(type, container.base_array):
+    if issubclass(type, base_array):
         return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
     elif issubclass(type, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
-    elif issubclass(type, str):
-        return "%s: %s\n" % (name, repr(value))
+    elif issubclass(type, bytes):
+        return "%s: %s\n" % (name, repr(b(value)))
     elif issubclass(type, scalar.enum):
         return "%s: %s\n" % (name, type._int_to_name[value])
     else:
@@ -239,7 +239,7 @@ def validate_copy_from(lhs, rhs):
 
 def set_field(parent, name, rhs):
     lhs = getattr(parent, name)
-    if isinstance(rhs, container.base_array):
+    if isinstance(rhs, base_array):
         if issubclass(rhs._TYPE, (struct, union)):
             if rhs._DYNAMIC:
                 del lhs[:]
@@ -272,9 +272,9 @@ class struct(object):
     def _get_padding(offset, alignment):
         remainder = offset % alignment
         if remainder:
-            return '\x00' * (alignment - remainder)
+            return b'\x00' * (alignment - remainder)
         else:
-            return ''
+            return b''
 
     @staticmethod
     def _get_padding_size(offset, alignment):
@@ -282,7 +282,7 @@ class struct(object):
         return alignment - remainder if remainder else 0
 
     def encode(self, endianness, terminal = True):
-        data = ""
+        data = b""
 
         for name, tp, encode_, _ in self._descriptor:
             data += (self._get_padding(len(data), tp._ALIGNMENT) +
@@ -320,14 +320,14 @@ class struct(object):
             return
 
         self._fields.clear()
-        for name, rhs in other._fields.iteritems():
+        for name, rhs in other._fields.items():
             set_field(self, name, rhs)
 
 class struct_packed(struct):
     __slots__ = []
     @staticmethod
     def _get_padding(offset, alignment):
-        return ''
+        return b''
     @staticmethod
     def _get_padding_size(offset, alignment):
         return 0
@@ -353,7 +353,7 @@ def validate_union(descriptor):
         raise ProphyError("dynamic types not allowed in union")
     if any(type._BOUND for _, type, _ in descriptor):
         raise ProphyError("bound array/bytes not allowed in union")
-    if any(issubclass(type, container.base_array) for _, type, _ in descriptor):
+    if any(issubclass(type, base_array) for _, type, _ in descriptor):
         raise ProphyError("static array not implemented in union")
     if any(type._OPTIONAL for _, type, _ in descriptor):
         raise ProphyError("union with optional field disallowed")
@@ -441,9 +441,9 @@ class union(object):
     def encode(self, endianness, terminal = True):
         name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, '\x00')
+        data = (self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, b'\x00')
                 + encode_(self, tp, value, endianness))
-        return data.ljust(self._SIZE, '\x00')
+        return data.ljust(self._SIZE, b'\x00')
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal = True)

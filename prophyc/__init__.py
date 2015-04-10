@@ -3,17 +3,17 @@
 import sys
 import os
 
-from prophyc import options
-from prophyc import model
-from prophyc.file_processor import FileProcessor
+from . import options
+from . import model
+from .file_processor import FileProcessor
 
-__version__ = '0.6'
+__version__ = '0.7'
 
 def main():
     opts = options.parse_options(emit_error)
 
     if opts.version:
-        print "prophyc {}".format(__version__)
+        print("prophyc {}".format(__version__))
         sys.exit(0)
 
     if not opts.input_files:
@@ -42,7 +42,7 @@ def main():
             try:
                 serializer.serialize(nodes, basename)
             except model.GenerateError as e:
-                emit_error(e.message)
+                emit_error(str(e))
 
 def get_parser(opts):
     if opts.isar:

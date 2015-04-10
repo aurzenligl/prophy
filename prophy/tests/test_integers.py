@@ -12,8 +12,7 @@ import pytest
     (prophy.u64, 0, 0xFFFFFFFFFFFFFFFF)
 ])
 def test_integer(IntType, min, max):
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("value", IntType)]
 
     x = X()
@@ -25,15 +24,15 @@ def test_integer(IntType, min, max):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.value = "123"
-    assert "not an int" in e.value.message
+    assert "not an int" in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.value = max + 1
-    assert "out of bounds" in e.value.message
+    assert "out of bounds" in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.value = min - 1
-    assert "out of bounds" in e.value.message
+    assert "out of bounds" in str(e.value)
 
     y = X()
     y.value == 42
@@ -42,49 +41,48 @@ def test_integer(IntType, min, max):
 
 @pytest.mark.parametrize('IntType, a, encoded_a, b, encoded_b, too_short, too_long', [
     (prophy.i8,
-        1, "\x01",
-        (-1), "\xff",
-        "",
-        "\xff\xff"),
+        1, b"\x01",
+        (-1), b"\xff",
+        b"",
+        b"\xff\xff"),
     (prophy.i16,
-        1, "\x00\x01",
-        (-1), "\xff\xff",
-        "\xff",
-        "\xff\xff\xff"),
+        1, b"\x00\x01",
+        (-1), b"\xff\xff",
+        b"\xff",
+        b"\xff\xff\xff"),
     (prophy.i32,
-        1, "\x00\x00\x00\x01",
-        (-1), "\xff\xff\xff\xff",
-        "\xff\xff\xff",
-        "\xff\xff\xff\xff\xff"),
+        1, b"\x00\x00\x00\x01",
+        (-1), b"\xff\xff\xff\xff",
+        b"\xff\xff\xff",
+        b"\xff\xff\xff\xff\xff"),
     (prophy.i64,
-        1, "\x00\x00\x00\x00\x00\x00\x00\x01",
-        (-1), "\xff\xff\xff\xff\xff\xff\xff\xff",
-        "\xff\xff\xff\xff\xff\xff\xff",
-        "\xff\xff\xff\xff\xff\xff\xff\xff\xff"),
+        1, b"\x00\x00\x00\x00\x00\x00\x00\x01",
+        (-1), b"\xff\xff\xff\xff\xff\xff\xff\xff",
+        b"\xff\xff\xff\xff\xff\xff\xff",
+        b"\xff\xff\xff\xff\xff\xff\xff\xff\xff"),
     (prophy.u8,
-        1, "\x01",
-        0, "\x00",
-        "",
-        "\xff\xff"),
+        1, b"\x01",
+        0, b"\x00",
+        b"",
+        b"\xff\xff"),
     (prophy.u16,
-        1, "\x00\x01",
-        0, "\x00\x00",
-        "\xff",
-        "\xff\xff\xff"),
+        1, b"\x00\x01",
+        0, b"\x00\x00",
+        b"\xff",
+        b"\xff\xff\xff"),
     (prophy.u32,
-        1, "\x00\x00\x00\x01",
-        0, "\x00\x00\x00\x00",
-        "\xff\xff\xff",
-        "\xff\xff\xff\xff\xff"),
+        1, b"\x00\x00\x00\x01",
+        0, b"\x00\x00\x00\x00",
+        b"\xff\xff\xff",
+        b"\xff\xff\xff\xff\xff"),
     (prophy.u64,
-        1, "\x00\x00\x00\x00\x00\x00\x00\x01",
-        0, "\x00\x00\x00\x00\x00\x00\x00\x00",
-        "\xff\xff\xff\xff\xff\xff\xff",
-        "\xff\xff\xff\xff\xff\xff\xff\xff\xff")
+        1, b"\x00\x00\x00\x00\x00\x00\x00\x01",
+        0, b"\x00\x00\x00\x00\x00\x00\x00\x00",
+        b"\xff\xff\xff\xff\xff\xff\xff",
+        b"\xff\xff\xff\xff\xff\xff\xff\xff\xff")
 ])
 def test_integer_codec(IntType, a, encoded_a, b, encoded_b, too_short, too_long):
-    class X(prophy.struct):
-        __metaclass__ = prophy.struct_generator
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("value", IntType)]
 
     x = X()
@@ -103,8 +101,8 @@ def test_integer_codec(IntType, a, encoded_a, b, encoded_b, too_short, too_long)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(too_short, ">")
-    assert "too few bytes to decode integer" in e.value.message
+    assert "too few bytes to decode integer" in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(too_long, ">")
-    assert "not all bytes read" in e.value.message
+    assert "not all bytes read" in str(e.value)

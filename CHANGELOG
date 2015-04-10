@@ -1,3 +1,7 @@
+0.7
+-----------------------------------
+- prophy & prophyc: python 3.4 support added
+
 0.6
 -----------------------------------
 - prophyc: isar mode includes

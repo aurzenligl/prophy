@@ -22,12 +22,12 @@ def test_calc_nested_variables():
 def test_calc_errors():
     with pytest.raises(calc.ParseError) as e:
         calc.eval('&', {})
-    assert 'illegal' in e.value.message
+    assert 'illegal' in str(e.value)
 
     with pytest.raises(calc.ParseError) as e:
         calc.eval('++', {})
-    assert 'syntax' in e.value.message
+    assert 'syntax' in str(e.value)
 
     with pytest.raises(calc.ParseError) as e:
         calc.eval('unknown', {})
-    assert 'not found' in e.value.message
+    assert 'not found' in str(e.value)
