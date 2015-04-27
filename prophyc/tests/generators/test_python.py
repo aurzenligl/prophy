@@ -7,12 +7,16 @@ def serialize(nodes):
 def test_includes_rendering():
     nodes = [model.Include("szydlo", []),
              model.Include("mydlo", []),
-             model.Include("powidlo", [])]
+             model.Include("powidlo", []),
+             model.Include("root/nowe_powidlo", []),
+             model.Include("root/nowe_mydlo", [])]
 
     ref = """\
 from szydlo import *
 from mydlo import *
 from powidlo import *
+from nowe_powidlo import *
+from nowe_mydlo import *
 """
     assert ref == serialize(nodes)
 
