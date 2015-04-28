@@ -28,3 +28,6 @@ waf-*
 .project
 .pydevproject
 .settings
+
+# Test tools
+.tox
