@@ -1,3 +1,7 @@
+0.7.1
+-----------------------------------
+- prophyc: python output imports by leaf filename without parent directories
+
 0.7
 -----------------------------------
 - prophy & prophyc: python 3.4 support added
