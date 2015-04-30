@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "util.hpp"
-#include "generated_raw/Unions.pp.hpp"
+#include "Unions.pp.hpp"
 
 using namespace testing;
 
@@ -42,14 +42,12 @@ TEST(generated_raw_unions, Union_a)
 {
     test_swap<Union>(
         "\x00\x00\x00\x01"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x00\x00"
-        "\x00\x00\x00\x00",
+        "\xAA\xBB\xCC\xDD"
+        "\x01\x00\x00\x00",
 
         "\x01\x00\x00\x00"
-        "\xab\xcd\xef\xab"
+        "\xAA\xBB\xCC\xDD"
         "\x01\x00\x00\x00"
-        "\x00\x00\x00\x00"
     );
 }
 
@@ -57,14 +55,12 @@ TEST(generated_raw_unions, Union_b)
 {
     test_swap<Union>(
         "\x00\x00\x00\x02"
-        "\xab\xcd\xef\xab"
-        "\x00\x00\x00\x00"
-        "\x00\x00\x00\x01",
+        "\xAA\xBB\xCC\xDD"
+        "\x01\x00\x00\x00",
 
         "\x02\x00\x00\x00"
-        "\xab\xcd\xef\xab"
+        "\xDD\xCC\xBB\xAA"
         "\x01\x00\x00\x00"
-        "\x00\x00\x00\x00"
     );
 }
 
@@ -72,13 +68,11 @@ TEST(generated_raw_unions, Union_c)
 {
     test_swap<Union>(
         "\x00\x00\x00\x03"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x00\x02"
-        "\x03\x00\x00\x04",
+        "\xAA\xBB\xCC\xDD"
+        "\x01\x00\x00\x00",
 
         "\x03\x00\x00\x00"
-        "\xab\xcd\xef\xab"
-        "\x01\x00\x02\x00"
-        "\x03\x00\x04\x00"
+        "\xDD\xCC\xBB\xAA"
+        "\x00\x00\x00\x01"
     );
 }

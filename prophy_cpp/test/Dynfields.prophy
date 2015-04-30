@@ -1,0 +1,67 @@
+#include "Arrays.prophy"
+
+struct Dynfields
+{
+    u8 x<>;
+    u16 y<>;
+    u64 z;
+};
+
+struct DynfieldsOverlapped
+{
+    u16 a<>;
+    u16 b<>;
+    u16 c<>;
+};
+
+struct DynfieldsPartialpad_Helper
+{
+    u8 x<>;
+    u8 y;
+    u64 z;
+};
+
+struct DynfieldsPartialpad
+{
+    u8 x;
+    DynfieldsPartialpad_Helper y;
+};
+
+struct DynfieldsScalarpartialpad_Helper
+{
+    u8 x<>;
+};
+
+struct DynfieldsScalarpartialpad
+{
+    DynfieldsScalarpartialpad_Helper x;
+    DynfieldsScalarpartialpad_Helper y;
+    DynfieldsScalarpartialpad_Helper z;
+};
+
+struct DynfieldsPadded_Helper
+{
+    u8 x<>;
+    u8 y<>;
+    u64 z;
+};
+
+struct DynfieldsPadded
+{
+    u8 x;
+    DynfieldsPadded_Helper y;
+};
+
+struct DynfieldsFixtail
+{
+    u8 x<>;
+    u32 y;
+    u64 z;
+};
+
+struct DynfieldsComp
+{
+    BuiltinDynamic x;
+    BuiltinDynamic y;
+    BuiltinDynamic z;
+};
