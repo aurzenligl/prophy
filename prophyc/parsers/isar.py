@@ -1,3 +1,4 @@
+import os
 import xml.etree.ElementTree as ElementTree
 
 from ..six import reduce
@@ -60,7 +61,7 @@ def make_include(elem, process_file, warn):
         if warn:
             warn(str(e))
         nodes = []
-    return model.Include(path.split('.')[0], nodes)
+    return model.Include(os.path.splitext(path)[0], nodes)
 
 def make_constant(elem):
     return model.Constant(elem.get("name"), expand_operators(elem.get("value")))
