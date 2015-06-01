@@ -12,6 +12,10 @@ def test_includes_parsing():
     <xi:include href="mydlo.xml"/>
     <xi:include href="szydlo.xml"/>
     <xi:include href="powidlo.xml"/>
+    <xi:include href="../zurawina.xml"/>
+    <xi:include href="../entliczek/petliczek.xml"/>
+    <xi:include href="../my.basename.xml"/>
+    <xi:include href="noext"/>
 </system>
 """
     nodes = parse(xml, process_file = lambda path: [model.Typedef("a", "u8")])
@@ -19,7 +23,11 @@ def test_includes_parsing():
     assert [
         ("mydlo", [model.Typedef("a", "u8")]),
         ("szydlo", [model.Typedef("a", "u8")]),
-        ("powidlo", [model.Typedef("a", "u8")])
+        ("powidlo", [model.Typedef("a", "u8")]),
+        ("../zurawina", [model.Typedef("a", "u8")]),
+        ("../entliczek/petliczek", [model.Typedef("a", "u8")]),
+        ("../my.basename", [model.Typedef("a", "u8")]),
+        ("noext", [model.Typedef("a", "u8")]),
     ] == nodes
 
 def test_includes_call_file_process_with_proper_path():
