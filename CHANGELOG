@@ -1,3 +1,7 @@
+next
+-----------------------------------
+- prophyc: isar parser treats non-trivial include paths correctly
+
 0.7.1
 -----------------------------------
 - prophyc: python output imports by leaf filename without parent directories
