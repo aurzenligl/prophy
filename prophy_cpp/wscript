@@ -3,6 +3,9 @@ from waflib.TaskGen import extension
 from waflib.Task import Task
 from waflib.Tools import waf_unit_test
 
+APPNAME = 'prophy-cpp'
+VERSION = '0.7.1'
+
 def options(ctx):
     ctx.load('compiler_cxx python waf_unit_test')
 
@@ -45,6 +48,10 @@ def test(ctx):
 
     ctx.add_post_fun(waf_unit_test.summary)
     ctx.add_post_fun(waf_unit_test.set_exit_code)
+
+def dist(ctx):
+    ctx.algo = 'tar.gz'
+    ctx.files = ctx.path.ant_glob('include/**/*.hpp')
 
 run_str = 'PYTHONPATH=${bld.path.parent.abspath()} python -m prophyc --%s ${TGT[0].parent.abspath()} ${SRC[0].abspath()}'
 
