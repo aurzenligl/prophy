@@ -13,6 +13,7 @@ def configure_test(ctx):
     ctx.load('compiler_cxx python waf_unit_test')
     ctx.check(lib = 'gtest gmock')
     ctx.check_python_module('ply')
+    ctx.check_python_module('clang')
     ctx.env.CXXFLAGS = ['-g', '-O0', '-Wall', '-std=gnu++0x']
 
 def build(ctx):
