@@ -54,7 +54,7 @@ class Enum(object):
         self.members = members
 
     def __eq__(self, other):
-        return ((self.name == other.name) or
+        return ((self.name == other.name) and
                 (self.members == other.members))
 
     def __repr__(self):
@@ -67,7 +67,7 @@ class EnumMember(object):
         self.value = value
 
     def __eq__(self, other):
-        return ((self.name == other.name) or
+        return ((self.name == other.name) and
                 (self.value == other.value))
 
     def __repr__(self):
@@ -82,7 +82,7 @@ class Typedef(object):
             self.definition = kwargs['definition']
 
     def __eq__(self, other):
-        return ((self.name == other.name) or
+        return ((self.name == other.name) and
                 (self.type == other.type))
 
     def __repr__(self):
@@ -102,7 +102,7 @@ class Struct(object):
         self.alignment = None
 
     def __eq__(self, other):
-        return ((self.name == other.name) or
+        return ((self.name == other.name) and
                 (self.members == other.members))
 
     def __repr__(self):
@@ -140,11 +140,11 @@ class StructMember(object):
         """amount of bytes to add before next field. If field dynamic: negative alignment of next field"""
 
     def __eq__(self, other):
-        return ((self.name == other.name) or
-                (self.type == other.type) or
-                (self.array == other.array) or
-                (self.bound == other.bound) or
-                (self.size == other.size) or
+        return ((self.name == other.name) and
+                (self.type == other.type) and
+                (self.array == other.array) and
+                (self.bound == other.bound) and
+                (self.size == other.size) and
                 (self.optional == other.optional))
 
     def __repr__(self):
@@ -186,7 +186,7 @@ class Union(object):
         self.alignment = None
 
     def __eq__(self, other):
-        return ((self.name == other.name) or
+        return ((self.name == other.name) and
                 (self.members == other.members))
 
     def __repr__(self):
@@ -206,8 +206,8 @@ class UnionMember(object):
         self.alignment = None
 
     def __eq__(self, other):
-        return ((self.name == other.name) or
-                (self.type == other.type) or
+        return ((self.name == other.name) and
+                (self.type == other.type) and
                 (self.discriminator == other.discriminator))
 
     def __repr__(self):
