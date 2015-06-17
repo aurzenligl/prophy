@@ -10,14 +10,21 @@ unambiguous_builtins = {
     TypeKind.POINTER: 'u32',
     TypeKind.FLOAT: 'r32',
     TypeKind.DOUBLE: 'r64',
-    TypeKind.BOOL: 'u32'
+    TypeKind.BOOL: 'i32'
 }
 
 def alphanumeric_name(cursor):
-    return re.sub('[^0-9a-zA-Z_]+', '__', cursor.type.spelling.decode())
+    name = cursor.type.spelling.decode()
+    if name.startswith('struct '):
+        name = name.replace('struct ', '', 1)
+    elif name.startswith('enum '):
+        name = name.replace('enum ', '', 1)
+    elif name.startswith('union '):
+        name = name.replace('union ', '', 1)
+    return re.sub('[^0-9a-zA-Z_]+', '__', name)
 
 def get_enum_member(cursor):
-    name = cursor.spelling
+    name = cursor.spelling.decode()
     value = cursor.enum_value
     if value < 0:
         value = "0x%X" % (0x100000000 + value)
@@ -78,8 +85,7 @@ class Builder(object):
         name = cursor.spelling.decode()
         type_name = self._build_field_type_name(cursor.type)
         array_len = self._get_field_array_len(cursor.type)
-        is_array = None if array_len is None else True
-        return model.StructMember(name, type_name, size = array_len)
+        return model.StructMember(name, type_name, size=array_len)
 
     def _build_union_member(self, cursor, disc):
         name = cursor.spelling.decode()
@@ -87,7 +93,7 @@ class Builder(object):
         return model.UnionMember(name, type_name, str(disc))
 
     def add_enum(self, cursor):
-        members = map(get_enum_member, cursor.get_children())
+        members = list(map(get_enum_member, cursor.get_children()))
         node = model.Enum(alphanumeric_name(cursor), members)
         self._add_node(node)
 
@@ -120,7 +126,7 @@ def _get_location(location):
     return '%s:%s:%s' % (location.file.name.decode(), location.line, location.column)
 
 class SackParser(object):
-    def __init__(self, include_dirs = [], warn = None):
+    def __init__(self, include_dirs=[], warn=None):
         self.include_dirs = include_dirs
         self.warn = warn
 
@@ -130,10 +136,10 @@ class SackParser(object):
         path = path.encode()
         content = content.encode()
         try:
-            tu = index.parse(path, args_, unsaved_files = ((path, content),))
+            tu = index.parse(path, args_, unsaved_files=((path, content),))
         except TranslationUnitLoadError:
             raise model.ParseError([(path.decode(), 'error parsing translation unit')])
         if self.warn:
             for diag in tu.diagnostics:
-                self.warn(diag.spelling.decode(), location = _get_location(diag.location))
+                self.warn(diag.spelling.decode(), location=_get_location(diag.location))
         return build_model(tu)

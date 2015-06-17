@@ -3,9 +3,10 @@ import pytest
 
 from prophyc import model
 
-def parse(content, name = 'test.hpp', warn = None):
+def parse(content, extension='.hpp', warn=None):
     from prophyc.parsers.sack import SackParser
-    return SackParser(warn = warn).parse(content, name, None)
+    file_name = 'test'
+    return SackParser(warn=warn).parse(content, file_name + extension, None)
 
 class contains_cmp(object):
     def __init__(self, x):
@@ -13,8 +14,12 @@ class contains_cmp(object):
     def __eq__(self, other):
         return any((self.x in other, other in self.x))
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_simple_struct():
+def test_simple_struct(extension):
     hpp = """\
 #include <stdint.h>
 struct X
@@ -24,7 +29,7 @@ struct X
     uint32_t c;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Struct("X", [
             model.StructMember("a", "u32"),
             model.StructMember("b", "u32"),
@@ -32,8 +37,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_ints():
+def test_ints(extension):
     hpp = """\
 #include <stdint.h>
 struct X
@@ -55,7 +64,7 @@ struct X
     bool r;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Struct("X", [
             model.StructMember("a", "u8"),
             model.StructMember("b", "u16"),
@@ -71,12 +80,16 @@ struct X
             model.StructMember("n", "u32"),
             model.StructMember("o", "r32"),
             model.StructMember("p", "r64"),
-            model.StructMember("r", "u32")
+            model.StructMember("r", "i32")
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_nested_typedefs():
+def test_nested_typedefs(extension):
     hpp = """\
 typedef int my_int;
 typedef my_int i_like_typedefs;
@@ -86,10 +99,14 @@ struct X
     i_really_do a;
 };
 """
-    assert parse(hpp) == [model.Struct("X", [model.StructMember("a", "i32")])]
+    assert parse(hpp, extension) == [model.Struct("X", [model.StructMember("a", "i32")])]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_typedefed_struct():
+def test_typedefed_struct(extension):
     hpp = """\
 #include <stdint.h>
 typedef struct
@@ -101,7 +118,7 @@ struct X
     OldStruct a;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Struct("OldStruct", [model.StructMember("a", "u32")]),
         model.Struct("X", [model.StructMember("a", "OldStruct")])
     ]
@@ -130,8 +147,12 @@ struct X
         model.Struct("X", [model.StructMember("a", "m__n__Namespaced")])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_array():
+def test_array(extension):
     hpp = """\
 #include <stdint.h>
 struct X
@@ -139,10 +160,18 @@ struct X
     uint32_t a[4];
 };
 """
-    assert parse(hpp) == [model.Struct("X", [model.StructMember("a", "u32", size = 4)])]
+    assert parse(hpp, extension) == [
+        model.Struct("X", [
+            model.StructMember("a", "u32", size=4)
+        ])
+    ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_enum():
+def test_enum(extension):
     hpp = """\
 enum Enum
 {
@@ -155,7 +184,7 @@ struct X
     Enum a;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Enum("Enum", [
             model.EnumMember("Enum_One", "1"),
             model.EnumMember("Enum_Two", "2"),
@@ -166,8 +195,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_typedefed_enum():
+def test_typedefed_enum(extension):
     hpp = """\
 typedef enum Enum
 {
@@ -180,7 +213,7 @@ struct X
     Enum a;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Enum("Enum", [
             model.EnumMember("Enum_One", "1"),
             model.EnumMember("Enum_Two", "2"),
@@ -222,8 +255,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_enum_with_negative_one_values():
+def test_enum_with_negative_one_values(extension):
     hpp = """\
 enum Enum
 {
@@ -236,7 +273,7 @@ struct X
     Enum a;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Enum("Enum", [
             model.EnumMember("Enum_MinusOne", "0xFFFFFFFF"),
             model.EnumMember("Enum_MinusTwo", "0xFFFFFFFE"),
@@ -247,8 +284,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_multiple_enums():
+def test_multiple_enums(extension):
     hpp = """\
 typedef enum Enum
 {
@@ -263,7 +304,7 @@ struct X
     Enum c;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Enum("Enum", [
             model.EnumMember("Enum_One", "1"),
             model.EnumMember("Enum_Two", "2"),
@@ -276,8 +317,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_c_enum():
+def test_c_enum(extension):
     hpp = """\
 typedef enum
 {
@@ -290,7 +335,7 @@ struct X
     Enum a;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Enum("Enum", [
             model.EnumMember("Enum_One", "1"),
             model.EnumMember("Enum_Two", "2"),
@@ -301,8 +346,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_union():
+def test_union(extension):
     hpp = """\
 #include <stdint.h>
 union Union
@@ -316,7 +365,7 @@ struct X
     Union a;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Union("Union", [
             model.UnionMember("a", "u8", "0"),
             model.UnionMember("b", "u16", "1"),
@@ -327,8 +376,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_typedefed_union():
+def test_typedefed_union(extension):
     hpp = """\
 #include <stdint.h>
 typedef union
@@ -340,7 +393,7 @@ struct X
     Union a;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Union("Union", [
             model.UnionMember("a", "u8", "0")
         ]),
@@ -349,8 +402,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_multiple_structs():
+def test_multiple_structs(extension):
     hpp = """\
 #include <stdint.h>
 struct X
@@ -367,7 +424,7 @@ struct Z
     Y b;
 };
 """
-    assert parse(hpp) == [
+    assert parse(hpp, extension) == [
         model.Struct("X", [
             model.StructMember("a", "u8")
         ]),
@@ -409,8 +466,12 @@ struct X
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_c_struct():
+def test_c_struct(extension):
     hpp = """\
 #ifdef __cplusplus
 extern "C" {
@@ -424,10 +485,18 @@ typedef struct X X;
 }
 #endif
 """
-    assert parse(hpp) == [model.Struct("X", [model.StructMember("x", "i32")])]
+    assert parse(hpp, extension) == [
+        model.Struct("X", [
+            model.StructMember("x", "i32")
+        ])
+    ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_struct_with_anonymous_struct():
+def test_struct_with_anonymous_struct(extension):
     hpp = """\
 struct X
 {
@@ -437,28 +506,40 @@ struct X
     } a[3];
 };
 """
-    Anonymous = contains_cmp("X__anonymous__struct__at__")
-    assert parse(hpp) == [
+    Anonymous = contains_cmp("X__anonymous__")
+    assert parse(hpp, extension) == [
         model.Struct(Anonymous, [
             model.StructMember("b", "i8")
         ]),
         model.Struct("X", [
-            model.StructMember("a", Anonymous, size = 3)
+            model.StructMember("a", Anonymous, size=3)
         ])
     ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_struct_with_incomplete_array():
+def test_struct_with_incomplete_array(extension):
     hpp = """\
 struct X
 {
     char b[];
 };
 """
-    assert parse(hpp) == [model.Struct('X', [model.StructMember('b', 'i8')])]
+    assert parse(hpp, extension) == [
+        model.Struct('X', [
+            model.StructMember('b', 'i8')
+        ])
+    ]
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_struct_with_incomplete_array_in_file_with_hyphen():
+def test_struct_with_incomplete_array_in_file_with_hyphen(extension):
     hpp = """\
 struct X
 {
@@ -468,19 +549,28 @@ struct X
     } a;
 };
 """
-    nodes = parse(hpp, name = 'test-hyphen.hpp')
+    #nodes = parse(hpp, name = 'test-hyphen.hpp')
+    nodes = parse(hpp, extension)
 
-    assert '__hyphen__hpp__' in nodes[0].name
+    assert '__test__' + extension[1:] + '__' in nodes[0].name
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_forward_declared_struct():
+def test_forward_declared_struct(extension):
     hpp = """\
 struct X;
 """
-    assert parse(hpp) == []
+    assert parse(hpp, extension) == []
 
+@pytest.mark.parametrize('extension', [
+    ('.h'),
+    ('.hpp'),
+    ])
 @pytest.clang_installed
-def test_omit_bitfields():
+def test_omit_bitfields(extension):
     hpp = """\
 struct X
 {
@@ -490,29 +580,37 @@ struct X
     unsigned  : 5;
 };
 """
-    assert parse(hpp) == [model.Struct('X', [])]
+    assert parse(hpp, extension) == [model.Struct('X', [])]
 
 class WarnMock(object):
     def __init__(self):
         self.warnings = []
-    def __call__(self, msg, location = 'prophyc'):
+    def __call__(self, msg, location='prophyc'):
         self.warnings.append((location, msg))
 
+@pytest.mark.parametrize('extension, expected', [
+    ('.c', 'type specifier missing, defaults to \'int\''),
+    ('.cpp', 'C++ requires a type specifier for all declarations'),
+    ])
 @pytest.clang_installed
-def test_diagnostics_error():
+def test_diagnostics_error(extension, expected):
     content = """\
 unknown;
 """
     warn = WarnMock()
 
     assert parse(content,
-        name = "x.cpp",
-        warn = warn
+                 extension,
+                 warn=warn
     ) == []
-    assert warn.warnings == [('x.cpp:1:1', 'C++ requires a type specifier for all declarations')]
+    assert warn.warnings == [('test' + extension + ':1:1', expected)]
 
+@pytest.mark.parametrize('extension', [
+    ('.c'),
+    ('.cpp'),
+    ])
 @pytest.clang_installed
-def test_diagnostics_warning():
+def test_diagnostics_warning(extension):
     content = """\
 int foo()
 {
@@ -522,13 +620,13 @@ int foo()
     warn = WarnMock()
 
     assert parse(content,
-        name = "x.cpp",
-        warn = warn
+                 extension,
+                 warn=warn
     ) == []
-    assert warn.warnings == [('x.cpp:4:1', 'control reaches end of non-void function')]
+    assert warn.warnings == [('test' + extension + ':4:1', 'control reaches end of non-void function')]
 
 @pytest.clang_installed
 def test_libclang_parsing_error():
     with pytest.raises(model.ParseError) as e:
-        parse('content', name = 'x')
-    assert e.value.errors == [('x', 'error parsing translation unit')]
+        parse('content', '')
+    assert e.value.errors == [('test', 'error parsing translation unit')]
