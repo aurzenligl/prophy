@@ -139,7 +139,7 @@ def test_enums_parsing():
         model.Enum("EEnum", [
             model.EnumMember("EEnum_A", "0"),
             model.EnumMember("EEnum_B", "1"),
-            model.EnumMember("EEnum_C", "-1"),
+            model.EnumMember("EEnum_C", "0xFFFFFFFF"),
         ])
     ]
 
