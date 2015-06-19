@@ -1,3 +1,7 @@
+0.7.3
+-----------------------------------
+- prophyc: sack parser properly parses files with .h and .c extensions
+
 0.7.2
 -----------------------------------
 - prophyc: isar parser treats non-trivial include paths correctly
