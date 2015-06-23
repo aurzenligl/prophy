@@ -39,31 +39,33 @@ TEST(generated_dynfields, DynfieldsOverlapped)
 {
     std::vector<char> data(1024);
 
-    DynfieldsOverlapped x{{2}, {3}, {4, 5}};
+    DynfieldsOverlapped x{{3}, {4, 5}, {2}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(24, size);
+    EXPECT_EQ(20, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
             "\x01\x00\x00\x00"
-                "\x02\x00" "\x00\x00"
             "\x01\x00\x00\x00"
-                "\x03\x00" "\x00\x00"
-            "\x02\x00\x00\x00"
-                "\x04\x00" "\x05\x00"),
+            "\x03\x00"
+            "\x02\x00" "\x04\x00\x05\x00"
+            "\x02\x00" "\x00\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x02\x00\x00\x00" "\x08\x00" "\x07\x00"
-            "\x01\x00\x00\x00" "\x06\x00" "\xab\xcd"
-            "\x01\x00\x00\x00" "\x09\x00" "\xab\xcd")));
-    EXPECT_EQ(2, x.a.size());
-    EXPECT_EQ(8, x.a[0]);
-    EXPECT_EQ(7, x.a[1]);
-    EXPECT_EQ(1, x.b.size());
-    EXPECT_EQ(6, x.b[0]);
-    EXPECT_EQ(1, x.c.size());
-    EXPECT_EQ(9, x.c[0]);
+            "\x01\x00\x00\x00" "\x02\x00\x00\x00"
+            "\x08\x00" "\x07\x00"
+            "\x03\x00" "\x05\x00\x06\x00\x07\x00"
+            "\x09\x00" "\xFF\xFF")));
+    EXPECT_EQ(1, x.a.size());
+    EXPECT_EQ(9, x.a[0]);
+    EXPECT_EQ(2, x.b.size());
+    EXPECT_EQ(8, x.b[0]);
+    EXPECT_EQ(7, x.b[1]);
+    EXPECT_EQ(3, x.c.size());
+    EXPECT_EQ(5, x.c[0]);
+    EXPECT_EQ(6, x.c[1]);
+    EXPECT_EQ(7, x.c[2]);
 }
 
 TEST(generated_dynfields, DynfieldsPartialpad)

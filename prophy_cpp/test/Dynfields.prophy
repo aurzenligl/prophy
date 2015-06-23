@@ -9,9 +9,12 @@ struct Dynfields
 
 struct DynfieldsOverlapped
 {
-    u16 a<>;
-    u16 b<>;
-    u16 c<>;
+    u32 num_of_a;
+    u32 num_of_b;
+    u16 b[1];
+    u16 num_of_c;
+    u16 c[1];
+    u16 a[1];
 };
 
 struct DynfieldsPartialpad_Helper
