@@ -1,0 +1,130 @@
+struct Endpad
+{
+    u16 x;
+    u8 y;
+};
+
+struct EndpadFixed
+{
+    u32 x;
+    u8 y[3];
+};
+
+struct EndpadDynamic
+{
+    u8 x<>;
+};
+
+struct EndpadLimited
+{
+    u8 x<2>;
+};
+
+struct EndpadGreedy
+{
+    u32 x;
+    u8 y<...>;
+};
+
+struct Scalarpad
+{
+    u8 x;
+    u16 y;
+};
+
+struct ScalarpadComppre_Helper
+{
+    u8 x;
+};
+
+struct ScalarpadComppre
+{
+    ScalarpadComppre_Helper x;
+    u16 y;
+};
+
+struct ScalarpadComppost_Helper
+{
+    u16 x;
+};
+
+struct ScalarpadComppost
+{
+    u8 x;
+    ScalarpadComppost_Helper y;
+};
+
+struct UnionpadOptionalboolpad
+{
+    u8 x;
+    u8* y;
+};
+
+struct UnionpadOptionalvaluepad
+{
+    u64* x;
+};
+
+union UnionpadDiscpad_Helper
+{
+    1: u8 a;
+};
+
+struct UnionpadDiscpad
+{
+    u8 x;
+    UnionpadDiscpad_Helper y;
+};
+
+union UnionpadArmpad_Helper
+{
+    1: u8 a;
+    2: u64 b;
+};
+
+struct UnionpadArmpad
+{
+    u8 x;
+    UnionpadArmpad_Helper y;
+};
+
+struct ArraypadCounter
+{
+    u32 x<>;
+};
+
+struct ArraypadCounterSeparated
+{
+    u32 y;
+    u32 x<>;
+};
+
+struct ArraypadCounterAligns_Helper
+{
+    u8 x<>;
+};
+
+struct ArraypadCounterAligns
+{
+    u8 x;
+    ArraypadCounterAligns_Helper y;
+};
+
+struct ArraypadFixed
+{
+    u32 x;
+    u8 y[3];
+    u32 z;
+};
+
+struct ArraypadDynamic
+{
+    u8 x<>;
+    u32 y;
+};
+
+struct ArraypadLimited
+{
+    u8 x<2>;
+    u32 y;
+};

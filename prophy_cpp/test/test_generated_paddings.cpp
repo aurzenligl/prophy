@@ -1,6 +1,6 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Paddings.ppf.hpp"
+#include "Paddings.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
@@ -268,14 +268,18 @@ TEST(generated_paddings, ArraypadCounter)
     ArraypadCounter x{{2}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(4, size);
+    EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x01" "\x00" "\x02\x00"),
+            "\x01\x00\x00\x00"
+            "\x02\x00\x00\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x03" "\x00" "\x02\x00\x02\x00\x02\x00")));
+            "\x03\x00\x00\x00"
+            "\x02\x00\x00\x00"
+            "\x02\x00\x00\x00"
+            "\x02\x00\x00\x00")));
     EXPECT_EQ(3, x.x.size());
     EXPECT_EQ(2, x.x[0]);
     EXPECT_EQ(2, x.x[1]);
@@ -292,19 +296,20 @@ TEST(generated_paddings, ArraypadCounterSeparated)
     EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x01" "\x00\x00\x00"
             "\x02\x00\x00\x00"
+            "\x01\x00\x00\x00"
             "\x03\x00\x00\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x02" "\x00\x00\x00"
-            "\x0a\x00\x00\x00"
-            "\x04\x00\x00\x00\x06\x00\x00\x00")));
+            "\x09\x00\x00\x00"
+            "\x02\x00\x00\x00"
+            "\x04\x00\x00\x00"
+            "\x06\x00\x00\x00")));
     EXPECT_EQ(2, x.x.size());
     EXPECT_EQ(4, x.x[0]);
     EXPECT_EQ(6, x.x[1]);
-    EXPECT_EQ(10, x.y);
+    EXPECT_EQ(9, x.y);
 }
 
 TEST(generated_paddings, ArraypadCounterAligns)
@@ -314,16 +319,18 @@ TEST(generated_paddings, ArraypadCounterAligns)
     ArraypadCounterAligns x{1, {{2}}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(6, size);
+    EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x01" "\x00"
-            "\x01\x00\x02" "\x00"),
+            "\x01" "\x00\x00\x00"
+            "\x01\x00\x00\x00"
+            "\x02" "\x00\x00\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x05" "\x00"
-            "\x03\x00\x02\x03\x04" "\x00")));
+            "\x05" "\xFF\xFF\xFF"
+            "\x03\x00\x00\x00"
+            "\x02\x03\x04" "\xFF")));
     EXPECT_EQ(5, x.x);
     EXPECT_EQ(3, x.y.x.size());
     EXPECT_EQ(2, x.y.x[0]);

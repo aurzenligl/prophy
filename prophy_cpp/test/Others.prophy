@@ -1,0 +1,67 @@
+enum SomeEnum
+{
+    CONSTANT = 3
+};
+
+typedef u16 TU16;
+
+enum Enum
+{
+    Enum_One = 1,
+    Enum_Two = 2
+};
+
+struct ConstantTypedefEnum
+{
+    u16 a[CONSTANT];
+    TU16 b;
+    Enum c;
+};
+
+struct EnumArrays
+{
+    Enum a[2];
+    Enum b<2>;
+    Enum c<>;
+};
+
+struct EnumGreedyArray
+{
+    Enum x<...>;
+};
+
+union EnumUnion
+{
+    1: Enum x;
+};
+
+struct DynEnum
+{
+    Enum x<>;
+};
+
+struct Floats
+{
+    float a;
+    double b;
+};
+
+struct BytesFixed
+{
+    u8 x[3];
+};
+
+struct BytesDynamic
+{
+    u8 x<>;
+};
+
+struct BytesLimited
+{
+    u8 x<4>;
+};
+
+struct BytesGreedy
+{
+    u8 x<...>;
+};

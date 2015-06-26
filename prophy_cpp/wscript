@@ -1,22 +1,92 @@
 import sys
-
+from waflib.TaskGen import extension
+from waflib.Task import Task
 from waflib.Tools import waf_unit_test
 
+APPNAME = 'prophy-cpp'
+VERSION = '0.7.3'
+
 def options(ctx):
-    ctx.load('compiler_cxx waf_unit_test')
+    ctx.load('compiler_cxx python waf_unit_test')
+    ctx.add_option('--no-valgrind', action = 'store_true', default = False, help = 'run tests without valgrind', dest = 'no_valgrind')
 
 def configure(ctx):
-    ctx.load('compiler_cxx waf_unit_test')
+    pass
+
+def configure_test(ctx):
+    ctx.load('compiler_cxx python waf_unit_test')
+    ctx.check(lib = 'gtest')
+    ctx.check_python_module('ply')
+    ctx.check_python_module('clang')
+    if not ctx.options.no_valgrind:
+        ctx.find_program('valgrind')
+    ctx.env.CXXFLAGS = ['-g', '-O0', '-Wall', '-std=gnu++0x']
 
 def build(ctx):
+    for dir in ctx.path.ant_glob('include/**/*', dir=True, src=False):
+        ctx.install_files('${{PREFIX}}/{}'.format(dir.nice_path()), dir.ant_glob('*'))
+
+def test(ctx):
     os_lib = []
     if 'linux' in sys.platform:
         os_lib += ['pthread']
-    ctx(features = 'cxx cxxprogram test',
+
+    ctx.objects(
+        features = 'cxx',
+        includes = ['include', 'test'],
+        export_includes = ['include', 'test'],
+        source = ctx.path.ant_glob('test/*.prophy'),
+        target = 'prophy_codecs',
+        install_path = None
+    )
+
+    ctx.program(
+        features = 'test',
         target = 'test_prophy',
-        includes = 'include',
-        source = ctx.path.ant_glob('test/**/*.cpp'),
-        cxxflags = '-g -Wall -std=gnu++0x',
-        lib = ['gtest', 'gmock'] + os_lib)
+        source = ctx.path.ant_glob('test/**.cpp'),
+        use = ['prophy_codecs'],
+        lib = ['gtest'] + os_lib,
+        install_path = None
+    )
+
+    if not ctx.options.no_valgrind:
+        ctx.options.testcmd = 'valgrind -q --leak-check=full --track-origins=yes --log-fd=1 %s'
+
     ctx.add_post_fun(waf_unit_test.summary)
     ctx.add_post_fun(waf_unit_test.set_exit_code)
+
+def dist(ctx):
+    ctx.algo = 'tar.gz'
+    ctx.files = ctx.path.ant_glob('include/**/*.hpp')
+
+run_str = 'PYTHONPATH=${bld.path.parent.abspath()} python -m prophyc \
+           --%s ${TGT[0].parent.abspath()} \
+           --patch ${SRC[1].abspath()} \
+           ${SRC[0].abspath()}'
+
+class prophyc_cpp_full(Task):
+    run_str = run_str % "cpp_full_out"
+    shell = True
+
+class prophyc_cpp(Task):
+    run_str = run_str % "cpp_out"
+    shell = True
+
+@extension('.prophy')
+def process_prophy(self, node):
+    patch_file = node.parent.ant_glob('*patch')[0]
+    tsk_full = self.create_task('prophyc_cpp_full', [node, patch_file], node.change_ext('.ppf.cpp'))
+    tsk = self.create_task('prophyc_cpp', [node, patch_file], node.change_ext('.pp.cpp'))
+    self.source.extend(tsk_full.outputs + tsk.outputs)
+
+from waflib.Configure import ConfigurationContext
+from waflib.Build import BuildContext
+
+class ConfigureTestContext(ConfigurationContext):
+    cmd = 'configure_test'
+    fun = 'configure_test'
+
+class TestContext(BuildContext):
+    cmd = 'test'
+    fun = 'test'
+
