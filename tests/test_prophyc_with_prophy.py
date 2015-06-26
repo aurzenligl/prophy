@@ -3,7 +3,9 @@ import sys
 import subprocess
 import pytest
 
-main_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+opd = os.path.dirname
+opr = os.path.realpath
+main_dir = opd(opd(opr(__file__)))
 
 def write(filename, content):
     open(filename, "w").write(content)
