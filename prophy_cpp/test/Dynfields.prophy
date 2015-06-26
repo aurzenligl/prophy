@@ -7,14 +7,14 @@ struct Dynfields
     u64 z;
 };
 
-struct DynfieldsOverlapped
+struct DynfieldsMixed
 {
-    u32 num_of_a;
-    u32 num_of_b;
-    u16 b[1];
-    u16 num_of_c;
-    u16 c[1];
+    u16 num_of_b;
+    u8 num_of_a;
     u16 a[1];
+    u32 num_of_c;
+    u8 b[1];
+    u64 c[1];
 };
 
 struct DynfieldsPartialpad_Helper
