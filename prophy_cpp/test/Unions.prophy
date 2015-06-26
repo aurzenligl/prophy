@@ -1,0 +1,24 @@
+#include "Arrays.prophy"
+
+union Union
+{
+    1: u8 a;
+    2: i32 b;
+    3: BuiltinFixed c;
+};
+
+struct BuiltinOptional
+{
+    u32* x;
+};
+
+struct FixcompOptional
+{
+    Builtin* x;
+};
+
+struct Optional
+{
+    u32* x;
+    Fixcomp* y;
+};
