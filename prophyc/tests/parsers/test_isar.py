@@ -212,6 +212,23 @@ def test_struct_parsing_static_array():
         ])
     ]
 
+def test_struct_parsing_static_2d_array():
+    xml = """\
+<x>
+    <struct name="StructWithStatic">
+        <member name="y" type="TTypeY">
+            <dimension size="NUM_OF_Y" size2="NUM_OF_X"/>
+        </member>
+    </struct>
+</x>
+"""
+    assert parse(xml) == [
+        model.Struct("StructWithStatic", [
+            model.StructMember("y", "TTypeY", size = "NUM_OF_Y*NUM_OF_X")
+        ])
+    ]
+
+
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
 <x>
