@@ -1,6 +1,6 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Unions.ppf.hpp"
+#include "Unions.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
@@ -28,7 +28,7 @@ TEST(generated_unions, Union)
             "\x02\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
-    x = {Union::discriminator_c_t, {1, 2}};
+    x = {Union::discriminator_c_t, {{1, 2}}};
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);
@@ -38,16 +38,14 @@ TEST(generated_unions, Union)
 
     /// decoding
     EXPECT_TRUE(x.decode(bytes(
-            "\x01\x00\x00\x00"
-            "\x04\x00\x00\x00\x00\x00\x00\x00")));
+            "\x01\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00")));
     EXPECT_EQ(Union::discriminator_a, x.discriminator);
     EXPECT_EQ(4, x.a);
     EXPECT_EQ(std::string(
             "a: 4\n"), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x02\x00\x00\x00"
-            "\x08\x00\x00\x00\x00\x00\x00\x00")));
+            "\x02\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00")));
     EXPECT_EQ(Union::discriminator_b, x.discriminator);
     EXPECT_EQ(8, x.b);
     EXPECT_EQ(std::string(
@@ -57,12 +55,12 @@ TEST(generated_unions, Union)
             "\x03\x00\x00\x00"
             "\x01\x00\x00\x00\x02\x00\x00\x00")));
     EXPECT_EQ(Union::discriminator_c, x.discriminator);
-    EXPECT_EQ(1, x.c.x);
-    EXPECT_EQ(2, x.c.y);
+    EXPECT_EQ(1, x.c.x[0]);
+    EXPECT_EQ(2, x.c.x[1]);
     EXPECT_EQ(std::string(
             "c {\n"
             "  x: 1\n"
-            "  y: 2\n"
+            "  x: 2\n"
             "}\n"), x.print());
 }
 
@@ -111,29 +109,29 @@ TEST(generated_unions, FixcompOptional)
     size_t size = x.encode(data.data());
 
     /// encoding
-    EXPECT_EQ(12, size);
+    EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
+            "\x00\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
     x = {{{3, 4}}};
     size = x.encode(data.data());
 
-    EXPECT_EQ(12, size);
+    EXPECT_EQ(8, size);
     EXPECT_EQ(bytes(
-            "\x01\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
+            "\x01\x00\x00\x00\x03\x00\x04\x00"),
             bytes(data.data(), size));
 
     /// decoding
     EXPECT_TRUE(x.decode(bytes(
-            "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")));
+            "\x00\x00\x00\x00\x00\x00\x00\x00")));
     EXPECT_FALSE(x.x);
     EXPECT_EQ(std::string(
             ""), x.print());
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x01\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00")));
+            "\x01\x00\x00\x00\x07\x00\x08\x00")));
     EXPECT_TRUE(x.x);
     EXPECT_EQ(7, x.x->x);
     EXPECT_EQ(8, x.x->y);

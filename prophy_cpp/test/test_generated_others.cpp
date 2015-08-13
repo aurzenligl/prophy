@@ -1,6 +1,6 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Others.ppf.hpp"
+#include "Others.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
@@ -119,7 +119,10 @@ TEST(generated_others, BytesFixed)
     EXPECT_EQ('f', x.x[2]);
 
     EXPECT_EQ(std::string(
-            "x: 'def'\n"), x.print());
+            "x: 100\n"
+            "x: 101\n"
+            "x: 102\n"
+            ), x.print());
 }
 
 TEST(generated_others, BytesDynamic)
@@ -152,9 +155,17 @@ TEST(generated_others, BytesDynamic)
     x.x.push_back(190);
     x.x.push_back(240);
 
-    EXPECT_EQ(4 + 19 + 2, x.print().size());
     EXPECT_EQ(std::string(
-            "x: '\\t\\n\\r\\\\Ala\\xbe\\xf0'\n"), x.print());
+        "x: 9\n"
+        "x: 10\n"
+        "x: 13\n"
+        "x: 92\n"
+        "x: 65\n"
+        "x: 108\n"
+        "x: 97\n"
+        "x: 190\n"
+        "x: 240\n"
+        ), x.print());
 }
 
 TEST(generated_others, BytesLimited)
@@ -177,7 +188,10 @@ TEST(generated_others, BytesLimited)
     EXPECT_EQ(bytes("abc"), x.x);
 
     EXPECT_EQ(std::string(
-            "x: 'abc'\n"), x.print());
+        "x: 97\n"
+        "x: 98\n"
+        "x: 99\n"
+        ), x.print());
 }
 
 TEST(generated_others, BytesGreedy)
@@ -198,5 +212,9 @@ TEST(generated_others, BytesGreedy)
     EXPECT_EQ(bytes("qasw"), x.x);
 
     EXPECT_EQ(std::string(
-            "x: 'qasw'\n"), x.print());
+            "x: 113\n"
+            "x: 97\n"
+            "x: 115\n"
+            "x: 119\n"
+            ), x.print());
 }

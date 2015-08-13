@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "util.hpp"
-#include "generated_raw/Others.pp.hpp"
+#include "Others.pp.hpp"
 
 using namespace testing;
 

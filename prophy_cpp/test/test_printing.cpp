@@ -1,7 +1,7 @@
 #include <string>
 #include <gtest/gtest.h>
 #include <prophy/detail/printer.hpp>
-#include "generated/Arrays.ppf.hpp"
+#include "Arrays.ppf.hpp"
 #include "util.hpp"
 
 namespace prophy

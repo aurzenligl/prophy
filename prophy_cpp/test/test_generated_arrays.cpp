@@ -1,6 +1,6 @@
 #include <vector>
 #include <gtest/gtest.h>
-#include "generated/Arrays.ppf.hpp"
+#include "Arrays.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
@@ -13,11 +13,11 @@ TEST(generated_arrays, Builtin)
     Builtin x{1, 2};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(8, size);
+    EXPECT_EQ(4, size);
     EXPECT_EQ(size, x.get_byte_size());
-    EXPECT_EQ(bytes("\x01\x00\x00\x00\x02\x00\x00\x00"), bytes(data.data(), size));
+    EXPECT_EQ(bytes("\x01\x00\x02\x00"), bytes(data.data(), size));
 
-    EXPECT_TRUE(x.decode(bytes("\x03\x00\x00\x00\x04\x00\x00\x00")));
+    EXPECT_TRUE(x.decode(bytes("\x03\x00\x04\x00")));
     EXPECT_EQ(3, x.x);
     EXPECT_EQ(4, x.y);
 
@@ -136,14 +136,14 @@ TEST(generated_arrays, Fixcomp)
     Fixcomp x{{1, 2}, {3, 4}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(16, size);
+    EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
+            "\x01\x00\x02\x00\x03\x00\x04\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00")));
+            "\x03\x00\x04\x00\x05\x00\x06\x00")));
     EXPECT_EQ(3, x.x.x);
     EXPECT_EQ(4, x.x.y);
     EXPECT_EQ(5, x.y.x);
@@ -167,14 +167,14 @@ TEST(generated_arrays, FixcompFixed)
     FixcompFixed x{prophy::array<Builtin, 2>{{{1, 2}, {3, 4}}}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(16, size);
+    EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
+            "\x01\x00\x02\x00\x03\x00\x04\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00")));
+            "\x03\x00\x04\x00\x05\x00\x06\x00")));
     EXPECT_EQ(3, x.x[0].x);
     EXPECT_EQ(4, x.x[0].y);
     EXPECT_EQ(5, x.x[1].x);
@@ -198,14 +198,14 @@ TEST(generated_arrays, FixcompDynamic)
     FixcompDynamic x{{Builtin{1, 2}, Builtin{3, 4}}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(20, size);
+    EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
+            "\x02\x00\x00\x00\x01\x00\x02\x00\x03\x00\x04\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x01\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00")));
+            "\x01\x00\x00\x00\x04\x00\x05\x00")));
     EXPECT_EQ(1, x.x.size());
     EXPECT_EQ(4, x.x[0].x);
     EXPECT_EQ(5, x.x[0].y);
@@ -224,14 +224,14 @@ TEST(generated_arrays, FixcompLimited)
     FixcompLimited x{{Builtin{1, 2}}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(20, size);
+    EXPECT_EQ(12, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x01\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"),
+            "\x01\x00\x00\x00\x01\x00\x02\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x01\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")));
+            "\x01\x00\x00\x00\x05\x00\x06\x00\x00\x00\x00\x00")));
     EXPECT_EQ(1, x.x.size());
     EXPECT_EQ(5, x.x[0].x);
     EXPECT_EQ(6, x.x[0].y);
@@ -250,14 +250,14 @@ TEST(generated_arrays, FixcompGreedy)
     FixcompGreedy x{{Builtin{1, 2}, Builtin{3, 4}}};
     size_t size = x.encode(data.data());
 
-    EXPECT_EQ(16, size);
+    EXPECT_EQ(8, size);
     EXPECT_EQ(size, x.get_byte_size());
     EXPECT_EQ(bytes(
-            "\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00"),
+            "\x01\x00\x02\x00\x03\x00\x04\x00"),
             bytes(data.data(), size));
 
     EXPECT_TRUE(x.decode(bytes(
-            "\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00")));
+            "\x03\x00\x04\x00\x05\x00\x06\x00")));
     EXPECT_EQ(2, x.x.size());
     EXPECT_EQ(3, x.x[0].x);
     EXPECT_EQ(4, x.x[0].y);

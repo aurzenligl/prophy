@@ -1,10 +1,10 @@
 #include <string>
 #include <gtest/gtest.h>
 #include <prophy/detail/decoder.hpp>
-#include "generated/Arrays.ppf.hpp"
-#include "generated/Dynfields.ppf.hpp"
-#include "generated/Paddings.ppf.hpp"
-#include "generated/Unions.ppf.hpp"
+#include "Arrays.ppf.hpp"
+#include "Dynfields.ppf.hpp"
+#include "Paddings.ppf.hpp"
+#include "Unions.ppf.hpp"
 #include "util.hpp"
 
 using namespace testing;
@@ -16,15 +16,15 @@ TEST(encoding, decode_struct_failures)
 {
     Builtin x;
 
-    EXPECT_FALSE(x.decode(bytes("\x01\x00\x00\x00\x02\x00\x00")));
+    EXPECT_FALSE(x.decode(bytes("\x01\x00\x02")));
     EXPECT_EQ(1, x.x);
     EXPECT_EQ(0, x.y);
 
-    EXPECT_FALSE(x.decode(bytes("\x03\x00\x00\x00\x04\x00\x00\x00\x00")));
+    EXPECT_FALSE(x.decode(bytes("\x03\x00\x04\x00\x00\x00\x00")));
     EXPECT_EQ(3, x.x);
     EXPECT_EQ(4, x.y);
 
-    EXPECT_FALSE(x.decode(bytes("\x05\x00\x00\x00")));
+    EXPECT_FALSE(x.decode(bytes("\x05\x00")));
     EXPECT_EQ(5, x.x);
     EXPECT_EQ(4, x.y);
 }
@@ -100,13 +100,13 @@ TEST(encoding, decode_fixed_fixcomp_failures)
     EXPECT_EQ(0, x.x[1].x);
     EXPECT_EQ(0, x.x[1].y);
 
-    EXPECT_FALSE(x.decode(bytes("\x02\x00\x00\x00\x03\x00\x00\x00\x04\x00\x00\x00")));
+    EXPECT_FALSE(x.decode(bytes("\x02\x00\x03\x00\x04\x00\x00")));
     EXPECT_EQ(2, x.x[0].x);
     EXPECT_EQ(3, x.x[0].y);
     EXPECT_EQ(4, x.x[1].x);
     EXPECT_EQ(0, x.x[1].y);
 
-    EXPECT_FALSE(x.decode(bytes("\x04\x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08")));
+    EXPECT_FALSE(x.decode(bytes("\x04\x00\x05\x00\x06\x00\x07\x00\xFF")));
     EXPECT_EQ(4, x.x[0].x);
     EXPECT_EQ(5, x.x[0].y);
     EXPECT_EQ(6, x.x[1].x);

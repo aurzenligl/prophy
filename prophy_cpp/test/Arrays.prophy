@@ -1,0 +1,66 @@
+struct Builtin
+{
+    u8 x;
+    u16 y;
+};
+
+struct BuiltinFixed
+{
+    u32 x[2];
+};
+
+struct BuiltinDynamic
+{
+    u32 x<>;
+};
+
+struct BuiltinLimited
+{
+    u32 x<2>;
+};
+
+struct BuiltinGreedy
+{
+    u32 x<...>;
+};
+
+struct Fixcomp
+{
+    Builtin x;
+    Builtin y;
+};
+
+struct FixcompFixed
+{
+    Builtin x[2];
+};
+
+struct FixcompDynamic
+{
+    Builtin x<>;
+};
+
+struct FixcompLimited
+{
+    Builtin x<2>;
+};
+
+struct FixcompGreedy
+{
+    Builtin x<...>;
+};
+
+struct Dyncomp
+{
+    BuiltinDynamic x;
+};
+
+struct DyncompDynamic
+{
+    BuiltinDynamic x<>;
+};
+
+struct DyncompGreedy
+{
+    BuiltinDynamic x<...>;
+};
