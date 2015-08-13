@@ -228,7 +228,6 @@ def test_struct_parsing_static_2d_array():
         ])
     ]
 
-
 def test_struct_parsing_dynamic_array_with_typed_sizer():
     xml = """\
 <x>
