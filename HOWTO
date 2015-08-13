@@ -1,0 +1,5 @@
+release
+-------------
+./bump_version.py 6.6.6
+./package_cpp_include.sh
+python setup.py sdist upload
