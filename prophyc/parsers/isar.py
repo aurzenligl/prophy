@@ -89,6 +89,8 @@ def make_struct_members(elem, dynamic_array = False):
     dimension = elem.find("dimension")
     if dimension is not None:
         size = dimension.get("size", None)
+        if "size2" in dimension.attrib:
+            size = "{}*{}".format(size, dimension.get("size2", None))
         if optional:
             members.append(model.StructMember("has_" + ename, "u32"))
         if "isVariableSize" in dimension.attrib:
