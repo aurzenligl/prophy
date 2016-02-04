@@ -5,7 +5,7 @@
 #include <prophy/endianness.hpp>
 #include <prophy/optional.hpp>
 #include <prophy/detail/codec_traits.hpp>
-#include <prophy/detail/message_impl.hpp>
+#include <prophy/detail/message.hpp>
 #include <prophy/detail/align.hpp>
 
 namespace prophy

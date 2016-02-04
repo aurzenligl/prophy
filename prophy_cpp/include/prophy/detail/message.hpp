@@ -7,12 +7,23 @@
 #include <vector>
 #include <sstream>
 #include <prophy/endianness.hpp>
-#include <prophy/detail/message_impl.hpp>
 
 namespace prophy
 {
 namespace detail
 {
+
+template <typename T>
+struct message_impl
+{
+    template <endianness E>
+    static uint8_t* encode(const T& x, uint8_t* pos);
+
+    template <endianness E>
+    static bool decode(T& x, const uint8_t*& pos, const uint8_t* end);
+
+    static void print(const T& x, std::ostream& out, size_t indent);
+};
 
 template <class T>
 struct message
@@ -72,6 +83,94 @@ struct message
     {
         std::stringstream ss;
         message_impl<T>::print(*static_cast<const T*>(this), ss, 0);
+        return ss.str();
+    }
+};
+
+/////////////////////////
+
+struct field;
+
+struct descriptor
+{
+    field* fields;
+};
+
+template <endianness E>
+uint8_t* encode(const uint8_t* obj, uint8_t* pos, const descriptor& dsc);
+
+template <endianness E>
+uint8_t* decode(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc);
+
+void print(const uint8_t* obj, std::ostream& out, size_t indent, const descriptor& dsc);
+
+inline uint8_t* to8(void* x)
+{
+    return static_cast<uint8_t*>(x);
+}
+
+inline const uint8_t* to8(const void* x)
+{
+    return static_cast<const uint8_t*>(x);
+}
+
+template <class T>
+struct message_dsc
+{
+    static descriptor dsc;
+
+    template <endianness E>
+    size_t encode(void* data) const
+    {
+        return detail::encode<E>(to8(this), to8(data), T::dsc) - to8(data);
+    }
+
+    size_t encode(void* data) const
+    {
+        return encode<native>(data);
+    }
+
+    template <endianness E>
+    std::vector<uint8_t> encode() const
+    {
+        std::vector<uint8_t> data(static_cast<const T*>(this)->get_byte_size());
+        detail::encode<E>(to8(this), data.data(), T::dsc);
+        return data;
+    }
+
+    std::vector<uint8_t> encode() const
+    {
+        return encode<native>();
+    }
+
+    template <endianness E>
+    bool decode(const void* data, size_t size)
+    {
+        const uint8_t* pos = to8(data);
+        bool success = detail::decode<E>(to8(this), pos, pos + size, T::dsc);
+        return success && ((pos - to8(data)) == size);
+    }
+
+    bool decode(const void* data, size_t size)
+    {
+        return decode<native>(data, size);
+    }
+
+    template <endianness E>
+    bool decode(const std::vector<uint8_t>& data)
+    {
+        return decode<E>(data.data(), data.size());
+    }
+
+    bool decode(const std::vector<uint8_t>& data)
+    {
+        return decode<native>(data);
+    }
+
+    std::string print() const
+    {
+        std::stringstream ss;
+        detail::print(to8(this), ss, 0, T::dsc);
         return ss.str();
     }
 };

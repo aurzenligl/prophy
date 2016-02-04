@@ -2,7 +2,7 @@
 #define _PROPHY_DETAIL_PRINTER_HPP_
 
 #include <prophy/detail/codec_traits.hpp>
-#include <prophy/detail/message_impl.hpp>
+#include <prophy/detail/message.hpp>
 
 namespace prophy
 {
