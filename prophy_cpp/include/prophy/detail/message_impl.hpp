@@ -5,6 +5,7 @@
 #include <string>
 #include <iosfwd>
 #include <prophy/endianness.hpp>
+#include <prophy/detail/message.hpp>
 
 namespace prophy
 {
@@ -61,12 +62,7 @@ namespace detail
 //        case u64: ;
 //        case r32: ;
 //        case r64: pos = do_encode(pos, reinterpret_cast<const r64*>(elem), sz);
-//        case udt:
-//            while (sz)
-//            {
-//                pos = encode(elem, pos, *fdsc.dsc);
-//                --sz;
-//            }
+//        case udt: while (sz--) { pos = encode(elem, pos, *fdsc.dsc); }
 //    }
 //}
 //
@@ -88,7 +84,7 @@ namespace detail
 //}
 
 template <endianness E>
-inline uint8_t* encode(const uint8_t* obj, uint8_t* pos, const descriptor& dsc)
+uint8_t* encode(const uint8_t* obj, uint8_t* pos, const descriptor& dsc)
 {
 //    for (auto fdsc : dsc.fields)
 //    {
@@ -105,13 +101,22 @@ inline uint8_t* encode(const uint8_t* obj, uint8_t* pos, const descriptor& dsc)
 }
 
 template <endianness E>
-inline uint8_t* decode(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc)
+bool decode(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc)
 {
-    return pos;
+    return true;
 }
 
-inline void print(const uint8_t* obj, std::ostream& out, size_t indent, const descriptor& dsc)
+template <typename T>
+void print(const uint8_t* obj, std::ostream& out, size_t indent, const descriptor& dsc)
 { }
+
+template uint8_t* encode<native>(const uint8_t* obj, uint8_t* pos, const descriptor& dsc);
+template uint8_t* encode<little>(const uint8_t* obj, uint8_t* pos, const descriptor& dsc);
+template uint8_t* encode<big>(const uint8_t* obj, uint8_t* pos, const descriptor& dsc);
+template bool decode<native>(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc);
+template bool decode<little>(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc);
+template bool decode<big>(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc);
+template void print<void>(const uint8_t* obj, std::ostream& out, size_t indent, const descriptor& dsc);
 
 } // namespace detail
 } // namespace prophy

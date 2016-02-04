@@ -100,8 +100,9 @@ template <endianness E>
 uint8_t* encode(const uint8_t* obj, uint8_t* pos, const descriptor& dsc);
 
 template <endianness E>
-uint8_t* decode(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc);
+bool decode(uint8_t* obj, const uint8_t*& pos, const uint8_t* end, const descriptor& dsc);
 
+template <typename T = void>
 void print(const uint8_t* obj, std::ostream& out, size_t indent, const descriptor& dsc);
 
 inline uint8_t* to8(void* x)
@@ -148,7 +149,8 @@ struct message_dsc
     {
         const uint8_t* pos = to8(data);
         bool success = detail::decode<E>(to8(this), pos, pos + size, T::dsc);
-        return success && ((pos - to8(data)) == size);
+        size_t bytes_read = pos - to8(data);
+        return success && (bytes_read == size);
     }
 
     bool decode(const void* data, size_t size)
@@ -170,7 +172,7 @@ struct message_dsc
     std::string print() const
     {
         std::stringstream ss;
-        detail::print(to8(this), ss, 0, T::dsc);
+        detail::print<>(to8(this), ss, 0, T::dsc);
         return ss.str();
     }
 };
