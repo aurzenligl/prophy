@@ -102,8 +102,7 @@ def add_composite(cls, name, tp):
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
-    index, field = next(ifilter(lambda x: x[1][0] is container_tp._BOUND, enumerate(descriptor)))
-    name, tp = field
+    index, (name, tp) = next(ifilter(lambda (i, (name_, _)): name_ is container_tp._BOUND, enumerate(descriptor)))
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
@@ -111,26 +110,28 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
     if not issubclass(tp, (int, long)):
         raise ProphyError("array must be bound to an unsigned integer")
 
-    class container_len(tp):
-        _BOUND = container_name
+    if tp.__name__ == "container_len":
+        tp._BOUND.append(container_name)
+    else:
+        class container_len(tp):
+            _BOUND = [container_name]
+            @staticmethod
+            def _encode(value, endianness):
+                return tp._encode(value + bound_shift, endianness)
 
-        @staticmethod
-        def _encode(value, endianness):
-            return tp._encode(value + bound_shift, endianness)
+            @staticmethod
+            def _decode(data, pos, endianness):
+                value, size = tp._decode(data, pos, endianness)
+                array_guard = 65536
+                if value > array_guard:
+                    raise ProphyError("decoded array length over %s" % array_guard)
+                value -= bound_shift
+                if value < 0:
+                    raise ProphyError("decoded array length smaller than shift")
+                return value, size
 
-        @staticmethod
-        def _decode(data, pos, endianness):
-            value, size = tp._decode(data, pos, endianness)
-            array_guard = 65536
-            if value > array_guard:
-                raise ProphyError("decoded array length over %s" % array_guard)
-            value -= bound_shift
-            if value < 0:
-                raise ProphyError("decoded array length smaller than shift")
-            return value, size
-
-    descriptor[index] = (name, container_len)
-    delattr(cls, name)
+        descriptor[index] = (name, container_len)
+        delattr(cls, name)
 
 def extend_descriptor(cls, descriptor):
     for i, (name, type) in enumerate(descriptor):
@@ -159,7 +160,8 @@ def encode_optional(parent, type, value, endianness):
                 + type._encode(parent, type.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type, value, endianness):
-    return type._encode(len(getattr(parent, type._BOUND)), endianness)
+    array_name = type._BOUND[0]
+    return type._encode(len(getattr(parent, array_name)), endianness)
 
 def encode_array(parent, type, value, endianness):
     return value._encode_impl(endianness)
@@ -199,7 +201,8 @@ def decode_optional(parent, name, type, data, pos, endianness, len_hints):
 
 def decode_array_delimiter(parent, name, type, data, pos, endianness, len_hints):
     value, size = type._decode(data, pos, endianness)
-    len_hints[type._BOUND] = value
+    for array_name in type._BOUND:
+        len_hints[array_name] = value
     return size
 
 def decode_array(parent, name, type, data, pos, endianness, len_hints):

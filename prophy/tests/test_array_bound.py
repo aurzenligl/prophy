@@ -81,7 +81,7 @@ def test_bound_scalar_array_exceptions():
             _descriptor = [("a", prophy.array(prophy.i32, bound = "after")),
                            ("after", prophy.i32)]
     with pytest.raises(Exception):
-        class LengthFieldIsNotAnInteger(propth.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        class LengthFieldIsNotAnInteger(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("not_an_int", "not_an_int"),
                            ("a", prophy.array(prophy.i32, bound = "not_an_int"))]
 
