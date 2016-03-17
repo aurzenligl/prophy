@@ -174,11 +174,15 @@ def encode_array_delimiter(parent, type, value, endianness):
 
 def encode_array(parent, type, value, endianness):
     result = value._encode_impl(endianness)
-    _, sizer_type, _, _ = get_desc_entry(parent, type._BOUND)
-    fill_data = encode_fill_array(type,
-                                  sizer_type._value - len(value),
-                                  endianness) if type._BOUND \
-                else ''
+
+    if type._DYNAMIC and not type._UNLIMITED:
+        _, sizer_type, _, _ = get_desc_entry(parent, type._BOUND)
+        fill_data = encode_fill_array(type,
+                                      sizer_type._value - len(value),
+                                      endianness)
+    else:
+        fill_data = ''
+
     return result + fill_data
 
 def get_desc_entry(parent, name):
@@ -186,7 +190,7 @@ def get_desc_entry(parent, name):
 
 def encode_fill_array(type, length, endianness):
     fill_array = type()
-    fill_array.extend((fill_array._TYPE() for _ in xrange(length)))
+    fill_array.extend([fill_array._TYPE() for _ in xrange(length)])
     return fill_array._encode_impl(endianness)
 
 def encode_composite(parent, type, value, endianness):
@@ -263,7 +267,7 @@ def field_to_string(name, type, value, parent=None):
 def array_field_to_string(name, type, value, parent):
     result = "".join(field_to_string(name, type._TYPE, elem) for elem in value)
 
-    filler = array_fill_string(name, type, value, parent) if type._BOUND \
+    filler = array_fill_string(name, type, value, parent) if type._DYNAMIC and not type._UNLIMITED \
              else ''
 
     return result + filler
