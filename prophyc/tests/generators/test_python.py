@@ -79,6 +79,21 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
     assert ref == serialize(nodes)
 
+def test_struct_rendering_with_dynamic_arrays_bounded_by_the_same_member():
+    nodes = [model.Struct("Struct", [model.StructMember("numOfElements", "TNumberOfItems"),
+                                     model.StructMember("tmpName", "u32"),
+                                     model.StructMember("a", "u8", bound = "numOfElements"),
+                                     model.StructMember("b", "r32", bound = "numOfElements")])]
+
+    ref = """\
+class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+    _descriptor = [('numOfElements', TNumberOfItems),
+                   ('tmpName', prophy.u32),
+                   ('a', prophy.array(prophy.u8, bound = 'numOfElements')),
+                   ('b', prophy.array(prophy.r32, bound = 'numOfElements'))]
+"""
+    assert ref == serialize(nodes)
+
 def test_struct_rendering_with_static_array():
     nodes = [model.Struct("Struct", [model.StructMember("a", "u8", size = "NUM_OF_ARRAY_ELEMS")])]
 

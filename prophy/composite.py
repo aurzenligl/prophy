@@ -111,12 +111,20 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
         raise ProphyError("array must be bound to an unsigned integer")
 
     if tp.__name__ == "container_len":
-        tp._BOUND.append(container_name)
+        tp._BOUND.add(container_name)
     else:
         class container_len(tp):
-            _BOUND = [container_name]
+            _BOUND = {container_name}
+            _value = None
+
+            @staticmethod
+            def _re_evaluate(parent):
+                container_len._value = max(map(len, (getattr(parent, array_name) for array_name in container_len._BOUND)))
+                return container_len._value
+
             @staticmethod
             def _encode(value, endianness):
+                container_len._value = value
                 return tp._encode(value + bound_shift, endianness)
 
             @staticmethod
@@ -128,6 +136,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
                 value -= bound_shift
                 if value < 0:
                     raise ProphyError("decoded array length smaller than shift")
+                container_len._value = value
                 return value, size
 
         descriptor[index] = (name, container_len)
@@ -160,11 +169,24 @@ def encode_optional(parent, type, value, endianness):
                 + type._encode(parent, type.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type, value, endianness):
-    array_name = type._BOUND[0]
-    return type._encode(len(getattr(parent, array_name)), endianness)
+    return type._encode(type._re_evaluate(parent), endianness)
 
 def encode_array(parent, type, value, endianness):
-    return value._encode_impl(endianness)
+    result = value._encode_impl(endianness)
+    _, sizer_type, _, _ = get_desc_entry(parent, type._BOUND)
+    fill_data = encode_fill_array(type,
+                                  sizer_type._value - len(value),
+                                  endianness) if type._BOUND \
+                else ''
+    return result + fill_data
+
+def get_desc_entry(parent, name):
+    return next(ifilter(lambda (n, _, __, ___): n == name, parent._descriptor))
+
+def encode_fill_array(type, length, endianness):
+    fill_array = type()
+    fill_array.extend((fill_array._TYPE() for _ in xrange(length)))
+    return fill_array._encode_impl(endianness)
 
 def encode_composite(parent, type, value, endianness):
     return value.encode(endianness, terminal = False)
@@ -224,9 +246,9 @@ def decode_scalar(parent, name, type, data, pos, endianness, len_hints):
 def indent(text, spaces):
     return '\n'.join(x and spaces * ' ' + x or '' for x in text.split('\n'))
 
-def field_to_string(name, type, value):
+def field_to_string(name, type, value, parent=None):
     if issubclass(type, base_array):
-        return "".join(field_to_string(name, type._TYPE, elem) for elem in value)
+        return array_field_to_string(name, type, value, parent)
     elif issubclass(type, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
     elif issubclass(type, bytes):
@@ -235,6 +257,19 @@ def field_to_string(name, type, value):
         return "%s: %s\n" % (name, type._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
+
+def array_field_to_string(name, type, value, parent):
+    result = "".join(field_to_string(name, type._TYPE, elem) for elem in value)
+
+    filler = array_fill_string(name, type, value, parent) if type._BOUND \
+             else ''
+
+    return result + filler
+
+def array_fill_string(name, type, value, parent):
+    _, sizer_type, _, _ = get_desc_entry(parent, type._BOUND)
+    sizer = sizer_type._re_evaluate(parent)
+    return "".join(field_to_string(name, type._TYPE, type._TYPE()) for _ in xrange(sizer - len(value)))
 
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):
@@ -268,7 +303,7 @@ class struct(object):
         for name, tp, _, _ in self._descriptor:
             value = getattr(self, name, None)
             if value is not None:
-                out += field_to_string(name, tp, value)
+                out += field_to_string(name, tp, value, parent=self)
         return out
 
     @staticmethod
