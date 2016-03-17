@@ -3,6 +3,7 @@ from .six import ifilter, long, b
 from . import scalar
 from .exception import ProphyError
 from .base_array import base_array
+from _functools import partial
 
 def validate(descriptor):
     if any(type._UNLIMITED for _, type in descriptor[:-1]):
@@ -249,6 +250,7 @@ def indent(text, spaces):
 def field_to_string(name, type, value, parent=None):
     if issubclass(type, base_array):
         return array_field_to_string(name, type, value, parent)
+
     elif issubclass(type, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
     elif issubclass(type, bytes):
