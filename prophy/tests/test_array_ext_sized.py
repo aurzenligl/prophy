@@ -114,17 +114,25 @@ def test_ext_sized_scalar_array_decoding(ExtSizedArr):
                       "c: 5\n"
                       "c: 6\n")
 
-def test_ext_sized_scalar_array_distant_sizer(ExtSizedArr):
+def test_ext_sized_scalar_array_distant_sizer():
     class ExtSizedArrDist(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("sz", prophy.u8),
                        ("something", prophy.u32),
                        ("a", prophy.array(prophy.u8, bound = "sz")),
-                       ("b", prophy.array(prophy.u8, bound = "sz")),
-                       ("c", prophy.array(prophy.u16, bound = "sz"))]
-        
-    test_ext_sized_scalar_array_decoding(ExtSizedArrDist)
-    test_ext_sized_scalar_array_encoding(ExtSizedArrDist)
-    
+                       ("b", prophy.array(prophy.u8, bound = "sz"))]
+
+    x = ExtSizedArrDist()
+    x.decode(b"\x02\x00\x00\x00\xff\x01\x02\x03\x04", ">")
+
+    assert x.something == 255
+    assert x.a[:] == [1, 2]
+    assert x.b[:] == [3, 4]
+    assert str(x) == ("something: 255\n"
+                      "a: 1\n"
+                      "a: 2\n"
+                      "b: 3\n"
+                      "b: 4\n")
+
 def test_ext_sized_scalar_array_decoding_exceptions(ExtSizedArr):
     x = ExtSizedArr()
     with pytest.raises(prophy.ProphyError) as e:
