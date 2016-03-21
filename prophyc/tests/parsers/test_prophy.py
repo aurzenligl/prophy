@@ -148,6 +148,28 @@ struct test
         ])
     ]
 
+def test_structs_with_dynamic_arrays_bounded_by_the_same_member_parsing():
+    content = """\
+typedef u32 x_t;
+struct test
+{
+    u32 num_of_elements;
+    u16 dummy;
+    x_t x<@num_of_elements>;
+    bytes y<@num_of_elements>;
+};
+"""
+
+    assert parse(content) == [
+        model.Typedef('x_t', 'u32'),
+        model.Struct('test', [
+            model.StructMember('num_of_elements', 'u32'),
+            model.StructMember('dummy', 'u16'),
+            model.StructMember('x', 'x_t', bound = 'num_of_elements'),
+            model.StructMember('y', 'byte', bound = 'num_of_elements')
+        ])
+    ]
+
 def test_structs_with_limited_array_parsing():
     content = """\
 enum sizes
