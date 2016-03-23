@@ -93,11 +93,20 @@ def make_struct_members(elem, dynamic_array = False):
             size = "{}*{}".format(size, dimension.get("size2", None))
         if optional:
             members.append(model.StructMember("has_" + ename, "u32"))
-        if "isVariableSize" in dimension.attrib:
-            type = dimension.get("variableSizeFieldType", "u32")
-            name = dimension.get("variableSizeFieldName", ename + "_len")
-            members.append(model.StructMember(name, type))
-            members.append(model.StructMember(ename, etype, bound = name, size = None if dynamic_array else size))
+
+        sizer_name = dimension.get("variableSizeFieldName", None)
+        if sizer_name and "@" in sizer_name[0]:
+            members.append(model.StructMember(ename, etype, bound = sizer_name[1:]))
+
+        elif size and "THIS_IS_VARIABLE_SIZE_ARRAY" in size:
+            sizer_name = "numOf" + ename[0].upper() + ename[1:]
+            members.append(model.StructMember(ename, etype, bound = sizer_name))
+
+        elif "isVariableSize" in dimension.attrib:
+            type_ = dimension.get("variableSizeFieldType", "u32")
+            sizer_name = dimension.get("variableSizeFieldName", ename + "_len")
+            members.append(model.StructMember(sizer_name, type_))
+            members.append(model.StructMember(ename, etype, bound = sizer_name, size = None if dynamic_array else size))
         else:
             members.append(model.StructMember(ename, etype, size = size))
     else:

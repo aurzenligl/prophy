@@ -68,3 +68,18 @@ struct DynfieldsComp
     BuiltinDynamic y;
     BuiltinDynamic z;
 };
+
+struct ExSz
+{
+    u8 a;
+    u16 b<@a>;
+    u16 c<@a>;
+};
+
+struct DynFieldsExtSized
+{
+    u32 sz;
+    ExSz x<@sz>;
+    ExSz y<@sz>;
+};
+

@@ -24,6 +24,21 @@ struct BuiltinGreedy
     u32 x<...>;
 };
 
+struct BuiltinExtSizedA
+{
+    u8 a;
+    u16 one<@a>;
+    u64 two<@a>;
+};
+
+struct BuiltinExtSizedB
+{
+    u32 a;
+    u8 one<@a>;
+    u16 two<@a>;
+    u32 three<@a>;
+};
+
 struct Fixcomp
 {
     Builtin x;
