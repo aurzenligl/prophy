@@ -306,6 +306,44 @@ def test_isar_struct_parsing_ext_sized_array():
             model.StructMember("nativeIsarDefined", "u32", bound = "numOfNativeIsarDefined")
         ])
     ]
+    
+def test_isar_message_parsing_with_ext_sized_arrays():
+    xml = """\
+<x>
+    <component name="ULPHY_MAC">
+        <definitions>
+             <typedef comment="some comment" name="DefA" type="u16"/>
+             <typedef comment="some comment" name="DefB" type="i32"/>
+        </definitions>
+        <message name="StructX">
+            <member name="a" type="u8"/>
+            <member name="numOfZzz" type="u16"/>
+            <member name="prophy_styled_x" type="u16">
+                <dimension isVariableSize="true" variableSizeFieldName="@a"/>
+            </member>
+            <member name="prophy_styled_y" type="DefA">
+                <dimension isVariableSize="true" variableSizeFieldName="@a"/>
+            </member>
+            <member name="nativeIsarDefined" type="DefA">
+                <dimension size="THIS_IS_VARIABLE_SIZE_ARRAY"/>
+            </member>
+            <member name="dummy" type="DefB"/>
+        </message>
+    </component>
+</x>
+"""
+    assert parse(xml) == [
+        model.Typedef("DefA", "u16"),
+        model.Typedef("DefB", "i32"),
+        model.Struct("StructX", [
+            model.StructMember("a", "u8"),
+            model.StructMember("numOfZzz", "u16"),
+            model.StructMember("prophy_styled_x", "u16", bound = "a"),
+            model.StructMember("prophy_styled_y", "DefA", bound = "a"),
+            model.StructMember("nativeIsarDefined", "DefA", bound = "numOfNativeIsarDefined"),
+            model.StructMember("dummy", "DefB")
+        ])
+    ]
 
 def test_struct_parsing_limited_array():
     xml = """\
