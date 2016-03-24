@@ -1,0 +1,29 @@
+struct ExtSizedArrayA
+{
+    u8 a;
+    u16 one<@a>;
+    u64 two<@a>;
+};
+
+struct BuiltinExtSizedB
+{
+    u32 a;
+    u32 anything;
+    u8 one<@a>;
+    u16 two<@a>;
+    u32 three<@a>;
+};
+
+struct ExSz
+{
+    u8 a;
+    u16 b<@a>;
+    u16 c<@a>;
+};
+
+struct DynFieldsExtSized
+{
+    u32 sz;
+    ExSz x<@sz>;
+    ExSz y<@sz>;
+};
