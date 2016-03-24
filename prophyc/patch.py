@@ -39,7 +39,7 @@ def _type(node, patch):
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
     mem = node.members[i]
-    mem.type = tp
+    mem.type_ = tp
 
 def _insert(node, patch):
     if not isinstance(node, model.Struct):

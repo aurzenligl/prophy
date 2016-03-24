@@ -14,9 +14,9 @@ def _generate_constant(constant):
 
 def _generate_typedef(typedef):
     return "%s = %s" % (typedef.name,
-        ".".join((libname, typedef.type))
-        if typedef.type in primitive_types
-        else typedef.type)
+        ".".join((libname, typedef.type_))
+        if typedef.type_ in primitive_types
+        else typedef.type_)
 
 def _generate_enum_members(members):
     return (",\n" + " " * 21).join(("('%s', %s)" % (member.name, member.value) for member in members))
@@ -34,7 +34,7 @@ def _generate_enum(enum):
                           _generate_enum_constants(enum.members))
 
 def _generate_struct_member(member):
-    prefixed_type = primitive_types.get(member.type, member.type)
+    prefixed_type = primitive_types.get(member.type_, member.type_)
     if member.optional:
         prefixed_type = "%s.optional(%s)" % (libname, prefixed_type)
     if member.array:
@@ -43,7 +43,7 @@ def _generate_struct_member(member):
             elem_strs.append("bound = '%s'" % member.bound)
         if member.size:
             elem_strs.append("size = %s" % member.size)
-        if member.type == 'byte':
+        if member.type_ == 'byte':
             prefixed_type = '%s.bytes(%s)' % (libname, ', '.join(elem_strs))
         else:
             prefixed_type = '%s.array(%s)' % (libname, ', '.join([prefixed_type] + elem_strs))
@@ -59,7 +59,7 @@ def _generate_struct(struct):
                                               _generate_struct_members(struct.members))
 
 def _generate_union_member(member):
-    prefixed_type = ".".join((libname, member.type)) if member.type in primitive_types else member.type
+    prefixed_type = ".".join((libname, member.type_)) if member.type_ in primitive_types else member.type_
     return "('%s', %s, %s)" % (member.name, prefixed_type, member.discriminator)
 
 def _generate_union_members(members):

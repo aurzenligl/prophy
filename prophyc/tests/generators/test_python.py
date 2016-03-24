@@ -154,7 +154,7 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
 """
     assert ref == serialize(nodes)
 
-def test_union_rendering():
+def test_union_rendering_2():
     nodes = [model.Union("U", [model.UnionMember("a", "i8", "0"),
                                model.UnionMember("b", "u32", "1"),
                                model.UnionMember("c", "r64", "2")])]

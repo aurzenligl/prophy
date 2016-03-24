@@ -6,16 +6,16 @@ from .base_array import base_array
 from _functools import partial
 
 def validate(descriptor):
-    if any(type._UNLIMITED for _, type in descriptor[:-1]):
+    if any(type_._UNLIMITED for _, type_ in descriptor[:-1]):
         raise ProphyError("unlimited field is not the last one")
 
 def add_attributes(cls, descriptor):
-    cls._SIZE = sum((type._OPTIONAL and type._OPTIONAL_SIZE or type._SIZE) for _, type in descriptor)
-    cls._DYNAMIC = any(type._DYNAMIC for _, type in descriptor)
-    cls._UNLIMITED = any(type._UNLIMITED for _, type in descriptor)
+    cls._SIZE = sum((type_._OPTIONAL and type_._OPTIONAL_SIZE or type_._SIZE) for _, type_ in descriptor)
+    cls._DYNAMIC = any(type_._DYNAMIC for _, type_ in descriptor)
+    cls._UNLIMITED = any(type_._UNLIMITED for _, type_ in descriptor)
     cls._OPTIONAL = False
     cls._BOUND = None
-    cls._ALIGNMENT = max((type._OPTIONAL and type._OPTIONAL_ALIGNMENT or type._ALIGNMENT) for _, type in descriptor) if descriptor else 1
+    cls._ALIGNMENT = max((type_._OPTIONAL and type_._OPTIONAL_ALIGNMENT or type_._ALIGNMENT) for _, type_ in descriptor) if descriptor else 1
     cls._PARTIAL_ALIGNMENT = None
 
     alignment = 1
@@ -144,40 +144,40 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
         delattr(cls, name)
 
 def extend_descriptor(cls, descriptor):
-    for i, (name, type) in enumerate(descriptor):
-        descriptor[i] = (name, type, get_encode_function(type), get_decode_function(type))
+    for i, (name, type_) in enumerate(descriptor):
+        descriptor[i] = (name, type_, get_encode_function(type_), get_decode_function(type_))
 
-def get_encode_function(type):
-    if type._OPTIONAL:
-        type._encode = staticmethod(get_encode_function(type.__bases__[0]))
+def get_encode_function(type_):
+    if type_._OPTIONAL:
+        type_._encode = staticmethod(get_encode_function(type_.__bases__[0]))
         return encode_optional
-    elif type._BOUND and issubclass(type, (int, long)):
+    elif type_._BOUND and issubclass(type_, (int, long)):
         return encode_array_delimiter
-    elif issubclass(type, base_array):
+    elif issubclass(type_, base_array):
         return encode_array
-    elif issubclass(type, (struct, union)):
+    elif issubclass(type_, (struct, union)):
         return encode_composite
-    elif issubclass(type, bytes):
+    elif issubclass(type_, bytes):
         return encode_bytes
     else:
         return encode_scalar
 
-def encode_optional(parent, type, value, endianness):
+def encode_optional(parent, type_, value, endianness):
     if value is None:
-        return b"\x00" * type._OPTIONAL_SIZE
+        return b"\x00" * type_._OPTIONAL_SIZE
     else:
-        return (type._optional_type._encode(True, endianness).ljust(type._OPTIONAL_ALIGNMENT, b'\x00')
-                + type._encode(parent, type.__bases__[0], value, endianness))
+        return (type_._optional_type._encode(True, endianness).ljust(type_._OPTIONAL_ALIGNMENT, b'\x00')
+                + type_._encode(parent, type_.__bases__[0], value, endianness))
 
-def encode_array_delimiter(parent, type, value, endianness):
-    return type._encode(type._re_evaluate(parent), endianness)
+def encode_array_delimiter(parent, type_, value, endianness):
+    return type_._encode(type_._re_evaluate(parent), endianness)
 
-def encode_array(parent, type, value, endianness):
+def encode_array(parent, type_, value, endianness):
     result = value._encode_impl(endianness)
 
-    if type._DYNAMIC and not type._UNLIMITED:
-        _, sizer_type, _, _ = get_desc_entry(parent, type._BOUND)
-        fill_data = encode_fill_array(type,
+    if type_._DYNAMIC and not type_._UNLIMITED:
+        _, sizer_type, _, _ = get_desc_entry(parent, type_._BOUND)
+        fill_data = encode_fill_array(type_,
                                       sizer_type._value - len(value),
                                       endianness)
     else:
@@ -188,94 +188,94 @@ def encode_array(parent, type, value, endianness):
 def get_desc_entry(parent, name):
     return next(ifilter(lambda (n, _, __, ___): n == name, parent._descriptor))
 
-def encode_fill_array(type, length, endianness):
-    fill_array = type()
+def encode_fill_array(type_, length, endianness):
+    fill_array = type_()
     fill_array.extend([fill_array._TYPE() for _ in xrange(length)])
     return fill_array._encode_impl(endianness)
 
-def encode_composite(parent, type, value, endianness):
+def encode_composite(parent, type_, value, endianness):
     return value.encode(endianness, terminal = False)
 
-def encode_bytes(parent, type, value, endianness):
-    return type._encode(value)
+def encode_bytes(parent, type_, value, endianness):
+    return type_._encode(value)
 
-def encode_scalar(parent, type, value, endianness):
-    return type._encode(value, endianness)
+def encode_scalar(parent, type_, value, endianness):
+    return type_._encode(value, endianness)
 
-def get_decode_function(type):
-    if type._OPTIONAL:
-        type._decode = staticmethod(get_decode_function(type.__bases__[0]))
+def get_decode_function(type_):
+    if type_._OPTIONAL:
+        type_._decode = staticmethod(get_decode_function(type_.__bases__[0]))
         return decode_optional
-    elif type._BOUND and issubclass(type, (int, long)):
+    elif type_._BOUND and issubclass(type_, (int, long)):
         return decode_array_delimiter
-    elif issubclass(type, base_array):
+    elif issubclass(type_, base_array):
         return decode_array
-    elif issubclass(type, (struct, union)):
+    elif issubclass(type_, (struct, union)):
         return decode_composite
-    elif issubclass(type, bytes):
+    elif issubclass(type_, bytes):
         return decode_bytes
     else:
         return decode_scalar
 
-def decode_optional(parent, name, type, data, pos, endianness, len_hints):
-    value, _ = type._optional_type._decode(data, pos, endianness)
+def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
+    value, _ = type_._optional_type._decode(data, pos, endianness)
     if value:
         setattr(parent, name, True)
-        return type._OPTIONAL_ALIGNMENT + type._decode(parent, name, type.__bases__[0], data, pos + type._OPTIONAL_ALIGNMENT, endianness, len_hints)
+        return type_._OPTIONAL_ALIGNMENT + type_._decode(parent, name, type_.__bases__[0], data, pos + type_._OPTIONAL_ALIGNMENT, endianness, len_hints)
     else:
         setattr(parent, name, None)
-        return type._OPTIONAL_ALIGNMENT + type._SIZE
+        return type_._OPTIONAL_ALIGNMENT + type_._SIZE
 
-def decode_array_delimiter(parent, name, type, data, pos, endianness, len_hints):
-    value, size = type._decode(data, pos, endianness)
-    for array_name in type._BOUND:
+def decode_array_delimiter(parent, name, type_, data, pos, endianness, len_hints):
+    value, size = type_._decode(data, pos, endianness)
+    for array_name in type_._BOUND:
         len_hints[array_name] = value
     return size
 
-def decode_array(parent, name, type, data, pos, endianness, len_hints):
+def decode_array(parent, name, type_, data, pos, endianness, len_hints):
     return getattr(parent, name)._decode_impl(data, pos, endianness, len_hints.get(name))
 
-def decode_composite(parent, name, type, data, pos, endianness, len_hints):
+def decode_composite(parent, name, type_, data, pos, endianness, len_hints):
     return getattr(parent, name)._decode_impl(data, pos, endianness, terminal = False)
 
-def decode_bytes(parent, name, type, data, pos, endianness, len_hints):
-    value, size = type._decode(data, pos, len_hints.get(name))
+def decode_bytes(parent, name, type_, data, pos, endianness, len_hints):
+    value, size = type_._decode(data, pos, len_hints.get(name))
     setattr(parent, name, value)
     return size
 
-def decode_scalar(parent, name, type, data, pos, endianness, len_hints):
-    value, size = type._decode(data, pos, endianness)
+def decode_scalar(parent, name, type_, data, pos, endianness, len_hints):
+    value, size = type_._decode(data, pos, endianness)
     setattr(parent, name, value)
     return size
 
 def indent(text, spaces):
     return '\n'.join(x and spaces * ' ' + x or '' for x in text.split('\n'))
 
-def field_to_string(name, type, value, parent=None):
-    if issubclass(type, base_array):
-        return array_field_to_string(name, type, value, parent)
+def field_to_string(name, type_, value, parent=None):
+    if issubclass(type_, base_array):
+        return array_field_to_string(name, type_, value, parent)
 
-    elif issubclass(type, (struct, union)):
+    elif issubclass(type_, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
-    elif issubclass(type, bytes):
+    elif issubclass(type_, bytes):
         return "%s: %s\n" % (name, repr(b(value)))
-    elif issubclass(type, scalar.enum):
-        return "%s: %s\n" % (name, type._int_to_name[value])
+    elif issubclass(type_, scalar.enum):
+        return "%s: %s\n" % (name, type_._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
 
-def array_field_to_string(name, type, value, parent):
-    result = "".join(field_to_string(name, type._TYPE, elem) for elem in value)
+def array_field_to_string(name, type_, value, parent):
+    result = "".join(field_to_string(name, type_._TYPE, elem) for elem in value)
 
-    filler = array_fill_string(name, type, value, parent) if type._DYNAMIC and not type._UNLIMITED \
+    filler = array_fill_string(name, type_, value, parent) if type_._DYNAMIC and not type_._UNLIMITED \
              else ''
 
     return result + filler
 
-def array_fill_string(name, type, value, parent):
-    _, sizer_type, _, _ = get_desc_entry(parent, type._BOUND)
+def array_fill_string(name, type_, value, parent):
+    _, sizer_type, _, _ = get_desc_entry(parent, type_._BOUND)
     sizer = sizer_type._re_evaluate(parent)
-    return "".join(field_to_string(name, type._TYPE, type._TYPE()) for _ in xrange(sizer - len(value)))
+    return "".join(field_to_string(name, type_._TYPE, type_._TYPE()) for _ in xrange(sizer - len(value)))
 
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):
@@ -393,13 +393,13 @@ class struct_generator(type):
         super(struct_generator, cls).__init__(name, bases, attrs)
 
 def validate_union(descriptor):
-    if any(type._DYNAMIC for _, type, _ in descriptor):
+    if any(type_._DYNAMIC for _, type_, _ in descriptor):
         raise ProphyError("dynamic types not allowed in union")
-    if any(type._BOUND for _, type, _ in descriptor):
+    if any(type_._BOUND for _, type_, _ in descriptor):
         raise ProphyError("bound array/bytes not allowed in union")
-    if any(issubclass(type, base_array) for _, type, _ in descriptor):
+    if any(issubclass(type_, base_array) for _, type_, _ in descriptor):
         raise ProphyError("static array not implemented in union")
-    if any(type._OPTIONAL for _, type, _ in descriptor):
+    if any(type_._OPTIONAL for _, type_, _ in descriptor):
         raise ProphyError("union with optional field disallowed")
 
 def add_union_attributes(cls, descriptor):
@@ -410,19 +410,19 @@ def add_union_attributes(cls, descriptor):
     cls._DYNAMIC = False
     cls._UNLIMITED = False
     cls._OPTIONAL = False
-    cls._ALIGNMENT = max(scalar.u32._ALIGNMENT, max(type._ALIGNMENT for _, type, _ in descriptor))
-    cls._SIZE = pad(cls._ALIGNMENT + max(type._SIZE for _, type, _ in descriptor), cls._ALIGNMENT)
+    cls._ALIGNMENT = max(scalar.u32._ALIGNMENT, max(type_._ALIGNMENT for _, type_, _ in descriptor))
+    cls._SIZE = pad(cls._ALIGNMENT + max(type_._SIZE for _, type_, _ in descriptor), cls._ALIGNMENT)
     cls._BOUND = None
     cls._PARTIAL_ALIGNMENT = None
 
 def add_union_properties(cls, descriptor):
     add_union_discriminator(cls)
     for field in descriptor:
-        name, type, disc, _, _ = field
-        if issubclass(type, (struct, union)):
-            add_union_composite(cls, name, type, disc, field)
+        name, type_, disc, _, _ = field
+        if issubclass(type_, (struct, union)):
+            add_union_composite(cls, name, type_, disc, field)
         else:
-            add_union_scalar(cls, name, type, disc, field)
+            add_union_scalar(cls, name, type_, disc, field)
 
 def add_union_discriminator(cls):
     def getter(self):
@@ -437,25 +437,25 @@ def add_union_discriminator(cls):
             raise ProphyError("unknown discriminator")
     setattr(cls, "discriminator", property(getter, setter))
 
-def add_union_scalar(cls, name, type, disc, field):
+def add_union_scalar(cls, name, type_, disc, field):
     def getter(self):
         if self._discriminated is not field:
             raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
-        return self._fields.get(name, type._DEFAULT)
+        return self._fields.get(name, type_._DEFAULT)
     def setter(self, new_value):
         if self._discriminated is not field:
             raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
-        new_value = type._check(new_value)
+        new_value = type_._check(new_value)
         self._fields[name] = new_value
     setattr(cls, name, property(getter, setter))
 
-def add_union_composite(cls, name, type, disc, field):
+def add_union_composite(cls, name, type_, disc, field):
     def getter(self):
         if self._discriminated is not field:
             raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         value = self._fields.get(name)
         if value is None:
-            value = type()
+            value = type_()
             value = self._fields.setdefault(name, value)
         return value
     def setter(self, new_value):
@@ -463,8 +463,8 @@ def add_union_composite(cls, name, type, disc, field):
     setattr(cls, name, property(getter, setter))
 
 def extend_union_descriptor(cls, descriptor):
-    for i, (name, type, disc) in enumerate(descriptor):
-        descriptor[i] = (name, type, disc, get_encode_function(type), get_decode_function(type))
+    for i, (name, type_, disc) in enumerate(descriptor):
+        descriptor[i] = (name, type_, disc, get_encode_function(type_), get_decode_function(type_))
 
 def get_discriminated_field(cls, discriminator):
     field = next((x for x in cls._descriptor if x[2] == discriminator), None)
@@ -497,9 +497,9 @@ class union(object):
         field = get_discriminated_field(self, disc)
         if not field:
             raise ProphyError("unknown discriminator")
-        name, type, _, _, decode_ = field
+        name, type_, _, _, decode_ = field
         self._discriminated = field
-        decode_(self, name, type, data, pos + self._ALIGNMENT, endianness, {})
+        decode_(self, name, type_, data, pos + self._ALIGNMENT, endianness, {})
         if (len(data) - pos) < self._SIZE:
             raise ProphyError("not enough bytes")
         if terminal and (len(data) - pos) > self._SIZE:
@@ -513,9 +513,9 @@ class union(object):
 
         self._fields.clear()
         self._discriminated = other._discriminated
-        name, type, _, _, _ = self._discriminated
+        name, type_, _, _, _ = self._discriminated
         rhs = getattr(other, name)
-        if issubclass(type, (struct, union)):
+        if issubclass(type_, (struct, union)):
             lhs = getattr(self, name)
             lhs.copy_from(rhs)
         else:
