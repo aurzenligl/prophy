@@ -218,6 +218,7 @@ def generate_struct_encode(node):
     text = ''
     bound = {m.bound:m for m in node.members if m.bound}
     delimiters = {bound[m.name].name:(m, _get_cpp_builtin_type(m)) for m in node.members if m.name in bound}
+
     for m in node.members:
         if m.fixed:
             text += 'pos = do_encode<E>(pos, x.{0}.data(), {1});\n'.format(m.name, m.size)
@@ -565,6 +566,16 @@ def check_nodes(nodes):
     for n in nodes:
         if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
             raise GenerateError('{0} byte size unknown'.format(n.name))
+        if isinstance(n, model.Struct):
+            occured = set()
+            for m in n.members:
+                if m.bound:
+                    if m.bound in occured:
+                        raise GenerateError('Multiple arrays bounded by the same member ({}) in struct {} is unsupported'
+                                            .format(m.bound, n.name))
+                    else:
+                        occured.add(m.bound)
+
 
 class CppFullGenerator(object):
 
