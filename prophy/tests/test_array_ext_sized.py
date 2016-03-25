@@ -265,43 +265,34 @@ def test_ext_sized_array_exceeded_encode_2(ExtSizedArr):
     assert ref == c.encode(">")
 
 def test_ext_sized_scalar_array_with_shift():
+    
     class XS(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u8),
-                       ("a", prophy.array(prophy.u8, bound = "len", shift = 2))]
-
+                       ("a", prophy.array(prophy.u8, bound = "len", shift = 2)),
+                       ("b", prophy.array(prophy.u8, bound = "len", shift = 2))]
     x = XS()
     x.a[:] = [1, 2, 3, 4]
+    x.b[:] = [5, 6, 7, 8]
 
-    assert x.encode(">") == b"\x06\x01\x02\x03\x04"
+    assert x.encode(">") == b"\x06\x01\x02\x03\x04\x05\x06\x07\x08"
 
-    x.decode(b"\x06\x01\x02\x03\x04", ">")
+    x.decode(b"\x06\x01\x02\x03\x04\x05\x06\x07\x08", ">")
     assert x.a[:] == [1, 2, 3, 4]
+    assert x.b[:] == [5, 6, 7, 8]
 
-    with pytest.raises(Exception) as e:
-        x.decode(b"\x01", ">")
-    assert str(e.value) == "decoded array length smaller than shift"
-
-    with pytest.raises(Exception) as e:
-        x.decode(b"\x05", ">")
-    assert str(e.value) == "too few bytes to decode integer"
-
-    with pytest.raises(Exception) as e:
-        x.decode(b"\x02\x00", ">")
-    assert str(e.value) == "not all bytes read"
 
 def test_ext_sized_scalar_array_with_shift_exceptions():
     with pytest.raises(Exception) as e:
-        class Array(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("a_len", prophy.u8),
-                           ("a", prophy.array(prophy.u8, shift = 2))]
-    assert str(e.value) == "only shifting bound array implemented"
+        class XS1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("len", prophy.u8),
+                           ("a", prophy.array(prophy.u8, bound = "len", shift = 2)),
+                           ("b", prophy.array(prophy.u8, bound = "len"))]
+    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
+
     with pytest.raises(Exception) as e:
-        class Array(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("a_len", prophy.u8),
-                           ("a", prophy.array(prophy.u8, size = 1, shift = 2))]
-    assert str(e.value) == "only shifting bound array implemented"
-    with pytest.raises(Exception) as e:
-        class Array(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("a_len", prophy.u8),
-                           ("a", prophy.array(prophy.u8, bound = "a_len", size = 1, shift = 2))]
-    assert str(e.value) == "only shifting bound array implemented"
+        class XS2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("len", prophy.u8),
+                           ("a", prophy.array(prophy.u8, bound = "len")),
+                           ("b", prophy.array(prophy.u8, bound = "len", shift = 2))]
+    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
+

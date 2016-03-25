@@ -113,6 +113,9 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
     if tp.__name__ == "container_len":
         tp._BOUND.add(container_name)
+        shifts = {cl._BOUND_SHIFT for (ar,cl) in descriptor if ar in tp._BOUND} 
+        if len(shifts) > 1:
+            raise ProphyError("Different bound shifts are unsupported in externally sized arrays")
     else:
         class container_len(tp):
             _BOUND = {container_name}
