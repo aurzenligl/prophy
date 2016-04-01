@@ -112,23 +112,34 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
         raise ProphyError("array must be bound to an unsigned integer")
 
     if tp.__name__ == "container_len":
-        tp._BOUND.add(container_name)
-        shifts = {cl._BOUND_SHIFT for (ar,cl) in descriptor if ar in tp._BOUND} 
-        if len(shifts) > 1:
+        def is_bound_shift_valid():
+            _, t = next(ifilter(lambda (n, _): n in tp._BOUND, descriptor))
+            return t._BOUND_SHIFT == bound_shift
+
+        tp.add_bounded_container(container_name)
+        if not is_bound_shift_valid():
             raise ProphyError("Different bound shifts are unsupported in externally sized arrays")
     else:
         class container_len(tp):
-            _BOUND = {container_name}
-            _value = None
+            _BOUND = [container_name]
 
             @staticmethod
-            def _re_evaluate(parent):
-                container_len._value = max(map(len, (getattr(parent, array_name) for array_name in container_len._BOUND)))
-                return container_len._value
+            def add_bounded_container(cont_name):
+                container_len._BOUND.append(cont_name)
+
+            @staticmethod
+            def evaluate(parent):
+                result = len(getattr(parent, container_len._BOUND[0]))
+
+                for array_name in container_len._BOUND[1:]:
+                    if result != len(getattr(parent, array_name)):
+                        raise ProphyError("Size mismatch of arrays in {}: {}"
+                                          .format(parent.__class__.__name__,
+                                                  ", ".join(container_len._BOUND)))
+                return result
 
             @staticmethod
             def _encode(value, endianness):
-                container_len._value = value
                 return tp._encode(value + bound_shift, endianness)
 
             @staticmethod
@@ -140,7 +151,6 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
                 value -= bound_shift
                 if value < 0:
                     raise ProphyError("decoded array length smaller than shift")
-                container_len._value = value
                 return value, size
 
         descriptor[index] = (name, container_len)
@@ -173,28 +183,10 @@ def encode_optional(parent, type_, value, endianness):
                 + type_._encode(parent, type_.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type_, value, endianness):
-    return type_._encode(type_._re_evaluate(parent), endianness)
+    return type_._encode(type_.evaluate(parent), endianness)
 
 def encode_array(parent, type_, value, endianness):
-    result = value._encode_impl(endianness)
-
-    if type_._DYNAMIC and not type_._UNLIMITED:
-        _, sizer_type, _, _ = get_desc_entry(parent, type_._BOUND)
-        fill_data = encode_fill_array(type_,
-                                      sizer_type._value - len(value),
-                                      endianness)
-    else:
-        fill_data = ''
-
-    return result + fill_data
-
-def get_desc_entry(parent, name):
-    return next(ifilter(lambda (n, _, __, ___): n == name, parent._descriptor))
-
-def encode_fill_array(type_, length, endianness):
-    fill_array = type_()
-    fill_array.extend([fill_array._TYPE() for _ in xrange(length)])
-    return fill_array._encode_impl(endianness)
+    return value._encode_impl(endianness)
 
 def encode_composite(parent, type_, value, endianness):
     return value.encode(endianness, terminal = False)
@@ -256,8 +248,7 @@ def indent(text, spaces):
 
 def field_to_string(name, type_, value, parent=None):
     if issubclass(type_, base_array):
-        return array_field_to_string(name, type_, value, parent)
-
+        return "".join(field_to_string(name, type_._TYPE, elem) for elem in value)
     elif issubclass(type_, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
     elif issubclass(type_, bytes):
@@ -266,19 +257,6 @@ def field_to_string(name, type_, value, parent=None):
         return "%s: %s\n" % (name, type_._int_to_name[value])
     else:
         return "%s: %s\n" % (name, value)
-
-def array_field_to_string(name, type_, value, parent):
-    result = "".join(field_to_string(name, type_._TYPE, elem) for elem in value)
-
-    filler = array_fill_string(name, type_, value, parent) if type_._DYNAMIC and not type_._UNLIMITED \
-             else ''
-
-    return result + filler
-
-def array_fill_string(name, type_, value, parent):
-    _, sizer_type, _, _ = get_desc_entry(parent, type_._BOUND)
-    sizer = sizer_type._re_evaluate(parent)
-    return "".join(field_to_string(name, type_._TYPE, type_._TYPE()) for _ in xrange(sizer - len(value)))
 
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):

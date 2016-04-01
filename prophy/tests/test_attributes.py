@@ -173,7 +173,7 @@ def test_container_len_attributes():
                        ("b_len", prophy.u8),
                        ("b", prophy.array(prophy.u8, bound = "b_len"))]
 
-    assert [{"a"}, "a_len", {"b"}, "b_len"] == [tpl[1]._BOUND for tpl in S._descriptor]
+    assert [["a"], "a_len", ["b"], "b_len"] == [tpl[1]._BOUND for tpl in S._descriptor]
     assert ["a_len", "a", "b_len", "b"] == [tpl[0] for tpl in S._descriptor]
 
 def test_ext_sized_array_attributes_1():
@@ -183,7 +183,7 @@ def test_ext_sized_array_attributes_1():
                        ("b", prophy.array(prophy.u16, bound = "sizer")),
                        ("c", prophy.array(prophy.u32, bound = "sizer"))]
 
-    assert [{"a", "b", "c"}, "sizer", "sizer", "sizer"] == [tpl[1]._BOUND for tpl in S._descriptor]
+    assert [["a", "b", "c"], "sizer", "sizer", "sizer"] == [tpl[1]._BOUND for tpl in S._descriptor]
     assert ["sizer", "a", "b", "c"] == [tpl[0] for tpl in S._descriptor]
 
 def test_ext_sized_array_attributes_2():
@@ -195,7 +195,7 @@ def test_ext_sized_array_attributes_2():
                        ("b1", prophy.array(prophy.u32, bound = "sz1")),
                        ("b2", prophy.array(prophy.u32, bound = "sz2"))]
 
-    assert [{"a1", "b1"}, {"a2", "b2"}, "sz1", "sz2", "sz1", "sz2"] == [tpl[1]._BOUND for tpl in S._descriptor]
+    assert [["a1", "b1"], ["a2", "b2"], "sz1", "sz2", "sz1", "sz2"] == [tpl[1]._BOUND for tpl in S._descriptor]
     assert ["sz1", "sz2", "a1", "a2", "b1", "b2"] == [tpl[0] for tpl in S._descriptor]
 
 def test_struct_static_attributes():

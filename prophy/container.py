@@ -146,12 +146,14 @@ class bound_composite_array(base_array):
         super(bound_composite_array, self).__init__()
 
     """ TODO kl. implement **kwargs to fill structure with data at addition time already """
-    def add(self):
+    def add(self, **attributes):
         if self._max_len and len(self) == self._max_len:
             raise ProphyError("exceeded array limit")
 
         new_element = self._TYPE()
         self._values.append(new_element)
+        for name, value in attributes.iteritems():
+            setattr(new_element, name, value)
         return new_element
 
     def extend(self, elem_seq):

@@ -11,16 +11,9 @@ def ExtSizedArr():
                        ("c", prophy.array(prophy.u16, bound = "sz"))]
     return ExtSizedArr
 
-def format_bin_str(binstr):
-    hx = hexlify(binstr)
-    spl = [hx[i:i + 2] for i in range(0, len(hx), 2)]
-    return r'b"\x' + r'\x'.join(spl) + r'"'
-
-
 def test_ext_sized_scalar_array_assignment(ExtSizedArr):
     x = ExtSizedArr()
     assert x.a == []
-    assert x.a[:] == []
     assert len(x.a) == 0
 
     x.a[:] = [1, 2]
@@ -28,7 +21,6 @@ def test_ext_sized_scalar_array_assignment(ExtSizedArr):
 
     x.a[:] = [6, 7]
     assert x.a == [6, 7]
-    assert x.a[:] == [6, 7]
 
     del x.a[1]
     assert x.a[:] == [6]
@@ -46,103 +38,6 @@ def test_ext_sized_scalar_array_assignment(ExtSizedArr):
     with pytest.raises(Exception):
         x.a[:] = [1, 2, "abc"]
 
-def test_ext_sized_scalar_array_copy_from(ExtSizedArr):
-    x = ExtSizedArr()
-    x.a[:] = [1, 2]
-    y = ExtSizedArr()
-    y.a[:] = [5, 6, 7]   # initial value to override
-
-    y.copy_from(x)
-    assert y.a[:] == [1, 2]
-
-
-def test_ext_sized_empty_decode(ExtSizedArr):
-    x = ExtSizedArr()
-    assert len(x.a) == 0
-    x.decode(b"\x00", ">")
-    assert len(x.a) == 0
-
-def test_ext_sized_scalar_array_print(ExtSizedArr):
-    x = ExtSizedArr()
-    x.a[:] = [1, 2]
-
-    assert str(x) == ("a: 1\n"
-                      "a: 2\n"
-                      "b: 0\n"
-                      "b: 0\n"
-                      "c: 0\n"
-                      "c: 0\n")
-    
-    x.c[:] = [3, 4, 0xDEAD]
-    x.c[:] = [3, 4]
-    
-    assert str(x) == ("a: 1\n"
-                      "a: 2\n"
-                      "b: 0\n"
-                      "b: 0\n"
-                      "c: 3\n"
-                      "c: 4\n")
-
-def test_ext_sized_scalar_array_encoding(ExtSizedArr):
-    x = ExtSizedArr()
-    x.a[:] = [1, 2]
-
-    assert x.encode(">") == b"\x02\x01\x02\x00\x00\x00\x00\x00\x00"
-
-    x.c[:] = [3, 4, 5]
-    x.c[:] = [3, 4]
-
-    assert x.encode(">") == b"\x02\x01\x02\x00\x00\x00\x03\x00\x04"
-
-
-def test_ext_sized_scalar_array_decoding(ExtSizedArr):
-    
-    x = ExtSizedArr()
-    x.decode(b"\x03\x01\x02\xff\x00\x00\x00\x00\x04\x00\x05\x00\x06", ">")
-    
-    assert x.a[:] == [1, 2, 0xff]
-    assert x.b[:] == [0, 0, 0]    
-    assert x.c[:] == [4, 5, 6]
-    
-    assert str(x) == ("a: 1\n"
-                      "a: 2\n"
-                      "a: 255\n"
-                      "b: 0\n"
-                      "b: 0\n"
-                      "b: 0\n"
-                      "c: 4\n"
-                      "c: 5\n"
-                      "c: 6\n")
-
-def test_ext_sized_scalar_array_distant_sizer():
-    class ExtSizedArrDist(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-        _descriptor = [("sz", prophy.u8),
-                       ("something", prophy.u32),
-                       ("a", prophy.array(prophy.u8, bound = "sz")),
-                       ("b", prophy.array(prophy.u8, bound = "sz"))]
-
-    x = ExtSizedArrDist()
-    x.decode(b"\x02\x00\x00\x00\xff\x01\x02\x03\x04", ">")
-
-    assert x.something == 255
-    assert x.a[:] == [1, 2]
-    assert x.b[:] == [3, 4]
-    assert str(x) == ("something: 255\n"
-                      "a: 1\n"
-                      "a: 2\n"
-                      "b: 3\n"
-                      "b: 4\n")
-
-def test_ext_sized_scalar_array_decoding_exceptions(ExtSizedArr):
-    x = ExtSizedArr()
-    with pytest.raises(prophy.ProphyError) as e:
-        x.decode(b"\x10\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00", ">")
-    assert 'too few bytes to decode integer' in str(e.value)
-
-    with pytest.raises(prophy.ProphyError) as e:
-        x.decode(b"\x01\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
-    assert 'not all bytes read' in str(e.value)
-
 def test_ext_sized_scalar_array_exceptions():
     with pytest.raises(Exception):
         class LengthFieldNonexistent(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
@@ -155,6 +50,153 @@ def test_ext_sized_scalar_array_exceptions():
         class LengthFieldIsNotAnInteger(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("not_an_int", "not_an_int"),
                            ("a", prophy.array(prophy.i32, bound = "not_an_int"))]
+
+def test_ext_sized_scalar_array_with_shift_exceptions():
+    with pytest.raises(Exception) as e:
+        class XS1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("len", prophy.u8),
+                           ("a", prophy.array(prophy.u8, bound = "len", shift = 2)),
+                           ("b", prophy.array(prophy.u8, bound = "len"))]
+    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
+
+    with pytest.raises(Exception) as e:
+        class XS2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("len", prophy.u8),
+                           ("a", prophy.array(prophy.u8, bound = "len")),
+                           ("b", prophy.array(prophy.u8, bound = "len", shift = 2))]
+    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
+
+def test_ext_sized_scalar_array_decoding_exceptions(ExtSizedArr):
+    x = ExtSizedArr()
+    with pytest.raises(prophy.ProphyError) as e:
+        x.decode(b"\x10\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00", ">")
+    assert 'too few bytes to decode integer' in str(e.value)
+
+    with pytest.raises(prophy.ProphyError) as e:
+        x.decode(b"\x01\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
+    assert 'not all bytes read' in str(e.value)
+
+def test_multiple_arrays_size_mismatch_during_encoding(ExtSizedArr):
+    x = ExtSizedArr()
+    x.b[:] = [1]
+
+    with pytest.raises(prophy.ProphyError) as e:
+        x.encode(">")
+    assert 'Size mismatch of arrays in ExtSizedArr: a, b, c' in str(e.value)
+
+    x.a[:] = [0, 0]
+    x.c[:] = [0, 0]
+
+    with pytest.raises(prophy.ProphyError) as e:
+        x.encode(">")
+    assert 'Size mismatch of arrays in ExtSizedArr: a, b, c' in str(e.value)
+
+
+def test_ext_sized_scalar_array_copy_from(ExtSizedArr):
+    x = ExtSizedArr()
+    x.a[:] = [1, 2]
+    y = ExtSizedArr()
+    y.a[:] = [5, 6, 7]   # initial value to override
+
+    y.copy_from(x)
+    assert y.a == [1, 2]
+
+def test_ext_sized_empty_decode_encode(ExtSizedArr):
+    x = ExtSizedArr()
+    assert len(x.a) == 0
+    x.decode(b"\x00", ">")
+    assert len(x.a) == 0
+
+    assert b"\x00" == x.encode(">")
+
+def test_ext_sized_scalar_array_print(ExtSizedArr):
+    x = ExtSizedArr()
+    x.a[:] = [1, 2]
+
+    assert str(x) == ("a: 1\n"
+                      "a: 2\n")
+    
+    x.c[:] = [3, 4, 0xDEAD]
+    x.c[:] = [3, 4]
+    
+    assert str(x) == ("a: 1\n"
+                      "a: 2\n"
+                      "c: 3\n"
+                      "c: 4\n")
+
+def test_ext_sized_scalar_array_encoding_big_endian(ExtSizedArr):
+    x = ExtSizedArr()
+    x.a[:] = [1, 2]
+    x.b[:] = [0, 0]
+    x.c[:] = [3, 4, 0xDEAD]
+    x.c[:] = [3, 4]
+
+    assert x.encode(">") == (b"\x02"
+                             b"\x01\x02"
+                             b"\x00\x00"
+                             b"\x00\x03\x00\x04")
+
+def test_ext_sized_scalar_array_encoding_little_endian(ExtSizedArr):
+    x = ExtSizedArr()
+    x.a[:] = [1]
+    x.b[:] = [2]
+    x.c[:] = [3]
+
+    assert x.encode("<") == (b"\x01"
+                             b"\x01"
+                             b"\x02"
+                             b"\x03\x00")
+
+def test_ext_sized_scalar_array_decoding_big_endian(ExtSizedArr):
+    x = ExtSizedArr()
+    x.decode(b"\x03\x01\x02\xff\x00\x00\x00\x00\x04\x00\x05\x00\x06", ">")
+    
+    assert x.a == [1, 2, 0xff]
+    assert x.b == [0, 0, 0]
+    assert x.c == [4, 5, 6]
+    assert str(x) == ("a: 1\n"
+                      "a: 2\n"
+                      "a: 255\n"
+                      "b: 0\n"
+                      "b: 0\n"
+                      "b: 0\n"
+                      "c: 4\n"
+                      "c: 5\n"
+                      "c: 6\n")
+
+def test_ext_sized_scalar_array_decoding_little_endian(ExtSizedArr):
+    x = ExtSizedArr()
+    x.decode(b"\x02\x01\x02\x03\x04\x05\x00\x06\x00", "<")
+
+    assert x.a == [1, 2]
+    assert x.b == [3, 4]
+    assert x.c == [5, 6]
+    assert str(x) == ("a: 1\n"
+                      "a: 2\n"
+                      "b: 3\n"
+                      "b: 4\n"
+                      "c: 5\n"
+                      "c: 6\n")
+
+
+def test_ext_sized_scalar_array_distant_sizer():
+    class ExtSizedArrDist(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        _descriptor = [("sz", prophy.u8),
+                       ("something", prophy.u32),
+                       ("a", prophy.array(prophy.u8, bound = "sz")),
+                       ("b", prophy.array(prophy.u8, bound = "sz"))]
+
+    x = ExtSizedArrDist()
+    x.decode(b"\x02\x00\x00\x00\xff\x01\x02\x03\x04", ">")
+
+    assert x.something == 255
+    assert x.a == [1, 2]
+    assert x.b == [3, 4]
+    assert str(x) == ("something: 255\n"
+                      "a: 1\n"
+                      "a: 2\n"
+                      "b: 3\n"
+                      "b: 4\n")
 
 def test_ext_sized_scalar_array_twice_in_struct():
     class X2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
@@ -173,96 +215,31 @@ def test_ext_sized_scalar_array_twice_in_struct():
     assert [7, 8] == x.a[:]
     assert [1] == x.b[:]
 
-def test_ext_sized_array_encode_1(ExtSizedArr):
-    c = ExtSizedArr()
-    c.a[:] = [1, 2, 3]
-    c.b[:] = [4, 5, 6]
-    c.c[:] = [7, 8, 9]
+def test_multi_ext_sized_arrays_sets_interwined():
+    class MultipleExtSizedArrSetsInterwined(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        _descriptor = [("sz_a", prophy.u8),
+                       ("a1", prophy.array(prophy.u16, bound = "sz_a")),
+                       ("sz_b", prophy.u16),
+                       ("b1", prophy.array(prophy.u32, bound = "sz_b")),
+                       ("b2", prophy.array(prophy.u8, bound = "sz_b")),
+                       ("a2", prophy.array(prophy.u16, bound = "sz_a"))]
 
-    st = c.encode("<")
+    x = MultipleExtSizedArrSetsInterwined()
+    ref = (b"\x01"
+           b"\x00\x01"
+           b"\x00\x02"
+           b"\x00\x00\x00\x02\x00\x00\x00\x03"
+           b"\x04\x05"
+           b"\x00\x06")
 
-    assert b"\x03\x01\x02\x03\x04\x05\x06\x07\x00\x08\x00\x09\x00" == st
-    assert str(c) == """\
-a: 1
-a: 2
-a: 3
-b: 4
-b: 5
-b: 6
-c: 7
-c: 8
-c: 9
-"""
+    x.decode(ref, ">")
 
-def test_ext_sized_array_encode_2(ExtSizedArr):
-    c = ExtSizedArr()
-    c.a[:] = [1, 2]
-    c.b[:] = [3, 4]
-    c.c[:] = [5, 6]
+    assert x.a1 == [1]
+    assert x.b1 == [2, 3]
+    assert x.b2 == [4, 5]
+    assert x.a2 == [6]
 
-    ref = b"\x02\x01\x02\x03\x04\x00\x05\x00\x06"
-    assert ref == c.encode(">")
-
-    d = ExtSizedArr()
-    d.decode(ref, ">")
-
-    assert d.a == c.a
-    assert d.b == d.b
-    assert d.c == d.c
-
-
-def test_ext_sized_array_exceeded_print(ExtSizedArr):
-
-    c = ExtSizedArr()
-    c.a[:] = [1, 2, 3]
-    c.b[:] = [4, 5]
-    c.c[:] = [6]
-
-    assert str(c) == "a: 1\na: 2\na: 3\nb: 4\nb: 5\nb: 0\nc: 6\nc: 0\nc: 0\n"
-
-    assert c.a == [1, 2, 3]
-    assert c.b == [4, 5]
-    assert c.c == [6]
-
-def test_ext_sized_array_exceeded_encode_1(ExtSizedArr):
-    c = ExtSizedArr()
-    c.a[:] = [1, 2, 3]
-    c.b[:] = [4, 5]
-    c.c[:] = [6]
-
-    assert str(c) == """\
-a: 1
-a: 2
-a: 3
-b: 4
-b: 5
-b: 0
-c: 6
-c: 0
-c: 0
-"""
-
-    assert c.a == [1, 2, 3]
-    assert c.b == [4, 5]
-    assert c.c == [6]
-
-    st = c.encode(">")
-    ref = b"\x03\x01\x02\x03\x04\x05\x00\x00\x06\x00\x00\x00\x00"
-    assert ref == st
-
-def test_ext_sized_array_exceeded_encode_2(ExtSizedArr):
-    c = ExtSizedArr()
-    c.a[:] = [1]
-    c.b[:] = [2, 3]
-    c.c[:] = [4, 5, 0xDEAD]
-    c.c[:] = [7, 8]
-
-    assert c.a == [1]
-    assert c.b == [2, 3]
-    assert c.c == [7, 8]
-
-    ref = b"\x02\x01\x00\x02\x03\x00\x07\x00\x08"
-    assert ref == c.encode(">")
+    assert ref == x.encode(">")
 
 def test_ext_sized_scalar_array_with_shift():
     
@@ -279,20 +256,3 @@ def test_ext_sized_scalar_array_with_shift():
     x.decode(b"\x06\x01\x02\x03\x04\x05\x06\x07\x08", ">")
     assert x.a[:] == [1, 2, 3, 4]
     assert x.b[:] == [5, 6, 7, 8]
-
-
-def test_ext_sized_scalar_array_with_shift_exceptions():
-    with pytest.raises(Exception) as e:
-        class XS1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("len", prophy.u8),
-                           ("a", prophy.array(prophy.u8, bound = "len", shift = 2)),
-                           ("b", prophy.array(prophy.u8, bound = "len"))]
-    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
-
-    with pytest.raises(Exception) as e:
-        class XS2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("len", prophy.u8),
-                           ("a", prophy.array(prophy.u8, bound = "len")),
-                           ("b", prophy.array(prophy.u8, bound = "len", shift = 2))]
-    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
-
