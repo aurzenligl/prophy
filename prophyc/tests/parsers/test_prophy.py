@@ -170,26 +170,28 @@ struct test
         ])
     ]
 
-def test_structs_with_dynamic_arrays_bounded_by_the_same_member_parsing_2():
+def test_structs_with_dynamic_arrays_bounded_by_the_same_member_parsing_typedef_sizer():
     content = """\
-typedef u32 x_t;
+typedef i32 num_of_elements_t;
+typedef num_of_elements_t sz_t;
 struct ExtSized
 {
-    u8 a;
-    u32 one<@a>;
-    x_t two<@a>;
-    i32 three<@a>;
+    sz_t sz;
+    u32 one<@sz>;
+    u16 two<@sz>;
+    i32 three<@sz>;
 };
 """
 
     print parse(content)
     assert parse(content) == [
-        model.Typedef('x_t', 'u32'),
+        model.Typedef('num_of_elements_t', 'i32'),
+        model.Typedef('sz_t', 'num_of_elements_t'),
         model.Struct('ExtSized', [
-            model.StructMember('a', 'u8'),
-            model.StructMember('one', 'u32', bound = 'a'),
-            model.StructMember('two', 'x_t', bound = 'a'),
-            model.StructMember('three', 'i32', bound = 'a')
+            model.StructMember('sz', 'sz_t'),
+            model.StructMember('one', 'u32', bound = 'sz'),
+            model.StructMember('two', 'u16', bound = 'sz'),
+            model.StructMember('three', 'i32', bound = 'sz')
         ])
     ]
 
@@ -467,6 +469,20 @@ def test_error_struct_array_size_cannot_be_negative():
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x[1-2]; };')
     assert ":1:21", "array size '-1' non-positive" == e.value.errors[0]
+
+def test_error_struct_sizer_of_dynamic_array_is_not_defined_before():
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 x<@sz>; u32 sz; };')
+    assert ":1:19", "Sizer of 'x' has to be defined before the array" == e.value.errors[0]
+
+    with pytest.raises(ParseError) as e:
+        parse('const sz = 10; struct test { u32 x<@sz>;};')
+    assert ":1:34", "Sizer of 'x' has to be defined before the array" == e.value.errors[0]
+
+def test_error_struct_sizer_of_dynamic_array_is_not_of_integer_type():
+    with pytest.raises(ParseError) as e:
+        parse('struct X { u32 s; }; struct test { X sz; u32 x<@sz>; };')
+    assert ":1:46", "Sizer of 'x' has to be of (unsigned) integer type" == e.value.errors[0]
 
 def test_error_struct_greedy_field_is_not_the_last_one():
     with pytest.raises(ParseError) as e:
