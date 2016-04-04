@@ -1,7 +1,7 @@
 .. _encoding:
 
 Encoding
-####################
+########
 
 This section describes how serialized prophy messages look like.
 
@@ -21,7 +21,7 @@ encoded in little endian for the sake of brevity.
 .. _encoding_numeric_types:
 
 Numeric types
-====================
+=============
 
 Prophy encodes integral and floating point numbers according
 to their size and endianness. Enums are treated as 32-bit unsigned numbers.
@@ -41,7 +41,7 @@ enum                2a 00 00 00              00 00 00 2a
 Signed types treat most significant bit as sign bit following U2 encoding rules.
 
 Array
-==========
+=====
 
 Array is a sequence of elements of the same type.
 Elements may be numeric types, structs or unions.
@@ -50,12 +50,12 @@ Elements may be numeric types, structs or unions.
     Dynamic struct may not be held in fixed or limited array.
 
 .. note ::
-    Unlimited struct may not be held in any array.
+    Unlimited (greedy) struct may not be held in any array.
 
-There are so much as 4 different types of arrays in Prophy.
+There are so much as 5 different types of arrays in Prophy.
 
 Fixed array
-------------
+-----------
 
 Fixed array has fixed number of elements, hence fixed size on wire. This array::
 
@@ -66,7 +66,7 @@ with elements set to 1, 2, 3 and 4 would encode as::
     01 00 02 00 03 00 04 00
 
 Dynamic array
---------------
+-------------
 
 Dynamic array has varying number of elements
 counted by 32-bit unsigned delimiter. This one::
@@ -78,7 +78,7 @@ with 2 elements set to 1 and 2 encodes as::
     02 00 00 00 01 00 02 00
 
 Limited array
----------------
+-------------
 
 A combination of fixed and dynamic one.
 Delimited by an element counter, has fixed size on wire.
@@ -91,7 +91,7 @@ with 2 elements set to 1 and 2 encodes as::
     02 00 00 00 01 00 02 00 00 00 00 00
 
 Greedy array
---------------
+------------
 
 Variable element array without element counter. This one::
 
@@ -105,15 +105,41 @@ with 2 elements set to 1 and 2 encodes as::
     Greedy array can be used only in the last field of struct.
     Such struct may also be only the last field of any other struct.
 
+Externally sized array
+----------------------
+
+An array with externally, explicit defined size::
+
+    u8 size;        // = 2
+    u8 x<@size>;    // = [4, 5]
+    u16 y<@size>;   // = [6, 7]
+
+
+with fields set to values from comments above - encodes as::
+
+    02 04 05 00 06 00 07
+
+.. note ::
+      - One 'sizer' can describe element quantity of several arrays of different type.
+      - The 'sizer' doesn't have to be followed by its sized arrays. There can be anything in between (besides the greedy array).
+      - If there are many sized arrays - they can also be splited by other fields.
+
+.. warning ::
+    The 'sizer' field needs to be defined:
+      - inside the same struct as its sized arrays and
+      - placed before these arrays.
+
+    The externally sized array is not supported by :ref:`c++ full<cpp_full>` codec.
+
 Bytes
----------
+-----
 
 Bytes field is an array of bytes, which can be handled by codec
 in more effective way than an array of u8. Wire format, however,
 is the same.
 
 Optional
-================
+========
 
 Optional is a fixed-size value prepended by a boolean value encoded as a 32-bit integer.
 If it's not set, it's filled with zeroes up to size. This one::
@@ -132,7 +158,7 @@ and with x not set would encode as::
     Optional field may not contain unlimited nor dynamic struct.
 
 Struct
-============
+======
 
 A sequence of fields which get serialized in strict order. Following struct X::
 
@@ -153,7 +179,7 @@ with fields set to (1, 2) and 3 will yield::
     01 00 02 00 03 00 00 00
 
 Dynamic struct
--------------------
+--------------
 
 Struct containing dynamic arrays directly or indirectly
 becomes dynamic itself - its wire representation size varies.
@@ -162,7 +188,7 @@ becomes dynamic itself - its wire representation size varies.
     Dynamic struct may not be held in fixed or limited array.
 
 Unlimited struct
--------------------
+----------------
 
 Struct which contains greedy array or unlimited struct
 in the last field becomes an unlimited struct.
@@ -171,7 +197,7 @@ in the last field becomes an unlimited struct.
     Unlimited struct may not be held in any array or non-last struct field.
 
 Union
-=================
+=====
 
 Union has fixed size, related to its largest arm size.
 It encodes single arm prepended by a field discriminator encoded
@@ -203,7 +229,7 @@ and with second arm discriminated and set to (2, 3) encodes as::
 .. _encoding_padding:
 
 Padding
-==============
+=======
 
 Prior examples were deliberately composed of values tiled together without
 padding in-between. Facts that:
@@ -220,7 +246,7 @@ should be padded with zeroes.
 Let's go through a couple of examples.
 
 Integer padding
------------------------
+---------------
 
 In this struct::
 
@@ -235,7 +261,7 @@ field b requires one byte of padding to be aligned::
     01 [00] 02 00
 
 Composite padding
--------------------------
+-----------------
 
 Composite (struct or union) alignment is the greatest alignment of its fields.
 Optional flag, union discriminator, array delimiter all contribute to struct alignment.
@@ -272,7 +298,7 @@ illustrates four such paddings:
     06  00 [00  00][00  00  00  00]
 
 Dynamic array padding
--------------------------
+---------------------
 
 Dynamic array is tricky - it requires padding depending on
 number of elements. Other than that - usual rules apply.
@@ -308,7 +334,7 @@ even if there are no elements (composite padding)::
     00 00 00 00 [00 00 00 00]
 
 Optional padding
---------------------
+----------------
 
 Optional fields don't follow the composite rule, their byte-size
 doesn't need to be a multiple of alignment. Thanks to that,
@@ -338,7 +364,7 @@ if value has alignment greater than flag::
     01 00 00 00 [00 00 00 00] 01 00 00 00 00 00 00 00
 
 Union padding
-----------------
+-------------
 
 Unions follow composite rule of padding to multiple of alignment::
 
@@ -373,7 +399,7 @@ Note that:
     02 00 00 00 [00 00 00 00] 03 [00 00 00 00 00 00 00]
 
 Fields following dynamic fields
-------------------------------------
+-------------------------------
 
 We can split any struct to blocks which end with dynamic fields.
 In order to have paddings between non-dynamic fields in blocks
@@ -384,15 +410,15 @@ like composite in that regard::
 
     struct X
     {
-        u8 a<>;
-        u8 b;
-        u32 c;
-        u8 d<>;
-        u8 e;
-        u64 f;
+        u8 a<>; // = [1]
+        u8 b;   // = 2
+        u32 c;  // = 3
+        u8 d<>; // = [4]
+        u8 e;   // = 5
+        u64 f;  // = 6
     };
 
-This one (both arrays set with 1 element only) has four paddings:
+This one (both arrays set with 1 element only as in comments above) has four paddings:
 
   #. dynamic padding to align b-d block
   #. to align c field
