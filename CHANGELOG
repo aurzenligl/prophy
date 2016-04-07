@@ -1,3 +1,7 @@
+0.7.5
+-----------------------------------
+- prophy & prophyc: support for extsized arrays
+
 0.7.4
 -----------------------------------
 - prophyc: isar parser supports two-dimensional array
