@@ -249,3 +249,12 @@ def test_bound_composite_array_decode_multiple():
                        ('z', prophy.array(Y, bound = 'num_of_z'))]
     x = X()
     x.decode(b'\x01\x00\x01\x00\x01\x00', '<')
+
+def test_bound_composite_add_via_kwargs(BoundCompositeArray):
+    x = BoundCompositeArray()
+    x.value.add(value=[1])
+    x.value.add(value=[2, 3])
+
+    assert len(x.value) == 2
+    assert x.value[0].value[:] == [1]
+    assert x.value[1].value[:] == [2, 3]
