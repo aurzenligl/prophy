@@ -248,7 +248,7 @@ def decode_scalar(parent, name, type_, data, pos, endianness, len_hints):
 def indent(text, spaces):
     return '\n'.join(x and spaces * ' ' + x or '' for x in text.split('\n'))
 
-def field_to_string(name, type_, value, parent=None):
+def field_to_string(name, type_, value):
     if issubclass(type_, base_array):
         return "".join(field_to_string(name, type_._TYPE, elem) for elem in value)
     elif issubclass(type_, (struct, union)):
@@ -292,7 +292,7 @@ class struct(object):
         for name, tp, _, _ in self._descriptor:
             value = getattr(self, name, None)
             if value is not None:
-                out += field_to_string(name, tp, value, parent=self)
+                out += field_to_string(name, tp, value)
         return out
 
     @staticmethod
