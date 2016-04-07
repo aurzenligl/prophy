@@ -126,7 +126,6 @@ def test_definitions_struct_with_ext_sized_array():
                                      model.StructMember("b", "u8", bound = "count"),
                                      model.StructMember("c", "u8", bound = "count")])]
 
-    print generate_definitions(nodes)
     assert generate_definitions(nodes) == """\
 struct Struct
 {

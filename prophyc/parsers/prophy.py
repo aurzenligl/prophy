@@ -1,10 +1,10 @@
 import os
 import tempfile
-from itertools import ifilter
 
 import ply.lex as lex
 import ply.yacc as yacc
 
+from prophyc.six import ifilter
 from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind, ParseError
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
@@ -142,7 +142,7 @@ class Parser(object):
             )
             fieldnames.add(name)
             if member.bound:
-                bound, _, _ = next(ifilter(lambda (m, _, __): m.name == member.bound, members[:i]),
+                bound, _, _ = next(ifilter(lambda m: m[0].name == member.bound, members[:i]),
                                    (None, None, None))
                 if bound:
                     self._parser_check(self._is_type_sizer_compatible(bound.type_),

@@ -151,7 +151,7 @@ class bound_composite_array(base_array):
 
         new_element = self._TYPE()
         self._values.append(new_element)
-        for name, value in attributes.iteritems():
+        for name, value in attributes.items():
             attr = getattr(new_element, name)
             if isinstance(attr, base_array):
                 attr[:] = value

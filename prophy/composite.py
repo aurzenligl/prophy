@@ -103,7 +103,7 @@ def add_composite(cls, name, tp):
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
-    index, (name, tp) = next(ifilter(lambda (i, (name_, _)): name_ is container_tp._BOUND, enumerate(descriptor)))
+    index, (name, tp) = next(ifilter(lambda enumed_field: enumed_field[1][0] is container_tp._BOUND, enumerate(descriptor)))
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
@@ -113,7 +113,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
     if tp.__name__ == "container_len":
         def is_bound_shift_valid():
-            _, t = next(ifilter(lambda (n, _): n in tp._BOUND, descriptor))
+            _, t = next(ifilter(lambda field: field[0] in tp._BOUND, descriptor))
             return t._BOUND_SHIFT == bound_shift
 
         tp.add_bounded_container(container_name)

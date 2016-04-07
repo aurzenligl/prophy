@@ -183,7 +183,6 @@ struct ExtSized
 };
 """
 
-    print parse(content)
     assert parse(content) == [
         model.Typedef('num_of_elements_t', 'i32'),
         model.Typedef('sz_t', 'num_of_elements_t'),
@@ -433,7 +432,6 @@ struct test
     u32 x<@a>;
     u32 x<@a>;
 };""")
-    print e.value.errors[0]
     assert ":4:9", "field 'x' redefined" == e.value.errors[0]
 
 def test_no_error_struct_comments_between_newlines():
