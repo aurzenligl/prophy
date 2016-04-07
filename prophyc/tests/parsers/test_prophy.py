@@ -148,6 +148,53 @@ struct test
         ])
     ]
 
+def test_structs_with_dynamic_arrays_bounded_by_the_same_member_parsing():
+    content = """\
+typedef u32 x_t;
+struct test
+{
+    u32 num_of_elements;
+    u16 dummy;
+    x_t x<@num_of_elements>;
+    bytes y<@num_of_elements>;
+};
+"""
+
+    assert parse(content) == [
+        model.Typedef('x_t', 'u32'),
+        model.Struct('test', [
+            model.StructMember('num_of_elements', 'u32'),
+            model.StructMember('dummy', 'u16'),
+            model.StructMember('x', 'x_t', bound = 'num_of_elements'),
+            model.StructMember('y', 'byte', bound = 'num_of_elements')
+        ])
+    ]
+
+def test_structs_with_dynamic_arrays_bounded_by_the_same_member_parsing_typedef_sizer():
+    content = """\
+typedef i32 num_of_elements_t;
+typedef num_of_elements_t sz_t;
+struct ExtSized
+{
+    sz_t sz;
+    u32 one<@sz>;
+    u16 two<@sz>;
+    i32 three<@sz>;
+};
+"""
+
+    print parse(content)
+    assert parse(content) == [
+        model.Typedef('num_of_elements_t', 'i32'),
+        model.Typedef('sz_t', 'num_of_elements_t'),
+        model.Struct('ExtSized', [
+            model.StructMember('sz', 'sz_t'),
+            model.StructMember('one', 'u32', bound = 'sz'),
+            model.StructMember('two', 'u16', bound = 'sz'),
+            model.StructMember('three', 'i32', bound = 'sz')
+        ])
+    ]
+
 def test_structs_with_limited_array_parsing():
     content = """\
 enum sizes
@@ -348,6 +395,11 @@ def test_error_struct_empty():
         parse('struct test {};')
     assert ":1:14", "syntax error at '}'" == e.value.errors[0]
 
+def test_error_struct_empty_2():
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 <@b>;};')
+    assert ":1:14", "syntax error at '}'" == e.value.errors[0]
+
 def test_error_struct_repeated_field_names():
     with pytest.raises(ParseError) as e:
         parse("""\
@@ -373,6 +425,16 @@ struct test
     u32 num_of_x;
 };""")
     assert ":4:9", "field 'num_of_x' redefined" == e.value.errors[0]
+    with pytest.raises(ParseError) as e:
+        parse("""\
+struct test
+{
+    u8 a;
+    u32 x<@a>;
+    u32 x<@a>;
+};""")
+    print e.value.errors[0]
+    assert ":4:9", "field 'x' redefined" == e.value.errors[0]
 
 def test_no_error_struct_comments_between_newlines():
     assert len(parse('struct test { u32 x; /* \n u32 y; \n */ \n u32 z; };')) == 1
@@ -407,6 +469,20 @@ def test_error_struct_array_size_cannot_be_negative():
     with pytest.raises(ParseError) as e:
         parse('struct test { u32 x[1-2]; };')
     assert ":1:21", "array size '-1' non-positive" == e.value.errors[0]
+
+def test_error_struct_sizer_of_dynamic_array_is_not_defined_before():
+    with pytest.raises(ParseError) as e:
+        parse('struct test { u32 x<@sz>; u32 sz; };')
+    assert ":1:19", "Sizer of 'x' has to be defined before the array" == e.value.errors[0]
+
+    with pytest.raises(ParseError) as e:
+        parse('const sz = 10; struct test { u32 x<@sz>;};')
+    assert ":1:34", "Sizer of 'x' has to be defined before the array" == e.value.errors[0]
+
+def test_error_struct_sizer_of_dynamic_array_is_not_of_integer_type():
+    with pytest.raises(ParseError) as e:
+        parse('struct X { u32 s; }; struct test { X sz; u32 x<@sz>; };')
+    assert ":1:46", "Sizer of 'x' has to be of (unsigned) integer type" == e.value.errors[0]
 
 def test_error_struct_greedy_field_is_not_the_last_one():
     with pytest.raises(ParseError) as e:
@@ -474,7 +550,8 @@ struct Y
     X x3[1];
     X x5<1>;
     X x4<>;
-    X x6<...>;
+    X x6<@x1>;
+    X x7<...>;
 };
 """)[1].members
     assert type(members[0].definition) == model.Typedef
@@ -485,28 +562,36 @@ struct Y
     assert members[5].definition == None
     assert type(members[6].definition) == model.Typedef
     assert type(members[7].definition) == model.Typedef
+    assert type(members[8].definition) == model.Typedef
 
 def test_struct_kinds():
     structs = parse("""\
 struct X1 { u32 x; };
 struct X2 { u32 x<>; };
 struct X3 { u32 x<...>; };
+struct X4 { u8 a; u32 x<@a>; };
 struct Y1 { X1 x; };
 struct Y2 { X2 x; };
 struct Y3 { X3 x; };
+struct Y4 { X4 x; };
 """)
     assert structs[0].kind == model.Kind.FIXED
     assert structs[1].kind == model.Kind.DYNAMIC
     assert structs[2].kind == model.Kind.UNLIMITED
-    assert structs[3].kind == model.Kind.FIXED
-    assert structs[4].kind == model.Kind.DYNAMIC
-    assert structs[5].kind == model.Kind.UNLIMITED
+    assert structs[3].kind == model.Kind.DYNAMIC
+    assert structs[4].kind == model.Kind.FIXED
+    assert structs[5].kind == model.Kind.DYNAMIC
+    assert structs[6].kind == model.Kind.UNLIMITED
+    assert structs[7].kind == model.Kind.DYNAMIC
     assert structs[0].members[0].kind == model.Kind.FIXED
     assert structs[1].members[0].kind == model.Kind.FIXED
     assert structs[2].members[0].kind == model.Kind.FIXED
     assert structs[3].members[0].kind == model.Kind.FIXED
-    assert structs[4].members[0].kind == model.Kind.DYNAMIC
-    assert structs[5].members[0].kind == model.Kind.UNLIMITED
+    assert structs[3].members[1].kind == model.Kind.FIXED
+    assert structs[4].members[0].kind == model.Kind.FIXED
+    assert structs[5].members[0].kind == model.Kind.DYNAMIC
+    assert structs[6].members[0].kind == model.Kind.UNLIMITED
+    assert structs[7].members[0].kind == model.Kind.DYNAMIC
 
 def test_error_struct_non_last_field_has_unlimited_kind():
     with pytest.raises(ParseError) as e:

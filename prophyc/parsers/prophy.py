@@ -1,5 +1,6 @@
 import os
 import tempfile
+from itertools import ifilter
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -31,8 +32,8 @@ class Parser(object):
         "LBRACKET", "RBRACKET", "LBRACE", "RBRACE", "LT", "GT",
         # ; : = , ...
         "SEMI", "COLON", "EQUALS", "COMMA", "DOTS",
-        # << >>
-        "LSHIFT", "RSHIFT"
+        # << >> @
+        "LSHIFT", "RSHIFT", "AT"
     )
 
     def t_ID(self, t):
@@ -73,6 +74,7 @@ class Parser(object):
     t_DOTS = r'\.\.\.'
     t_LSHIFT = r'<<'
     t_RSHIFT = r'>>'
+    t_AT = r'@'
 
     t_ignore  = ' \t\r'
 
@@ -128,6 +130,42 @@ class Parser(object):
     def _parser_check(self, condition, message, line, pos):
         if not condition:
             self._parser_error(message, line, pos)
+
+    def _validate_struct_members(self, members):
+        fieldnames = set()
+        for i, (member, line, pos) in enumerate(members):
+            name = member.name
+            self._parser_check(
+                name not in fieldnames,
+                "field '{}' redefined".format(name),
+                line, pos
+            )
+            fieldnames.add(name)
+            if member.bound:
+                bound, _, _ = next(ifilter(lambda (m, _, __): m.name == member.bound, members[:i]),
+                                   (None, None, None))
+                if bound:
+                    self._parser_check(self._is_type_sizer_compatible(bound.type_),
+                                       "Sizer of '{}' has to be of (unsigned) integer type".format(name),
+                                       line, pos)
+                else:
+                    self._parser_error("Sizer of '{}' has to be defined before the array".format(name),
+                                       line, pos)
+
+        for member, line, pos in members[:-1]:
+            self._parser_check(
+                not member.greedy and member.kind != Kind.UNLIMITED,
+                "greedy array field '{}' not last".format(member.name),
+                line, pos
+            )
+
+    def _is_type_sizer_compatible(self, typename):
+        if typename in {type_ + width for type_ in 'ui' for width in ['8', '16', '32', '64']}:
+            return True
+        elif typename in self.typedecls and isinstance(self.typedecls[typename], Typedef):
+            return self._is_type_sizer_compatible(self.typedecls[typename].type_)
+        else:
+            return False
 
     def p_specification(self, t):
         '''specification : definition_list'''
@@ -211,20 +249,7 @@ class Parser(object):
     def p_struct_def(self, t):
         '''struct_def : STRUCT unique_id struct_body SEMI'''
 
-        fieldnames = set()
-        for member, line, pos in t[3]:
-            self._parser_check(
-                member.name not in fieldnames,
-                "field '{}' redefined".format(member.name),
-                line, pos
-            )
-            fieldnames.add(member.name)
-        for member, line, pos in t[3][:-1]:
-            self._parser_check(
-                not member.greedy and member.kind != Kind.UNLIMITED,
-                "greedy array field '{}' not last".format(member.name),
-                line, pos
-            )
+        self._validate_struct_members(t[3])
 
         node = Struct(t[2], [x for x, _, _ in t[3]])
         self.typedecls[t[2]] = node
@@ -252,6 +277,13 @@ class Parser(object):
         t[0] = [(StructMember(t[2], t[1][0], size = str(t[4]), definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_3(self, t):
+        '''struct_member : bytes ID LT AT ID GT
+                         | type_spec ID LT AT ID GT'''
+        t[0] = [
+            (StructMember(t[2], t[1][0], bound = t[5], definition = t[1][1]), t.lineno(2), t.lexpos(2))
+        ]
+
+    def p_struct_member_4(self, t):
         '''struct_member : bytes ID LT GT
                          | type_spec ID LT GT'''
         t[0] = [
@@ -259,7 +291,7 @@ class Parser(object):
             (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], definition = t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
-    def p_struct_member_4(self, t):
+    def p_struct_member_5(self, t):
         '''struct_member : bytes ID LT positive_expression GT
                          | type_spec ID LT positive_expression GT'''
         t[0] = [
@@ -267,12 +299,12 @@ class Parser(object):
             (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], size = str(t[4]), definition = t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
-    def p_struct_member_5(self, t):
+    def p_struct_member_6(self, t):
         '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
         t[0] = [(StructMember(t[2], t[1][0], unlimited = True, definition = t[1][1]), t.lineno(2), t.lexpos(2))]
 
-    def p_struct_member_6(self, t):
+    def p_struct_member_7(self, t):
         '''struct_member : type_spec '*' ID'''
         t[0] = [(StructMember(t[3], t[1][0], optional = True, definition = t[1][1]), t.lineno(3), t.lexpos(3))]
 

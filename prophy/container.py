@@ -145,13 +145,18 @@ class bound_composite_array(base_array):
     def __init__(self):
         super(bound_composite_array, self).__init__()
 
-    """ TODO kl. implement **kwargs to fill structure with data at addition time already """
-    def add(self):
+    def add(self, **attributes):
         if self._max_len and len(self) == self._max_len:
             raise ProphyError("exceeded array limit")
 
         new_element = self._TYPE()
         self._values.append(new_element)
+        for name, value in attributes.iteritems():
+            attr = getattr(new_element, name)
+            if isinstance(attr, base_array):
+                attr[:] = value
+            else:
+                setattr(new_element, name, value)
         return new_element
 
     def extend(self, elem_seq):
@@ -189,28 +194,28 @@ class bound_composite_array(base_array):
                 cursor += self.add()._decode_impl(data, pos + cursor, endianness, terminal = False)
         return max(cursor, self._SIZE)
 
-def array(type, **kwargs):
+def array(type_, **kwargs):
     size = kwargs.pop("size", 0)
     bound = kwargs.pop("bound", None)
     shift = kwargs.pop("shift", 0)
     if kwargs:
         raise ProphyError("unknown arguments to array field")
 
-    if issubclass(type, base_array):
+    if issubclass(type_, base_array):
         raise ProphyError("array of arrays not allowed")
-    if issubclass(type, bytes):
+    if issubclass(type_, bytes):
         raise ProphyError("array of strings not allowed")
-    if size and type._DYNAMIC:
+    if size and type_._DYNAMIC:
         raise ProphyError("static/limited array of dynamic type not allowed")
     if shift and (not bound or size):
         raise ProphyError("only shifting bound array implemented")
-    if type._UNLIMITED:
+    if type_._UNLIMITED:
         raise ProphyError("array with unlimited field disallowed")
-    if type._OPTIONAL:
+    if type_._OPTIONAL:
         raise ProphyError("array of optional type not allowed")
 
     is_static = size and not bound
-    is_composite = issubclass(type, (composite.struct, composite.union))
+    is_composite = issubclass(type_, (composite.struct, composite.union))
 
     if is_composite:
         base = fixed_composite_array if is_static else bound_composite_array
@@ -220,12 +225,12 @@ def array(type, **kwargs):
     class _array(base):
         __slots__ = []
         _max_len = size
-        _TYPE = type
-        _SIZE = size * type._SIZE
+        _TYPE = type_
+        _SIZE = size * type_._SIZE
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
         _OPTIONAL = False
-        _ALIGNMENT = type._ALIGNMENT
+        _ALIGNMENT = type_._ALIGNMENT
         _BOUND = bound
         _BOUND_SHIFT = shift
         _PARTIAL_ALIGNMENT = None

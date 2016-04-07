@@ -1,7 +1,7 @@
 .. _schema:
 
 Schema language
-====================
+===============
 
 Let's call it `prophylang`.
 Prophy messages are meant to be held in .prophy files.
@@ -14,7 +14,7 @@ All these primitives are explained below.
 There are constraints on constructs composability, pointed out in notes.
 
 Numeric types
--------------------
+-------------
 
 Prophy has following numeric types:
 
@@ -32,7 +32,7 @@ double  64-bit floating double-precision number
 ======  ==========================================
 
 Constant
------------
+--------
 
 Constants for use as enumerator values, array lengths or union discriminators may be defined this way::
 
@@ -43,7 +43,7 @@ Constants for use as enumerator values, array lengths or union discriminators ma
 Signed, unsigned decimal, octal, hexal numbers and expressions are allowed.
 
 Enum
----------
+----
 
 Enumerations may be defined in following manner::
 
@@ -57,7 +57,7 @@ Enumerations may be defined in following manner::
 Enumerator definitions follow the same rules as constants.
 
 Typedef
---------------
+-------
 
 Typedef is an alias for previously defined type.
 Numeric type, enum, struct, union or other typedef may be aliased::
@@ -66,26 +66,32 @@ Numeric type, enum, struct, union or other typedef may be aliased::
     typedef X my_aliased_x;
 
 Struct
-----------------
+------
 
 Struct contains fields. Fields can be numeric types, enums,
 structs, unions, typedefs or arrays of any former.
 There are 4 kinds of arrays:
 
-========   ==================  ======================  =============================
-kind       schema              fixed-length on wire    variable number of elements
-========   ==================  ======================  =============================
-fixed      ``Type x[Size]``    yes                     no
-dynamic    ``Type x<>``        no                      yes
-limited    ``Type x<Limit>``   yes                     yes (up to limit)
-greedy     ``Type x<...>``     no                      yes
-========   ==================  ======================  =============================
+==========   ==================  ======================  =============================
+kind         schema              fixed-length on wire    variable number of elements
+==========   ==================  ======================  =============================
+fixed        ``Type x[Size]``    yes                     no
+dynamic      ``Type x<>``        no                      yes
+limited      ``Type x<Limit>``   yes                     yes (up to limit)
+greedy       ``Type x<...>``     no                      yes
+ext. sized   ``Type x<@sizer>``  no                      yes
+==========   ==================  ======================  =============================
 
 .. note::
     Fixed and limited array cannot hold dynamic nor unlimited struct.
 
 .. note::
     Greedy array may only be used in the last field of struct.
+
+.. note::
+    Externally sized array can be sized explicity by an exisiting 
+    field of a structure. A few arrays of different types can be sized by the same field. 
+
 
 This is how they can be used in a struct::
 
@@ -97,6 +103,8 @@ This is how they can be used in a struct::
         u32 d<>; // dynamic array
         u32 e<3>; // limited array of limit 3
         u32 f<...>; // greedy array
+        u8 g<@a>; // External sized array 1, size in a
+        u32 g<@a>; // External sized array 2, size in a
     };
 
 Field may be declared as bytes field, if it's meant to hold opaque binary data.
@@ -133,7 +141,7 @@ Array field size may be given as expression::
     };
 
 Union
-----------
+-----
 
 Discriminated unions are defined like structs, but with
 unsigned discriminators at the beginning of each field::
@@ -151,7 +159,7 @@ Discriminators may be literals or references to constants or enumerators.
     Union arm cannot hold dynamic nor unlimited struct, nor array.
 
 Include
--------------
+-------
 
 Prophy files may include definitions and constants from different files
 using the usual include syntax borrowed from C language::
@@ -167,6 +175,6 @@ File "A_is_inside.prophy" may exist in current directory of including file
 or in any directory provided as include dir in compiler invocation.
 
 Limitations
--------------
+-----------
 
 Currently there are no scoped definitions in the language.

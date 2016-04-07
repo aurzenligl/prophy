@@ -85,10 +85,10 @@ def test_nested_struct_assignment(NestedStruct):
     assert x.b.y == 4
 
     y = NestedStruct()
-    y.a.x == 8
-    y.a.y == 7
-    y.b.x == 6
-    y.b.y == 5
+    y.a.x = 8
+    y.a.y = 7
+    y.b.x = 6
+    y.b.y = 5
     y.copy_from(x)
     assert y.a.x == 1
     assert y.a.y == 2

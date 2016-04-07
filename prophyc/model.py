@@ -75,18 +75,18 @@ class EnumMember(object):
 
 class Typedef(object):
 
-    def __init__(self, name, type, **kwargs):
+    def __init__(self, name, type_, **kwargs):
         self.name = name
-        self.type = type
+        self.type_ = type_
         if 'definition' in kwargs:
             self.definition = kwargs['definition']
 
     def __eq__(self, other):
         return ((self.name == other.name) and
-                (self.type == other.type))
+                (self.type_ == other.type_))
 
     def __repr__(self):
-        return '{0} {1}'.format(self.type, self.name)
+        return '{0} {1}'.format(self.type_, self.name)
 
 class Struct(object):
 
@@ -110,14 +110,14 @@ class Struct(object):
 
 class StructMember(object):
 
-    def __init__(self, name, type,
+    def __init__(self, name, type_,
                  bound = None, size = None,
                  unlimited = False, optional = False,
                  definition = None):
         assert(sum((bool(bound or size), unlimited, optional)) <= 1)
 
         self.name = name
-        self.type = type
+        self.type_ = type_
         self.array = bool(bound or size or unlimited)
         self.bound = bound
         self.size = size
@@ -141,7 +141,7 @@ class StructMember(object):
 
     def __eq__(self, other):
         return ((self.name == other.name) and
-                (self.type == other.type) and
+                (self.type_ == other.type_) and
                 (self.array == other.array) and
                 (self.bound == other.bound) and
                 (self.size == other.size) and
@@ -157,7 +157,7 @@ class StructMember(object):
             (False, False, False, True): '{0}* {1}'
         }
         fmt = fmts[(self.array, bool(self.bound), bool(self.size), self.optional)]
-        return fmt.format(self.type, self.name, self.bound, self.size)
+        return fmt.format(self.type_, self.name, self.bound, self.size)
 
     @property
     def fixed(self):
@@ -194,10 +194,10 @@ class Union(object):
 
 class UnionMember(object):
 
-    def __init__(self, name, type, discriminator,
+    def __init__(self, name, type_, discriminator,
                  definition = None):
         self.name = name
-        self.type = type
+        self.type_ = type_
         self.discriminator = discriminator
 
         self.definition = definition
@@ -207,11 +207,11 @@ class UnionMember(object):
 
     def __eq__(self, other):
         return ((self.name == other.name) and
-                (self.type == other.type) and
+                (self.type_ == other.type_) and
                 (self.discriminator == other.discriminator))
 
     def __repr__(self):
-        return '{0}: {1} {2}'.format(self.discriminator, self.type, self.name)
+        return '{0}: {1} {2}'.format(self.discriminator, self.type_, self.name)
 
 """ Utils """
 
@@ -235,13 +235,13 @@ def topological_sort(nodes):
         return filter(lambda x: not x.isdigit(),
                       reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
     def get_typedef_deps(typedef):
-        return [typedef.type]
+        return [typedef.type_]
     def get_enum_deps(enum):
         return [member.name for member in enum.members]
     def get_struct_deps(struct):
-        return [member.type for member in struct.members]
+        return [member.type_ for member in struct.members]
     def get_union_deps(union):
-        return [member.type for member in union.members]
+        return [member.type_ for member in union.members]
     def get_deps(node):
         if isinstance(node, Include): return get_include_deps(node)
         elif isinstance(node, Constant): return get_constant_deps(node)
@@ -315,13 +315,13 @@ def cross_reference(nodes, warn = None):
     constants = get_constant_definitions(nodes)
 
     def cross_reference_types(node):
-        if node.type in BUILTIN_SIZES:
+        if node.type_ in BUILTIN_SIZES:
             node.definition = None
             return
-        found = types.get(node.type)
+        found = types.get(node.type_)
         if not found:
             if warn:
-                warn("type '%s' not found" % node.type)
+                warn("type '%s' not found" % node.type_)
         node.definition = found
 
     def evaluate_array_sizes(node):
@@ -394,8 +394,8 @@ def evaluate_sizes(nodes):
             return (node.byte_size, node.alignment)
         elif isinstance(node, Enum):
             return (ENUM_SIZE, ENUM_SIZE)
-        elif node.type in BUILTIN_SIZES:
-            byte_size = BUILTIN_SIZES[node.type]
+        elif node.type_ in BUILTIN_SIZES:
+            byte_size = BUILTIN_SIZES[node.type_]
             return (byte_size, byte_size)
         else:
             return (None, None) # unknown type, e.g. empty typedef
@@ -412,8 +412,8 @@ def evaluate_sizes(nodes):
             size_alignment = (None, None) # unknown array size
         elif member.definition:
             size_alignment = evaluate_node_size(member.definition)
-        elif member.type in BUILTIN_SIZES:
-            byte_size = BUILTIN_SIZES[member.type]
+        elif member.type_ in BUILTIN_SIZES:
+            byte_size = BUILTIN_SIZES[member.type_]
             size_alignment = (byte_size, byte_size)
         else:
             size_alignment = (None, None) # unknown type

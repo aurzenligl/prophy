@@ -2405,6 +2405,18 @@ def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
         CppFullGenerator('.').serialize(nodes, 'Filename')
     assert "X byte size unknown" == str(e.value)
 
+def test_exception_when_multiple_arrays_are_bounded_by_the_same_member(tmpdir_cwd):
+    nodes = process([
+        model.Struct('X', [
+            model.StructMember('num_of_elements', 'u32'),
+            model.StructMember('array1', 'u32', bound = 'num_of_elements'),
+            model.StructMember('array2', 'u32', bound = 'num_of_elements'),
+        ])
+    ])
+    with pytest.raises(GenerateError) as e:
+        CppFullGenerator('.').serialize(nodes, 'Filename')
+    assert "Multiple arrays bounded by the same member (num_of_elements) in struct X is unsupported" == str(e.value)
+
 def test_get_byte_size_when_array_delimiter_is_a_typedef():
     nodes = process([
         model.Typedef('IntType', 'u32'),

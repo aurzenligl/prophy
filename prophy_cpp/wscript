@@ -75,9 +75,13 @@ class prophyc_cpp(Task):
 @extension('.prophy')
 def process_prophy(self, node):
     patch_file = node.parent.ant_glob('*patch')[0]
-    tsk_full = self.create_task('prophyc_cpp_full', [node, patch_file], node.change_ext('.ppf.cpp'))
     tsk = self.create_task('prophyc_cpp', [node, patch_file], node.change_ext('.pp.cpp'))
-    self.source.extend(tsk_full.outputs + tsk.outputs)
+    
+    if "ExtSized.prophy" in str(node):
+        self.source.extend(tsk.outputs)
+    else:
+        tsk_full = self.create_task('prophyc_cpp_full', [node, patch_file], node.change_ext('.ppf.cpp'))
+        self.source.extend(tsk_full.outputs + tsk.outputs)
 
 from waflib.Configure import ConfigurationContext
 from waflib.Build import BuildContext

@@ -27,7 +27,7 @@ def _generate_def_constant(constant):
     return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
 
 def _generate_def_typedef(typedef):
-    tp = primitive_types.get(typedef.type, typedef.type)
+    tp = primitive_types.get(typedef.type_, typedef.type_)
     return 'typedef {} {};'.format(tp, typedef.name)
 
 def _generate_def_enum(enum):
@@ -50,7 +50,7 @@ def _generate_def_struct(struct):
                     annotation = 'greedy array'
             return annotation
 
-        typename = primitive_types.get(member.type, member.type)
+        typename = primitive_types.get(member.type_, member.type_)
         if member.array:
             annotation = build_annotation(member)
             size = member.size or 1
@@ -80,7 +80,7 @@ def _generate_def_struct(struct):
 
 def _generate_def_union(union):
     def gen_member(member):
-        typename = primitive_types.get(member.type, member.type)
+        typename = primitive_types.get(member.type_, member.type_)
         return '{0} {1};\n'.format(typename, member.name)
 
     enum_fields = ',\n'.join('discriminator_{0} = {1}'.format(mem.name,

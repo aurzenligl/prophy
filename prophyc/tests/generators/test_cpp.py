@@ -120,6 +120,31 @@ struct Struct
 };
 """
 
+def test_definitions_struct_with_ext_sized_array():
+    nodes = [model.Struct("Struct", [model.StructMember("count", "u8"),
+                                     model.StructMember("a", "u8", bound = "count"),
+                                     model.StructMember("b", "u8", bound = "count"),
+                                     model.StructMember("c", "u8", bound = "count")])]
+
+    print generate_definitions(nodes)
+    assert generate_definitions(nodes) == """\
+struct Struct
+{
+    uint8_t count;
+    uint8_t a[1]; /// dynamic array, size in count
+
+    struct part2
+    {
+        uint8_t b[1]; /// dynamic array, size in count
+    } _2;
+
+    struct part3
+    {
+        uint8_t c[1]; /// dynamic array, size in count
+    } _3;
+};
+"""
+
 def test_definitions_struct_with_byte():
     nodes = [model.Struct("Struct", [model.StructMember("a", "byte")])]
 
@@ -192,6 +217,30 @@ struct ManyArraysMixed
     struct part2
     {
         uint8_t b[1]; /// dynamic array, size in num_of_b
+    } _2;
+};
+"""
+
+def test_definitions_struct_many_arrays_bounded_by_the_same_member():
+    nodes = [
+        model.Struct("ManyArraysBoundedByTheSame", [
+            model.StructMember("num_of_elements", "u8"),
+            model.StructMember("dummy", "u8"),
+            model.StructMember("a", "u8", bound = "num_of_elements"),
+            model.StructMember("b", "u8", bound = "num_of_elements")
+        ])
+    ]
+
+    assert generate_definitions(nodes) == """\
+struct ManyArraysBoundedByTheSame
+{
+    uint8_t num_of_elements;
+    uint8_t dummy;
+    uint8_t a[1]; /// dynamic array, size in num_of_elements
+
+    struct part2
+    {
+        uint8_t b[1]; /// dynamic array, size in num_of_elements
     } _2;
 };
 """
@@ -440,6 +489,30 @@ X* swap<X>(X* payload)
 }
 """
 
+def test_swap_struct_with_ext_sized_array_of_fixed_elements():
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("szr", "u32")),
+            (model.StructMember("x", "u16", bound = "szr")),
+            (model.StructMember("y", "u16", bound = "szr"))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+inline X::part2* swap(X::part2* payload, size_t szr)
+{
+    return cast<X::part2*>(swap_n_fixed(payload->y, szr));
+}
+
+template <>
+X* swap<X>(X* payload)
+{
+    swap(&payload->szr);
+    X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->szr));
+    return cast<X*>(swap(part2, payload->szr));
+}
+"""
+
 def test_swap_struct_with_greedy_array():
     nodes = [
         model.Struct("X", [
@@ -639,6 +712,32 @@ X* swap<X>(X* payload)
     X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->num_of_x));
     X::part3* part3 = cast<X::part3*>(swap(part2));
     return cast<X*>(swap(part3));
+}
+"""
+
+def test_swap_struct_with_many_arrays_bounded_by_the_same_member():
+    nodes = [
+        model.Struct("X", [
+            (model.StructMember("num_of_elements", "u32")),
+            (model.StructMember("dummy", "u32")),
+            (model.StructMember("x", "u32", bound = "num_of_elements")),
+            (model.StructMember("y", "u32", bound = "num_of_elements"))
+        ])
+    ]
+
+    assert generate_swap(nodes) == """\
+inline X::part2* swap(X::part2* payload, size_t num_of_elements)
+{
+    return cast<X::part2*>(swap_n_fixed(payload->y, num_of_elements));
+}
+
+template <>
+X* swap<X>(X* payload)
+{
+    swap(&payload->num_of_elements);
+    swap(&payload->dummy);
+    X::part2* part2 = cast<X::part2*>(swap_n_fixed(payload->x, payload->num_of_elements));
+    return cast<X*>(swap(part2, payload->num_of_elements));
 }
 """
 
