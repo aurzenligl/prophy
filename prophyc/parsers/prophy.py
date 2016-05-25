@@ -8,10 +8,7 @@ from prophyc.six import ifilter
 from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind, ParseError
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
-PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
-
-if not os.path.exists(PROPHY_DIR):
-    os.makedirs(PROPHY_DIR)
+PROPHY_DIR = tempfile.mkdtemp('.prophy')
 
 def get_column(input, pos):
     return pos - input.rfind('\n', 0, pos)

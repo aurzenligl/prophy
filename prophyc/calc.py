@@ -3,10 +3,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 import os
 
-PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
-
-if not os.path.exists(PROPHY_DIR):
-    os.makedirs(PROPHY_DIR)
+PROPHY_DIR = tempfile.mkdtemp('.prophy')
 
 class ParseError(Exception): pass
 
