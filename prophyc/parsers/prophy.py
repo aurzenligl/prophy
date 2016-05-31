@@ -1,5 +1,4 @@
 import os
-import tempfile
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -7,11 +6,6 @@ import ply.yacc as yacc
 from prophyc.six import ifilter
 from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind, ParseError
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
-
-PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
-
-if not os.path.exists(PROPHY_DIR):
-    os.makedirs(PROPHY_DIR)
 
 def get_column(input, pos):
     return pos - input.rfind('\n', 0, pos)
@@ -104,7 +98,7 @@ class Parser(object):
     def __init__(self):
         self._init_parse_data()
         self.lexer = lex.lex(module = self, debug = 0)
-        self.yacc = yacc.yacc(module = self, debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_prophy')
+        self.yacc = yacc.yacc(module = self, tabmodule = 'parsetab_prophy', write_tables = 0, debug = 0)
 
     def parse(self, input, parse_error_prefix, parse_file):
         self._init_parse_data(parse_error_prefix)

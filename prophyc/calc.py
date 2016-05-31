@@ -1,12 +1,5 @@
-import tempfile
 import ply.lex as lex
 import ply.yacc as yacc
-import os
-
-PROPHY_DIR = os.path.join(tempfile.gettempdir(), '.prophy')
-
-if not os.path.exists(PROPHY_DIR):
-    os.makedirs(PROPHY_DIR)
 
 class ParseError(Exception): pass
 
@@ -19,7 +12,7 @@ class Parser(object):
 
     def __init__(self):
         self.lexer = lex.lex(module = self, debug = 0)
-        self.parser = yacc.yacc(module = self, debug = 0, outputdir = PROPHY_DIR, tabmodule = 'parsetab_calc')
+        self.parser = yacc.yacc(module = self, tabmodule = 'parsetab_calc', write_tables = 0, debug = 0)
 
     def eval(self, expr):
         return self.parser.parse(expr, lexer = self.lexer)
