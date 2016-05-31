@@ -24,4 +24,4 @@ from .exception import ProphyError
 
 from .six import with_metaclass
 
-__version__ = '0.7.5'
+__version__ = '0.7.6'

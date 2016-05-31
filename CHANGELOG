@@ -1,3 +1,7 @@
+0.7.6
+-----------------------------------
+- prophyc: ply parser tables concurrent filesystem access bug solved
+
 0.7.5
 -----------------------------------
 - prophy & prophyc: support for extsized arrays
