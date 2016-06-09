@@ -27,7 +27,7 @@ def main():
         emit_error("missing output directives")
 
     def content_parser(*parse_args):
-        return parse_content(parser, patcher, *parse_args)
+        return parse_content(parser, patcher, opts, *parse_args)
 
     file_parser = FileProcessor(content_parser, opts.include_dirs)
 
@@ -45,14 +45,18 @@ def main():
                 emit_error(str(e))
 
 def get_parser(opts):
+    if opts.quiet:
+        warn = None
+    else:
+        warn = emit_warning
     if opts.isar:
         from prophyc.parsers.isar import IsarParser
-        return IsarParser(warn = emit_warning)
+        return IsarParser(warn = warn)
     elif opts.sack:
         if not module_exists("clang"):
             emit_error("sack input requires clang and it's not installed")
         from prophyc.parsers.sack import SackParser
-        return SackParser(opts.include_dirs, warn = emit_warning)
+        return SackParser(opts.include_dirs, warn = warn)
     else:
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
@@ -76,12 +80,16 @@ def get_patcher(opts):
         patches = patch.parse(opts.patch)
         return lambda nodes: patch.patch(nodes, patches)
 
-def parse_content(parser, patcher, *parse_args):
+def parse_content(parser, patcher, opts, *parse_args):
+    if opts.quiet:
+        warn = None
+    else:
+        warn = emit_warning
     nodes = parser.parse(*parse_args)
     if patcher:
         patcher(nodes)
     model.topological_sort(nodes)
-    model.cross_reference(nodes, warn = emit_warning)
+    model.cross_reference(nodes, warn = warn)
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes)
     return nodes
