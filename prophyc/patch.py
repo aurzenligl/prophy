@@ -15,15 +15,22 @@ def parse(filename):
     return patches
 
 def patch(nodes, patches):
-    for node in nodes:
-        actions = patches.get(node.name, [])
+    
+    for idx in range(len(nodes)):
+        actions = patches.get(nodes[idx].name, [])
+        actions, toStruct = _has_struct(actions)
+        if toStruct:
+            nodes[idx] = _apply(nodes[idx], toStruct)
         for patch in actions:
-            _apply(node, patch)
+            _apply(nodes[idx],patch)
 
 def _apply(node, patch):
     action = _actions.get(patch.action)
     if not action:
         raise Exception("Unknown action: %s %s" % (node.name, patch))
+    if patch.action == 'struct':
+        struct = action(node, patch)
+        return struct
     action(node, patch)
 
 def _type(node, patch):
@@ -150,13 +157,37 @@ def _limited(node, patch):
     mem.bound = len_array
     mem.optional = False
 
+def _struct(node,patch):
+    newMembers = []
+    for member in node.members:
+        newMember = model.StructMember(name = member.name, type_ = member.type_, definition = member.definition)
+        newMembers.append(newMember)     
+    temp = model.Struct(node.name,newMembers)
+    return temp
+
+def _rename_field(node,patch):
+    i, member = next((x for x in enumerate(node.members) if x[1].name == patch.params[0]), (None, None))
+    if not member:
+        raise Exception("Member not found: %s %s" % (node.name, patch))
+    member.name = patch.params[1]
+    
+
+def _rename_class(node,patch):
+
+    node.name = patch.params[0]
+
+    
+    
 _actions = {'type': _type,
             'insert': _insert,
             'remove': _remove,
             'greedy': _greedy,
             'static': _static,
             'limited': _limited,
-            'dynamic': _dynamic}
+            'dynamic': _dynamic,
+            'struct' : _struct,
+            'rename_field' : _rename_field,
+            'rename_class' : _rename_class}
 
 def _is_int(s):
     try:
@@ -164,3 +195,9 @@ def _is_int(s):
         return True
     except ValueError:
         return False
+def _has_struct(actions):
+    hasStruct = [patch for patch in actions if patch.action == 'struct']
+    if hasStruct:
+        return [patch for patch in actions if patch.action != 'struct'], hasStruct[0]
+    else:
+        return actions, False 
