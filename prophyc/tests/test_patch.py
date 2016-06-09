@@ -357,3 +357,46 @@ def test_make_field_limited_array_with_wrong_bound_params():
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Array len member not found: MyStruct' in str(e.value)
+
+
+def test_change_union_to_struct_and_remove_field():
+    nodes = [model.Union("MyUnion", [model.UnionMember("field1", "u32", 1),
+                                     model.UnionMember("field2", "u32", 2),
+                                     model.UnionMember("field3", "u32", 3)])]
+
+    patches = {'MyUnion': [patch.Action('struct', []),
+                            patch.Action('remove', ['field2'])]}
+
+    patch.patch(nodes, patches)
+
+    assert [model.Struct('MyUnion', [model.StructMember('field1', 'u32' ),
+                                     model.StructMember('field3', 'u32')])] == nodes
+
+
+def test_change_field_name():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
+                                       model.StructMember("field2", "u32"),
+                                       model.StructMember("field3", "u32")])]
+
+    patches = {'MyStruct': [patch.Action('rename_field', ['field3', 'field69'])]}
+
+
+    patch.patch(nodes, patches)
+
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32' ),
+                                      model.StructMember('field2', 'u32' ),
+                                      model.StructMember('field69', 'u32')])] == nodes
+
+
+
+def test_change_class_name():
+
+    nodes = [model.Struct("OldName", [model.StructMember("field1", "u32"),
+                                       model.StructMember("field2", "u32"),
+                                       model.StructMember("field3", "u32")])]
+
+    patches = {'OldName': [patch.Action('rename_class', ['NewName'])]}
+
+    patch.patch(nodes, patches)
+
+    assert nodes[0].name == 'NewName'
