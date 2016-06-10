@@ -358,6 +358,13 @@ def test_make_field_limited_array_with_wrong_bound_params():
         patch.patch(nodes, patches)
     assert 'Array len member not found: MyStruct' in str(e.value)
 
+def test_change_union_to_struct():
+    nodes = [model.Union("MyUnion", [model.UnionMember("field1", "u32", 1)])]
+    patches = {'MyUnion': [patch.Action('struct', [])]}
+
+    patch.patch(nodes, patches)
+
+    assert [model.Struct('MyUnion', [model.StructMember('field1', 'u32' )])] == nodes
 
 def test_change_union_to_struct_and_remove_field():
     nodes = [model.Union("MyUnion", [model.UnionMember("field1", "u32", 1),
@@ -365,38 +372,79 @@ def test_change_union_to_struct_and_remove_field():
                                      model.UnionMember("field3", "u32", 3)])]
 
     patches = {'MyUnion': [patch.Action('struct', []),
-                            patch.Action('remove', ['field2'])]}
+                           patch.Action('remove', ['field2'])]}
 
     patch.patch(nodes, patches)
 
     assert [model.Struct('MyUnion', [model.StructMember('field1', 'u32' ),
                                      model.StructMember('field3', 'u32')])] == nodes
 
+def test_change_union_to_struct_not_a_union():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", 1),
+                                      model.StructMember("field2", "u32", 2)])]
+    patches = {'MyStruct': [patch.Action('struct', [])]}
 
-def test_change_field_name():
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Can only change union to struct: MyStruct' in str(e.value)
+
+def test_change_union_to_struct_excessive_params():
+    nodes = [model.Union("MyUnion", [model.UnionMember("field1", "u32", 1),
+                                    model.UnionMember("field2", "u32", 2)])]
+    patches = {'MyUnion': [patch.Action('struct', ['surplus_param'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Change union to struct takes no params: MyUnion' in str(e.value)
+
+def test_rename_node():
+    nodes = [model.Struct("OldStruct", [model.StructMember("field", "u32")]),
+             model.Enum("OldEnum", [model.EnumMember("val", "123")])]
+
+    patches = {'OldStruct': [patch.Action('rename', ['NewStruct'])],
+               'OldEnum': [patch.Action('rename', ['NewEnum'])]}
+
+    patch.patch(nodes, patches)
+
+    assert nodes[0].name == 'NewStruct'
+    assert nodes[1].name == 'NewEnum'
+
+def test_rename_field():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
                                        model.StructMember("field2", "u32"),
                                        model.StructMember("field3", "u32")])]
 
-    patches = {'MyStruct': [patch.Action('rename_field', ['field3', 'field69'])]}
-
+    patches = {'MyStruct': [patch.Action('rename', ['field2', 'field69'])]}
 
     patch.patch(nodes, patches)
 
     assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32' ),
-                                      model.StructMember('field2', 'u32' ),
-                                      model.StructMember('field69', 'u32')])] == nodes
+                                      model.StructMember('field69', 'u32' ),
+                                      model.StructMember('field3', 'u32')])] == nodes
 
+def test_rename_field_not_composite():
+    nodes = [model.Enum("MyEnum", [model.EnumMember("val", "123")])]
 
+    patches = {'MyEnum': [patch.Action('rename', ['field3', 'field69'])]}
 
-def test_change_class_name():
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Can rename fields only in composites: MyEnum' in str(e.value)
 
-    nodes = [model.Struct("OldName", [model.StructMember("field1", "u32"),
-                                       model.StructMember("field2", "u32"),
-                                       model.StructMember("field3", "u32")])]
+def test_rename_field_member_not_found():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32")])]
 
-    patches = {'OldName': [patch.Action('rename_class', ['NewName'])]}
+    patches = {'MyStruct': [patch.Action('rename', ['unknown1', 'unknown2'])]}
 
-    patch.patch(nodes, patches)
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Member not found: MyStruct' in str(e.value)
 
-    assert nodes[0].name == 'NewName'
+def test_rename_field_excessive_params():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32")])]
+
+    patches = {'MyStruct': [patch.Action('rename', 3 * ['too_much_params'])]}
+
+    with pytest.raises(Exception) as e:
+        patch.patch(nodes, patches)
+    assert 'Rename must have 1 or 2 params: MyStruct' in str(e.value)

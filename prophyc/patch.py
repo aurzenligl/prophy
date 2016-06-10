@@ -14,24 +14,19 @@ def parse(filename):
         patches.setdefault(name, []).append(action)
     return patches
 
-def patch(nodes, patches):
-    
-    for idx in range(len(nodes)):
-        actions = patches.get(nodes[idx].name, [])
-        actions, toStruct = _has_struct(actions)
-        if toStruct:
-            nodes[idx] = _apply(nodes[idx], toStruct)
-        for patch in actions:
-            _apply(nodes[idx],patch)
+def patch(nodes, patchdict):
+    for idx, node in enumerate(nodes):
+        patches = patchdict.get(node.name)
+        if patches:
+            nodes[idx] = _apply(node, patches)
 
-def _apply(node, patch):
-    action = _actions.get(patch.action)
-    if not action:
-        raise Exception("Unknown action: %s %s" % (node.name, patch))
-    if patch.action == 'struct':
-        struct = action(node, patch)
-        return struct
-    action(node, patch)
+def _apply(node, patches):
+    for patch in patches:
+        action = _actions.get(patch.action)
+        if not action:
+            raise Exception("Unknown action: %s %s" % (node.name, patch))
+        node = action(node, patch)
+    return node
 
 def _type(node, patch):
     if not isinstance(node, model.Struct):
@@ -47,6 +42,7 @@ def _type(node, patch):
 
     mem = node.members[i]
     mem.type_ = tp
+    return node
 
 def _insert(node, patch):
     if not isinstance(node, model.Struct):
@@ -61,6 +57,7 @@ def _insert(node, patch):
     index = int(index)
 
     node.members.insert(index, model.StructMember(name, tp))
+    return node
 
 def _remove(node, patch):
     if not isinstance(node, model.Struct):
@@ -75,6 +72,7 @@ def _remove(node, patch):
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
     del node.members[i]
+    return node
 
 def _dynamic(node, patch):
     if not isinstance(node, model.Struct):
@@ -93,6 +91,7 @@ def _dynamic(node, patch):
     mem.bound = len_name
     mem.size = None
     mem.optional = False
+    return node
 
 def _greedy(node, patch):
     if not isinstance(node, model.Struct):
@@ -111,6 +110,7 @@ def _greedy(node, patch):
     mem.bound = None
     mem.size = None
     mem.optional = False
+    return node
 
 def _static(node, patch):
     if not isinstance(node, model.Struct):
@@ -135,6 +135,7 @@ def _static(node, patch):
     mem.bound = None
     mem.size = size
     mem.optional = False
+    return node
 
 def _limited(node, patch):
     if not isinstance(node, model.Struct):
@@ -156,28 +157,42 @@ def _limited(node, patch):
     mem.array = True
     mem.bound = len_array
     mem.optional = False
+    return node
 
-def _struct(node,patch):
-    newMembers = []
-    for member in node.members:
-        newMember = model.StructMember(name = member.name, type_ = member.type_, definition = member.definition)
-        newMembers.append(newMember)     
-    temp = model.Struct(node.name,newMembers)
-    return temp
+def _struct(node, patch):
+    if not isinstance(node, model.Union):
+        raise Exception("Can only change union to struct: %s" % (node.name))
 
-def _rename_field(node,patch):
-    i, member = next((x for x in enumerate(node.members) if x[1].name == patch.params[0]), (None, None))
-    if not member:
-        raise Exception("Member not found: %s %s" % (node.name, patch))
-    member.name = patch.params[1]
-    
+    if len(patch.params):
+        raise Exception("Change union to struct takes no params: %s" % (node.name))
 
-def _rename_class(node,patch):
+    def to_struct_member(member):
+        return model.StructMember(name = member.name, type_ = member.type_, definition = member.definition)
 
-    node.name = patch.params[0]
+    return model.Struct(node.name, [to_struct_member(mem) for mem in node.members])
 
-    
-    
+def _rename(node, patch):
+    def rename_node(node, new_name):
+        node.name = patch.params[0]
+        return node
+
+    def rename_field(node, orig_name, new_name):
+        if not isinstance(node, (model.Struct, model.Union)):
+            raise Exception("Can rename fields only in composites: %s %s" % (node.name, patch))
+        i, member = next((x for x in enumerate(node.members) if x[1].name == orig_name), (None, None))
+        if not member:
+            raise Exception("Member not found: %s %s" % (node.name, patch))
+        member.name = new_name
+        return node
+
+    if len(patch.params) == 1:
+        return rename_node(node, patch.params[0])
+
+    if len(patch.params) == 2:
+        return rename_field(node, patch.params[0], patch.params[1])
+
+    raise Exception("Rename must have 1 or 2 params: %s %s" % (node.name, patch))
+
 _actions = {'type': _type,
             'insert': _insert,
             'remove': _remove,
@@ -186,8 +201,7 @@ _actions = {'type': _type,
             'limited': _limited,
             'dynamic': _dynamic,
             'struct' : _struct,
-            'rename_field' : _rename_field,
-            'rename_class' : _rename_class}
+            'rename' : _rename}
 
 def _is_int(s):
     try:
@@ -195,9 +209,3 @@ def _is_int(s):
         return True
     except ValueError:
         return False
-def _has_struct(actions):
-    hasStruct = [patch for patch in actions if patch.action == 'struct']
-    if hasStruct:
-        return [patch for patch in actions if patch.action != 'struct'], hasStruct[0]
-    else:
-        return actions, False 
