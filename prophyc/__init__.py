@@ -9,25 +9,36 @@ from .file_processor import FileProcessor
 
 __version__ = '0.7.6'
 
+class Emit(object):
+    @staticmethod
+    def warn(msg, location = 'prophyc'):
+        sys.stderr.write(location + ': warning: ' + msg + '\n')
+    @staticmethod
+    def error(msg, location = 'prophyc'):
+        sys.exit(location + ': error: ' + msg)
+
 def main():
-    opts = options.parse_options(emit_error)
+    opts = options.parse_options(Emit.error)
+
+    if opts.quiet:
+        Emit.warn = None
 
     if opts.version:
         print("prophyc {}".format(__version__))
         sys.exit(0)
 
     if not opts.input_files:
-        emit_error("missing input file")
+        Emit.error("missing input file")
 
     parser = get_parser(opts)
     serializers = get_serializers(opts)
     patcher = get_patcher(opts)
 
     if not serializers:
-        emit_error("missing output directives")
+        Emit.error("missing output directives")
 
     def content_parser(*parse_args):
-        return parse_content(parser, patcher, opts, *parse_args)
+        return parse_content(parser, patcher, *parse_args)
 
     file_parser = FileProcessor(content_parser, opts.include_dirs)
 
@@ -42,21 +53,17 @@ def main():
             try:
                 serializer.serialize(nodes, basename)
             except model.GenerateError as e:
-                emit_error(str(e))
+                Emit.error(str(e))
 
 def get_parser(opts):
-    if opts.quiet:
-        warn = None
-    else:
-        warn = emit_warning
     if opts.isar:
         from prophyc.parsers.isar import IsarParser
-        return IsarParser(warn = warn)
+        return IsarParser(warn = Emit.warn)
     elif opts.sack:
         if not module_exists("clang"):
-            emit_error("sack input requires clang and it's not installed")
+            Emit.error("sack input requires clang and it's not installed")
         from prophyc.parsers.sack import SackParser
-        return SackParser(opts.include_dirs, warn = warn)
+        return SackParser(opts.include_dirs, warn = Emit.warn)
     else:
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
@@ -80,16 +87,12 @@ def get_patcher(opts):
         patches = patch.parse(opts.patch)
         return lambda nodes: patch.patch(nodes, patches)
 
-def parse_content(parser, patcher, opts, *parse_args):
-    if opts.quiet:
-        warn = None
-    else:
-        warn = emit_warning
+def parse_content(parser, patcher, *parse_args):
     nodes = parser.parse(*parse_args)
     if patcher:
         patcher(nodes)
     model.topological_sort(nodes)
-    model.cross_reference(nodes, warn = warn)
+    model.cross_reference(nodes, warn = Emit.warn)
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes)
     return nodes
@@ -104,12 +107,6 @@ def module_exists(module_name):
         return False
     else:
         return True
-
-def emit_warning(msg, location = 'prophyc'):
-    sys.stderr.write(location + ': warning: ' + msg + '\n')
-
-def emit_error(msg, location = 'prophyc'):
-    sys.exit(location + ': error: ' + msg)
 
 if __name__ == "__main__":
     main()

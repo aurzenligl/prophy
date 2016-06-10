@@ -74,4 +74,5 @@ def parse_options(emit_error):
     parser.add_argument('--quiet',
                         action = 'store_true',
                         help = 'Suppress warnings prints.')
+
     return parser.parse_args()

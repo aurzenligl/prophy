@@ -178,6 +178,23 @@ def test_isar_warnings(tmpdir_cwd):
     assert out == b""
     assert tr(err) == b"prophyc: warning: file include.xml not found\n"
 
+def test_quiet_warnings(tmpdir_cwd):
+    open("input.xml", "w").write("""
+<xml>
+    <system xmlns:xi="http://www.xyz.com/1984/XInclude">
+        <xi:include href="include.xml"/>
+    </system>
+</xml>
+""")
+
+    ret, out, err = call(["--isar",
+                          "--quiet",
+                          "--python_out", str(tmpdir_cwd),
+                          os.path.join(str(tmpdir_cwd), "input.xml")])
+    assert ret == 0
+    assert out == b""
+    assert tr(err) == b""
+
 def test_isar_with_includes(tmpdir_cwd):
     open("input.xml", "w").write("""
 <xml>
