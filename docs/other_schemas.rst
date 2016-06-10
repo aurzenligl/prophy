@@ -13,6 +13,9 @@ Patch file can have patch rules and blank lines.
 If message is not found, compilation is still successful.
 If message is found but rule does not apply, compilation fails.
 
+If one of rules changes name of node, all rules for original name
+still apply, but rules for new name do not apply.
+
 There are following patch rules:
 
 - ``<MESSAGE_NAME> type <FIELD_NAME> <NEW_TYPE>``
@@ -51,6 +54,18 @@ There are following patch rules:
   Field needs to be a fixed array to begin with. Limited array
   may have varying number of elements - up to limit - but it
   always has fixed size.
+
+- ``<MESSAGE_NAME> struct``
+
+  Changes union to struct with fields of respective types.
+
+- ``<NODE_NAME> rename <NODE_NAME>``
+
+  Changes node name.
+
+- ``<MESSAGE_NAME> rename <FIELD_NAME> <NEW_FIELD_NAME>``
+
+  Changes struct or union member name.
 
 .. _other_schemas_sack:
 
