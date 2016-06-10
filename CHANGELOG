@@ -1,3 +1,8 @@
+0.7.6.dev
+-----------------------------------
+- prophyc: quiet option to silence warnings
+- prophyc: patch extension by struct and rename
+
 0.7.6
 -----------------------------------
 - prophyc: ply parser tables concurrent filesystem access bug solved
