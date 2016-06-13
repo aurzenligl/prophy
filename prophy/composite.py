@@ -260,6 +260,44 @@ def field_to_string(name, type_, value):
     else:
         return "%s: %s\n" % (name, value)
 
+def field_to_list(prefix, name, type_, value):
+
+    if issubclass(type_, base_array):
+        array = []
+        for idx,elem in enumerate(value):
+            arr_idx = '{}.{}[{}]'.format(prefix,name,idx)
+            array += field_to_list(arr_idx, '', type_._TYPE, elem)
+        return array
+
+    elif issubclass(type_, (struct, union)):
+        prefix = fix_prefix(prefix,name)
+        return value.fields(prefix)
+    else:
+        field = fix_prefix(prefix,name)[1:]
+        return [field]
+
+def field_to_dict(prefix, name, type_, value):
+
+    if issubclass(type_, base_array):
+        array = {}
+        for idx,elem in enumerate(value):
+            arr_idx = '{}.{}[{}]'.format(prefix,name,idx)
+            array.update(field_to_dict(arr_idx, '', type_._TYPE, elem))
+        return array
+
+    elif issubclass(type_, (struct, union)):
+        prefix = fix_prefix(prefix,name)
+        return value.values(prefix)
+    else:
+        field = fix_prefix(prefix,name)[1:]
+        return dict([(field,value)])
+
+def fix_prefix(prefix,name):
+    if name:
+        return "{}.{}".format(prefix,name)
+    else:
+        return "{}".format(prefix)
+
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):
         raise TypeError("Parameter to copy_from must be instance of same class.")
@@ -293,6 +331,22 @@ class struct(object):
             value = getattr(self, name, None)
             if value is not None:
                 out += field_to_string(name, tp, value)
+        return out
+
+    def fields(self, prefix=''):
+        out = []
+        for name, tp, _, _ in self._descriptor:
+            value = getattr(self, name, None)
+            if value is not None:
+                    out += field_to_list(prefix, name, tp, value)
+        return out
+
+    def values(self, prefix=''):
+        out = {}
+        for name, tp, _, _ in self._descriptor:
+            value = getattr(self, name, None)
+            if value is not None:
+                    out.update(field_to_dict(prefix, name, tp, value))
         return out
 
     @staticmethod
@@ -464,6 +518,19 @@ class union(object):
         name, tp, _, _, _ = self._discriminated
         value = getattr(self, name)
         return field_to_string(name, tp, value)
+
+    def fields(self, prefix=''):
+        out = []
+        name, tp, _, _, _ = self._discriminated
+        value = getattr(self, name, None)
+        return field_to_list(prefix, name, tp, value)
+
+    def values(self, prefix=''):
+        out = {}
+        name, tp, _, _, _ = self._discriminated
+        value = getattr(self, name, None)
+        out.update(field_to_dict(prefix, name, tp, value))
+        return out
 
     def encode(self, endianness, terminal = True):
         name, tp, disc, encode_, _ = self._discriminated
