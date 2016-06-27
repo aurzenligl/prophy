@@ -4,6 +4,7 @@ from . import scalar
 from .exception import ProphyError
 from .base_array import base_array
 from _functools import partial
+from .kind import kind
 
 def validate(descriptor):
     if any(type_._UNLIMITED for _, type_ in descriptor[:-1]):
@@ -260,6 +261,21 @@ def field_to_string(name, type_, value):
     else:
         return "%s: %s\n" % (name, value)
 
+def get_kind(type_):
+    if issubclass(type_, base_array):
+        return kind.ARRAY
+    elif issubclass(type_, struct):
+        return kind.STRUCT
+    elif issubclass(type_, union):
+        return kind.UNION
+    elif issubclass(type_, bytes):
+        return kind.BYTES
+    elif issubclass(type_, scalar.enum):
+        return kind.ENUM
+    else:
+        return kind.INT
+
+
 def field_to_list(prefix, name, type_, value):
 
     if issubclass(type_, base_array):
@@ -333,21 +349,15 @@ class struct(object):
                 out += field_to_string(name, tp, value)
         return out
 
-    def fields(self, prefix=''):
-        out = []
-        for name, tp, _, _ in self._descriptor:
-            value = getattr(self, name, None)
-            if value is not None:
-                    out += field_to_list(prefix, name, tp, value)
-        return out
 
-    def values(self, prefix=''):
-        out = {}
-        for name, tp, _, _ in self._descriptor:
-            value = getattr(self, name, None)
-            if value is not None:
-                    out.update(field_to_dict(prefix, name, tp, value))
-        return out
+    @classmethod
+    def get_descriptor(cls):
+        descriptor = []
+        for name, tp, _, _ in cls._descriptor:
+            elem = Descriptor(name,tp,get_kind(tp))
+            descriptor.append(elem)
+        return descriptor
+
 
     @staticmethod
     def _get_padding(offset, alignment):
@@ -519,18 +529,18 @@ class union(object):
         value = getattr(self, name)
         return field_to_string(name, tp, value)
 
-    def fields(self, prefix=''):
-        out = []
-        name, tp, _, _, _ = self._discriminated
-        value = getattr(self, name, None)
-        return field_to_list(prefix, name, tp, value)
 
-    def values(self, prefix=''):
-        out = {}
-        name, tp, _, _, _ = self._discriminated
-        value = getattr(self, name, None)
-        out.update(field_to_dict(prefix, name, tp, value))
-        return out
+    def get_discriminated(self):
+        name, tp, _, _, _  =  self._discriminated
+        return Descriptor(name,tp,get_kind(tp))
+
+    @classmethod
+    def get_descriptor(cls):
+        descriptor = []
+        for name, tp, _, _, _ in cls._descriptor:
+            elem = Descriptor(name,tp,get_kind(tp))
+            descriptor.append(elem)
+        return descriptor
 
     def encode(self, endianness, terminal = True):
         name, tp, disc, encode_, _ = self._discriminated
@@ -584,3 +594,12 @@ class union_generator(type):
             extend_union_descriptor(cls, descriptor)
             add_union_properties(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)
+
+
+
+class Descriptor(object):
+
+    def __init__(self,name, type_, kind):
+            self.name = name
+            self.kind = kind
+            self.type_ = type_
