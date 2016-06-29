@@ -349,15 +349,13 @@ class struct(object):
                 out += field_to_string(name, tp, value)
         return out
 
-
     @classmethod
     def get_descriptor(cls):
         descriptor = []
         for name, tp, _, _ in cls._descriptor:
-            elem = Descriptor(name,tp,get_kind(tp))
+            elem = FieldDescriptor(name, tp, get_kind(tp))
             descriptor.append(elem)
         return descriptor
-
 
     @staticmethod
     def _get_padding(offset, alignment):
@@ -529,16 +527,15 @@ class union(object):
         value = getattr(self, name)
         return field_to_string(name, tp, value)
 
-
     def get_discriminated(self):
         name, tp, _, _, _  =  self._discriminated
-        return Descriptor(name,tp,get_kind(tp))
+        return FieldDescriptor(name, tp, get_kind(tp))
 
     @classmethod
     def get_descriptor(cls):
         descriptor = []
         for name, tp, _, _, _ in cls._descriptor:
-            elem = Descriptor(name,tp,get_kind(tp))
+            elem = FieldDescriptor(name, tp, get_kind(tp))
             descriptor.append(elem)
         return descriptor
 
@@ -595,11 +592,10 @@ class union_generator(type):
             add_union_properties(cls, descriptor)
         super(union_generator, cls).__init__(name, bases, attrs)
 
-
-
-class Descriptor(object):
-
-    def __init__(self,name, type_, kind):
-            self.name = name
-            self.kind = kind
-            self.type_ = type_
+class FieldDescriptor(object):
+    def __init__(self, name, type_, kind):
+        self.name = name
+        self.type = type_
+        self.kind = kind
+    def __repr__(self):
+        return ("<{}, {}, {}>".format(self.name, self.kind, self.type))
