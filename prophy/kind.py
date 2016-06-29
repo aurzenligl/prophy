@@ -1,16 +1,7 @@
-class Constant(type):
-
-    def __setattr__(self, name, value):
-        raise ValueError("Cannot assign to a constant.")
-
-
 class kind(type):
-
-    __metaclass__ = Constant
-
-    INT      = 0
-    ENUM     = 1
-    BYTES    = 2
-    ARRAY    = 3
-    STRUCT   = 4
-    UNION    = 5
+    INT      = ('INT',   0)
+    ENUM     = ('ENUM',  1)
+    BYTES    = ('BYTES', 2)
+    ARRAY    = ('ARRAY', 3)
+    STRUCT   = ('STRUCT',4)
+    UNION    = ('UNION', 5)

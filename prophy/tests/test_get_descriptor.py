@@ -41,67 +41,39 @@ def ComplicatedStruct(NestedStruct, Struct, Union):
                        ("d", prophy.array(Union, size = 2))]
     return ComplicatedStruct
 
+def desc_to_tuples(desc):
+    return [(fdesc.name, fdesc.kind, fdesc.type) for fdesc in desc]
 
+def disc_to_tuple(unionObj, disc):
+    unionObj.discriminator = disc
+    fields = unionObj.get_discriminated()
+    return (fields.name, fields.kind, fields.type)
 
-def test_kind_constant():
+def test_struct_type_get_descriptor(DeeplyNestedStruct, NestedStruct, Struct):
+    assert desc_to_tuples(DeeplyNestedStruct.get_descriptor()) == [
+        ('m', prophy.kind.STRUCT, NestedStruct),
+        ('n', prophy.kind.STRUCT, Struct),
+        ('o', prophy.kind.INT, prophy.u32)
+    ]
 
-    with pytest.raises(ValueError) as e:
-        prophy.kind.kind.STRUCT = 10
-    assert "Cannot assign to a constant." == str(e.value)
+def test_struct_instance_get_descriptor(DeeplyNestedStruct, NestedStruct, Struct):
+    assert desc_to_tuples(DeeplyNestedStruct().get_descriptor()) == [
+        ('m', prophy.kind.STRUCT, NestedStruct),
+        ('n', prophy.kind.STRUCT, Struct),
+        ('o', prophy.kind.INT, prophy.u32)
+    ]
 
+def test_union_type_get_descriptor(Union, Struct):
+    assert desc_to_tuples(Union.get_descriptor()) == [
+        ('a', prophy.kind.INT, prophy.u16),
+        ('b', prophy.kind.INT, prophy.u32),
+        ('c', prophy.kind.STRUCT, Struct)
+    ]
 
-def test_struct_instance_get_descriptor(DeeplyNestedStruct,NestedStruct,Struct):
-
-  fields = DeeplyNestedStruct().get_descriptor()
-
-  ref = [['m', prophy.kind.kind.STRUCT, NestedStruct],
-         ['n', prophy.kind.kind.STRUCT, Struct],
-         ['o', prophy.kind.kind.INT, prophy.u32]]
-
-  for idx,f in enumerate(fields):
-    assert f.name == ref[idx][0]
-    assert f.kind == ref[idx][1]
-    assert f.type_ == ref[idx][2]
-
-def test_struct_type_get_descriptor(DeeplyNestedStruct,NestedStruct,Struct):
-
-  fields = DeeplyNestedStruct.get_descriptor()
-
-  ref = [['m', prophy.kind.kind.STRUCT, NestedStruct],
-         ['n', prophy.kind.kind.STRUCT, Struct],
-         ['o', prophy.kind.kind.INT, prophy.u32]]
-
-  for idx,f in enumerate(fields):
-    assert f.name == ref[idx][0]
-    assert f.kind == ref[idx][1]
-    assert f.type_ == ref[idx][2]
-
-
-def test_union_instance_get_discriminated(Union,Struct):
-
-  x = Union()
-
-  ref = [['a', prophy.kind.kind.INT, prophy.u16],
-         ['b', prophy.kind.kind.INT, prophy.u32],
-         ['c', prophy.kind.kind.STRUCT, Struct]]
-
-  for disc in range(3):
-    x.discriminator = disc
-    field = x.get_discriminated()
-    assert field.name  == ref[disc][0]
-    assert field.kind  == ref[disc][1]
-    assert field.type_ == ref[disc][2]
-
-
-def test_union_type_get_descriptor(Union,Struct):
-
-  fields = Union.get_descriptor()
-
-  ref = [['a', prophy.kind.kind.INT, prophy.u16],
-         ['b', prophy.kind.kind.INT, prophy.u32],
-         ['c', prophy.kind.kind.STRUCT, Struct]]
-
-  for idx,f in enumerate(fields):
-    assert f.name   == ref[idx][0]
-    assert f.kind   == ref[idx][1]
-    assert f.type_  == ref[idx][2]
+def test_union_instance_get_discriminated(Union, Struct):
+    x = Union()
+    assert [disc_to_tuple(x,disc) for disc in range(3)] == [
+        ('a', prophy.kind.INT, prophy.u16),
+        ('b', prophy.kind.INT, prophy.u32),
+        ('c', prophy.kind.STRUCT, Struct)
+    ]
