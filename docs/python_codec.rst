@@ -168,6 +168,48 @@ Union arm is chosen by setting discriminator with arm number or name::
     >>> x.discriminator = 'b'
     >>> x.b.a = 42
 
+Introspection
+----------------
+
+Struct and union can be introspected by ``get_descriptor`` and ``get_discriminated`` methods::
+
+    struct Struct
+    {
+        u32 a;
+        u8 b[4];
+    };
+
+    union Union
+    {
+        0: u32 a;
+        1: u16 b;
+    };
+
+::
+
+    >>> import test
+    >>> test.Struct.get_descriptor()
+    [<a, ('INT', 0), <class 'prophy.scalar.u32'>>, <b, ('ARRAY', 3), <class 'prophy.container._array'>>]
+    >>> test.Struct().get_descriptor()
+    [<a, ('INT', 0), <class 'prophy.scalar.u32'>>, <b, ('ARRAY', 3), <class 'prophy.container._array'>>]
+    >>> test.Union.get_descriptor()
+    [<a, ('INT', 0), <class 'prophy.scalar.u32'>>, <b, ('INT', 0), <class 'prophy.scalar.u16'>>]
+    >>> test.Union().get_descriptor()
+    [<a, ('INT', 0), <class 'prophy.scalar.u32'>>, <b, ('INT', 0), <class 'prophy.scalar.u16'>>]
+    >>> test.Union().get_discriminated()
+    <a, ('INT', 0), <class 'prophy.scalar.u32'>>
+
+    >>> field_desc = test.Struct.get_descriptor()[0]
+    >>> field_desc.name
+    'a'
+    >>> field_desc.kind
+    ('INT', 0)
+    >>> field_desc.type
+    <class 'prophy.scalar.u32'>
+    >>> import prophy
+    >>> field_desc.kind == prophy.kind.INT
+    True
+
 Packed mode
 ----------------
 
