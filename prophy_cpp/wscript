@@ -4,7 +4,7 @@ from waflib.Task import Task
 from waflib.Tools import waf_unit_test
 
 APPNAME = 'prophy-cpp'
-VERSION = '0.7.6.dev'
+VERSION = '0.7.7'
 
 def options(ctx):
     ctx.load('compiler_cxx python waf_unit_test')
