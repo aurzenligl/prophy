@@ -58,7 +58,9 @@ def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
 def generate_constant_definition(node):
-    return 'enum {{ {} = {}{} }};\n'.format(node.name, node.value, int(node.value) > 0 and 'u' or '')
+    return 'enum {{ {} = {}{} }};\n'.format(
+        node.name, node.value, int(node.value, 0) > 0 and 'u' or ''
+    )
 
 def generate_enum_definition(node):
     body = ',\n'.join('    {0} = {1}'.format(m.name, m.value) for m in node.members) + '\n'
