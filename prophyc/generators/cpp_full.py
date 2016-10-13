@@ -58,7 +58,12 @@ def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
 def generate_constant_definition(node):
-    return 'enum {{ {0} = {1} }};\n'.format(node.name, node.value)
+    try:
+        value = '{}{}'.format(node.value, int(node.value, 0) > 0 and 'u' or '')
+    except ValueError:
+        value = node.value
+
+    return 'enum {{ {} = {} }};\n'.format(node.name, value)
 
 def generate_enum_definition(node):
     body = ',\n'.join('    {0} = {1}'.format(m.name, m.value) for m in node.members) + '\n'
@@ -166,7 +171,7 @@ def generate_struct_implementation(node):
     return (
         encode_impl(node) + '\n'
         + decode_impl(node) + '\n'
-        + print_impl(node)        
+        + print_impl(node)
     )
 
 def generate_union_implementation(node):

@@ -536,7 +536,7 @@ namespace generated
 
 typedef int16_t TP;
 
-enum { MAX = 4 };
+enum { MAX = 4u };
 
 struct X : public prophy::detail::message<X>
 {
