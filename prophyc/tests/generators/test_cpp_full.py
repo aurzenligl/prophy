@@ -64,7 +64,7 @@ def test_generate_include_definition(Include):
 
 def test_generate_constant_definition(Constant):
     assert generate_constant_definition(Constant[0]) == """\
-enum { CONSTANT = 3 };
+enum { CONSTANT = 3u };
 """
 
 def test_generate_enum_definition(Enum):

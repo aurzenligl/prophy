@@ -44,7 +44,7 @@ def test_definitions_constants():
 
     assert generate_definitions(nodes) == """\
 enum { CONST_A = 0 };
-enum { CONST_B = 31 };
+enum { CONST_B = 31u };
 """
 
 def test_definitions_typedefs():

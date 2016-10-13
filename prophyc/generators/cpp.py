@@ -24,7 +24,7 @@ def _generate_def_include(include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
 def _generate_def_constant(constant):
-    return 'enum {{ {} = {} }};'.format(constant.name, constant.value)
+    return 'enum {{ {} = {}{} }};'.format(constant.name, constant.value, int(constant.value) > 0 and 'u' or '')
 
 def _generate_def_typedef(typedef):
     tp = primitive_types.get(typedef.type_, typedef.type_)
