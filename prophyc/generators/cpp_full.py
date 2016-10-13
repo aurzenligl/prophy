@@ -54,19 +54,20 @@ def _get_cpp_builtin_type(node):
     """Gets C++ float or int type from stdint.h, or throws miserably."""
     return BUILTIN2C[_get_leaf(node).type_]
 
+def _to_literal(value):
+    try:
+        return '{}{}'.format(value, int(value, 0) > 0 and 'u' or '')
+    except ValueError:
+        return value
+
 def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
 def generate_constant_definition(node):
-    try:
-        value = '{}{}'.format(node.value, int(node.value, 0) > 0 and 'u' or '')
-    except ValueError:
-        value = node.value
-
-    return 'enum {{ {} = {} }};\n'.format(node.name, value)
+    return 'enum {{ {} = {} }};\n'.format(node.name, _to_literal(node.value))
 
 def generate_enum_definition(node):
-    body = ',\n'.join('    {0} = {1}'.format(m.name, m.value) for m in node.members) + '\n'
+    body = ',\n'.join('    {0} = {1}'.format(m.name, _to_literal(m.value)) for m in node.members) + '\n'
     return 'enum {0}\n'.format(node.name) + '{\n' + body + '};\n'
 
 def generate_typedef_definition(node):

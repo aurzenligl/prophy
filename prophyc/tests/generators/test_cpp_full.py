@@ -17,7 +17,8 @@ def Include():
 @pytest.fixture(scope = 'session')
 def Constant():
     return process([
-        model.Constant('CONSTANT', '3')
+        model.Constant('CONSTANT', '3'),
+        model.Constant('CONSTANT_WITH_IDENTIFIER', 'xyz')
     ])
 
 @pytest.fixture(scope = 'session')
@@ -25,7 +26,9 @@ def Enum():
     return process([
         model.Enum('Enum', [
             model.EnumMember('Enum_One', '1'),
-            model.EnumMember('Enum_Two', '2')
+            model.EnumMember('Enum_Two', '0x2'),
+            model.EnumMember('Enum_Three', '0o3'),
+            model.EnumMember('Enum_Four', '-4')
         ])
     ])
 
@@ -66,13 +69,18 @@ def test_generate_constant_definition(Constant):
     assert generate_constant_definition(Constant[0]) == """\
 enum { CONSTANT = 3u };
 """
+    assert generate_constant_definition(Constant[1]) == """\
+enum { CONSTANT_WITH_IDENTIFIER = xyz };
+"""
 
 def test_generate_enum_definition(Enum):
     assert generate_enum_definition(Enum[0]) == """\
 enum Enum
 {
-    Enum_One = 1,
-    Enum_Two = 2
+    Enum_One = 1u,
+    Enum_Two = 0x2u,
+    Enum_Three = 0o3u,
+    Enum_Four = -4
 };
 """
 
@@ -153,6 +161,8 @@ const char* print_traits<Enum>::to_literal(Enum x)
     {
         case Enum_One: return "Enum_One";
         case Enum_Two: return "Enum_Two";
+        case Enum_Three: return "Enum_Three";
+        case Enum_Four: return "Enum_Four";
         default: return 0;
     }
 }

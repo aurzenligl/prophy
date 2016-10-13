@@ -20,23 +20,24 @@ def _indent(string_, spaces):
     indentation = spaces * ' '
     return '\n'.join(indentation + x if x else x for x in string_.split('\n'))
 
+def _to_literal(value):
+    try:
+        return '{}{}'.format(value, int(value, 0) > 0 and 'u' or '')
+    except ValueError:
+        return value
+
 def _generate_def_include(include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
 def _generate_def_constant(constant):
-    try:
-        value = '{}{}'.format(constant.value, int(constant.value, 0) > 0 and 'u' or '')
-    except ValueError:
-        value = constant.value
-
-    return 'enum {{ {} = {} }};'.format(constant.name, value)
+    return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
 
 def _generate_def_typedef(typedef):
     tp = primitive_types.get(typedef.type_, typedef.type_)
     return 'typedef {} {};'.format(tp, typedef.name)
 
 def _generate_def_enum(enum):
-    members = ',\n'.join('{} = {}'.format(member.name, member.value)
+    members = ',\n'.join('{} = {}'.format(member.name, _to_literal(member.value))
                          for member in enum.members)
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 

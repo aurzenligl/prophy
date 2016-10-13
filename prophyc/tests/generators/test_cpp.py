@@ -40,11 +40,15 @@ def test_definitions_includes():
 
 def test_definitions_constants():
     nodes = [model.Constant("CONST_A", "0"),
-             model.Constant("CONST_B", "31")]
+             model.Constant("CONST_B", "31"),
+             model.Constant("CONST_B", "0x123"),
+             model.Constant("CONST_B", "0o741")]
 
     assert generate_definitions(nodes) == """\
 enum { CONST_A = 0 };
 enum { CONST_B = 31u };
+enum { CONST_B = 0x123u };
+enum { CONST_B = 0o741u };
 """
 
 def test_definitions_typedefs():
@@ -59,14 +63,16 @@ typedef uint8_t c;
 def test_definitions_enums():
     nodes = [model.Enum("EEnum", [model.EnumMember("EEnum_A", "0"),
                                   model.EnumMember("EEnum_B", "1"),
-                                  model.EnumMember("EEnum_C", "2")])]
+                                  model.EnumMember("EEnum_C", "2"),
+                                  model.EnumMember("EEnum_D", "abc")])]
 
     assert generate_definitions(nodes) == """\
 enum EEnum
 {
     EEnum_A = 0,
-    EEnum_B = 1,
-    EEnum_C = 2
+    EEnum_B = 1u,
+    EEnum_C = 2u,
+    EEnum_D = abc
 };
 """
 
