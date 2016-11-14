@@ -1,6 +1,7 @@
 import os
 
 from prophyc import model
+from prophyc.model import GenerateError
 
 primitive_types = {
     'u8': 'uint8_t',
@@ -256,6 +257,11 @@ swap_footer = """\
 } // namespace prophy
 """
 
+def _check_nodes(nodes):
+    for n in nodes:
+        if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
+            raise GenerateError('{0} byte size unknown'.format(n.name))
+
 class CppGenerator(object):
 
     def __init__(self, output_dir = "."):
@@ -306,6 +312,7 @@ class CppGenerator(object):
         ))
 
     def serialize(self, nodes, basename):
+        _check_nodes(nodes)
         hpp_path = os.path.join(self.output_dir, basename + ".pp.hpp")
         cpp_path = os.path.join(self.output_dir, basename + ".pp.cpp")
         open(hpp_path, "w").write(self.serialize_string_hpp(nodes, basename))

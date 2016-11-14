@@ -1,36 +1,35 @@
+import pytest
 from prophyc import model
-from prophyc.generators.cpp import CppGenerator
+from prophyc.generators.cpp import CppGenerator, _check_nodes, GenerateError
 
 def process(nodes):
     model.cross_reference(nodes)
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes)
+    _check_nodes(nodes)
     return nodes
 
 def generate_definitions(nodes):
-    process(nodes)
     return CppGenerator().generate_definitions(nodes)
 
 def generate_swap_declarations(nodes):
-    process(nodes)
     return CppGenerator().generate_swap_declarations(nodes)
 
 def generate_swap(nodes):
-    process(nodes)
     return CppGenerator().generate_swap(nodes)
 
 def generate_hpp(nodes, basename):
-    process(nodes)
     return CppGenerator().serialize_string_hpp(nodes, basename)
 
 def generate_cpp(nodes, basename):
-    process(nodes)
     return CppGenerator().serialize_string_cpp(nodes, basename)
 
 def test_definitions_includes():
-    nodes = [model.Include("szydlo", []),
-             model.Include("mydlo", []),
-             model.Include("powidlo", [])]
+    nodes = process([
+        model.Include("szydlo", []),
+        model.Include("mydlo", []),
+        model.Include("powidlo", [])
+    ])
 
     assert generate_definitions(nodes) == """\
 #include "szydlo.pp.hpp"
@@ -39,10 +38,12 @@ def test_definitions_includes():
 """
 
 def test_definitions_constants():
-    nodes = [model.Constant("CONST_A", "0"),
-             model.Constant("CONST_B", "31"),
-             model.Constant("CONST_B", "0x123"),
-             model.Constant("CONST_B", "0o741")]
+    nodes = process([
+        model.Constant("CONST_A", "0"),
+        model.Constant("CONST_B", "31"),
+        model.Constant("CONST_B", "0x123"),
+        model.Constant("CONST_B", "0o741")
+    ])
 
     assert generate_definitions(nodes) == """\
 enum { CONST_A = 0 };
@@ -52,8 +53,10 @@ enum { CONST_B = 0o741u };
 """
 
 def test_definitions_typedefs():
-    nodes = [model.Typedef("a", "b"),
-             model.Typedef("c", "u8"),]
+    nodes = process([
+        model.Typedef("a", "b"),
+        model.Typedef("c", "u8")
+    ])
 
     assert generate_definitions(nodes) == """\
 typedef b a;
@@ -61,10 +64,12 @@ typedef uint8_t c;
 """
 
 def test_definitions_enums():
-    nodes = [model.Enum("EEnum", [model.EnumMember("EEnum_A", "0"),
-                                  model.EnumMember("EEnum_B", "1"),
-                                  model.EnumMember("EEnum_C", "2"),
-                                  model.EnumMember("EEnum_D", "abc")])]
+    nodes = process([
+        model.Enum("EEnum", [model.EnumMember("EEnum_A", "0"),
+        model.EnumMember("EEnum_B", "1"),
+        model.EnumMember("EEnum_C", "2"),
+        model.EnumMember("EEnum_D", "abc")])
+    ])
 
     assert generate_definitions(nodes) == """\
 enum EEnum
@@ -77,12 +82,17 @@ enum EEnum
 """
 
 def test_definitions_struct():
-    nodes = [model.Struct("Struct", [(model.StructMember("a", "u8")),
-                                     (model.StructMember("b", "i64")),
-                                     (model.StructMember("c", "r32")),
-                                     (model.StructMember("d", "TTypeX"))])]
+    nodes = process([
+        model.Typedef('TTypeX', 'u32'),
+        model.Struct("Struct", [
+            (model.StructMember("a", "u8")),
+            (model.StructMember("b", "i64")),
+            (model.StructMember("c", "r32")),
+            (model.StructMember("d", "TTypeX"))
+        ])
+    ])
 
-    assert generate_definitions(nodes) == """\
+    assert generate_definitions(nodes[-1:]) == """\
 struct Struct
 {
     uint8_t a;
@@ -93,10 +103,15 @@ struct Struct
 """
 
 def test_definitions_struct_with_dynamic_array():
-    nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems"),
-                                     model.StructMember("a", "u8", bound = "tmpName")])]
+    nodes = process([
+        model.Typedef('TNumberOfItems', 'u32'),
+        model.Struct("Struct", [
+            model.StructMember("tmpName", "TNumberOfItems"),
+            model.StructMember("a", "u8", bound = "tmpName")
+        ])
+    ])
 
-    assert generate_definitions(nodes) == """\
+    assert generate_definitions(nodes[-1:]) == """\
 struct Struct
 {
     TNumberOfItems tmpName;
@@ -105,9 +120,12 @@ struct Struct
 """
 
 def test_definitions_struct_with_fixed_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", size = "NUM_OF_ARRAY_ELEMS")])]
+    nodes = process([
+        model.Constant("NUM_OF_ARRAY_ELEMS", "3"),
+        model.Struct("Struct", [model.StructMember("a", "u8", size = "NUM_OF_ARRAY_ELEMS")])
+    ])
 
-    assert generate_definitions(nodes) == """\
+    assert generate_definitions(nodes[-1:]) == """\
 struct Struct
 {
     uint8_t a[NUM_OF_ARRAY_ELEMS];
@@ -115,10 +133,15 @@ struct Struct
 """
 
 def test_definitions_struct_with_limited_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8"),
-                                     model.StructMember("a", "u8", bound = "a_len", size = "NUM_OF_ARRAY_ELEMS")])]
+    nodes = process([
+        model.Constant('NUM_OF_ARRAY_ELEMS', '1'),
+        model.Struct("Struct", [
+            model.StructMember("a_len", "u8"),
+            model.StructMember("a", "u8", bound = "a_len", size = "NUM_OF_ARRAY_ELEMS")
+        ])
+    ])
 
-    assert generate_definitions(nodes) == """\
+    assert generate_definitions(nodes[-1:]) == """\
 struct Struct
 {
     uint8_t a_len;
@@ -127,10 +150,14 @@ struct Struct
 """
 
 def test_definitions_struct_with_ext_sized_array():
-    nodes = [model.Struct("Struct", [model.StructMember("count", "u8"),
-                                     model.StructMember("a", "u8", bound = "count"),
-                                     model.StructMember("b", "u8", bound = "count"),
-                                     model.StructMember("c", "u8", bound = "count")])]
+    nodes = process([
+        model.Struct("Struct", [
+            model.StructMember("count", "u8"),
+            model.StructMember("a", "u8", bound = "count"),
+            model.StructMember("b", "u8", bound = "count"),
+            model.StructMember("c", "u8", bound = "count")
+        ])
+    ])
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -151,7 +178,9 @@ struct Struct
 """
 
 def test_definitions_struct_with_byte():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "byte")])]
+    nodes = process([
+        model.Struct("Struct", [model.StructMember("a", "byte")])
+    ])
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -161,7 +190,9 @@ struct Struct
 """
 
 def test_definitions_struct_with_byte_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", unlimited = True)])]
+    nodes = process([
+        model.Struct("Struct", [model.StructMember("a", "byte", unlimited = True)])
+    ])
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -171,7 +202,7 @@ struct Struct
 """
 
 def test_definitions_struct_many_arrays():
-    nodes = [
+    nodes = process([
         model.Struct("ManyArrays", [
             model.StructMember("num_of_a", "u8"),
             model.StructMember("a", "u8", bound = "num_of_a"),
@@ -180,7 +211,7 @@ def test_definitions_struct_many_arrays():
             model.StructMember("num_of_c", "u8"),
             model.StructMember("c", "u8", bound = "num_of_c")
         ])
-    ]
+    ])
 
     assert generate_definitions(nodes) == """\
 struct ManyArrays
@@ -203,14 +234,14 @@ struct ManyArrays
 """
 
 def test_definitions_struct_many_arrays_mixed():
-    nodes = [
+    nodes = process([
         model.Struct("ManyArraysMixed", [
             model.StructMember("num_of_a", "u8"),
             model.StructMember("num_of_b", "u8"),
             model.StructMember("a", "u8", bound = "num_of_a"),
             model.StructMember("b", "u8", bound = "num_of_b")
         ])
-    ]
+    ])
 
     assert generate_definitions(nodes) == """\
 struct ManyArraysMixed
@@ -227,14 +258,14 @@ struct ManyArraysMixed
 """
 
 def test_definitions_struct_many_arrays_bounded_by_the_same_member():
-    nodes = [
+    nodes = process([
         model.Struct("ManyArraysBoundedByTheSame", [
             model.StructMember("num_of_elements", "u8"),
             model.StructMember("dummy", "u8"),
             model.StructMember("a", "u8", bound = "num_of_elements"),
             model.StructMember("b", "u8", bound = "num_of_elements")
         ])
-    ]
+    ])
 
     assert generate_definitions(nodes) == """\
 struct ManyArraysBoundedByTheSame
@@ -251,7 +282,7 @@ struct ManyArraysBoundedByTheSame
 """
 
 def test_definitions_struct_with_dynamic_fields():
-    nodes = [
+    nodes = process([
         model.Struct("Dynamic", [
             model.StructMember("num_of_a", "u8"),
             model.StructMember("a", "u8", bound = "num_of_a")
@@ -261,7 +292,7 @@ def test_definitions_struct_with_dynamic_fields():
             model.StructMember("b", "Dynamic"),
             model.StructMember("c", "u8")
         ])
-    ]
+    ])
 
     assert generate_definitions(nodes) == """\
 struct Dynamic
@@ -283,11 +314,11 @@ struct X
 """
 
 def test_definitions_struct_with_optional_field():
-    nodes = [
+    nodes = process([
         model.Struct("Struct", [
             (model.StructMember("a", "u8", optional = True))
         ])
-    ]
+    ])
 
     assert generate_definitions(nodes) == """\
 struct Struct
@@ -298,15 +329,18 @@ struct Struct
 """
 
 def test_definitions_union():
-    nodes = [
+    nodes = process([
+        model.Struct("Composite", [
+            (model.StructMember("x", "u32"))
+        ]),
         model.Union("Union", [
             (model.UnionMember("a", "u8", 1)),
             (model.UnionMember("b", "u64", 2)),
             (model.UnionMember("c", "Composite", 3))
         ])
-    ]
+    ])
 
-    assert generate_definitions(nodes) == """\
+    assert generate_definitions(nodes[-1:]) == """\
 struct Union
 {
     enum _discriminator
@@ -326,16 +360,18 @@ struct Union
 """
 
 def test_definitions_newlines():
-    nodes = [model.Typedef("a", "b"),
-             model.Typedef("c", "d"),
-             model.Enum("E1", [model.EnumMember("E1_A", "0")]),
-             model.Enum("E2", [model.EnumMember("E2_A", "0")]),
-             model.Constant("CONST_A", "0"),
-             model.Typedef("e", "f"),
-             model.Constant("CONST_B", "0"),
-             model.Constant("CONST_C", "0"),
-             model.Struct("A", [model.StructMember("a", "u32")]),
-             model.Struct("B", [model.StructMember("b", "u32")])]
+    nodes = process([
+        model.Typedef("a", "b"),
+        model.Typedef("c", "d"),
+        model.Enum("E1", [model.EnumMember("E1_A", "0")]),
+        model.Enum("E2", [model.EnumMember("E2_A", "0")]),
+        model.Constant("CONST_A", "0"),
+        model.Typedef("e", "f"),
+        model.Constant("CONST_B", "0"),
+        model.Constant("CONST_C", "0"),
+        model.Struct("A", [model.StructMember("a", "u32")]),
+        model.Struct("B", [model.StructMember("b", "u32")])
+    ])
 
     assert generate_definitions(nodes) == """\
 typedef b a;
@@ -370,9 +406,9 @@ struct B
 """
 
 def test_swap_empty_struct():
-    nodes = [
+    nodes = process([
         model.Struct("X", [])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -383,11 +419,11 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_fixed_element():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("a", "u8"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -399,14 +435,15 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_optional_element():
-    nodes = [
+    nodes = process([
+        model.Typedef('Y', 'u32'),
         model.Struct("X", [
             (model.StructMember("x", "u32", optional = True)),
             (model.StructMember("y", "Y", optional = True))
         ])
-    ]
+    ])
 
-    assert generate_swap(nodes) == """\
+    assert generate_swap(nodes[-1:]) == """\
 template <>
 X* swap<X>(X* payload)
 {
@@ -419,15 +456,16 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_union():
-    nodes = [
+    nodes = process([
+        model.Typedef('C', 'u32'),
         model.Union("X", [
             (model.UnionMember("a", "u8", 1)),
             (model.UnionMember("b", "u64", 2)),
             (model.UnionMember("c", "C", 3))
         ])
-    ]
+    ])
 
-    assert generate_swap(nodes) == """\
+    assert generate_swap(nodes[-1:]) == """\
 template <>
 X* swap<X>(X* payload)
 {
@@ -444,11 +482,11 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_fixed_array_of_fixed_elements():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("x", "u16", size = 5))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -460,14 +498,15 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_limited_array_of_fixed_elements():
-    nodes = [
+    nodes = process([
+        model.Typedef('Y', 'u32'),
         model.Struct("X", [
             (model.StructMember("num_of_x", "u16")),
             (model.StructMember("x", "Y", bound = "num_of_x", size = 3))
         ])
-    ]
+    ])
 
-    assert generate_swap(nodes) == """\
+    assert generate_swap(nodes[-1:]) == """\
 template <>
 X* swap<X>(X* payload)
 {
@@ -478,12 +517,12 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_dynamic_array_of_fixed_elements():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("x", "u16", bound = "num_of_x"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -495,13 +534,13 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_ext_sized_array_of_fixed_elements():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("szr", "u32")),
             (model.StructMember("x", "u16", bound = "szr")),
             (model.StructMember("y", "u16", bound = "szr"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 inline X::part2* swap(X::part2* payload, size_t szr)
@@ -519,7 +558,9 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_greedy_array():
-    nodes = [
+    nodes = process([
+        model.Typedef('X', 'u32'),
+        model.Typedef('Y', 'u32'),
         model.Struct("X", [
             (model.StructMember("x", "u8")),
             (model.StructMember("y", "Y", unlimited = True))
@@ -527,7 +568,7 @@ def test_swap_struct_with_greedy_array():
         model.Struct("Z", [
             (model.StructMember("z", "X"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -545,14 +586,14 @@ Z* swap<Z>(Z* payload)
 """
 
 def test_swap_enum_in_struct():
-    nodes = [
+    nodes = process([
         model.Enum("E1", [
             model.EnumMember("E1_A", "0")
         ]),
         model.Struct("X", [
             (model.StructMember("x", "E1"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -564,7 +605,7 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_enum_in_arrays():
-    nodes = [
+    nodes = process([
         model.Enum("E1", [
             model.EnumMember("E1_A", "0")
         ]),
@@ -575,7 +616,7 @@ def test_swap_enum_in_arrays():
             (model.StructMember("num_of_c", "u32")),
             (model.StructMember("c", "E1", bound = "num_of_c"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -590,14 +631,14 @@ EnumArrays* swap<EnumArrays>(EnumArrays* payload)
 """
 
 def test_swap_enum_in_greedy_array():
-    nodes = [
+    nodes = process([
         model.Enum("E1", [
             model.EnumMember("E1_A", "0")
         ]),
         model.Struct("EnumGreedyArray", [
             (model.StructMember("x", "E1", unlimited = True))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -608,14 +649,14 @@ EnumGreedyArray* swap<EnumGreedyArray>(EnumGreedyArray* payload)
 """
 
 def test_swap_enum_in_union():
-    nodes = [
+    nodes = process([
         model.Enum("E1", [
             model.EnumMember("E1_A", "0")
         ]),
         model.Union("EnumUnion", [
             (model.UnionMember("x", "E1", 1)),
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -632,7 +673,7 @@ EnumUnion* swap<EnumUnion>(EnumUnion* payload)
 """
 
 def test_swap_struct_with_dynamic_element():
-    nodes = [
+    nodes = process([
         model.Struct("Dynamic", [
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("x", "u16", bound = "num_of_x"))
@@ -640,7 +681,7 @@ def test_swap_struct_with_dynamic_element():
         model.Struct("X", [
             (model.StructMember("a", "Dynamic"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -658,7 +699,7 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_dynamic_array_of_dynamic_elements():
-    nodes = [
+    nodes = process([
         model.Struct("Y", [
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("x", "u16", bound = "num_of_x"))
@@ -667,7 +708,7 @@ def test_swap_struct_with_dynamic_array_of_dynamic_elements():
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("x", "Y", bound = "num_of_x"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -686,7 +727,7 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_arrays():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("x", "u32", bound = "num_of_x")),
@@ -695,7 +736,7 @@ def test_swap_struct_with_many_arrays():
             (model.StructMember("num_of_z", "u32")),
             (model.StructMember("z", "u32", bound = "num_of_z"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 inline X::part2* swap(X::part2* payload)
@@ -721,14 +762,14 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_arrays_bounded_by_the_same_member():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_elements", "u32")),
             (model.StructMember("dummy", "u32")),
             (model.StructMember("x", "u32", bound = "num_of_elements")),
             (model.StructMember("y", "u32", bound = "num_of_elements"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 inline X::part2* swap(X::part2* payload, size_t num_of_elements)
@@ -747,14 +788,14 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_arrays_passing_numbering_fields():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("num_of_y", "u32")),
             (model.StructMember("x", "u32", bound = "num_of_x")),
             (model.StructMember("y", "u32", bound = "num_of_y"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 inline X::part2* swap(X::part2* payload, size_t num_of_y)
@@ -773,7 +814,7 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_arrays_passing_numbering_fields_heavily():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_a", "u32")),
             (model.StructMember("num_of_b", "u32")),
@@ -782,7 +823,7 @@ def test_swap_struct_with_many_arrays_passing_numbering_fields_heavily():
             (model.StructMember("c", "u16", bound = "num_of_c")),
             (model.StructMember("a", "u16", bound = "num_of_a"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 inline X::part2* swap(X::part2* payload)
@@ -808,14 +849,14 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_dynamic_field_and_tail_fixed():
-    nodes = [
+    nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u8")),
             (model.StructMember("x", "u8", bound = "num_of_x")),
             (model.StructMember("y", "u32")),
             (model.StructMember("z", "u64"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 inline X::part2* swap(X::part2* payload)
@@ -835,7 +876,7 @@ X* swap<X>(X* payload)
 """
 
 def test_swap_struct_with_many_dynamic_fields():
-    nodes = [
+    nodes = process([
         model.Struct("Y", [
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("x", "u16", bound = "num_of_x"))
@@ -845,7 +886,7 @@ def test_swap_struct_with_many_dynamic_fields():
             (model.StructMember("y", "Y")),
             (model.StructMember("z", "Y"))
         ])
-    ]
+    ])
 
     assert generate_swap(nodes) == """\
 template <>
@@ -875,7 +916,7 @@ X* swap<X>(X* payload)
 """
 
 def test_generate_swap_declarations():
-    nodes = [
+    nodes = process([
         model.Struct("A", [
             (model.StructMember("x", "u32")),
         ]),
@@ -885,7 +926,7 @@ def test_generate_swap_declarations():
         model.Enum("C", [
             model.EnumMember("E1_A", "0")
         ])
-    ]
+    ])
 
     assert generate_swap_declarations(nodes) == """\
 namespace prophy
@@ -930,11 +971,11 @@ namespace prophy
 """
 
 def test_generate_file():
-    nodes = [
+    nodes = process([
         model.Struct("Struct", [
             (model.StructMember("a", "u8"))
         ])
-    ]
+    ])
 
     assert generate_hpp(nodes, "TestFile") == """\
 #ifndef _PROPHY_GENERATED_TestFile_HPP
@@ -976,3 +1017,14 @@ Struct* swap<Struct>(Struct* payload)
 
 } // namespace prophy
 """
+
+def test_struct_size_error():
+    nodes = [
+        model.Struct('X', [
+            model.StructMember('x', 'Unknown')
+        ])
+    ]
+
+    with pytest.raises(GenerateError) as e:
+        _check_nodes(nodes)
+    assert "X byte size unknown" == str(e.value)
