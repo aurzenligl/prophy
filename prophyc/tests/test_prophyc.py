@@ -401,6 +401,8 @@ struct U
         discriminator_y = 2
     } discriminator;
 
+    uint32_t _padding0; /// manual padding to ensure natural alignment layout
+
     union
     {
         X x;

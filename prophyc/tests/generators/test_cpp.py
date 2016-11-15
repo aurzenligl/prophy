@@ -391,17 +391,35 @@ struct X
 def test_definitions_union():
     nodes = process([
         model.Struct("Composite", [
-            (model.StructMember("x", "u32"))
+            model.StructMember("x", "u32")
         ]),
         model.Union("Union", [
-            (model.UnionMember("a", "u8", 1)),
-            (model.UnionMember("b", "u64", 2)),
-            (model.UnionMember("c", "Composite", 3))
+            model.UnionMember("a", "u32", 1)
+        ]),
+        model.Union("UnionPadded", [
+            model.UnionMember("a", "u8", 1),
+            model.UnionMember("b", "u64", 2),
+            model.UnionMember("c", "Composite", 3)
         ])
     ])
 
-    assert generate_definitions(nodes[-1:]) == """\
+    assert generate_definitions([nodes[1]]) == """\
 struct Union
+{
+    enum _discriminator
+    {
+        discriminator_a = 1
+    } discriminator;
+
+    union
+    {
+        uint32_t a;
+    };
+};
+"""
+
+    assert generate_definitions([nodes[2]]) == """\
+struct UnionPadded
 {
     enum _discriminator
     {
@@ -409,6 +427,8 @@ struct Union
         discriminator_b = 2,
         discriminator_c = 3
     } discriminator;
+
+    uint32_t _padding0; /// manual padding to ensure natural alignment layout
 
     union
     {

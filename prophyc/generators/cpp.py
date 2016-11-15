@@ -112,19 +112,23 @@ def _generate_def_struct(struct):
     return 'struct {}\n{{\n{}}};'.format(struct.name, '\n'.join(blocks))
 
 def _generate_def_union(union):
+    def gen_disc(member):
+        return 'discriminator_{0} = {1}'.format(member.name, member.discriminator)
+
     def gen_member(member):
         typename = primitive_types.get(member.type_, member.type_)
         return '{0} {1};\n'.format(typename, member.name)
 
-    enum_fields = ',\n'.join('discriminator_{0} = {1}'.format(mem.name,
-                                                              mem.discriminator)
-                             for mem in union.members)
-    union_fields = ''.join(map(gen_member, union.members))
-    enum_def = 'enum _discriminator\n{{\n{0}\n}} discriminator;'.format(_indent(enum_fields, 4))
-    union_def = 'union\n{{\n{0}}};'.format(_indent(union_fields, 4))
-    return 'struct {0}\n{{\n{1}\n\n{2}\n}};'.format(union.name,
-                                                    _indent(enum_def, 4),
-                                                    _indent(union_def, 4))
+    enum_fields = ',\n'.join(gen_disc(mem) for mem in union.members)
+    union_fields = ''.join(gen_member(mem) for mem in union.members)
+
+    body_parts = (
+        'enum _discriminator\n{{\n{0}\n}} discriminator;\n\n'.format(_indent(enum_fields, 4)),
+        (union.alignment == 8) and (_Padder().generate_padding(4) + '\n') or '',
+        'union\n{{\n{0}}};\n'.format(_indent(union_fields, 4))
+    )
+
+    return 'struct %s\n{\n%s};' % (union.name, _indent(''.join(body_parts), 4))
 
 _generate_def_visitor = {
     model.Include: _generate_def_include,
