@@ -1,6 +1,6 @@
 import pytest
 from prophyc import model
-from prophyc.generators.cpp import CppGenerator, _check_nodes, GenerateError
+from prophyc.generators.cpp import CppGenerator, GenerateError, _Padder, _check_nodes
 
 def process(nodes):
     model.cross_reference(nodes)
@@ -23,6 +23,23 @@ def generate_hpp(nodes, basename):
 
 def generate_cpp(nodes, basename):
     return CppGenerator().serialize_string_cpp(nodes, basename)
+
+def test_padder_indexing():
+    padder = _Padder()
+
+    assert (padder.generate_padding(1) ==
+        'uint8_t _padding0; /// manual padding to ensure natural alignment layout\n')
+    assert (padder.generate_padding(1) ==
+        'uint8_t _padding1; /// manual padding to ensure natural alignment layout\n')
+    assert (padder.generate_padding(1) ==
+        'uint8_t _padding2; /// manual padding to ensure natural alignment layout\n')
+
+def test_padder_non_pow2():
+    padder = _Padder()
+
+    assert (padder.generate_padding(5) ==
+        ('uint8_t _padding0; /// manual padding to ensure natural alignment layout\n'
+         'uint32_t _padding1; /// manual padding to ensure natural alignment layout\n'))
 
 def test_definitions_includes():
     nodes = process([
@@ -96,6 +113,9 @@ def test_definitions_struct():
 struct Struct
 {
     uint8_t a;
+    uint8_t _padding0; /// manual padding to ensure natural alignment layout
+    uint16_t _padding1; /// manual padding to ensure natural alignment layout
+    uint32_t _padding2; /// manual padding to ensure natural alignment layout
     int64_t b;
     float c;
     TTypeX d;
@@ -294,13 +314,7 @@ def test_definitions_struct_with_dynamic_fields():
         ])
     ])
 
-    assert generate_definitions(nodes) == """\
-struct Dynamic
-{
-    uint8_t num_of_a;
-    uint8_t a[1]; /// dynamic array, size in num_of_a
-};
-
+    assert generate_definitions(nodes[-1:]) == """\
 struct X
 {
     uint8_t a;
@@ -325,6 +339,52 @@ struct Struct
 {
     prophy::bool_t has_a;
     uint8_t a;
+    uint8_t _padding0; /// manual padding to ensure natural alignment layout
+    uint16_t _padding1; /// manual padding to ensure natural alignment layout
+};
+"""
+
+def test_definitions_struct_padding():
+    nodes = process([
+        model.Struct("B", [
+            model.StructMember("num_of_a", "u16"),
+            model.StructMember("a", "u8", bound = "num_of_a")
+        ]),
+        model.Struct("C", [
+            model.StructMember("a", "u16")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "u8"),
+            model.StructMember("b", "B"),
+            model.StructMember("c", "C"),
+            model.StructMember("d", "u32"),
+            model.StructMember("num_of_e", "u32"),
+            model.StructMember("e", "u64", bound = "num_of_e"),
+            model.StructMember("f", "u8")
+        ])
+    ])
+
+    assert generate_definitions(nodes[-1:]) == """\
+struct X
+{
+    uint8_t a;
+    uint8_t _padding0; /// manual padding to ensure natural alignment layout
+    B b;
+
+    struct part2
+    {
+        C c;
+        uint16_t _padding1; /// manual padding to ensure natural alignment layout
+        uint32_t d;
+        uint32_t num_of_e;
+        uint32_t _padding2; /// manual padding to ensure natural alignment layout
+        uint64_t e[1]; /// dynamic array, size in num_of_e
+    } _2;
+
+    struct part3
+    {
+        uint8_t f;
+    } _3;
 };
 """
 

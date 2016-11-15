@@ -27,6 +27,25 @@ def _to_literal(value):
     except ValueError:
         return value
 
+class _Padder(object):
+    PADDINGS = (
+        (1, 'uint8_t'),
+        (2, 'uint16_t'),
+        (4, 'uint32_t')
+    )
+
+    def __init__(self):
+        self.index = 0
+
+    def _gen_padding_var(self, type_):
+        index = self.index
+        self.index += 1
+        return '%s _padding%s; /// manual padding to ensure natural alignment layout\n' % (type_, index)
+
+    def generate_padding(self, padding):
+        assert 0 < padding < 8
+        return ''.join(self._gen_padding_var(type_) for val, type_ in self.PADDINGS if padding & val)
+
 def _generate_def_include(include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
@@ -43,7 +62,7 @@ def _generate_def_enum(enum):
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
 def _generate_def_struct(struct):
-    def gen_member(member):
+    def gen_member(member, padder):
         def build_annotation(member):
             if member.size:
                 if member.bound:
@@ -68,22 +87,29 @@ def _generate_def_struct(struct):
         else:
             field = '{0} {1};\n'.format(typename, member.name)
         if member.optional:
-            return 'prophy::bool_t has_{0};\n'.format(member.name) + field
+            field = 'prophy::bool_t has_{0};\n'.format(member.name) + field
+        if member.padding > 0:
+            field += padder.generate_padding(member.padding)
         return field
 
-    def gen_part(i, part):
-        generated = 'struct part{0}\n{{\n{1}}} _{0};'.format(
-            i + 2,
-            _indent(''.join(map(gen_member, part)), 4)
+    def gen_block(members, padder):
+        generated = (gen_member(member, padder) for member in members)
+        return _indent(''.join(generated), 4)
+
+    def gen_part(index, part, padder):
+        generated = 'struct part{0}\n{{\n{1}}} _{0};\n'.format(
+            index + 2,
+            gen_block(part, padder)
         )
         return _indent(generated, 4)
 
     main, parts = model.partition(struct.members)
-    generated = _indent(''.join(map(gen_member, main)), 4)
-    if parts:
-        generated += '\n' + '\n\n'.join(map(gen_part, range(len(parts)), parts)) + '\n'
-
-    return 'struct {}\n{{\n{}}};'.format(struct.name, generated)
+    padder = _Padder()
+    blocks = (
+        [gen_block(main, padder)] +
+        [gen_part(index, part, padder) for index, part in enumerate(parts)]
+    )
+    return 'struct {}\n{{\n{}}};'.format(struct.name, '\n'.join(blocks))
 
 def _generate_def_union(union):
     def gen_member(member):
