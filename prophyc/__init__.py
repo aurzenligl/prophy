@@ -94,7 +94,7 @@ def parse_content(parser, patcher, *parse_args):
     model.topological_sort(nodes)
     model.cross_reference(nodes, warn = Emit.warn)
     model.evaluate_kinds(nodes)
-    model.evaluate_sizes(nodes)
+    model.evaluate_sizes(nodes, warn = Emit.warn)
     return nodes
 
 def get_basename(path):

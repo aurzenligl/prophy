@@ -293,16 +293,6 @@ def test_make_field_static_array_with_wrong_name_params():
         patch.patch(nodes, patches)
     assert 'Member not found: MyStruct' in str(e.value)
 
-def test_make_field_static_array_with_wrong_size_params():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
-                                       model.StructMember("field2", "u32"),
-                                       model.StructMember("field3", "u32")])]
-    patches = {'MyStruct': [patch.Action('static', ['field3', 'wrong_size'])]}
-
-    with pytest.raises(Exception) as e:
-        patch.patch(nodes, patches)
-    assert 'Size is not a number: MyStruct' in str(e.value)
-
 def test_make_field_limited_array():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
                                        model.StructMember("field2", "u32"),

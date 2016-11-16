@@ -45,8 +45,7 @@ There are following patch rules:
 
 - ``<MESSAGE_NAME> static <FIELD_NAME> <ARRAY_SIZE>``
 
-  Makes field a fixed array. Size needs to be 1 or bigger.
-  Only fixed size types can be fixed arrays.
+  Makes field a fixed array. Only fixed size types can be fixed arrays.
 
 - ``<MESSAGE_NAME> limited <FIELD_NAME> <SIZE_FIELD_NAME>``
 

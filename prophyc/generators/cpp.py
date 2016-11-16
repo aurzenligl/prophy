@@ -1,6 +1,7 @@
 import os
 
 from prophyc import model
+from prophyc.model import GenerateError
 
 primitive_types = {
     'u8': 'uint8_t',
@@ -26,6 +27,25 @@ def _to_literal(value):
     except ValueError:
         return value
 
+class _Padder(object):
+    PADDINGS = (
+        (1, 'uint8_t'),
+        (2, 'uint16_t'),
+        (4, 'uint32_t')
+    )
+
+    def __init__(self):
+        self.index = 0
+
+    def _gen_padding_var(self, type_):
+        index = self.index
+        self.index += 1
+        return '%s _padding%s; /// manual padding to ensure natural alignment layout\n' % (type_, index)
+
+    def generate_padding(self, padding):
+        assert 0 < padding < 8
+        return ''.join(self._gen_padding_var(type_) for val, type_ in self.PADDINGS if padding & val)
+
 def _generate_def_include(include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
@@ -42,7 +62,7 @@ def _generate_def_enum(enum):
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
 def _generate_def_struct(struct):
-    def gen_member(member):
+    def gen_member(member, padder):
         def build_annotation(member):
             if member.size:
                 if member.bound:
@@ -67,37 +87,51 @@ def _generate_def_struct(struct):
         else:
             field = '{0} {1};\n'.format(typename, member.name)
         if member.optional:
-            return 'prophy::bool_t has_{0};\n'.format(member.name) + field
+            field = 'prophy::bool_t has_{0};\n'.format(member.name) + field
+        if member.padding > 0:
+            field += padder.generate_padding(member.padding)
         return field
 
-    def gen_part(i, part):
-        generated = 'struct part{0}\n{{\n{1}}} _{0};'.format(
-            i + 2,
-            _indent(''.join(map(gen_member, part)), 4)
+    def gen_block(members, padder):
+        generated = (gen_member(member, padder) for member in members)
+        return _indent(''.join(generated), 4)
+
+    def gen_part(index, part, padder):
+        generated = 'PROPHY_STRUCT({2}) part{0}\n{{\n{1}}} _{0};\n'.format(
+            index + 2,
+            gen_block(part, padder),
+            part[0].alignment
         )
         return _indent(generated, 4)
 
     main, parts = model.partition(struct.members)
-    generated = _indent(''.join(map(gen_member, main)), 4)
-    if parts:
-        generated += '\n' + '\n\n'.join(map(gen_part, range(len(parts)), parts)) + '\n'
-
-    return 'struct {}\n{{\n{}}};'.format(struct.name, generated)
+    padder = _Padder()
+    blocks = (
+        [gen_block(main, padder)] +
+        [gen_part(index, part, padder) for index, part in enumerate(parts)]
+    )
+    return 'PROPHY_STRUCT(%s) %s\n{\n%s};' % (struct.alignment, struct.name, '\n'.join(blocks))
 
 def _generate_def_union(union):
+    def gen_disc(member):
+        return 'discriminator_{0} = {1}'.format(member.name, member.discriminator)
+
     def gen_member(member):
         typename = primitive_types.get(member.type_, member.type_)
         return '{0} {1};\n'.format(typename, member.name)
 
-    enum_fields = ',\n'.join('discriminator_{0} = {1}'.format(mem.name,
-                                                              mem.discriminator)
-                             for mem in union.members)
-    union_fields = ''.join(map(gen_member, union.members))
-    enum_def = 'enum _discriminator\n{{\n{0}\n}} discriminator;'.format(_indent(enum_fields, 4))
-    union_def = 'union\n{{\n{0}}};'.format(_indent(union_fields, 4))
-    return 'struct {0}\n{{\n{1}\n\n{2}\n}};'.format(union.name,
-                                                    _indent(enum_def, 4),
-                                                    _indent(union_def, 4))
+    enum_fields = ',\n'.join(gen_disc(mem) for mem in union.members)
+    union_fields = ''.join(gen_member(mem) for mem in union.members)
+
+    body_parts = (
+        'enum _discriminator\n{{\n{0}\n}} discriminator;\n\n'.format(_indent(enum_fields, 4)),
+        (union.alignment == 8) and (_Padder().generate_padding(4) + '\n') or '',
+        'union\n{{\n{0}}};\n'.format(_indent(union_fields, 4))
+    )
+
+    return 'PROPHY_STRUCT(%s) %s\n{\n%s};' % (union.alignment,
+                                              union.name,
+                                              _indent(''.join(body_parts), 4))
 
 _generate_def_visitor = {
     model.Include: _generate_def_include,
@@ -256,6 +290,11 @@ swap_footer = """\
 } // namespace prophy
 """
 
+def _check_nodes(nodes):
+    for n in nodes:
+        if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
+            raise GenerateError('{0} byte size unknown'.format(n.name))
+
 class CppGenerator(object):
 
     def __init__(self, output_dir = "."):
@@ -306,6 +345,7 @@ class CppGenerator(object):
         ))
 
     def serialize(self, nodes, basename):
+        _check_nodes(nodes)
         hpp_path = os.path.join(self.output_dir, basename + ".pp.hpp")
         cpp_path = os.path.join(self.output_dir, basename + ".pp.cpp")
         open(hpp_path, "w").write(self.serialize_string_hpp(nodes, basename))

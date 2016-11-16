@@ -1,7 +1,8 @@
 Installation
 ------------
 
-Prophy requires Python 2.7. You can install it via `PyPI <https://pypi.python.org/pypi/prophy>`_::
+Prophy requires Python 2.7 or Python 3.4 (or newer).
+You can install it via `PyPI <https://pypi.python.org/pypi/prophy>`_::
 
     pip install prophy
 

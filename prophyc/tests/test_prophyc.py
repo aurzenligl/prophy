@@ -147,7 +147,7 @@ def test_isar_cpp(tmpdir_cwd):
     assert out == b""
     assert err == b""
     assert """\
-struct Test
+PROPHY_STRUCT(4) Test
 {
     uint32_t x_len;
     uint32_t x[1]; /// dynamic array, size in x_len
@@ -303,7 +303,7 @@ class Test(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 
 #include <prophy/prophy.hpp>
 
-struct Test
+PROPHY_STRUCT(4) Test
 {
     uint32_t x;
 };
@@ -386,20 +386,22 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
 
 #include <prophy/prophy.hpp>
 
-struct X
+PROPHY_STRUCT(8) X
 {
     uint32_t x[5];
     uint32_t num_of_y;
     uint64_t y[2]; /// limited array, size in num_of_y
 };
 
-struct U
+PROPHY_STRUCT(8) U
 {
     enum _discriminator
     {
         discriminator_x = 1,
         discriminator_y = 2
     } discriminator;
+
+    uint32_t _padding0; /// manual padding to ensure natural alignment layout
 
     union
     {
@@ -630,5 +632,35 @@ def test_cpp_full_out_error(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
     assert out == b""
-    assert tr(err) == (b"prophyc: warning: type 'Unknown' not found\n"
-                       b"prophyc: error: Test byte size unknown\n")
+    assert tr(err) == b"""\
+prophyc: warning: type 'Unknown' not found
+prophyc: warning: Test::x has unknown type "Unknown"
+prophyc: error: Test byte size unknown
+"""
+
+def test_model_evaluation_warnings(tmpdir_cwd):
+    open("input.prophy", "w").write("""
+struct X
+{
+    u32 x;
+    u32 y[2];
+};
+""")
+    open("patch", "w").write("""\
+X type x Unknown
+X static y UNKNOWN
+""")
+
+    ret, out, err = call(["--cpp_out", str(tmpdir_cwd),
+                          "--patch", os.path.join(str(tmpdir_cwd), "patch"),
+                          os.path.join(str(tmpdir_cwd), "input.prophy")])
+
+    assert ret == 1
+    assert out == b""
+    assert tr(err) == b"""\
+prophyc: warning: type 'Unknown' not found
+prophyc: warning: numeric constant 'UNKNOWN' not found
+prophyc: warning: X::x has unknown type "Unknown"
+prophyc: warning: X::y array has unknown size "UNKNOWN"
+prophyc: error: X byte size unknown
+"""

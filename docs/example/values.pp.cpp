@@ -1,4 +1,8 @@
+#include <prophy/detail/prophy.hpp>
+
 #include "values.pp.hpp"
+
+using namespace prophy::detail;
 
 namespace prophy
 {

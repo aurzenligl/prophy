@@ -4,15 +4,19 @@ C++ raw codec
 ===============
 
 This page describes how to manipulate prophy messages using C++ structs.
-This is the fastest option, because structs reflect serialized data format.
+This is the fastest option, since it allows to read fields directly from datagram.
 It's also most environment-tolerant, since it reduces necessary operations
 to memory reads and writes, and pointer arithmetics.
+
+Codec is compliant with C++98 and later.
 
 .. warning ::
 
    C++ raw codec assumes specific struct padding heuristics
+   (natural alignment and special rules for nested dynamic fields)
    and requires enum to be represented as a 32-bit integral value.
-   It's tested only with gcc compiler on a number of 32- and 64-bit platforms.
+   It's tested on gcc, clang and ti cgt on a couple of 32- and 64-bit platforms,
+   but your platform ABI may break these rules.
 
 Compilation
 ----------------
@@ -59,7 +63,7 @@ Structs are also represented as regular structs::
 
 .. code-block:: cpp
 
-    struct Test2
+    PROPHY_STRUCT(4) Test2
     {
         uint32_t a;
     };
@@ -85,13 +89,13 @@ depending on type:
 
 .. code-block:: cpp
 
-    struct Test8
+    PROPHY_STRUCT(4) Test8
     {
         int32_t a[3];
         uint32_t num_of_b;
         int32_t b[1]; /// dynamic array, size in num_of_b
 
-        struct part2
+        PROPHY_STRUCT(4) part2
         {
             uint32_t num_of_c;
             int32_t c[3]; /// limited array, size in num_of_c
@@ -114,7 +118,7 @@ and value itself. Fact that optional field type may not be dynamic simplifies th
 
 .. code-block:: cpp
 
-    struct Test6
+    PROPHY_STRUCT(4) Test6
     {
         prophy::bool_t has_a;
         uint32_t a;
@@ -134,7 +138,7 @@ are accessible as members of unnamed inner union::
 
 .. code-block:: cpp
 
-    struct Test7
+    PROPHY_STRUCT(4) Test7
     {
         enum _discriminator
         {
@@ -147,6 +151,54 @@ are accessible as members of unnamed inner union::
             uint32_t a;
             Test2 b;
         };
+    };
+
+How is natual alignment layout ensured?
+----------------------------------------------
+
+By the means of explicit filling fields and
+compiler attributes setting type alignments.
+
+::
+
+    union PaddedUnion
+    {
+        0: u32 a;
+        1: u64 b;
+    };
+
+    struct PaddedStruct
+    {
+        u8 x;
+        PaddedUnion y;
+    };
+
+.. code-block:: cpp
+
+    PROPHY_STRUCT(8) PaddedUnion
+    {
+        enum _discriminator
+        {
+            discriminator_a = 0,
+            discriminator_b = 1
+        } discriminator;
+
+        uint32_t _padding0; /// manual padding to ensure natural alignment layout
+
+        union
+        {
+            uint32_t a;
+            uint64_t b;
+        };
+    };
+
+    PROPHY_STRUCT(8) PaddedStruct
+    {
+        uint8_t x;
+        uint8_t _padding0; /// manual padding to ensure natural alignment layout
+        uint16_t _padding1; /// manual padding to ensure natural alignment layout
+        uint32_t _padding2; /// manual padding to ensure natural alignment layout
+        PaddedUnion y;
     };
 
 How to size message?
@@ -163,7 +215,7 @@ You have a couple of options:
 
     .. code-block:: cpp
 
-      struct X
+      PROPHY_STRUCT(4) X
       {
           uint32_t num_of_x;
           uint32_t x[1]; /// dynamic array, size in num_of_x
@@ -188,12 +240,12 @@ Othwerise you'll have problems either with alignment or fulfilling
 
 .. code-block:: cpp
 
-    struct X
+    PROPHY_STRUCT(4) X
     {
         uint32_t num_of_a;
         uint32_t a[1]; /// dynamic array, size in num_of_a
 
-        struct part2
+        PROPHY_STRUCT(4) part2
         {
             uint32_t num_of_b;
             uint32_t b[1]; /// dynamic array, size in num_of_b
