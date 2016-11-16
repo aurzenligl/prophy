@@ -632,5 +632,35 @@ def test_cpp_full_out_error(tmpdir_cwd):
                           os.path.join(str(tmpdir_cwd), "input.xml")])
     assert ret == 1
     assert out == b""
-    assert tr(err) == (b"prophyc: warning: type 'Unknown' not found\n"
-                       b"prophyc: error: Test byte size unknown\n")
+    assert tr(err) == b"""\
+prophyc: warning: type 'Unknown' not found
+prophyc: warning: Test::x has unknown type "Unknown"
+prophyc: error: Test byte size unknown
+"""
+
+def test_model_evaluation_warnings(tmpdir_cwd):
+    open("input.prophy", "w").write("""
+struct X
+{
+    u32 x;
+    u32 y[2];
+};
+""")
+    open("patch", "w").write("""\
+X type x Unknown
+X static y UNKNOWN
+""")
+
+    ret, out, err = call(["--cpp_out", str(tmpdir_cwd),
+                          "--patch", os.path.join(str(tmpdir_cwd), "patch"),
+                          os.path.join(str(tmpdir_cwd), "input.prophy")])
+
+    assert ret == 1
+    assert out == b""
+    assert tr(err) == b"""\
+prophyc: warning: type 'Unknown' not found
+prophyc: warning: numeric constant 'UNKNOWN' not found
+prophyc: warning: X::x has unknown type "Unknown"
+prophyc: warning: X::y array has unknown size "UNKNOWN"
+prophyc: error: X byte size unknown
+"""

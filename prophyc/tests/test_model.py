@@ -516,11 +516,17 @@ def test_partition_many_dynamic_structs():
     assert [x.name for x in main] == ["a"]
     assert [[x.name for x in part] for part in parts] == [["b"], ["c"]]
 
-def process(nodes):
+def process(nodes, warn=None):
+    warnings = []
     model.cross_reference(nodes)
     model.evaluate_kinds(nodes)
-    model.evaluate_sizes(nodes)
+    model.evaluate_sizes(nodes, **(warn and {'warn': warn} or {}))
     return nodes
+
+def process_with_warnings(nodes):
+    warnings = []
+    process(nodes, lambda warning: warnings.append(warning))
+    return nodes, warnings
 
 def get_size_alignment_padding(node):
     return (
@@ -859,7 +865,7 @@ def test_evaluate_sizes_empty():
     ]
 
 def test_evaluate_sizes_unknown():
-    nodes = process([
+    nodes, warnings = process_with_warnings([
         model.Struct('X', [
             model.StructMember('x', 'u8'),
             model.StructMember('y', 'U'),
@@ -873,8 +879,17 @@ def test_evaluate_sizes_unknown():
         model.Typedef('U16', 'U'),
         model.Struct('Z', [
             model.StructMember('x', 'U16'),
+            model.StructMember('y', 'Unknown'),
         ]),
     ])
+
+    assert warnings == [
+        'X::y has unknown type "U"',
+        'Y::y has unknown type "U"',
+        'Z::x has unknown type "U"',
+        'Z::y has unknown type "Unknown"'
+    ]
+
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (1, 1, None),
         (None, None, None),
@@ -888,6 +903,7 @@ def test_evaluate_sizes_unknown():
         (None, None)
     ]
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[3]))) == [
+        (None, None, None),
         (None, None, None),
         (None, None)
     ]
