@@ -120,9 +120,6 @@ def _static(node, patch):
         raise Exception("Change field must have 2 params: %s %s" % (node.name, patch))
     name, size = patch.params
 
-    if not _is_int(size):
-        raise Exception("Size is not a number: %s %s" % (node.name, patch))
-
     i, member = next((x for x in enumerate(node.members) if x[1].name == name), (None, None))
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
