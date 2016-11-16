@@ -1,3 +1,15 @@
+next
+-----------------------------------
+- prophyc: raw cpp codec:
+    - ensures naturally aligned message layouts by
+      filling fields and compiler attribute setting alignment
+    - fails generation if AST is not complete
+      (missing size-related information)
+    - may fail to compile on non-gcc and non-cgt compliant compiler
+      (__attribute__((aligned(N))) used)
+- prophyc: compiler pass evaluating alignments/sizes/paddings fires warnings
+- prophyc: patch static may accept identifiers
+
 0.7.8
 -----------------------------------
 - prophyc: cpp and cpp_full generator puts 'u' suffix in
