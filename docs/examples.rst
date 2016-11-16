@@ -205,8 +205,10 @@ Prophy wire format. It's ``values.pp.hpp`` and looks like this:
 .. warning ::
 
    C++ raw codec assumes specific struct padding heuristics
+   (natural alignment and special rules for nested dynamic fields)
    and requires enum to be represented as a 32-bit integral value.
-   It's tested only with gcc compiler on a number of 32- and 64-bit platforms.
+   It's tested on gcc, clang and ti cgt on a couple of 32- and 64-bit platforms,
+   but your platform ABI may break these rules.
 
 It's accompanied by ``values.pp.cpp`` with endianness swap algorithms for structs and unions:
 
