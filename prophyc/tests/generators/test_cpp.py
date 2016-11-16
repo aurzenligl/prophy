@@ -110,7 +110,7 @@ def test_definitions_struct():
     ])
 
     assert generate_definitions(nodes[-1:]) == """\
-struct Struct
+PROPHY_STRUCT(8) Struct
 {
     uint8_t a;
     uint8_t _padding0; /// manual padding to ensure natural alignment layout
@@ -132,7 +132,7 @@ def test_definitions_struct_with_dynamic_array():
     ])
 
     assert generate_definitions(nodes[-1:]) == """\
-struct Struct
+PROPHY_STRUCT(4) Struct
 {
     TNumberOfItems tmpName;
     uint8_t a[1]; /// dynamic array, size in tmpName
@@ -146,7 +146,7 @@ def test_definitions_struct_with_fixed_array():
     ])
 
     assert generate_definitions(nodes[-1:]) == """\
-struct Struct
+PROPHY_STRUCT(1) Struct
 {
     uint8_t a[NUM_OF_ARRAY_ELEMS];
 };
@@ -162,7 +162,7 @@ def test_definitions_struct_with_limited_array():
     ])
 
     assert generate_definitions(nodes[-1:]) == """\
-struct Struct
+PROPHY_STRUCT(1) Struct
 {
     uint8_t a_len;
     uint8_t a[NUM_OF_ARRAY_ELEMS]; /// limited array, size in a_len
@@ -180,17 +180,17 @@ def test_definitions_struct_with_ext_sized_array():
     ])
 
     assert generate_definitions(nodes) == """\
-struct Struct
+PROPHY_STRUCT(1) Struct
 {
     uint8_t count;
     uint8_t a[1]; /// dynamic array, size in count
 
-    struct part2
+    PROPHY_STRUCT(1) part2
     {
         uint8_t b[1]; /// dynamic array, size in count
     } _2;
 
-    struct part3
+    PROPHY_STRUCT(1) part3
     {
         uint8_t c[1]; /// dynamic array, size in count
     } _3;
@@ -203,7 +203,7 @@ def test_definitions_struct_with_byte():
     ])
 
     assert generate_definitions(nodes) == """\
-struct Struct
+PROPHY_STRUCT(1) Struct
 {
     uint8_t a;
 };
@@ -215,7 +215,7 @@ def test_definitions_struct_with_byte_array():
     ])
 
     assert generate_definitions(nodes) == """\
-struct Struct
+PROPHY_STRUCT(1) Struct
 {
     uint8_t a[1]; /// greedy array
 };
@@ -234,18 +234,18 @@ def test_definitions_struct_many_arrays():
     ])
 
     assert generate_definitions(nodes) == """\
-struct ManyArrays
+PROPHY_STRUCT(1) ManyArrays
 {
     uint8_t num_of_a;
     uint8_t a[1]; /// dynamic array, size in num_of_a
 
-    struct part2
+    PROPHY_STRUCT(1) part2
     {
         uint8_t num_of_b;
         uint8_t b[1]; /// dynamic array, size in num_of_b
     } _2;
 
-    struct part3
+    PROPHY_STRUCT(1) part3
     {
         uint8_t num_of_c;
         uint8_t c[1]; /// dynamic array, size in num_of_c
@@ -264,13 +264,13 @@ def test_definitions_struct_many_arrays_mixed():
     ])
 
     assert generate_definitions(nodes) == """\
-struct ManyArraysMixed
+PROPHY_STRUCT(1) ManyArraysMixed
 {
     uint8_t num_of_a;
     uint8_t num_of_b;
     uint8_t a[1]; /// dynamic array, size in num_of_a
 
-    struct part2
+    PROPHY_STRUCT(1) part2
     {
         uint8_t b[1]; /// dynamic array, size in num_of_b
     } _2;
@@ -288,13 +288,13 @@ def test_definitions_struct_many_arrays_bounded_by_the_same_member():
     ])
 
     assert generate_definitions(nodes) == """\
-struct ManyArraysBoundedByTheSame
+PROPHY_STRUCT(1) ManyArraysBoundedByTheSame
 {
     uint8_t num_of_elements;
     uint8_t dummy;
     uint8_t a[1]; /// dynamic array, size in num_of_elements
 
-    struct part2
+    PROPHY_STRUCT(1) part2
     {
         uint8_t b[1]; /// dynamic array, size in num_of_elements
     } _2;
@@ -315,12 +315,12 @@ def test_definitions_struct_with_dynamic_fields():
     ])
 
     assert generate_definitions(nodes[-1:]) == """\
-struct X
+PROPHY_STRUCT(1) X
 {
     uint8_t a;
     Dynamic b;
 
-    struct part2
+    PROPHY_STRUCT(1) part2
     {
         uint8_t c;
     } _2;
@@ -335,7 +335,7 @@ def test_definitions_struct_with_optional_field():
     ])
 
     assert generate_definitions(nodes) == """\
-struct Struct
+PROPHY_STRUCT(4) Struct
 {
     prophy::bool_t has_a;
     uint8_t a;
@@ -365,13 +365,13 @@ def test_definitions_struct_padding():
     ])
 
     assert generate_definitions(nodes[-1:]) == """\
-struct X
+PROPHY_STRUCT(8) X
 {
     uint8_t a;
     uint8_t _padding0; /// manual padding to ensure natural alignment layout
     B b;
 
-    struct part2
+    PROPHY_STRUCT(8) part2
     {
         C c;
         uint16_t _padding1; /// manual padding to ensure natural alignment layout
@@ -381,7 +381,7 @@ struct X
         uint64_t e[1]; /// dynamic array, size in num_of_e
     } _2;
 
-    struct part3
+    PROPHY_STRUCT(1) part3
     {
         uint8_t f;
     } _3;
@@ -404,7 +404,7 @@ def test_definitions_union():
     ])
 
     assert generate_definitions([nodes[1]]) == """\
-struct Union
+PROPHY_STRUCT(4) Union
 {
     enum _discriminator
     {
@@ -419,7 +419,7 @@ struct Union
 """
 
     assert generate_definitions([nodes[2]]) == """\
-struct UnionPadded
+PROPHY_STRUCT(8) UnionPadded
 {
     enum _discriminator
     {
@@ -474,12 +474,12 @@ typedef f e;
 enum { CONST_B = 0 };
 enum { CONST_C = 0 };
 
-struct A
+PROPHY_STRUCT(4) A
 {
     uint32_t a;
 };
 
-struct B
+PROPHY_STRUCT(4) B
 {
     uint32_t b;
 };
@@ -1063,7 +1063,7 @@ def test_generate_file():
 
 #include <prophy/prophy.hpp>
 
-struct Struct
+PROPHY_STRUCT(1) Struct
 {
     uint8_t a;
 };

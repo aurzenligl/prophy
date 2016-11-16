@@ -147,7 +147,7 @@ def test_isar_cpp(tmpdir_cwd):
     assert out == b""
     assert err == b""
     assert """\
-struct Test
+PROPHY_STRUCT(4) Test
 {
     uint32_t x_len;
     uint32_t x[1]; /// dynamic array, size in x_len
@@ -303,7 +303,7 @@ class Test(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 
 #include <prophy/prophy.hpp>
 
-struct Test
+PROPHY_STRUCT(4) Test
 {
     uint32_t x;
 };
@@ -386,14 +386,14 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
 
 #include <prophy/prophy.hpp>
 
-struct X
+PROPHY_STRUCT(8) X
 {
     uint32_t x[5];
     uint32_t num_of_y;
     uint64_t y[2]; /// limited array, size in num_of_y
 };
 
-struct U
+PROPHY_STRUCT(8) U
 {
     enum _discriminator
     {

@@ -97,9 +97,10 @@ def _generate_def_struct(struct):
         return _indent(''.join(generated), 4)
 
     def gen_part(index, part, padder):
-        generated = 'struct part{0}\n{{\n{1}}} _{0};\n'.format(
+        generated = 'PROPHY_STRUCT({2}) part{0}\n{{\n{1}}} _{0};\n'.format(
             index + 2,
-            gen_block(part, padder)
+            gen_block(part, padder),
+            part[0].alignment
         )
         return _indent(generated, 4)
 
@@ -109,7 +110,7 @@ def _generate_def_struct(struct):
         [gen_block(main, padder)] +
         [gen_part(index, part, padder) for index, part in enumerate(parts)]
     )
-    return 'struct {}\n{{\n{}}};'.format(struct.name, '\n'.join(blocks))
+    return 'PROPHY_STRUCT(%s) %s\n{\n%s};' % (struct.alignment, struct.name, '\n'.join(blocks))
 
 def _generate_def_union(union):
     def gen_disc(member):
@@ -128,7 +129,9 @@ def _generate_def_union(union):
         'union\n{{\n{0}}};\n'.format(_indent(union_fields, 4))
     )
 
-    return 'struct %s\n{\n%s};' % (union.name, _indent(''.join(body_parts), 4))
+    return 'PROPHY_STRUCT(%s) %s\n{\n%s};' % (union.alignment,
+                                              union.name,
+                                              _indent(''.join(body_parts), 4))
 
 _generate_def_visitor = {
     model.Include: _generate_def_include,

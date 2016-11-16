@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <prophy/detail/align.hpp>
 #include <prophy/detail/prophy.hpp>
+#include <prophy/detail/struct.hpp>
 
 namespace prophy
 {
