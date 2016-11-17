@@ -1,4 +1,4 @@
-next
+0.8
 -----------------------------------
 - prophyc: raw cpp codec:
     - ensures naturally aligned message layouts by

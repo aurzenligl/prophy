@@ -24,7 +24,7 @@ def call(args):
 
 def test_showing_version():
     ret, out, err = call(["--version"])
-    expected_version = b'0.7.8'
+    expected_version = b'0.8'
     assert ret == 0
     assert tr(out) == b'prophyc ' + expected_version + b'\n'
     assert err == b""
