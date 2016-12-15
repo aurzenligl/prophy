@@ -1,3 +1,5 @@
+import pytest
+
 from prophyc import model
 from prophyc.parsers.isar import IsarParser
 from prophyc.parsers.isar import expand_operators
@@ -132,6 +134,7 @@ def test_enums_parsing():
         <enum-member name="EEnum_A" value="0"/>
         <enum-member name="EEnum_B" value="1"/>
         <enum-member name="EEnum_C" value="-1"/>
+        <enum-member name="EEnum_D" value="-10"/>
     </enum>
 </x>
 """
@@ -140,8 +143,24 @@ def test_enums_parsing():
             model.EnumMember("EEnum_A", "0"),
             model.EnumMember("EEnum_B", "1"),
             model.EnumMember("EEnum_C", "0xFFFFFFFF"),
+            model.EnumMember("EEnum_D", "0xFFFFFFF6"),
         ])
     ]
+
+def test_enums_parsing_repeated_value():
+    xml = """\
+<x>
+    <enum name="EEnum">
+        <enum-member name="EEnum_D" value="-10"/>
+        <enum-member name="EEnum_D2" value="0xFFFFFFF6"/>
+    </enum>
+</x>
+"""
+    with pytest.raises(ValueError) as e:
+        parse(xml)
+    assert "Duplicate Enum value" in str(e)
+
+
 
 def test_struct_parsing():
     xml = """\
