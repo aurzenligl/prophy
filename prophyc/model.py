@@ -64,8 +64,6 @@ class EnumMember(object):
 
     def __init__(self, name, value):
         self.name = name
-        if "EOaMDeltaFPucchF3r10_DeltaFMinus10" in name:
-            raise Exception
         self.value = value
 
     def __eq__(self, other):
