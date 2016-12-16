@@ -160,8 +160,6 @@ def test_enums_parsing_repeated_value():
         parse(xml)
     assert "Duplicate Enum value" in str(e)
 
-
-
 def test_struct_parsing():
     xml = """\
 <x>
