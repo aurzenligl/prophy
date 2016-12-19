@@ -74,12 +74,26 @@ def make_typedef(elem):
 
 def make_enum_member(elem):
     value = elem.get('value')
-    value = value if value != "-1" else "0xFFFFFFFF"
+    try:
+        int_value = int(value, 0)
+        if int_value < 0:
+            value = "0x{:X}".format(0x100000000 + int_value)
+    except ValueError:
+        pass
     return model.EnumMember(elem.get("name"), expand_operators(value))
+
+def _check_for_duplicates(enum):
+    values = set()
+    for m in enum.members:
+        if m.value in values:
+            raise ValueError("Duplicate Enum value in '{}', value '{}'.".format(enum.name, m.value))
+        values.add(m.value)
 
 def make_enum(elem):
     if len(elem):
-        return model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
+        enum = model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
+        _check_for_duplicates(enum)
+        return enum
 
 def make_struct_members(elem, dynamic_array = False):
     members = []
