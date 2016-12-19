@@ -72,25 +72,27 @@ def make_typedef(elem):
     elif "primitiveType" in elem.attrib and elem.get("name") not in primitive_types.values():
         return model.Typedef(elem.get("name"), primitive_types[elem.get("primitiveType")])
 
-def make_enum_member(elem, warn):
+def make_enum_member(elem):
     value = elem.get('value')
     try:
         int_value = int(value, 0)
         if int_value < 0:
             value = "0x{:X}".format(0x100000000 + int_value)
-    except ValueError as e:
-        if warn:
-            warn(str(e))
+    except ValueError:
+        pass
     return model.EnumMember(elem.get("name"), expand_operators(value))
 
-def make_enum(elem, warn):
+def _check_for_duplicates(enum):
+    values = set()
+    for m in enum.members:
+        if m.value in values:
+            raise ValueError("Duplicate Enum value in '{}', value '{}'.".format(enum.name, m.value))
+        values.add(m.value)
+
+def make_enum(elem):
     if len(elem):
-        values = set()
-        enum = model.Enum(elem.get("name"), [make_enum_member(member, warn) for member in elem])
-        for m in enum.members:
-            if m.value in values:
-                raise ValueError("Duplicate Enum value in '{}', value '{}'.".format(enum.name, m.value))
-            values.add(m.value)
+        enum = model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
+        _check_for_duplicates(enum)
         return enum
 
 def make_struct_members(elem, dynamic_array = False):
@@ -148,7 +150,7 @@ class IsarParser(object):
         nodes += [make_include(elem, process_file, self.warn) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
         nodes += [make_constant(elem) for elem in root.iterfind('.//constant')]
         nodes += filter(None, (make_typedef(elem) for elem in root.iterfind('.//typedef')))
-        nodes += filter(None, (make_enum(elem, self.warn) for elem in root.iterfind('.//enum')))
+        nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
         nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
         nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
         nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic = True) for elem in root.iterfind('.//message')))

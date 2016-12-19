@@ -534,3 +534,4 @@ def test_operator_expansion_in_enum_and_constant():
             model.EnumMember("Enum_A", "((Constant) << (16))")
         ])
     )]
+    assert nodes[1].members[0].value == "((Constant) << (16))"
