@@ -60,9 +60,9 @@ def get_parser(opts):
         from prophyc.parsers.isar import IsarParser
         return IsarParser(warn = Emit.warn)
     elif opts.sack:
-        if not module_exists("clang"):
+        from prophyc.parsers.sack import check_libclang, SackParser
+        if not check_libclang():
             Emit.error("sack input requires clang and it's not installed")
-        from prophyc.parsers.sack import SackParser
         return SackParser(opts.include_dirs, warn = Emit.warn)
     else:
         from prophyc.parsers.prophy import ProphyParser
@@ -99,14 +99,6 @@ def parse_content(parser, patcher, *parse_args):
 
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
-
-def module_exists(module_name):
-    try:
-        __import__(module_name)
-    except ImportError:
-        return False
-    else:
-        return True
 
 if __name__ == "__main__":
     main()

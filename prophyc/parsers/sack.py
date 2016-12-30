@@ -1,5 +1,6 @@
 import re
-from clang.cindex import Index, CursorKind, TypeKind, TranslationUnitLoadError
+import ctypes.util
+from .clang.cindex import Config, Index, CursorKind, TypeKind, TranslationUnitLoadError, LibclangError
 
 from prophyc import model
 
@@ -125,6 +126,23 @@ def build_model(tu):
 def _get_location(location):
     return '%s:%s:%s' % (location.file.name.decode(), location.line, location.column)
 
+def _setup_libclang():
+    versions = [None] + ['3.%s' % x for x in range(10, 1, -1)]
+    for v in versions:
+        name = v and 'clang-' + v or 'clang'
+        libname = ctypes.util.find_library(name)
+        if libname:
+            Config.set_library_file(libname)
+            break
+
+def check_libclang():
+    testconf = Config()
+    try:
+        testconf.get_cindex_library()
+        return True
+    except LibclangError as e:
+        return False
+
 class SackParser(object):
     def __init__(self, include_dirs=[], warn=None):
         self.include_dirs = include_dirs
@@ -143,3 +161,5 @@ class SackParser(object):
             for diag in tu.diagnostics:
                 self.warn(diag.spelling.decode(), location=_get_location(diag.location))
         return build_model(tu)
+
+_setup_libclang()
