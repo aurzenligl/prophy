@@ -6,6 +6,8 @@ env:
     - TOXENV=py27
     - TOXENV=py34
     - TOXENV=py35
+    - CXX=g++-6
+    - CXX=clang++-3.8
 before_install:
   - python --version
   - uname -a
@@ -13,12 +15,11 @@ before_install:
 install:
   - virtualenv --version
   - pip --version
-  - pip install tox
-  - tox --version
-  - g++ --version
-  - clang++ --version
+  - if [ $TOXENV ]; then pip install tox; tox --version; fi
+  - if [ $CXX ]; then $CXX --version; fi
 script:
-  - tox -v
+  - if [ $TOXENV ]; then tox -v; fi
+  - if [ $CXX ]; then cd prophy_cpp; ./waf configure test dist; fi
 cache: pip
 addons:
   apt:
