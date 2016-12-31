@@ -16,7 +16,7 @@ install:
   - virtualenv --version
   - pip --version
   - if [ $TOXENV ]; then pip install tox; fi
-  - if [ $TOXENV ]; tox --version; fi
+  - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
   - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && sudo cp libg* /usr/local/lib/; fi
 script:
@@ -28,8 +28,8 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
       - llvm-toolchain-precise-3.8
-      - libgtest-dev
-      - valgrind
     packages:
       - g++-6
       - clang-3.8
+      - libgtest-dev
+      - valgrind
