@@ -11,16 +11,12 @@ def options(ctx):
     ctx.add_option('--no-valgrind', action = 'store_true', default = False, help = 'run tests without valgrind', dest = 'no_valgrind')
 
 def configure(ctx):
-    pass
-
-def configure_test(ctx):
     ctx.load('compiler_cxx python waf_unit_test')
     ctx.check(lib = 'gtest')
     ctx.check_python_module('ply')
-    ctx.check_python_module('clang')
     if not ctx.options.no_valgrind:
         ctx.find_program('valgrind')
-    ctx.env.CXXFLAGS = ['-g', '-O0', '-Wall', '-std=gnu++0x']
+    ctx.env.CXXFLAGS = ['-g', '-O0', '-Wall', '-std=c++11']
 
 def build(ctx):
     for dir in ctx.path.ant_glob('include/**/*', dir=True, src=False):
