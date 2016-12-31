@@ -7,7 +7,7 @@ Changes (in cindex.py.patch):
 To update clang bindings (clang tag may be different):
 
     $ svn export --force http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_342/final/bindings/python/clang .
-    $ git citool  # commit not changed bindings
+    $ git citool  # commit unchanged bindings, amend afterwards
     $ patch -p4 < cindex.py.patch
     $ # fix errors
     $ git diff cindex.py > cindex.py.patch
