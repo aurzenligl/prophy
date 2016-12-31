@@ -18,7 +18,7 @@ install:
   - if [ $TOXENV ]; then pip install tox; fi
   - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
-  - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && cp libg* /usr/local/lib/; fi
+  - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && export LIBRARY_PATH=${LIBRARY_PATH}:/tmp/gtest; fi
 script:
   - if [ $TOXENV ]; then tox -v; fi
   - if [ $CXX ]; then cd prophy_cpp && ./waf configure test dist; fi
