@@ -23,7 +23,9 @@ cache: pip
 addons:
   apt:
     sources:
-      - debian-sid
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.8
     packages:
+      - gcc-6
       - g++-6
       - clang-3.8
