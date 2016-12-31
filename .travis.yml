@@ -22,7 +22,7 @@ install:
   - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && export LIBRARY_PATH=${LIBRARY_PATH}:/tmp/gtest && cd -; fi
 script:
   - if [ $TOXENV ]; then tox -v; fi
-  - if [ $CXX ]; then cd prophy_cpp && ./waf configure test dist; fi
+  - if [ $CXX ]; then cd prophy_cpp && ./waf configure test dist -j1; fi
 cache: pip
 addons:
   apt:
