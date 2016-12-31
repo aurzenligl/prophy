@@ -18,6 +18,7 @@ install:
   - if [ $TOXENV ]; then pip install tox; fi
   - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
+  - if [ $CXX ]; then pip install .; fi
   - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && export LIBRARY_PATH=${LIBRARY_PATH}:/tmp/gtest && cd -; fi
 script:
   - if [ $TOXENV ]; then tox -v; fi
