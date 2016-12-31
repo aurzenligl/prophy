@@ -1,48 +1,19 @@
 language: python
-
-python:
-    - "2.7"
-    - "3.4"
-
+python: '3.5'
 env:
-    global:
-        - CLANG_VER="3.5"
-        - GCC_VER="4.8"
-    matrix:
-        - CXX=clang
-        - CXX=gcc
-
+  matrix:
+    - TOXENV=py27 CLANG=3.5
+    - TOXENV=py34 CLANG=3.5
+    - TOXENV=py35 CLANG=3.5
 before_install:
-    - sudo apt-add-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" --yes
-    - sudo apt-add-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-$CLANG_VER main" --yes
-    - sudo apt-add-repository "deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main" --yes
-    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key| sudo apt-key add -
-    - sudo apt-get update -qq
-
+  - python --version
+  - uname -a
+  - lsb_release -a
 install:
-    # install newer gcc
-    - sudo apt-get install -qq gcc-$GCC_VER g++-$GCC_VER
-    # Install clang
-    - sudo apt-get install --allow-unauthenticated -qq clang-$CLANG_VER libclang-$CLANG_VER libclang-$CLANG_VER-dev python-clang-$CLANG_VER
-    - pip install -qq clang==$CLANG_VER
-    - export PYTHON_CLANG_DIR=`pip show -f clang | grep -i location | cut -f 2 -d " "`
-    - if [[ $TRAVIS_PYTHON_VERSION == 3* ]]; then 2to3 -wno $PYTHON_CLANG_DIR/clang $PYTHON_CLANG_DIR/clang; fi
-    - sudo ln -v -s /usr/lib/x86_64-linux-gnu/libclang-$CLANG_VER.so.1 /usr/lib/x86_64-linux-gnu/libclang.so
-    - sudo ldconfig
-    # Update compiler
-    - if [ "$CXX" = "gcc" ]; then export CXX="g++-$GCC_VER" CC="gcc-$GCC_VER"; fi
-    - if [ "$CXX" = "clang" ]; then export CXX="clang++" CC="clang"; fi
-    # Install gtest and gmock dependencies
-    - sudo apt-get install -qq libgtest-dev valgrind
-    - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
-    # python dependencies
-    - pip install pytest-cov ply
-
+  - pip install tox
+  - virtualenv --version
+  - pip --version
+  - tox --version
 script:
-    - py.test --cov .
-    - cd prophy_cpp
-    - ./waf configure_test test -j1
-    - ./waf dist
-
-notifications:
-    email: false
+  - tox -v
+cache: pip
