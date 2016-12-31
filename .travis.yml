@@ -1,19 +1,29 @@
 language: python
 python: '3.5'
+sudo: false
 env:
   matrix:
-    - TOXENV=py27 CLANG=3.5
-    - TOXENV=py34 CLANG=3.5
-    - TOXENV=py35 CLANG=3.5
+    - TOXENV=py27
+    - TOXENV=py34
+    - TOXENV=py35
 before_install:
   - python --version
   - uname -a
   - lsb_release -a
 install:
-  - pip install tox
   - virtualenv --version
   - pip --version
+  - pip install tox
   - tox --version
+  - g++ --version
+  - clang++ --version
 script:
   - tox -v
 cache: pip
+addons:
+  apt:
+    sources:
+      - debian-sid
+    packages:
+      - g++-6
+      - clang-3.8
