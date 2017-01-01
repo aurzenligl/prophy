@@ -1,3 +1,4 @@
+import os
 import re
 import ctypes.util
 from .clang.cindex import Config, Index, CursorKind, TypeKind, TranslationUnitLoadError, LibclangError
@@ -127,6 +128,10 @@ def _get_location(location):
     return '%s:%s:%s' % (location.file.name.decode(), location.line, location.column)
 
 def _setup_libclang():
+    if os.environ.get('PROPHY_NOCLANG'):
+        Config.set_library_file('prophy_noclang')
+        return
+
     versions = [None] + ['3.%s' % x for x in range(10, 1, -1)]
     for v in versions:
         name = v and 'clang-' + v or 'clang'

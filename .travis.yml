@@ -6,6 +6,7 @@ env:
     - TOXENV=py27
     - TOXENV=py34
     - TOXENV=py35
+    - TOXENV=noclang
     - CXX=g++-6
     - CXX=clang++-3.8
 before_install:
