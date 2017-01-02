@@ -16,7 +16,7 @@ def configure(ctx):
     ctx.check_python_module('ply')
     if not ctx.options.no_valgrind:
         ctx.find_program('valgrind')
-    ctx.env.CXXFLAGS = ['-g', '-O0', '-Wall', '-std=c++11']
+    ctx.env.CXXFLAGS = ['-g', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', '-std=c++11']
 
 def build(ctx):
     for dir in ctx.path.ant_glob('include/**/*', dir=True, src=False):

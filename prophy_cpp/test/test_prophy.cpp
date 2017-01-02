@@ -34,30 +34,30 @@ TEST(prophy, swaps_u64)
 
 TEST(prophy, swaps_i8)
 {
-    int8_t x = 0x80;
+    int8_t x = static_cast<int8_t>(0x80);
     prophy::swap(&x);
-    EXPECT_EQ(int8_t(0x80), x);
+    EXPECT_EQ(static_cast<int8_t>(0x80), x);
 }
 
 TEST(prophy, swaps_i16)
 {
-    int16_t x = 0x8070;
+    int16_t x = static_cast<int16_t>(0x8070);
     prophy::swap(&x);
-    EXPECT_EQ(int16_t(0x7080), x);
+    EXPECT_EQ(static_cast<int16_t>(0x7080), x);
 }
 
 TEST(prophy, swaps_i32)
 {
-    int32_t x = 0x80706050;
+    int32_t x = static_cast<int32_t>(0x80706050);
     prophy::swap(&x);
-    EXPECT_EQ(int32_t(0x50607080), x);
+    EXPECT_EQ(static_cast<int32_t>(0x50607080), x);
 }
 
 TEST(prophy, swaps_i64)
 {
-    int64_t x = 0x8070605040302010ULL;
+    int64_t x = static_cast<int64_t>(0x8070605040302010ULL);
     prophy::swap(&x);
-    EXPECT_EQ(int64_t(0x1020304050607080ULL), x);
+    EXPECT_EQ(static_cast<int64_t>(0x1020304050607080ULL), x);
 }
 
 TEST(prophy, swaps_float)
