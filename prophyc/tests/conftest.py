@@ -6,8 +6,8 @@ main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__fi
 sys.path.insert(0, main_dir)
 
 def check_libclang():
-    from prophyc.parsers.sack import check_libclang
-    return check_libclang()
+    from prophyc.parsers.sack import SackParser
+    return SackParser.check()
 
 clang_installed = pytest.mark.skipif(not check_libclang(), reason = "clang not installed")
 clang_not_installed = pytest.mark.skipif(check_libclang(), reason = "clang installed")

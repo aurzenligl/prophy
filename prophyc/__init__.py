@@ -60,9 +60,10 @@ def get_parser(opts):
         from prophyc.parsers.isar import IsarParser
         return IsarParser(warn = Emit.warn)
     elif opts.sack:
-        from prophyc.parsers.sack import check_libclang, SackParser
-        if not check_libclang():
-            Emit.error("sack input requires clang and it's not installed")
+        from prophyc.parsers.sack import SackParser
+        status = SackParser.check()
+        if not status:
+            Emit.error(status.error)
         return SackParser(opts.include_dirs, warn = Emit.warn)
     else:
         from prophyc.parsers.prophy import ProphyParser

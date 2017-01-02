@@ -140,7 +140,7 @@ def _setup_libclang():
             Config.set_library_file(libname)
             break
 
-def check_libclang():
+def _check_libclang():
     testconf = Config()
     try:
         testconf.get_cindex_library()
@@ -148,7 +148,23 @@ def check_libclang():
     except LibclangError as e:
         return False
 
+class SackParserStatus(object):
+    def __init__(self, error = None):
+        self.error = error
+    def __bool__(self):
+        return not bool(self.error)
+    __nonzero__ = __bool__
+
 class SackParser(object):
+    @staticmethod
+    def check():
+        import platform
+        if platform.python_implementation() == 'PyPy':
+            return SackParserStatus("sack input doesn't work under PyPy due to ctypes incompatibilities")
+        if not _check_libclang():
+            return SackParserStatus("sack input requires libclang and it's not installed")
+        return SackParserStatus()
+
     def __init__(self, include_dirs=[], warn=None):
         self.include_dirs = include_dirs
         self.warn = warn

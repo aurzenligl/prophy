@@ -8,7 +8,8 @@ opr = os.path.realpath
 main_dir = opd(opd(opr(__file__)))
 
 def write(filename, content):
-    open(filename, "w").write(content)
+    with open(filename, "w") as f:
+        f.write(content)
 
 def compile(filename, mode, tmpdir):
     cmd = " ".join([sys.executable, "-m", "prophyc", mode, "--python_out",
