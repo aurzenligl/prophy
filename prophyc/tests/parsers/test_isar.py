@@ -390,12 +390,14 @@ def test_struct_parsing_with_optional():
 <x>
     <struct name="Struct">
         <member name="a" type="u8" optional="true"/>
+        <member name="b" type="u8" optional="false"/>
     </struct>
 </x>
 """
     assert parse(xml) == [
         model.Struct("Struct", [
-            model.StructMember("a", "u8", optional = True)
+            model.StructMember("a", "u8", optional = True),
+            model.StructMember("b", "u8", optional = False)
         ])
     ]
 
