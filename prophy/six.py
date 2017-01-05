@@ -5,6 +5,7 @@ import sys
 if sys.version < '3':
     long = long
     from itertools import ifilter
+    xrange = xrange
 
     def b(x):
         return x

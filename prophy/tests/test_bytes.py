@@ -378,4 +378,4 @@ def test_greedy_bytes_not_last_exceptions():
 def test_array_of_bytes_not_allowed(array_type):
     with pytest.raises(prophy.ProphyError) as e:
         exec(array_type)
-    assert e.value.message == 'array of strings not allowed'
+    assert str(e.value) == 'array of strings not allowed'
