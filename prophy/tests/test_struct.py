@@ -321,6 +321,7 @@ def test_struct_with_many_arrays_padding():
                        ("y_len", prophy.u32),
                        ("y", prophy.array(prophy.u8, bound = "y_len")),
                        ("z", prophy.u64)]
+
     class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.u8),
                        ("y", X)]
@@ -487,6 +488,7 @@ def test_struct_with_and_without_padding():
                        ("b", prophy.u16),
                        ("c", prophy.u64),
                        ("d", prophy.u8)]
+
     class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u16),
@@ -499,8 +501,14 @@ def test_struct_with_and_without_padding():
     x.c = 3
     x.d = 4
 
-    assert b'\x01\x00'b'\x02\x00\x00\x00\x00\x00'b'\x03\x00\x00\x00\x00\x00\x00\x00'b'\x04\x00\x00\x00\x00\x00\x00\x00' == x.encode('<')
-    x.decode(b'\x04\x00'b'\x05\x00\x00\x00\x00\x00'b'\x06\x00\x00\x00\x00\x00\x00\x00'b'\x07\x00\x00\x00\x00\x00\x00\x00', '<')
+    assert x.encode('<') == (b'\x01\x00'
+                             b'\x02\x00\x00\x00\x00\x00'
+                             b'\x03\x00\x00\x00\x00\x00\x00\x00'
+                             b'\x04\x00\x00\x00\x00\x00\x00\x00')
+    x.decode(b'\x04\x00'
+             b'\x05\x00\x00\x00\x00\x00'
+             b'\x06\x00\x00\x00\x00\x00\x00\x00'
+             b'\x07\x00\x00\x00\x00\x00\x00\x00', '<')
     assert x.a == 4
     assert x.b == 5
     assert x.c == 6
@@ -523,6 +531,7 @@ def test_struct_with_substruct_with_bytes():
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("num_of_x", prophy.u32),
                        ("x", prophy.array(prophy.u8, bound = "num_of_x"))]
+
     class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("num_of_x", prophy.u32),
                        ("x", prophy.array(A, bound = "num_of_x"))]

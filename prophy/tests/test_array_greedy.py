@@ -252,7 +252,8 @@ def test_greedy_complex_composite_array_encode(GreedyComplexCompositeArray):
     assert a.encode(">") == b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04\x00\x05\x00\x06"
     c = a.x.add()
     c.x.x, c.x.y = 7, 8
-    assert a.encode(">") == b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08"
+    assert a.encode(">") == (b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04"
+                             b"\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08")
 
 def test_greedy_complex_composite_array_decode(GreedyComplexCompositeArray):
     a = GreedyComplexCompositeArray()
@@ -279,7 +280,8 @@ def test_greedy_complex_composite_array_decode(GreedyComplexCompositeArray):
     assert a.x[1].x.y == 8
 
     with pytest.raises(Exception):
-        a.decode(b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08\x00", ">")
+        a.decode(b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04"
+                 b"\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08\x00", ">")
 
 def test_greedy_array_exceptions():
     with pytest.raises(Exception) as e:
@@ -291,15 +293,16 @@ def test_greedy_array_exceptions():
     with pytest.raises(Exception) as e:
         class GreedyComposite(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("x", prophy.array(prophy.u32))]
-        class GreedyArrayOfGreedyComposites(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("x", prophy.array(GreedyComposite))]
+        prophy.array(GreedyComposite)
     assert "array with unlimited field disallowed" == str(e.value)
 
 def test_greedy_array_comparisons():
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", prophy.u32)]
+
     class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", prophy.u32)]
+
     class Z(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", prophy.array(Y))]
 

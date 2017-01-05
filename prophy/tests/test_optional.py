@@ -6,126 +6,130 @@ def test_optional_scalar():
         _descriptor = [("a", prophy.optional(prophy.u32))]
 
     x = O()
-    assert None == x.a
-    assert b"\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
-    assert """\
-""" == str(x)
+    assert x.a is None
+    assert x.encode(">") == b"\x00\x00\x00\x00\x00\x00\x00\x00"
+    assert str(x) == """\
+"""
 
     x.a = 10
-    assert 10 == x.a
-    assert b"\x00\x00\x00\x01\x00\x00\x00\x0a" == x.encode(">")
-    assert b"\x01\x00\x00\x00\x0a\x00\x00\x00" == x.encode("<")
-    assert """\
+    assert x.a == 10
+    assert x.encode(">") == b"\x00\x00\x00\x01\x00\x00\x00\x0a"
+    assert x.encode("<") == b"\x01\x00\x00\x00\x0a\x00\x00\x00"
+    assert str(x) == """\
 a: 10
-""" == str(x)
+"""
 
     x.a = None
-    assert None == x.a
-    assert """\
-""" == str(x)
+    assert x.a is None
+    assert str(x) == """\
+"""
 
     x.decode(b"\x00\x00\x00\x01\x00\x00\x00\x0a", ">")
-    assert 10 == x.a
+    assert x.a == 10
 
     x.decode(b"\x00\x00\x00\x00\x00\x00\x00\x00", ">")
-    assert None == x.a
+    assert x.a is None
 
 def test_optional_struct():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u32)]
+
     class O(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(S))]
 
     x = O()
-    assert None == x.a
-    assert b"\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
-    assert """\
-""" == str(x)
+    assert x.a is None
+    assert x.encode(">") == b"\x00\x00\x00\x00\x00\x00\x00\x00"
+    assert str(x) == """\
+"""
 
     x.a = True
-    assert 0 == x.a.a
-    assert b"\x00\x00\x00\x01\x00\x00\x00\x00" == x.encode(">")
-    assert """\
+    assert x.a.a == 0
+    assert x.encode(">") == b"\x00\x00\x00\x01\x00\x00\x00\x00"
+    assert str(x) == """\
 a {
   a: 0
 }
-""" == str(x)
+"""
 
     x.a.a = 0xFF
-    assert 0xFF == x.a.a
-    assert b"\x00\x00\x00\x01\x00\x00\x00\xFF" == x.encode(">")
-    assert b"\x01\x00\x00\x00\xFF\x00\x00\x00" == x.encode("<")
-    assert """\
+    assert x.a.a == 0xFF
+    assert x.encode(">") == b"\x00\x00\x00\x01\x00\x00\x00\xFF"
+    assert x.encode("<") == b"\x01\x00\x00\x00\xFF\x00\x00\x00"
+    assert str(x) == """\
 a {
   a: 255
 }
-""" == str(x)
+"""
 
     x.a = None
-    assert None == x.a
-    assert """\
-""" == str(x)
+    assert x.a is None
+    assert str(x) == """\
+"""
 
     x.decode(b"\x00\x00\x00\x01\x00\x00\x00\x0a", ">")
-    assert 10 == x.a.a
+    assert x.a.a == 10
 
     x.decode(b"\x00\x00\x00\x00\x00\x00\x00\x00", ">")
-    assert None == x.a
+    assert x.a is None
 
 def test_optional_union():
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u32, 5)]
+
     class O(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(U))]
 
     x = O()
-    assert b"\x00\x00\x00\x00" b"\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+    assert x.encode(">") == b"\x00\x00\x00\x00" b"\x00\x00\x00\x00\x00\x00\x00\x00"
 
     x.a = True
-    assert b"\x00\x00\x00\x01" b"\x00\x00\x00\x05" b"\x00\x00\x00\x00" == x.encode(">")
+    assert x.encode(">") == b"\x00\x00\x00\x01" b"\x00\x00\x00\x05" b"\x00\x00\x00\x00"
 
     x.a.a = 3
-    assert b"\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x03" == x.encode(">")
+    assert x.encode(">") == b"\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x03"
 
     x.a = None
-    assert b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+    assert x.encode(">") == b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 
     x.decode(b"\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00\x03", ">")
-    assert 5 == x.a.discriminator
-    assert 3 == x.a.a
+    assert x.a.discriminator == 5
+    assert x.a.a == 3
 
     x.decode(b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
-    assert None == x.a
+    assert x.a is None
 
 def test_optional_struct_in_array():
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [('a', prophy.u32),
                        ('b', prophy.u32)]
+
     class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [('a', prophy.optional(A))]
+
     class C(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [('a_len', prophy.u32),
                        ('a', prophy.array(B, bound = 'a_len'))]
 
     x = C()
     x.a.add()
-    assert b"\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" == x.encode(">")
+    assert x.encode(">") == b"\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 
     x.decode(b"\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
-    assert """\
+    assert str(x) == """\
 a {
 }
-""" == str(x)
+"""
 
     x.decode(b"\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x06\x00\x00\x00\x03", ">")
-    assert """\
+    assert str(x) == """\
 a {
   a {
     a: 6
     b: 3
   }
 }
-""" == str(x)
+"""
 
 def test_optional_bytes():
     with pytest.raises(Exception) as e:

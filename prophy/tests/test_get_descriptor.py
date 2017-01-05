@@ -16,7 +16,6 @@ def Union(Struct):
                        ("c", Struct, 2)]
     return Union
 
-
 @pytest.fixture(scope = 'session')
 def NestedStruct(Struct):
     class NestedStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
@@ -72,7 +71,7 @@ def test_union_type_get_descriptor(Union, Struct):
 
 def test_union_instance_get_discriminated(Union, Struct):
     x = Union()
-    assert [disc_to_tuple(x,disc) for disc in range(3)] == [
+    assert [disc_to_tuple(x, disc) for disc in range(3)] == [
         ('a', prophy.kind.INT, prophy.u16),
         ('b', prophy.kind.INT, prophy.u32),
         ('c', prophy.kind.STRUCT, Struct)

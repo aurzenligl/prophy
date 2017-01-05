@@ -47,7 +47,7 @@ def test_bound_scalar_array_copy_from(BoundScalarArray):
     x = BoundScalarArray()
     x.value[:] = [1, 2]
     y = BoundScalarArray()
-    y.value[:] = [5, 6, 7] # initial value to override
+    y.value[:] = [5, 6, 7]  # initial value to override
 
     y.copy_from(x)
     assert y.value[:] == [1, 2]
@@ -127,21 +127,14 @@ def test_bound_scalar_array_with_shift():
         x.decode(b"\x02\x00", ">")
     assert str(e.value) == "not all bytes read"
 
-def test_bound_scalar_array_with_shift_exceptions():
+@pytest.mark.parametrize('array_type', [
+    'prophy.array(prophy.u8, shift = 2)',
+    'prophy.array(prophy.u8, size = 1, shift = 2)',
+    'prophy.array(prophy.u8, bound = "value_len", size = 1, shift = 2)'
+])
+def test_bound_scalar_array_with_shift_exceptions(array_type):
     with pytest.raises(Exception) as e:
-        class Array(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value_len", prophy.u8),
-                           ("value", prophy.array(prophy.u8, shift = 2))]
-    assert str(e.value) == "only shifting bound array implemented"
-    with pytest.raises(Exception) as e:
-        class Array(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value_len", prophy.u8),
-                           ("value", prophy.array(prophy.u8, size = 1, shift = 2))]
-    assert str(e.value) == "only shifting bound array implemented"
-    with pytest.raises(Exception) as e:
-        class Array(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value_len", prophy.u8),
-                           ("value", prophy.array(prophy.u8, bound = "value_len", size = 1, shift = 2))]
+        exec(array_type)
     assert str(e.value) == "only shifting bound array implemented"
 
 def test_bound_composite_array_assignment(BoundScalarArray, BoundCompositeArray):
@@ -195,7 +188,7 @@ def test_bound_composite_array_copy_from(BoundCompositeArray):
     y = BoundCompositeArray()
     y.value.add()
     y.value.add()
-    y.value.add() # initial value to override
+    y.value.add()  # initial value to override
 
     y.copy_from(x)
     assert len(y.value) == 2
@@ -220,9 +213,13 @@ value {
 }
 """
 
-    assert x.encode(">") == b"\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x03"
+    assert x.encode(">") == (b"\x00\x00\x00\x02\x00\x00\x00\x02"
+                             b"\x00\x00\x00\x01\x00\x00\x00\x02"
+                             b"\x00\x00\x00\x01\x00\x00\x00\x03")
 
-    x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x03", ">")
+    x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x02"
+             b"\x00\x00\x00\x01\x00\x00\x00\x02"
+             b"\x00\x00\x00\x01\x00\x00\x00\x03", ">")
     assert len(x.value) == 2
     assert x.value[0].value[:] == [1, 2]
     assert x.value[1].value[:] == [3]
@@ -240,6 +237,7 @@ value {
 def test_bound_composite_array_decode_multiple():
     class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('x', prophy.u8)]
+
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('num_of_x', prophy.u8),
                        ('x', prophy.array(Y, bound = 'num_of_x')),
@@ -247,6 +245,7 @@ def test_bound_composite_array_decode_multiple():
                        ('y', prophy.array(Y, bound = 'num_of_y')),
                        ('num_of_z', prophy.u8),
                        ('z', prophy.array(Y, bound = 'num_of_z'))]
+
     x = X()
     x.decode(b'\x01\x00\x01\x00\x01\x00', '<')
 

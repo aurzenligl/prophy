@@ -71,6 +71,7 @@ def test_fixed_scalar_array_exception():
     class D(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(prophy.u8, bound = "a_len"))]
+
     class U(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.array(prophy.u8))]
 
@@ -135,6 +136,7 @@ def test_fixed_array_with_enum():
         _enumerators = [("E_1", 1),
                         ("E_2", 2),
                         ("E_3", 3)]
+
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.array(E, size = 3))]
 
@@ -170,9 +172,11 @@ def test_fixed_array_decode_multiple_scalar_arrays():
 def test_fixed_array_decode_multiple_composite_arrays():
     class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('x', prophy.u8)]
+
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('x', prophy.array(Y, size = 1)),
                        ('y', prophy.array(Y, size = 1)),
                        ('z', prophy.array(Y, size = 1))]
+
     x = X()
     x.decode(b'\x00\x00\x00', '<')

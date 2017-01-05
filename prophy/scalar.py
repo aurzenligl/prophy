@@ -11,7 +11,7 @@ def numeric_decorator(cls, size, id):
     def decode(data, pos, endianness):
         if (len(data) - pos) < size:
             raise ProphyError("too few bytes to decode integer")
-        value, = struct.unpack(endianness + id, data[pos : pos + size])
+        value, = struct.unpack(endianness + id, data[pos:(pos + size)])
         return value, size
 
     cls._encode = encode
@@ -113,14 +113,14 @@ def add_enum_attributes(cls, enumerators):
                 raise ProphyError("unknown enumerator name")
             return cls(value)
         elif isinstance(value, (int, long)):
-            if not value in int_to_name:
+            if value not in int_to_name:
                 raise ProphyError("unknown enumerator value")
             return cls(value)
         else:
             raise ProphyError("neither string nor int")
 
-    name_to_int = {name:value for name, value in enumerators}
-    int_to_name = {value:name for name, value in enumerators}
+    name_to_int = {name: value for name, value in enumerators}
+    int_to_name = {value: name for name, value in enumerators}
     if len(name_to_int) < len(enumerators):
         raise ProphyError("names overlap")
     list(map(cls._check, (value for _, value in enumerators)))
@@ -133,6 +133,7 @@ class enum_generator(type):
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = []
         return super(enum_generator, cls).__new__(cls, name, bases, attrs)
+
     def __init__(cls, name, bases, attrs):
         if not hasattr(cls, "_generated"):
             cls._generated = True
@@ -141,9 +142,11 @@ class enum_generator(type):
 
 class enum(u32):
     __slots__ = []
+
     @property
     def name(self):
         return self._int_to_name[self]
+
     @property
     def number(self):
         return int(self)
@@ -190,13 +193,13 @@ def bytes_(**kwargs):
             if (len(data) - pos) < size:
                 raise ProphyError("too few bytes to decode string")
             if size and not bound:
-                return data[pos:pos+size], size
+                return data[pos:(pos + size)], size
             elif size and bound:
-                return data[pos:pos+len_hint], size
+                return data[pos:(pos + len_hint)], size
             elif bound:
                 if (len(data) - pos) < len_hint:
                     raise ProphyError("too few bytes to decode string")
-                return data[pos:pos+len_hint], len_hint
+                return data[pos:(pos + len_hint)], len_hint
             else:  # greedy
                 return data[pos:], (len(data) - pos)
 

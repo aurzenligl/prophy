@@ -1,6 +1,5 @@
 import prophy
 import pytest
-from binascii import hexlify
 
 @pytest.fixture(scope = 'session')
 def ExtSizedArr():
@@ -115,10 +114,10 @@ def test_ext_sized_scalar_array_print(ExtSizedArr):
 
     assert str(x) == ("a: 1\n"
                       "a: 2\n")
-    
+
     x.c[:] = [3, 4, 0xDEAD]
     x.c[:] = [3, 4]
-    
+
     assert str(x) == ("a: 1\n"
                       "a: 2\n"
                       "c: 3\n"
@@ -150,7 +149,7 @@ def test_ext_sized_scalar_array_encoding_little_endian(ExtSizedArr):
 def test_ext_sized_scalar_array_decoding_big_endian(ExtSizedArr):
     x = ExtSizedArr()
     x.decode(b"\x03\x01\x02\xff\x00\x00\x00\x00\x04\x00\x05\x00\x06", ">")
-    
+
     assert x.a == [1, 2, 0xff]
     assert x.b == [0, 0, 0]
     assert x.c == [4, 5, 6]
@@ -242,7 +241,7 @@ def test_multi_ext_sized_arrays_sets_interwined():
     assert ref == x.encode(">")
 
 def test_ext_sized_scalar_array_with_shift():
-    
+
     class XS(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u8),
                        ("a", prophy.array(prophy.u8, bound = "len", shift = 2)),

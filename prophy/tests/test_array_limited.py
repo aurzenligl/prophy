@@ -84,9 +84,9 @@ def test_limited_composite_array_assigment(LimitedCompositeArray, Composite):
     b = a.value.add()
 
     assert str(a) == ("value {\n"
-              "  x: 0\n"
-              "  y: 0\n"
-              "}\n")
+                      "  x: 0\n"
+                      "  y: 0\n"
+                      "}\n")
 
     b.x = 0x10
     b.y = 0x20
@@ -129,18 +129,18 @@ def test_limited_composite_array_exception(LimitedCompositeArray, Composite):
 
     with pytest.raises(Exception) as e:
         a.decode((b"\x00\x00\x00\x04"
-                b"\x00\x00\x00\x22\x00\x00\x00\x13"
-                b"\x00\x00\x00\x22\x00\x00\x00\x13"
-                b"\x00\x00\x00\x22\x00\x00\x00\x13"
-                b"\x00\x00\x00\x33\x00\x00\x00\x14"), ">")
+                  b"\x00\x00\x00\x22\x00\x00\x00\x13"
+                  b"\x00\x00\x00\x22\x00\x00\x00\x13"
+                  b"\x00\x00\x00\x22\x00\x00\x00\x13"
+                  b"\x00\x00\x00\x33\x00\x00\x00\x14"), ">")
     assert "exceeded array limit" == str(e.value)
 
     with pytest.raises(Exception) as e:
         a.decode((b"\x00\x00\x00\x03"
-                b"\x00\x00\x00\x22\x00\x00\x00\x13"
-                b"\x00\x00\x00\x22\x00\x00\x00\x13"
-                b"\x00\x00\x00\x22\x00\x00\x00\x13"
-                b"\x00"), ">")
+                  b"\x00\x00\x00\x22\x00\x00\x00\x13"
+                  b"\x00\x00\x00\x22\x00\x00\x00\x13"
+                  b"\x00\x00\x00\x22\x00\x00\x00\x13"
+                  b"\x00"), ">")
     assert "not all bytes read" == str(e.value)
 
     with pytest.raises(Exception) as e:
@@ -222,6 +222,7 @@ def test_limited_array_with_enum():
         _enumerators = [("E_1", 1),
                         ("E_2", 2),
                         ("E_3", 3)]
+
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a_len", prophy.u32),
                        ("a", prophy.array(E, size = 3, bound = "a_len"))]
@@ -242,6 +243,7 @@ def test_limited_array_with_enum():
 def test_limited_array_with_field_afterwards():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8)]
+
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(S, size = 3, bound = "a_len")),
