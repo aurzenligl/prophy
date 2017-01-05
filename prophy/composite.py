@@ -1,14 +1,19 @@
-from .six import ifilter, long, b
+from .six import long, b
 
 from . import scalar
 from .exception import ProphyError
 from .base_array import base_array
-from _functools import partial
 from .kind import kind
 
 def validate(descriptor):
     if any(type_._UNLIMITED for _, type_ in descriptor[:-1]):
         raise ProphyError("unlimited field is not the last one")
+
+def calc_alignment(desc):
+    if desc:
+        return max((type_._OPTIONAL and type_._OPTIONAL_ALIGNMENT or type_._ALIGNMENT) for _, type_ in desc)
+    else:
+        return 1
 
 def add_attributes(cls, descriptor):
     cls._SIZE = sum((type_._OPTIONAL and type_._OPTIONAL_SIZE or type_._SIZE) for _, type_ in descriptor)
@@ -16,7 +21,7 @@ def add_attributes(cls, descriptor):
     cls._UNLIMITED = any(type_._UNLIMITED for _, type_ in descriptor)
     cls._OPTIONAL = False
     cls._BOUND = None
-    cls._ALIGNMENT = max((type_._OPTIONAL and type_._OPTIONAL_ALIGNMENT or type_._ALIGNMENT) for _, type_ in descriptor) if descriptor else 1
+    cls._ALIGNMENT = calc_alignment(descriptor)
     cls._PARTIAL_ALIGNMENT = None
 
     alignment = 1
@@ -29,6 +34,7 @@ def add_attributes(cls, descriptor):
 class Padder(object):
     def __init__(self):
         self.offset = 0
+
     def __call__(self, size, alignment):
         self.offset += size
         padding = (alignment - self.offset % alignment) % alignment
@@ -60,8 +66,10 @@ def add_repeated(cls, name, tp):
             value = tp()
             self._fields[name] = value
         return value
+
     def setter(self, new_value):
         raise ProphyError("assignment to array field not allowed")
+
     setattr(cls, name, property(getter, setter))
     if tp._BOUND:
         substitute_len_field(cls, cls._descriptor, name, tp)
@@ -70,11 +78,13 @@ def add_scalar(cls, field_name, field_type):
     if field_type._OPTIONAL:
         def getter(self):
             return self._fields.get(field_name)
+
         def setter(self, new_value):
             self._fields[field_name] = None if new_value is None else field_type._check(new_value)
     else:
         def getter(self):
             return self._fields.get(field_name, field_type._DEFAULT)
+
         def setter(self, new_value):
             self._fields[field_name] = field_type._check(new_value)
     setattr(cls, field_name, property(getter, setter))
@@ -85,6 +95,7 @@ def add_composite(cls, name, tp):
     if tp._OPTIONAL:
         def getter(self):
             return self._fields.get(name)
+
         def setter(self, new_value):
             if new_value is True:
                 self._fields[name] = tp()
@@ -99,12 +110,15 @@ def add_composite(cls, name, tp):
                 return value
             else:
                 return self._fields.setdefault(name, tp())
+
         def setter(self, new_value):
             raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
-    index, (name, tp) = next(ifilter(lambda enumed_field: enumed_field[1][0] is container_tp._BOUND, enumerate(descriptor)))
+    index, (name, tp) = next(
+        (index, field) for index, field in enumerate(descriptor) if field[0] is container_tp._BOUND
+    )
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
@@ -114,7 +128,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
     if tp.__name__ == "container_len":
         def is_bound_shift_valid():
-            _, t = next(ifilter(lambda field: field[0] in tp._BOUND, descriptor))
+            _, t = next(field for field in descriptor if field[0] in tp._BOUND)
             return t._BOUND_SHIFT == bound_shift
 
         tp.add_bounded_container(container_name)
@@ -180,8 +194,8 @@ def encode_optional(parent, type_, value, endianness):
     if value is None:
         return b"\x00" * type_._OPTIONAL_SIZE
     else:
-        return (type_._optional_type._encode(True, endianness).ljust(type_._OPTIONAL_ALIGNMENT, b'\x00')
-                + type_._encode(parent, type_.__bases__[0], value, endianness))
+        return (type_._optional_type._encode(True, endianness).ljust(type_._OPTIONAL_ALIGNMENT, b'\x00') +
+                type_._encode(parent, type_.__bases__[0], value, endianness))
 
 def encode_array_delimiter(parent, type_, value, endianness):
     return type_._encode(type_.evaluate(parent), endianness)
@@ -217,7 +231,9 @@ def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
     value, _ = type_._optional_type._decode(data, pos, endianness)
     if value:
         setattr(parent, name, True)
-        return type_._OPTIONAL_ALIGNMENT + type_._decode(parent, name, type_.__bases__[0], data, pos + type_._OPTIONAL_ALIGNMENT, endianness, len_hints)
+        return type_._OPTIONAL_ALIGNMENT + type_._decode(parent, name, type_.__bases__[0],
+                                                         data, pos + type_._OPTIONAL_ALIGNMENT, endianness,
+                                                         len_hints)
     else:
         setattr(parent, name, None)
         return type_._OPTIONAL_ALIGNMENT + type_._SIZE
@@ -274,45 +290,6 @@ def get_kind(type_):
         return kind.ENUM
     else:
         return kind.INT
-
-
-def field_to_list(prefix, name, type_, value):
-
-    if issubclass(type_, base_array):
-        array = []
-        for idx,elem in enumerate(value):
-            arr_idx = '{}.{}[{}]'.format(prefix,name,idx)
-            array += field_to_list(arr_idx, '', type_._TYPE, elem)
-        return array
-
-    elif issubclass(type_, (struct, union)):
-        prefix = fix_prefix(prefix,name)
-        return value.fields(prefix)
-    else:
-        field = fix_prefix(prefix,name)[1:]
-        return [field]
-
-def field_to_dict(prefix, name, type_, value):
-
-    if issubclass(type_, base_array):
-        array = {}
-        for idx,elem in enumerate(value):
-            arr_idx = '{}.{}[{}]'.format(prefix,name,idx)
-            array.update(field_to_dict(arr_idx, '', type_._TYPE, elem))
-        return array
-
-    elif issubclass(type_, (struct, union)):
-        prefix = fix_prefix(prefix,name)
-        return value.values(prefix)
-    else:
-        field = fix_prefix(prefix,name)[1:]
-        return dict([(field,value)])
-
-def fix_prefix(prefix,name):
-    if name:
-        return "{}.{}".format(prefix,name)
-    else:
-        return "{}".format(prefix)
 
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):
@@ -414,9 +391,11 @@ class struct(object):
 
 class struct_packed(struct):
     __slots__ = []
+
     @staticmethod
     def _get_padding(offset, alignment):
         return b''
+
     @staticmethod
     def _get_padding_size(offset, alignment):
         return 0
@@ -425,6 +404,7 @@ class struct_generator(type):
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = ["_fields"]
         return super(struct_generator, cls).__new__(cls, name, bases, attrs)
+
     def __init__(cls, name, bases, attrs):
         if not hasattr(cls, "_generated"):
             cls._generated = True
@@ -472,8 +452,9 @@ def add_union_properties(cls, descriptor):
 def add_union_discriminator(cls):
     def getter(self):
         return self._discriminated[2]
+
     def setter(self, new_value):
-        field = next(ifilter(lambda x: new_value in (x[0], x[2]), self._descriptor), None)
+        field = next((x for x in self._descriptor if new_value in (x[0], x[2])), None)
         if field:
             if field != self._discriminated:
                 self._discriminated = field
@@ -487,6 +468,7 @@ def add_union_scalar(cls, name, type_, disc, field):
         if self._discriminated is not field:
             raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
         return self._fields.get(name, type_._DEFAULT)
+
     def setter(self, new_value):
         if self._discriminated is not field:
             raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
@@ -503,6 +485,7 @@ def add_union_composite(cls, name, type_, disc, field):
             value = type_()
             value = self._fields.setdefault(name, value)
         return value
+
     def setter(self, new_value):
         raise ProphyError("assignment to composite field not allowed")
     setattr(cls, name, property(getter, setter))
@@ -528,7 +511,7 @@ class union(object):
         return field_to_string(name, tp, value)
 
     def get_discriminated(self):
-        name, tp, _, _, _  =  self._discriminated
+        name, tp, _, _, _ = self._discriminated
         return FieldDescriptor(name, tp, get_kind(tp))
 
     @classmethod
@@ -542,9 +525,10 @@ class union(object):
     def encode(self, endianness, terminal = True):
         name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
-        data = (self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, b'\x00')
-                + encode_(self, tp, value, endianness))
-        return data.ljust(self._SIZE, b'\x00')
+        return (
+            self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, b'\x00') +
+            encode_(self, tp, value, endianness)
+        ).ljust(self._SIZE, b'\x00')
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal = True)
@@ -582,6 +566,7 @@ class union_generator(type):
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = ["_fields", "_discriminated"]
         return super(union_generator, cls).__new__(cls, name, bases, attrs)
+
     def __init__(cls, name, bases, attrs):
         if not hasattr(cls, "_generated"):
             cls._generated = True
@@ -597,5 +582,6 @@ class FieldDescriptor(object):
         self.name = name
         self.type = type_
         self.kind = kind
+
     def __repr__(self):
         return ("<{}, {}, {}>".format(self.name, self.kind, self.type))
