@@ -555,9 +555,9 @@ struct Y
     assert type(members[0].definition) == model.Typedef
     assert type(members[1].definition) == model.Typedef
     assert type(members[2].definition) == model.Typedef
-    assert members[3].definition == None
+    assert members[3].definition is None
     assert type(members[4].definition) == model.Typedef
-    assert members[5].definition == None
+    assert members[5].definition is None
     assert type(members[6].definition) == model.Typedef
     assert type(members[7].definition) == model.Typedef
     assert type(members[8].definition) == model.Typedef

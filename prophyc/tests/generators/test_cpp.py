@@ -28,18 +28,18 @@ def test_padder_indexing():
     padder = _Padder()
 
     assert (padder.generate_padding(1) ==
-        'uint8_t _padding0; /// manual padding to ensure natural alignment layout\n')
+            'uint8_t _padding0; /// manual padding to ensure natural alignment layout\n')
     assert (padder.generate_padding(1) ==
-        'uint8_t _padding1; /// manual padding to ensure natural alignment layout\n')
+            'uint8_t _padding1; /// manual padding to ensure natural alignment layout\n')
     assert (padder.generate_padding(1) ==
-        'uint8_t _padding2; /// manual padding to ensure natural alignment layout\n')
+            'uint8_t _padding2; /// manual padding to ensure natural alignment layout\n')
 
 def test_padder_non_pow2():
     padder = _Padder()
 
     assert (padder.generate_padding(5) ==
-        ('uint8_t _padding0; /// manual padding to ensure natural alignment layout\n'
-         'uint32_t _padding1; /// manual padding to ensure natural alignment layout\n'))
+            ('uint8_t _padding0; /// manual padding to ensure natural alignment layout\n'
+             'uint32_t _padding1; /// manual padding to ensure natural alignment layout\n'))
 
 def test_definitions_includes():
     nodes = process([
@@ -82,10 +82,12 @@ typedef uint8_t c;
 
 def test_definitions_enums():
     nodes = process([
-        model.Enum("EEnum", [model.EnumMember("EEnum_A", "0"),
-        model.EnumMember("EEnum_B", "1"),
-        model.EnumMember("EEnum_C", "2"),
-        model.EnumMember("EEnum_D", "abc")])
+        model.Enum("EEnum", [
+            model.EnumMember("EEnum_A", "0"),
+            model.EnumMember("EEnum_B", "1"),
+            model.EnumMember("EEnum_C", "2"),
+            model.EnumMember("EEnum_D", "abc")
+        ])
     ])
 
     assert generate_definitions(nodes) == """\

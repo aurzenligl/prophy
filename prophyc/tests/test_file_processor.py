@@ -83,7 +83,9 @@ def test_file_processor_include_dir_precedence(tmpdir_cwd):
     os.mkdir('y')
     os.mkdir('z')
     tmpdir_cwd.join('main.txt').write('#include <incl.txt>')
-    process = lambda: FileProcessor(FakeContentProcessor(), ['z', 'y', 'x'])('main.txt')
+
+    def process():
+        return FileProcessor(FakeContentProcessor(), ['z', 'y', 'x'])('main.txt')
 
     tmpdir_cwd.join('x/incl.txt').write('first')
     assert process() == 'first\n'
@@ -139,7 +141,7 @@ def test_file_processor_main_directory_implicit_include_directory_taken_over_by_
     tmpdir_cwd.join('main1.txt').write('#include <incl1.txt>')
     tmpdir_cwd.join('incl1.txt').write('some text')
     tmpdir_cwd.join('x/main2.txt').write('#include <incl2.txt>')
-    tmpdir_cwd.join('incl2.txt').write('some text') # this is intended not to be found
+    tmpdir_cwd.join('incl2.txt').write('some text')  # this is intended not to be found
 
     processor = FileProcessor(FakeContentProcessor(), [])
     processor('main1.txt')

@@ -191,7 +191,7 @@ def test_cross_symbols_from_includes():
     assert nodes[1].members[0].definition.name == 'ola'
     assert nodes[1].members[1].definition.name == 'ala'
     # cross-reference only needs to link definitions of first level of nodes
-    assert nodes[0].nodes[1].members[0].definition == None
+    assert nodes[0].nodes[1].members[0].definition is None
 
 def test_cross_reference_array_size_from_includes():
     nodes = [
@@ -216,7 +216,7 @@ def test_cross_reference_array_size_from_includes():
 
     assert nodes[1].members[0].numeric_size == 3
     assert nodes[1].members[1].numeric_size == 1
-    assert nodes[1].members[2].numeric_size == None
+    assert nodes[1].members[2].numeric_size is None
     assert nodes[1].members[3].numeric_size == 3
 
 def test_cross_reference_numeric_size_of_expression():
@@ -247,6 +247,7 @@ def test_cross_reference_expression_as_array_size():
 class WarnFake(object):
     def __init__(self):
         self.msgs = []
+
     def __call__(self, msg):
         self.msgs.append(msg)
 
@@ -517,7 +518,6 @@ def test_partition_many_dynamic_structs():
     assert [[x.name for x in part] for part in parts] == [["b"], ["c"]]
 
 def process(nodes, warn=None):
-    warnings = []
     model.cross_reference(nodes)
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes, **(warn and {'warn': warn} or {}))
@@ -530,9 +530,9 @@ def process_with_warnings(nodes):
 
 def get_size_alignment_padding(node):
     return (
-        isinstance(node, model.StructMember)
-        and (node.byte_size, node.alignment, node.padding)
-        or (node.byte_size, node.alignment)
+        isinstance(node, model.StructMember) and
+        (node.byte_size, node.alignment, node.padding) or
+        (node.byte_size, node.alignment)
     )
 
 def get_members_and_node(node):

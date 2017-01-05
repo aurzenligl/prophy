@@ -9,13 +9,10 @@ def check_libclang():
     from prophyc.parsers.sack import SackParser
     return SackParser.check()
 
-clang_installed = pytest.mark.skipif(not check_libclang(), reason = "clang not installed")
-clang_not_installed = pytest.mark.skipif(check_libclang(), reason = "clang installed")
-
 def pytest_namespace():
     return {
-        'clang_installed': clang_installed,
-        'clang_not_installed': clang_not_installed
+        'clang_installed': pytest.mark.skipif(not check_libclang(), reason = "clang not installed"),
+        'clang_not_installed': pytest.mark.skipif(check_libclang(), reason = "clang installed")
     }
 
 @pytest.yield_fixture
