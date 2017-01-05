@@ -3,6 +3,7 @@ python: '3.5'
 sudo: false
 env:
   matrix:
+    - TOXENV=check
     - TOXENV=py27
     - TOXENV=py34
     - TOXENV=py35
