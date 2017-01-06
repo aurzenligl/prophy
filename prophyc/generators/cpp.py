@@ -133,6 +133,7 @@ def _generate_def_union(union):
                                               union.name,
                                               _indent(''.join(body_parts), 4))
 
+
 _generate_def_visitor = {
     model.Include: _generate_def_include,
     model.Constant: _generate_def_constant,
@@ -145,9 +146,9 @@ _generate_def_visitor = {
 def _generator_def(nodes):
     last_node = None
     for node in nodes:
-        prepend_newline = bool(last_node
-                               and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
-                                    or type(last_node) is not type(node)))
+        prepend_newline = bool(last_node and
+                               (isinstance(last_node, (model.Enum, model.Struct, model.Union)) or
+                                type(last_node) is not type(node)))
         yield prepend_newline * '\n' + _generate_def_visitor[type(node)](node) + '\n'
         last_node = node
 
@@ -256,8 +257,8 @@ def _generate_swap_union(union):
                 union.name,
                 ''.join(8 * ' ' + 'case {0}::discriminator_{1}: swap({2}); break;\n'.format(
                     union.name, m.name, _member_access_statement(m)
-                ) for m in union.members)
-            )
+                ) for m in union.members))
+
 
 _generate_swap_visitor = {
     model.Struct: _generate_swap_struct,
@@ -269,6 +270,7 @@ def _generator_swap(nodes):
         fun = _generate_swap_visitor.get(type(node))
         if fun:
             yield fun(node)
+
 
 header = """\
 #ifndef _PROPHY_GENERATED_{0}_HPP

@@ -1,4 +1,5 @@
 import os
+from contextlib import contextmanager
 
 import ply.lex as lex
 import ply.yacc as yacc
@@ -12,7 +13,7 @@ def get_column(input, pos):
 
 class Parser(object):
 
-    literals = ['+','-','*','/', '(',')','#']
+    literals = ['+', '-', '*', '/', '(', ')', '#']
 
     keywords = (
         "const", "enum", "typedef", "struct", "union",
@@ -70,7 +71,7 @@ class Parser(object):
     t_RSHIFT = r'>>'
     t_AT = r'@'
 
-    t_ignore  = ' \t\r'
+    t_ignore = ' \t\r'
 
     def t_newline(self, t):
         r'\n+'
@@ -406,7 +407,7 @@ class Parser(object):
                       | expression LSHIFT expression
                       | expression RSHIFT expression'''
         try:
-            if t[2] == '+'  : t[0] = t[1] + t[3]
+            if t[2] == '+': t[0] = t[1] + t[3]
             elif t[2] == '-': t[0] = t[1] - t[3]
             elif t[2] == '*': t[0] = t[1] * t[3]
             elif t[2] == '/': t[0] = t[1] / t[3]
@@ -473,14 +474,14 @@ class Parser(object):
             pos = len(self.lexer.lexdata) - 1
         self._parser_error(message, line, pos)
 
-"""
-Creating parsers is very expensive, so there is a need to reuse them.
-On the other hand, recursive parser usage requires a unique one for each
-level of recursion. Static stack of parsers seems to solve the issue.
-"""
-from contextlib import contextmanager
 @contextmanager
 def allocate_parser(parsers = []):
+    """
+    Creating parsers is very expensive, so there is a need to reuse them.
+    On the other hand, recursive parser usage requires a unique one for each
+    level of recursion. Static stack of parsers seems to solve the issue.
+    """
+
     parser = parsers and parsers.pop() or Parser()
     try:
         yield parser

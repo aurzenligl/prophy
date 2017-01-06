@@ -190,6 +190,7 @@ def _rename(node, patch):
 
     raise Exception("Rename must have 1 or 2 params: %s %s" % (node.name, patch))
 
+
 _actions = {'type': _type,
             'insert': _insert,
             'remove': _remove,
@@ -197,8 +198,8 @@ _actions = {'type': _type,
             'static': _static,
             'limited': _limited,
             'dynamic': _dynamic,
-            'struct' : _struct,
-            'rename' : _rename}
+            'struct': _struct,
+            'rename': _rename}
 
 def _is_int(s):
     try:

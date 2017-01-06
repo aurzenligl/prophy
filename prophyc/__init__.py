@@ -13,6 +13,7 @@ class Emit(object):
     @staticmethod
     def warn(msg, location = 'prophyc'):
         sys.stderr.write(location + ': warning: ' + msg + '\n')
+
     @staticmethod
     def error(msg, location = 'prophyc'):
         sys.exit(location + ': error: ' + msg)
@@ -100,6 +101,7 @@ def parse_content(parser, patcher, *parse_args):
 
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
+
 
 if __name__ == "__main__":
     main()

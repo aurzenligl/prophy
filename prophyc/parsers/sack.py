@@ -145,14 +145,16 @@ def _check_libclang():
     try:
         testconf.get_cindex_library()
         return True
-    except LibclangError as e:
+    except LibclangError:
         return False
 
 class SackParserStatus(object):
     def __init__(self, error = None):
         self.error = error
+
     def __bool__(self):
         return not bool(self.error)
+
     __nonzero__ = __bool__
 
 class SackParser(object):
@@ -182,5 +184,6 @@ class SackParser(object):
             for diag in tu.diagnostics:
                 self.warn(diag.spelling.decode(), location=_get_location(diag.location))
         return build_model(tu)
+
 
 _setup_libclang()
