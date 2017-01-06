@@ -32,3 +32,5 @@ waf-*
 # Test tools
 .tox
 .cache
+
+.coverage
