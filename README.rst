@@ -7,6 +7,9 @@
 .. image:: https://readthedocs.org/projects/prophy/badge
     :target: http://prophy.readthedocs.io/en/latest
     :alt: Documentation Status
+.. image:: https://coveralls.io/repos/github/aurzenligl/prophy/badge.svg?branch=master
+    :target: https://coveralls.io/github/aurzenligl/prophy?branch=master
+    :alt: Coverage Status
 .. image:: https://travis-ci.org/aurzenligl/prophy.svg?branch=master
     :target: https://travis-ci.org/aurzenligl/prophy
     :alt: Travis-CI Build Status
