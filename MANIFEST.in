@@ -30,5 +30,3 @@ exclude prophy_cpp/wscript
 recursive-include prophyc *.patch
 recursive-include prophyc *.py
 recursive-include prophyc *.txt
-
-recursive-include tests *.py
