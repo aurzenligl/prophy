@@ -1,0 +1,4 @@
+[run]
+source = prophy, prophyc
+omit = */tests/*, */clang/*
+parallel = True
