@@ -1,5 +1,6 @@
 include *.py
 include *.sh
+include .coveragerc
 
 include AUTHORS
 include HOWTO
