@@ -4,6 +4,7 @@ next
 - prophyc: isar parser: negative enum values treated as large unsigned numbers, like in sack
 - prophyc: isar parser: optional struct member is optional according to attribute value, not presence
 - prophy_cpp: packed attribute used in --cpp_out structs declarations
+- prophy: python3 prints structs with bytes fields correctly
 - housekeeping:
     - travis and tox improved
     - coverage added
