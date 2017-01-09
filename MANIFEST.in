@@ -1,6 +1,7 @@
 include *.py
 include *.sh
 include .coveragerc
+include .bumpversion.cfg
 
 include AUTHORS
 include HOWTO
