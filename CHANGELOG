@@ -1,6 +1,7 @@
 next
 -----------------------------------
 - prophyc: clang python plugin vendored, libclang.so found more easily
+- prophyc: isar parser: negative enum values treated as large unsigned numbers, like in sack
 - housekeeping:
     - travis and tox improved
     - coverage added
