@@ -201,23 +201,14 @@ def test_shift_bound_bytes_encoding_exceptions(ShiftBoundBytes):
         x.decode(b"\x02\x00", ">")
     assert str(e.value) == "not all bytes read"
 
-def test_shift_bound_bytes_exceptions():
+@pytest.mark.parametrize('bytes_type', [
+    'prophy.bytes(shift = 2)',
+    'prophy.bytes(size = 1, shift = 2)',
+    'prophy.bytes(bound = "value_len", size = 1, shift = 2)'
+])
+def test_shift_bound_bytes_exceptions(bytes_type):
     with pytest.raises(Exception) as e:
-        class Bytes(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value_len", prophy.u8),
-                           ("value", prophy.bytes(shift = 2))]
-    assert str(e.value) == "only shifting bound bytes implemented"
-
-    with pytest.raises(Exception) as e:
-        class Bytes(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value_len", prophy.u8),
-                           ("value", prophy.bytes(size = 1, shift = 2))]
-    assert str(e.value) == "only shifting bound bytes implemented"
-
-    with pytest.raises(Exception) as e:
-        class Bytes(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value_len", prophy.u8),
-                           ("value", prophy.bytes(bound = "value_len", size = 1, shift = 2))]
+        exec(bytes_type)
     assert str(e.value) == "only shifting bound bytes implemented"
 
 def test_limited_bytes_assignment(LimitedBytes):
@@ -351,40 +342,40 @@ def test_greedy_bytes_not_last_exceptions():
             _descriptor = [("x", prophy.bytes()),
                            ("y", prophy.u32)]
     with pytest.raises(prophy.ProphyError):
-        class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        class X1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("x", prophy.u32),
                            ("y", prophy.bytes())]
-        class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("x", X),
+
+        class X2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("x", X1),
                            ("y", prophy.u32)]
     with pytest.raises(prophy.ProphyError):
-        class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        class Y1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("x", prophy.u32),
                            ("y", prophy.bytes())]
-        class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("x", prophy.u32),
-                           ("y", prophy.array(X, size = 2))]
-    with pytest.raises(prophy.ProphyError):
-        class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("x", prophy.u32),
-                           ("y", prophy.bytes())]
-        class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("x", prophy.u32),
-                           ("y", X)]
-        class Z(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("x", Y),
-                           ("y", X)]
 
-def test_array_of_bytes_not_allowed():
+        class Y2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("x", prophy.u32),
+                           ("y", prophy.array(Y1, size = 2))]
     with pytest.raises(prophy.ProphyError):
-        class Bytes(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value", prophy.array(prophy.bytes(size = 5), size = 5))]
-    with pytest.raises(prophy.ProphyError):
-        class Bytes(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("value_len", prophy.u32),
-                           ("value", prophy.array(prophy.bytes(size = 5), bound = "value_len"))]
-    with pytest.raises(prophy.ProphyError):
-        class Bytes(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("z", prophy.u32),
-                           ("y", prophy.u32),
-                           ("x", prophy.array(prophy.bytes(bound = "y"), bound = "z"))]
+        class Z1(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("x", prophy.u32),
+                           ("y", prophy.bytes())]
+
+        class Z2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("x", prophy.u32),
+                           ("y", Z1)]
+
+        class Z3(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("x", Z2),
+                           ("y", Z1)]
+
+@pytest.mark.parametrize('array_type', [
+    'prophy.array(prophy.bytes(size = 5), size = 5)',
+    'prophy.array(prophy.bytes(size = 5), bound = "value_len")',
+    'prophy.array(prophy.bytes(bound = "y"), bound = "z")'
+])
+def test_array_of_bytes_not_allowed(array_type):
+    with pytest.raises(prophy.ProphyError) as e:
+        exec(array_type)
+    assert str(e.value) == 'array of strings not allowed'

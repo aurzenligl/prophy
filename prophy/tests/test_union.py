@@ -168,6 +168,7 @@ def test_union_with_struct():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u32),
                        ("b", prophy.u32)]
+
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u16, 0),
                        ("b", S, 1)]
@@ -255,6 +256,7 @@ def test_struct_with_union():
         _descriptor = [("a", prophy.u32, 0),
                        ("b", prophy.u8, 1),
                        ("c", prophy.u8, 2)]
+
     class StructWithU(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8),
                        ("b", UVarLen),
@@ -290,6 +292,7 @@ def test_array_with_union():
         _descriptor = [("a", prophy.u16, 0),
                        ("b", prophy.u8, 1),
                        ("c", prophy.u8, 2)]
+
     class StructWithU(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(UVarLen, bound = "a_len"))]
@@ -306,10 +309,26 @@ def test_array_with_union():
     y.discriminator = "c"
     y.c = 3
 
-    assert b"\x03\x00\x00\x00"b"\x00\x00\x00\x00"b"\x00\x01\x00\x00"b"\x00\x00\x00\x01"b"\x02\x00\x00\x00"b"\x00\x00\x00\x02"b"\x03\x00\x00\x00" == x.encode(">")
-    assert b"\x03\x00\x00\x00"b"\x00\x00\x00\x00"b"\x01\x00\x00\x00"b"\x01\x00\x00\x00"b"\x02\x00\x00\x00"b"\x02\x00\x00\x00"b"\x03\x00\x00\x00" == x.encode("<")
+    assert x.encode(">") == (b"\x03\x00\x00\x00"
+                             b"\x00\x00\x00\x00"
+                             b"\x00\x01\x00\x00"
+                             b"\x00\x00\x00\x01"
+                             b"\x02\x00\x00\x00"
+                             b"\x00\x00\x00\x02"
+                             b"\x03\x00\x00\x00")
+    assert x.encode("<") == (b"\x03\x00\x00\x00"
+                             b"\x00\x00\x00\x00"
+                             b"\x01\x00\x00\x00"
+                             b"\x01\x00\x00\x00"
+                             b"\x02\x00\x00\x00"
+                             b"\x02\x00\x00\x00"
+                             b"\x03\x00\x00\x00")
 
-    x.decode(b"\x02\x00\x00\x00"b"\x00\x00\x00\x01"b"\x01\x00\x00\x00"b"\x00\x00\x00\x02"b"\x02\x00\x00\x00", ">")
+    x.decode(b"\x02\x00\x00\x00"
+             b"\x00\x00\x00\x01"
+             b"\x01\x00\x00\x00"
+             b"\x00\x00\x00\x02"
+             b"\x02\x00\x00\x00", ">")
 
     assert """\
 a {
@@ -324,6 +343,7 @@ def test_union_with_plain_struct():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u8)]
+
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u8, 0),
                        ("b", S, 1)]
@@ -350,10 +370,13 @@ b {
 def test_union_with_struct_with_array_and_bytes():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8)]
+
     class SBytesSized(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.bytes(size = 3))]
+
     class SArraySized(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.array(S, size = 3))]
+
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", SBytesSized, 0),
                        ("b", SArraySized, 1)]
@@ -393,11 +416,14 @@ b {
 def test_union_with_nested_struct_and_union():
     class SInner(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8)]
+
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", SInner)]
+
     class UInner(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u8, 0),
                        ("b", prophy.u16, 1)]
+
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", UInner, 0),
                        ("b", S, 1)]
@@ -430,10 +456,12 @@ a {
 
 def test_union_with_typedef_and_enum():
     TU16 = prophy.u16
+
     class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("E_1", 1),
                         ("E_2", 2),
                         ("E_3", 3)]
+
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", TU16, 0),
                        ("b", E, 1)]
@@ -457,23 +485,23 @@ b: E_1
 
 def test_union_exceptions_with_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
-        class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        class U1(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a", prophy.array(prophy.u32), 0)]
     assert "dynamic types not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
-        class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        class U2(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
                            ("a", prophy.array(prophy.u32, bound = "a_len"), 1)]
     assert "dynamic types not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
-        class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        class U3(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a", prophy.bytes(), 0)]
     assert "dynamic types not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
-        class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        class U4(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
                            ("a", prophy.bytes(bound = "a_len"), 1)]
     assert "dynamic types not allowed in union" == str(e.value)
@@ -482,27 +510,29 @@ def test_union_exceptions_with_nested_limited_greedy_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
         class S2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("a", prophy.array(prophy.u32))]
+
         class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("a", S2)]
+
         class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a", S, 0)]
     assert "dynamic types not allowed in union" == str(e.value)
 
 def test_union_with_limited_array_and_bytes():
     with pytest.raises(Exception) as e:
-        class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        class U1(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
                            ("a", prophy.bytes(bound = "a_len", size = 3), 1)]
     assert "bound array/bytes not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
-        class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        class U2(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
                            ("a", prophy.array(prophy.u32, bound = "a_len", size = 3), 1)]
     assert "bound array/bytes not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
-        class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        class U3(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a", prophy.array(prophy.u8, size = 3), 0)]
     assert "static array not implemented in union" == str(e.value)
 

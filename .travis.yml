@@ -1,48 +1,44 @@
 language: python
-
-python:
-    - "2.7"
-    - "3.4"
-
+python: '3.5'
+sudo: false
 env:
-    global:
-        - CLANG_VER="3.5"
-        - GCC_VER="4.8"
-    matrix:
-        - CXX=clang
-        - CXX=gcc
-
+  global:
+    - secure: wTG1RUhSgDpxvruC7yWbN3abO74AN9Ka2vI29RmxJGQiPcuZ1/9vzN34BY/2diMvj4ebiy5RXMVButgTihcO9/p/wuX8laW8xsqzJTblUSwB5UJyrHShoZRgXfDM9qsuMWR9BfsHuvdpY6XpsmErUqxTO+RT9AOVyEW9URTFtuWf8o8Q06SCtLqJgTAEflxdeoejZm7t+lLgbk/mrdRrYdGKalox0MhhirAEBr0gKaQwgU0+eoU7k0zoMdZ42hDjjvYwf31rWa16jaQmtkGZoaxpisGUlQGJKcEBdLNRL1d2ZxCi8mMKQfoSqMZaoN1k8v3aBXs9U4sYTJxtWzBPgqbEhmS3/skIFK5YRugQsu9ZafELRv1ZwAJmrH/sOzc0PcHRInpgFB8Hhn0BB7Fb0rbgdo2lG6GRNpGXOtOWKImLvTM4n6vfX0j9jpb7Gg3nAYmBBZNxBRk+rg4a+lAF5wGfmq3IQax4MD/JULREoVoMJImvyDKNPq73lE9Bn2+FB+/0aZrSNIyp2FWHRWeCzkHNTyazGj9gNcdvQzFSkB6zdUi7AS88IBx2StRM9c8xNu+HZZoHywbxNwgYXhhKH/0sI5+Y3LpiKhftGpAt5nwKGnOEL3T+/AtWl5oQpGOwXE8p6Ee2l20V7EGgLdH4JoH431U6epnKBRgrvyw2pjo=
+    # coveralls repo token, encrypted according to:
+    # https://docs.travis-ci.com/user/environment-variables
+  matrix:
+    - TOXENV=check
+    - TOXENV=coverage
+    - TOXENV=py27
+    - TOXENV=py34
+    - TOXENV=py35
+    - TOXENV=pypy
+    - TOXENV=noclang
+    - CXX=g++-6
+    - CXX=clang++-3.8
 before_install:
-    - sudo apt-add-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" --yes
-    - sudo apt-add-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-$CLANG_VER main" --yes
-    - sudo apt-add-repository "deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main" --yes
-    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key| sudo apt-key add -
-    - sudo apt-get update -qq
-
+  - python --version
+  - uname -a
+  - lsb_release -a
 install:
-    # install newer gcc
-    - sudo apt-get install -qq gcc-$GCC_VER g++-$GCC_VER
-    # Install clang
-    - sudo apt-get install --allow-unauthenticated -qq clang-$CLANG_VER libclang-$CLANG_VER libclang-$CLANG_VER-dev python-clang-$CLANG_VER
-    - pip install -qq clang==$CLANG_VER
-    - export PYTHON_CLANG_DIR=`pip show -f clang | grep -i location | cut -f 2 -d " "`
-    - if [[ $TRAVIS_PYTHON_VERSION == 3* ]]; then 2to3 -wno $PYTHON_CLANG_DIR/clang $PYTHON_CLANG_DIR/clang; fi
-    - sudo ln -v -s /usr/lib/x86_64-linux-gnu/libclang-$CLANG_VER.so.1 /usr/lib/x86_64-linux-gnu/libclang.so
-    - sudo ldconfig
-    # Update compiler
-    - if [ "$CXX" = "gcc" ]; then export CXX="g++-$GCC_VER" CC="gcc-$GCC_VER"; fi
-    - if [ "$CXX" = "clang" ]; then export CXX="clang++" CC="clang"; fi
-    # Install gtest and gmock dependencies
-    - sudo apt-get install -qq libgtest-dev valgrind
-    - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
-    # python dependencies
-    - pip install pytest-cov ply
-
+  - virtualenv --version
+  - pip --version
+  - if [ $TOXENV ]; then pip install tox; fi
+  - if [ $TOXENV ]; then tox --version; fi
+  - if [ $CXX ]; then $CXX --version; fi
+  - if [ $CXX ]; then pip install .; fi
+  - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && export LIBRARY_PATH=${LIBRARY_PATH}:/tmp/gtest && cd -; fi
 script:
-    - py.test --cov .
-    - cd prophy_cpp
-    - ./waf configure_test test -j1
-    - ./waf dist
-
-notifications:
-    email: false
+  - if [ $TOXENV ]; then tox -v; fi
+  - if [ $CXX ]; then cd prophy_cpp && ./waf configure test dist -j1; fi
+cache: pip
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.8
+    packages:
+      - g++-6
+      - clang-3.8
+      - libgtest-dev
+      - valgrind

@@ -13,11 +13,12 @@ class ParseError(Exception):
         self.errors = errors
         """Collection of 2-tuples of location and message."""
 
-""" Determines struct member wire format type. """
 class Kind:
+    """ Determines struct member wire format type. """
     FIXED = 0
     DYNAMIC = 1
     UNLIMITED = 2
+
 
 """ Builtin types byte size and alignment. """
 BUILTIN_SIZES = {
@@ -213,6 +214,7 @@ class UnionMember(object):
     def __repr__(self):
         return '{0}: {1} {2}'.format(self.discriminator, self.type_, self.name)
 
+
 """ Utils """
 
 def split_after(nodes, pred):
@@ -228,23 +230,31 @@ def split_after(nodes, pred):
 def null_warn(str):
     pass
 
+
 """ Following functions process model. """
 
 def topological_sort(nodes):
     """Sorts nodes."""
+
     def get_include_deps(include):
         return []
+
     def get_constant_deps(constant):
         return filter(lambda x: not x.isdigit(),
                       reduce(lambda x, y: x.replace(y, " "), "()+-", constant.value).split())
+
     def get_typedef_deps(typedef):
         return [typedef.type_]
+
     def get_enum_deps(enum):
         return [member.name for member in enum.members]
+
     def get_struct_deps(struct):
         return [member.type_ for member in struct.members]
+
     def get_union_deps(union):
         return [member.type_ for member in union.members]
+
     def get_deps(node):
         if isinstance(node, Include): return get_include_deps(node)
         elif isinstance(node, Constant): return get_constant_deps(node)
@@ -252,6 +262,7 @@ def topological_sort(nodes):
         elif isinstance(node, Enum): return get_enum_deps(node)
         elif isinstance(node, Struct): return get_struct_deps(node)
         elif isinstance(node, Union): return get_union_deps(node)
+
     def model_sort_rotate(nodes, known, available, index):
         node = nodes[index]
         for dep in get_deps(node):
@@ -262,6 +273,7 @@ def topological_sort(nodes):
                 return True
         known.add(node.name)
         return False
+
     known = set(x + y for x in "uir" for y in ["8", "16", "32", "64"])
     available = set(node.name for node in nodes)
     index = 0
@@ -275,9 +287,11 @@ def cross_reference(nodes, warn = None):
     Adds definition reference to Typedef and StructMember.
     Adds numeric_size to StructMember if it's a sized array.
     """
+
     def get_type_defitinions(nodes):
         included = set()
         types = {}
+
         def add_nodes_level(nodes):
             for node in nodes:
                 if isinstance(node, Include):
@@ -286,6 +300,7 @@ def cross_reference(nodes, warn = None):
                         add_nodes_level(node.nodes)
                 else:
                     types[node.name] = node
+
         add_nodes_level(nodes)
         return types
 
@@ -298,8 +313,10 @@ def cross_reference(nodes, warn = None):
                     return calc.eval(x, constants)
                 except calc.ParseError:
                     return None
+
         included = set()
         constants = {}
+
         def add_constants_level(nodes):
             for node in nodes:
                 if isinstance(node, Include):
@@ -311,6 +328,7 @@ def cross_reference(nodes, warn = None):
                 elif isinstance(node, Enum):
                     for member in node.members:
                         constants[member.name] = eval_int(member.value, constants)
+
         add_constants_level(nodes)
         return constants
 

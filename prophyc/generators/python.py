@@ -3,7 +3,7 @@ import os
 from prophyc import model
 
 libname = "prophy"
-primitive_types = {x + y : "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
+primitive_types = {x + y: "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
 primitive_types['byte'] = '%s.u8' % libname
 
 def _generate_include(include):
@@ -13,10 +13,11 @@ def _generate_constant(constant):
     return "%s = %s" % constant
 
 def _generate_typedef(typedef):
-    return "%s = %s" % (typedef.name,
-        ".".join((libname, typedef.type_))
-        if typedef.type_ in primitive_types
-        else typedef.type_)
+    return "%s = %s" % (
+        typedef.name,
+        typedef.type_ in primitive_types and
+        ".".join((libname, typedef.type_)) or
+        typedef.type_)
 
 def _generate_enum_members(members):
     return (",\n" + " " * 21).join(("('%s', %s)" % (member.name, member.value) for member in members))
@@ -63,13 +64,14 @@ def _generate_union_member(member):
     return "('%s', %s, %s)" % (member.name, prefixed_type, member.discriminator)
 
 def _generate_union_members(members):
-    return (",\n" + " "*19).join(_generate_union_member(member) for member in members)
+    return (",\n" + " " * 19).join(_generate_union_member(member) for member in members)
 
 def _generate_union(union):
     return ("class {1}({0}.with_metaclass({0}.union_generator, {0}.union)):\n"
             "    _descriptor = [{2}]").format(libname,
                                               union.name,
                                               _generate_union_members(union.members))
+
 
 generate_visitor = {
     model.Include: _generate_include,
@@ -86,9 +88,9 @@ def _generate(node):
 def _generator(nodes):
     last_node = None
     for node in nodes:
-        prepend_newline = bool(last_node
-                               and (isinstance(last_node, (model.Enum, model.Struct, model.Union))
-                                    or type(last_node) is not type(node)))
+        prepend_newline = bool(last_node and
+                               (isinstance(last_node, (model.Enum, model.Struct, model.Union)) or
+                                type(last_node) is not type(node)))
         yield prepend_newline * '\n' + _generate(node) + '\n'
         last_node = node
 

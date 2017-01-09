@@ -23,9 +23,10 @@ def extract_operator_args(string_, pos):
             if not brackets:
                 close_pos += i
                 break
-    first = string_[open_pos + 1 : comma_pos].strip()
-    second = string_[comma_pos + 1 : close_pos].strip()
+    first = string_[open_pos + 1: comma_pos].strip()
+    second = string_[comma_pos + 1: close_pos].strip()
     return pos, close_pos + 1, first, second
+
 
 operators = (
     ('shiftLeft(', '<<'),
@@ -41,6 +42,7 @@ def expand_operators(string_):
             open_pos, close_pos, arg1, arg2 = extract_operator_args(string_, pos)
             string_ = string_[:open_pos] + '(({}) {} ({}))'.format(arg1, operator[1], arg2) + string_[close_pos:]
     return string_
+
 
 primitive_types = {"8 bit integer unsigned": "u8",
                    "16 bit integer unsigned": "u16",

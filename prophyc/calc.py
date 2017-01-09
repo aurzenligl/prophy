@@ -18,14 +18,13 @@ class Parser(object):
         return self.parser.parse(expr, lexer = self.lexer)
 
 class Calc(Parser):
+    tokens = ('NAME', 'NUMBER', 'LSHIFT', 'RSHIFT')
 
-    tokens = ('NAME','NUMBER','LSHIFT','RSHIFT')
+    literals = ['+', '-', '*', '/', '(', ')']
 
-    literals = ['+','-','*','/', '(',')']
-
-    t_NAME    = r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t_LSHIFT  = r'<<'
-    t_RSHIFT  = r'>>'
+    t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    t_LSHIFT = r'<<'
+    t_RSHIFT = r'>>'
 
     def t_NUMBER(self, t):
         r'\d+'
@@ -59,7 +58,7 @@ class Calc(Parser):
                       | expression '/' expression
                       | expression LSHIFT expression
                       | expression RSHIFT expression'''
-        if p[2] == '+'  : p[0] = p[1] + p[3]
+        if p[2] == '+': p[0] = p[1] + p[3]
         elif p[2] == '-': p[0] = p[1] - p[3]
         elif p[2] == '*': p[0] = p[1] * p[3]
         elif p[2] == '/': p[0] = p[1] / p[3]
@@ -93,6 +92,7 @@ class Calc(Parser):
     def eval(self, expr, vars):
         self.vars = vars
         return super(Calc, self).eval(expr)
+
 
 calc = Calc()
 

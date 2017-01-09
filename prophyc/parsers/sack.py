@@ -1,5 +1,7 @@
+import os
 import re
-from clang.cindex import Index, CursorKind, TypeKind, TranslationUnitLoadError
+import ctypes.util
+from .clang.cindex import Config, Index, CursorKind, TypeKind, TranslationUnitLoadError, LibclangError
 
 from prophyc import model
 
@@ -125,7 +127,46 @@ def build_model(tu):
 def _get_location(location):
     return '%s:%s:%s' % (location.file.name.decode(), location.line, location.column)
 
+def _setup_libclang():
+    if os.environ.get('PROPHY_NOCLANG'):
+        Config.set_library_file('prophy_noclang')
+        return
+
+    versions = [None] + ['3.%s' % x for x in range(10, 1, -1)]
+    for v in versions:
+        name = v and 'clang-' + v or 'clang'
+        libname = ctypes.util.find_library(name)
+        if libname:
+            Config.set_library_file(libname)
+            break
+
+def _check_libclang():
+    testconf = Config()
+    try:
+        testconf.get_cindex_library()
+        return True
+    except LibclangError:
+        return False
+
+class SackParserStatus(object):
+    def __init__(self, error = None):
+        self.error = error
+
+    def __bool__(self):
+        return not bool(self.error)
+
+    __nonzero__ = __bool__
+
 class SackParser(object):
+    @staticmethod
+    def check():
+        import platform
+        if platform.python_implementation() == 'PyPy':
+            return SackParserStatus("sack input doesn't work under PyPy due to ctypes incompatibilities")
+        if not _check_libclang():
+            return SackParserStatus("sack input requires libclang and it's not installed")
+        return SackParserStatus()
+
     def __init__(self, include_dirs=[], warn=None):
         self.include_dirs = include_dirs
         self.warn = warn
@@ -143,3 +184,6 @@ class SackParser(object):
             for diag in tu.diagnostics:
                 self.warn(diag.spelling.decode(), location=_get_location(diag.location))
         return build_model(tu)
+
+
+_setup_libclang()

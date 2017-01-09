@@ -28,7 +28,7 @@ TEST(generated_unions, Union)
             "\x02\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"),
             bytes(data.data(), size));
 
-    x = {Union::discriminator_c_t, {{1, 2}}};
+    x = {Union::discriminator_c_t, {{{1, 2}}}};
     size = x.encode(data.data());
 
     EXPECT_EQ(12, size);

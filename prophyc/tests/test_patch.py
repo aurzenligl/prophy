@@ -75,7 +75,7 @@ def test_change_field_type_no_2_params():
         patch.patch(nodes, patches)
     assert 'Change field must have 2 params: MyStruct' in str(e.value)
 
-def test_change_field_type_no_2_params():
+def test_change_field_type_member_not_found():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
                                        model.StructMember("field2", "u32"),
                                        model.StructMember("field3", "u32")])]
@@ -84,7 +84,6 @@ def test_change_field_type_no_2_params():
     with pytest.raises(Exception) as e:
         patch.patch(nodes, patches)
     assert 'Member not found: MyStruct' in str(e.value)
-
 
 def test_insert_field():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
@@ -197,7 +196,7 @@ def test_make_field_dynamic_array_no_2_params():
         patch.patch(nodes, patches)
     assert 'Change field must have 2 params: MyStruct' in str(e.value)
 
-def test_make_field_dynamic_array_no_2_params():
+def test_make_field_dynamic_array_member_not_found():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
                                        model.StructMember("field2", "u32"),
                                        model.StructMember("field3", "u32")])]
@@ -354,7 +353,7 @@ def test_change_union_to_struct():
 
     patch.patch(nodes, patches)
 
-    assert [model.Struct('MyUnion', [model.StructMember('field1', 'u32' )])] == nodes
+    assert [model.Struct('MyUnion', [model.StructMember('field1', 'u32')])] == nodes
 
 def test_change_union_to_struct_and_remove_field():
     nodes = [model.Union("MyUnion", [model.UnionMember("field1", "u32", 1),
@@ -366,12 +365,12 @@ def test_change_union_to_struct_and_remove_field():
 
     patch.patch(nodes, patches)
 
-    assert [model.Struct('MyUnion', [model.StructMember('field1', 'u32' ),
+    assert [model.Struct('MyUnion', [model.StructMember('field1', 'u32'),
                                      model.StructMember('field3', 'u32')])] == nodes
 
 def test_change_union_to_struct_not_a_union():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", 1),
-                                      model.StructMember("field2", "u32", 2)])]
+                                       model.StructMember("field2", "u32", 2)])]
     patches = {'MyStruct': [patch.Action('struct', [])]}
 
     with pytest.raises(Exception) as e:
@@ -380,7 +379,7 @@ def test_change_union_to_struct_not_a_union():
 
 def test_change_union_to_struct_excessive_params():
     nodes = [model.Union("MyUnion", [model.UnionMember("field1", "u32", 1),
-                                    model.UnionMember("field2", "u32", 2)])]
+                                     model.UnionMember("field2", "u32", 2)])]
     patches = {'MyUnion': [patch.Action('struct', ['surplus_param'])]}
 
     with pytest.raises(Exception) as e:
@@ -408,8 +407,8 @@ def test_rename_field():
 
     patch.patch(nodes, patches)
 
-    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32' ),
-                                      model.StructMember('field69', 'u32' ),
+    assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
+                                      model.StructMember('field69', 'u32'),
                                       model.StructMember('field3', 'u32')])] == nodes
 
 def test_rename_field_not_composite():

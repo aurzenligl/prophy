@@ -7,12 +7,13 @@ from . import options
 from . import model
 from .file_processor import FileProcessor
 
-__version__ = '0.8'
+__version__ = '0.8.0'
 
 class Emit(object):
     @staticmethod
     def warn(msg, location = 'prophyc'):
         sys.stderr.write(location + ': warning: ' + msg + '\n')
+
     @staticmethod
     def error(msg, location = 'prophyc'):
         sys.exit(location + ': error: ' + msg)
@@ -60,9 +61,10 @@ def get_parser(opts):
         from prophyc.parsers.isar import IsarParser
         return IsarParser(warn = Emit.warn)
     elif opts.sack:
-        if not module_exists("clang"):
-            Emit.error("sack input requires clang and it's not installed")
         from prophyc.parsers.sack import SackParser
+        status = SackParser.check()
+        if not status:
+            Emit.error(status.error)
         return SackParser(opts.include_dirs, warn = Emit.warn)
     else:
         from prophyc.parsers.prophy import ProphyParser
@@ -100,13 +102,6 @@ def parse_content(parser, patcher, *parse_args):
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
 
-def module_exists(module_name):
-    try:
-        __import__(module_name)
-    except ImportError:
-        return False
-    else:
-        return True
 
 if __name__ == "__main__":
     main()

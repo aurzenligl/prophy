@@ -32,7 +32,7 @@ def Enum8(Enumeration8):
 @pytest.fixture(scope = 'session')
 def EnumFixedArray(Enumeration):
     class EnumFixedArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-         _descriptor = [("value", prophy.array(Enumeration, size = 2))]
+        _descriptor = [("value", prophy.array(Enumeration, size = 2))]
     return EnumFixedArray
 
 @pytest.fixture(scope = 'session')
@@ -124,6 +124,7 @@ def test_enum_with_overlapping_values():
     class ValuesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("ValuesOverlapping_First", 42),
                         ("ValuesOverlapping_Second", 42)]
+
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", ValuesOverlapping)]
 
@@ -191,6 +192,7 @@ def test_enum_bound_array_encoding(EnumBoundArray):
 def test_enum_with_0xFFFFFFFF_value():
     class Enum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [('Enum_Infinity', 0xFFFFFFFF)]
+
     class Enclosing(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enum)]
 

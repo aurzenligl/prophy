@@ -39,10 +39,12 @@ def test_includes_call_file_process_with_proper_path():
 </system>
 """
     processed_paths = []
+
     def process_file(path):
         processed_paths.append(path)
         return []
-    nodes = parse(xml, process_file = process_file)
+
+    parse(xml, process_file = process_file)
 
     assert processed_paths == ['input.xml']
 
@@ -52,11 +54,13 @@ def test_includes_cyclic_include_error():
     <xi:include href="input.xml"/>
 </system>
 """
+
     def process_file_with_error(path):
         raise CyclicIncludeError(path)
     warnings = []
 
-    nodes = parse(xml,
+    nodes = parse(
+        xml,
         process_file = process_file_with_error,
         warn = lambda msg: warnings.append(msg))
 
@@ -69,11 +73,13 @@ def test_includes_file_not_found_error():
     <xi:include href="input.xml"/>
 </system>
 """
+
     def process_file_with_error(path):
         raise FileNotFoundError(path)
     warnings = []
 
-    nodes = parse(xml,
+    nodes = parse(
+        xml,
         process_file = process_file_with_error,
         warn = lambda msg: warnings.append(msg))
 
@@ -323,7 +329,7 @@ def test_isar_struct_parsing_ext_sized_array():
             model.StructMember("nativeIsarDefined", "u32", bound = "numOfNativeIsarDefined")
         ])
     ]
-    
+
 def test_isar_message_parsing_with_ext_sized_arrays():
     xml = """\
 <x>
@@ -514,7 +520,7 @@ def test_operator_expansion():
     assert expand_operators('bitMaskOr(1 , 2)') == '((1) | (2))'
 
     assert (expand_operators('shiftLeft(bitMaskOr(1, 2), bitMaskOr(3, 4))') ==
-                '((((1) | (2))) << (((3) | (4))))')
+            '((((1) | (2))) << (((3) | (4))))')
 
 def test_operator_expansion_in_enum_and_constant():
     xml = """\
@@ -532,6 +538,6 @@ def test_operator_expansion_in_enum_and_constant():
         ("Constant", "((value_one) | (value_two))"),
         (model.Enum("Enum", [
             model.EnumMember("Enum_A", "((Constant) << (16))")
-        ])
-    )]
+        ]))
+    ]
     assert nodes[1].members[0].value == "((Constant) << (16))"

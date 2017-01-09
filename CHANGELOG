@@ -1,3 +1,11 @@
+next
+-----------------------------------
+- prophyc: clang python plugin vendored, libclang.so found more easily
+- housekeeping:
+    - travis and tox improved
+    - coverage added
+    - flake8-compliant
+
 0.8
 -----------------------------------
 - prophyc: raw cpp codec:
