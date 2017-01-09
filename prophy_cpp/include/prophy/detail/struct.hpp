@@ -10,9 +10,9 @@ namespace detail
 {
 
 #if defined(__GNUC__) || defined(__TMS320C6X__)
-    #define PROPHY_STRUCT(alignment) struct __attribute__((aligned(alignment)))
+    #define PROPHY_STRUCT(alignment) struct __attribute__((aligned(alignment), packed))
 #else
-    #error "Unknown compiler, using no alignment attributes"
+    #error "Unknown compiler, cannot set aligned/packed attributes/pragmas"
 #endif
 
 } // namespace detail
