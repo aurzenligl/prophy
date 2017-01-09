@@ -379,3 +379,8 @@ def test_array_of_bytes_not_allowed(array_type):
     with pytest.raises(prophy.ProphyError) as e:
         exec(array_type)
     assert str(e.value) == 'array of strings not allowed'
+
+def test_bytes_non_7bit_ascii_to_string(FixedBytes):
+    x = FixedBytes()
+    x.value = b'\xff\x80\xbb'
+    assert str(x) == "value: '\\xff\\x80\\xbb\\x00\\x00'\n"

@@ -1,4 +1,4 @@
-from .six import long, b
+from .six import long, repr_bytes
 
 from . import scalar
 from .exception import ProphyError
@@ -271,7 +271,7 @@ def field_to_string(name, type_, value):
     elif issubclass(type_, (struct, union)):
         return "%s {\n%s}\n" % (name, indent(str(value), spaces = 2))
     elif issubclass(type_, bytes):
-        return "%s: %s\n" % (name, repr(b(value)))
+        return "%s: %s\n" % (name, repr_bytes(value))
     elif issubclass(type_, scalar.enum):
         return "%s: %s\n" % (name, type_._int_to_name[value])
     else:

@@ -7,15 +7,15 @@ if sys.version < '3':
     from itertools import ifilter
     xrange = xrange
 
-    def b(x):
-        return x
+    def repr_bytes(x):
+        return repr(x)
 else:
     long = int
     ifilter = filter
     xrange = range
 
-    def b(x):
-        return x.decode()
+    def repr_bytes(x):
+        return "'" + repr(x)[2:-1] + "'"
 
 def cmp(a, b):
     return (a > b) - (a < b)
