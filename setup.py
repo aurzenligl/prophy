@@ -13,7 +13,7 @@ setup(
             'prophyc = prophyc:main'
         ]
     },
-    version = '0.8',
+    version = '0.8.0',
     description = 'prophy: fast serialization protocol',
     long_description = long_description,
     author = 'Krzysztof Laskowski',
