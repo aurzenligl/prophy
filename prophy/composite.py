@@ -320,6 +320,9 @@ def validate_copy_from(lhs, rhs):
 
 def set_field(parent, name, rhs):
     lhs = getattr(parent, name)
+    if lhs is None:
+        setattr(parent, name, True)
+        lhs = getattr(parent, name)
     if isinstance(rhs, base_array):
         if issubclass(rhs._TYPE, (struct, union)):
             if rhs._DYNAMIC:
