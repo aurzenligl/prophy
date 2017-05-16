@@ -51,7 +51,7 @@ class Builder(object):
     def _build_field_type_name(self, tp):
         if tp.kind is TypeKind.TYPEDEF:
             return self._build_field_type_name(tp.get_declaration().underlying_typedef_type)
-        elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.RECORD):
+        elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.ELABORATED, TypeKind.RECORD):
             decl = tp.get_declaration()
             if decl.kind in (CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL):
                 name = alphanumeric_name(decl)
