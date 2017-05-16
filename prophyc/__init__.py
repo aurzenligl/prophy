@@ -7,7 +7,7 @@ from . import options
 from . import model
 from .file_processor import FileProcessor
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 class Emit(object):
     @staticmethod

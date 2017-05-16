@@ -1,3 +1,8 @@
+1.0.1
+-----------------------------------
+- prophy: copy_from works for optional fields
+- prophyc: sack parser adapted to clang 391
+
 1.0.0
 -----------------------------------
 - prophyc: clang python plugin vendored, libclang.so found more easily
