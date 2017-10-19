@@ -234,6 +234,22 @@ struct X
         ])
     ]
 
+@pytest.clang_installed
+def test_namespaced_typedef():
+    hpp = """\
+#include <stdint.h>
+namespace N { typedef uint32_t u32; }
+struct X
+{
+    N::u32 x;
+};
+"""
+    assert parse(hpp) == [
+        model.Struct('X', [
+            model.StructMember('x', 'u32')
+        ])
+    ]
+
 @pytest.mark.parametrize('extension', [('.h'), ('.hpp')])
 @pytest.clang_installed
 def test_enum_with_negative_one_values(extension):

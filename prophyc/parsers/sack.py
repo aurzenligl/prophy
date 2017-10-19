@@ -65,6 +65,8 @@ class Builder(object):
                 return name
             elif decl.kind is CursorKind.ENUM_DECL:
                 return self._build_field_type_name(decl.type)
+            elif decl.kind is CursorKind.TYPEDEF_DECL:
+                return self._build_field_type_name(decl.underlying_typedef_type)
             else:
                 raise Exception("Unknown declaration")
         elif tp.kind in (TypeKind.CONSTANTARRAY, TypeKind.INCOMPLETEARRAY):
