@@ -1,3 +1,8 @@
+1.0.2
+-----------------------------------
+- prophyc: sack parser properly handles typedef in namespace
+- prophyc: sack parser prefers clangs up to 3.5, they don't ship with builtin headers (e.g. "stddef.h")
+
 1.0.1
 -----------------------------------
 - prophy: copy_from works for optional fields
