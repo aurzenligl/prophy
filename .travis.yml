@@ -52,3 +52,5 @@ addons:
       - clang-3.8
       - libgtest-dev
       - valgrind
+notifications:
+  email: false
