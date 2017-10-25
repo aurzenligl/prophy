@@ -33,4 +33,4 @@ waf-*
 .tox
 .cache
 
-.coverage
+.coverage*
