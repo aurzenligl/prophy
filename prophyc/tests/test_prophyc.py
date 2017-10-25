@@ -106,9 +106,7 @@ def test_isar_compiles_single_empty_xml(call, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    with tmpdir_cwd.join("input.py") as f:
-        contents = f.read()
-    assert empty_python_output == contents
+    assert empty_python_output == tmpdir_cwd.join("input.py").read()
 
 
 def test_isar_compiles_multiple_empty_xmls(call, tmpdir_cwd):
