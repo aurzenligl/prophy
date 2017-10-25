@@ -237,17 +237,17 @@ def test_struct_with_optional_attributes():
                        ("b", prophy.u16, 1),
                        ("c", prophy.u32, 2)]
 
-    class O(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+    class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(prophy.u32)),
                        ("b", prophy.optional(S)),
                        ("c", prophy.optional(U))]
 
-    assert O._SIZE == 28
-    assert O._DYNAMIC is False
-    assert O._UNLIMITED is False
-    assert O._OPTIONAL is False
-    assert O._ALIGNMENT == 4
-    assert O._BOUND is None
+    assert K._SIZE == 28
+    assert K._DYNAMIC is False
+    assert K._UNLIMITED is False
+    assert K._OPTIONAL is False
+    assert K._ALIGNMENT == 4
+    assert K._BOUND is None
 
 def test_struct_dynamic_attributes():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
