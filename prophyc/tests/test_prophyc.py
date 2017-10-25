@@ -2,21 +2,10 @@ import os
 import sys
 import subprocess
 import pytest
+import prophyc
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-if sys.path[0] != main_dir:
-    sys.path.insert(0, main_dir)
-
-string_types = (str, unicode) if sys.version < '3' else str
-
-import prophyc
-
-import_dir = os.path.dirname(os.path.dirname(os.path.realpath(prophyc.__file__)))
-assert import_dir == main_dir, "Bad import of prophyc, imported from {} instead of {}".format(
-    import_dir, main_dir)
-
-general_string = str if sys.version >= '3' else (str, unicode)
 
 empty_python_output = """\
 import prophy
@@ -39,7 +28,6 @@ def call(request, mocker):
     if request.param == "subprocess":
         return call_as_subprocess
     else:
-
         if request.node.name == "test_sack_parse_warnings[py_code]":
             pytest.xfail("Its not worth of effort to simulate warns comming from source file in this case.")
 
@@ -60,7 +48,7 @@ def call(request, mocker):
                 prophyc.main(call_args)
             except SystemExit as err:
                 ret_code = err.code
-                if isinstance(ret_code, string_types):
+                if isinstance(ret_code, prophyc.six.string_types):
                     std_err = ret_code + '\n'
                     ret_code = 1
 
@@ -68,14 +56,6 @@ def call(request, mocker):
             return ret_code, "", std_err
 
         return call_from_py_code
-
-# def call(args):
-#     popen = subprocess.Popen([sys.executable, "-m", "prophyc"] + args,
-#                              cwd = main_dir,
-#                              stdout = subprocess.PIPE,
-#                              stderr = subprocess.PIPE)
-#     out, err = popen.communicate()
-#     return popen.returncode, out.decode(), err.decode()
 
 
 def test_showing_version(call):
@@ -126,7 +106,9 @@ def test_isar_compiles_single_empty_xml(call, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert empty_python_output == tmpdir_cwd.join("input.py").read()
+    with tmpdir_cwd.join("input.py") as f:
+        contents = f.read()
+    assert empty_python_output == contents
 
 
 def test_isar_compiles_multiple_empty_xmls(call, tmpdir_cwd):
