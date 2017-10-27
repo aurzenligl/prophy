@@ -35,9 +35,10 @@ def get_enum_member(cursor):
     return model.EnumMember(name, value)
 
 class Builder(object):
-    def __init__(self):
+    def __init__(self, supples=[]):
         self.known = set()
         self.nodes = []
+        map(self._add_node, supples)
 
     def _add_node(self, node):
         self.known.add(node.name)
@@ -49,10 +50,11 @@ class Builder(object):
         return None
 
     def _build_field_type_name(self, tp):
+        decl = tp.get_declaration()
+
         if tp.kind is TypeKind.TYPEDEF:
-            return self._build_field_type_name(tp.get_declaration().underlying_typedef_type)
+            return self._build_field_type_name(decl.underlying_typedef_type)
         elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.ELABORATED, TypeKind.RECORD):
-            decl = tp.get_declaration()
             if decl.kind in (CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL):
                 name = alphanumeric_name(decl)
                 if name not in self.known:
@@ -72,7 +74,6 @@ class Builder(object):
         elif tp.kind in (TypeKind.CONSTANTARRAY, TypeKind.INCOMPLETEARRAY):
             return self._build_field_type_name(tp.element_type)
         elif tp.kind is TypeKind.ENUM:
-            decl = tp.get_declaration()
             name = alphanumeric_name(decl)
             if name not in self.known:
                 self.add_enum(decl)
@@ -115,8 +116,8 @@ class Builder(object):
         node = model.Union(alphanumeric_name(cursor), members)
         self._add_node(node)
 
-def build_model(tu):
-    builder = Builder()
+def build_model(tu, supples=[]):
+    builder = Builder(supples)
     for cursor in tu.cursor.get_children():
         if cursor.kind is CursorKind.UNEXPOSED_DECL:
             for in_cursor in cursor.get_children():
@@ -124,6 +125,9 @@ def build_model(tu):
                     builder.add_struct(in_cursor)
         if cursor.kind is CursorKind.STRUCT_DECL and cursor.spelling and cursor.is_definition():
             builder.add_struct(cursor)
+    if supples:
+        fakery_names = list(get_node_names(supples))
+        builder.nodes = filter(lambda n: n.name not in fakery_names, builder.nodes)
     return builder.nodes
 
 def _get_location(location):
@@ -150,8 +154,16 @@ def _check_libclang():
     except LibclangError:
         return False
 
+def get_node_names(nodes_list):
+    for elem in nodes_list:
+        if isinstance(elem, model.Include):
+            for node in get_node_names(elem.nodes):
+                yield node
+        else:
+            yield elem.name
+
 class SackParserStatus(object):
-    def __init__(self, error = None):
+    def __init__(self, error=None):
         self.error = error
 
     def __bool__(self):
@@ -173,20 +185,30 @@ class SackParser(object):
         self.include_dirs = include_dirs
         self.warn = warn
         self.supple_nodes = supple_nodes
+        self.clang_supples = SackParser.prepare_clang_fakery(supple_nodes)
+
+    @staticmethod
+    def prepare_clang_fakery(supple_nodes):
+
+        def make_fakery(node_name):
+            return """struct %s {};\n""" % node_name
+
+        return ''.join(map(make_fakery, get_node_names(supple_nodes)))
 
     def parse(self, content, path, process_file):
         args_ = ["-I" + x for x in self.include_dirs]
         index = Index.create()
         path = path.encode()
-        content = content.encode()
+        in_mem_file = (path, (self.clang_supples + content).encode())
+
         try:
-            tu = index.parse(path, args_, unsaved_files=((path, content),))
+            tu = index.parse(path, args_, unsaved_files=(in_mem_file, ))
         except TranslationUnitLoadError:
             raise model.ParseError([(path.decode(), 'error parsing translation unit')])
         if self.warn:
             for diag in tu.diagnostics:
                 self.warn(diag.spelling.decode(), location=_get_location(diag.location))
-        return build_model(tu)
+        return build_model(tu, self.supple_nodes)
 
 
 _setup_libclang()

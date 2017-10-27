@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 import prophyc
-from contextlib import contextmanager
 
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -28,6 +27,14 @@ def tmpdir_cwd(tmpdir):
     yield tmpdir
     sys.path.pop(0)
     os.chdir(orig_dir)
+
+
+@pytest.yield_fixture
+def tmpfiles_cwd(tmpdir_cwd):
+    def create_tmp_files(*files_to_create):
+        return map(tmpdir_cwd.join, files_to_create)
+    yield create_tmp_files
+
 
 @pytest.fixture(params=["subprocess", "py_code"])
 def call(request, mocker):

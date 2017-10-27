@@ -10,6 +10,7 @@ from contextlib import contextmanager
 
 __version__ = '1.0.2'
 
+
 class Emit(object):
     @staticmethod
     def warn(msg, location='prophyc'):
@@ -18,6 +19,7 @@ class Emit(object):
     @staticmethod
     def error(msg, location='prophyc'):
         sys.exit(location + ': error: ' + msg)
+
 
 def main(args=sys.argv[1:]):
     opts = options.parse_options(Emit.error, args)
@@ -38,6 +40,7 @@ def main(args=sys.argv[1:]):
     if not serializers:
         Emit.error("missing output directives")
 
+    supple_nodes = []
     if opts.isar_includes:
         if opts.isar:
             Emit.error('Bad usage. Isar include is intended to supplement code '
@@ -53,11 +56,12 @@ def main(args=sys.argv[1:]):
 
         for include_file in opts.isar_includes:
             with parse_error_wrapper():
-                supple_nodes = isar_file_parser(include_file)
-                print type(supple_nodes), map(lambda t: type(t).__name__, supple_nodes)
-                print supple_nodes
-    else:
-        supple_nodes = []
+                include_nodes = isar_file_parser(include_file)
+
+            generate_files(serializers, include_file, include_nodes)
+
+            include_model = model.Include(get_basename(include_file), include_nodes)
+            supple_nodes.append(include_model)
 
     parser = get_parser(opts, supple_nodes)
 
@@ -69,13 +73,8 @@ def main(args=sys.argv[1:]):
     for input_file in opts.input_files:
         with parse_error_wrapper():
             nodes = file_parser(input_file)
+        generate_files(serializers, input_file, nodes)
 
-        for serializer in serializers:
-            basename = get_basename(input_file)
-            try:
-                serializer.serialize(nodes, basename)
-            except model.GenerateError as e:
-                Emit.error(str(e))
 
 def get_parser(opts, supple_nodes):
     if opts.isar:
@@ -91,6 +90,7 @@ def get_parser(opts, supple_nodes):
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
 
+
 def get_serializers(opts):
     serializers = []
     if opts.python_out:
@@ -104,11 +104,13 @@ def get_serializers(opts):
         serializers.append(CppFullGenerator(opts.cpp_full_out))
     return serializers
 
+
 def get_patcher(opts):
     if opts.patch:
         from prophyc import patch
         patches = patch.parse(opts.patch)
         return lambda nodes: patch.patch(nodes, patches)
+
 
 def parse_content(parser, patcher, *parse_args):
     nodes = parser.parse(*parse_args)
@@ -120,8 +122,19 @@ def parse_content(parser, patcher, *parse_args):
     model.evaluate_sizes(nodes, warn=Emit.warn)
     return nodes
 
+
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
+
+
+def generate_files(serializers, input_file, nodes):
+    for serializer in serializers:
+        basename = get_basename(input_file)
+        try:
+            serializer.serialize(nodes, basename)
+        except model.GenerateError as e:
+            Emit.error(str(e))
+
 
 @contextmanager
 def parse_error_wrapper():
@@ -129,6 +142,7 @@ def parse_error_wrapper():
         yield
     except model.ParseError as e:
         sys.exit('\n'.join(('%s: error: %s' % err for err in e.errors)))
+
 
 if __name__ == "__main__":
     main()
