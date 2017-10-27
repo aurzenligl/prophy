@@ -169,9 +169,10 @@ class SackParser(object):
             return SackParserStatus("sack input requires libclang and it's not installed")
         return SackParserStatus()
 
-    def __init__(self, include_dirs=[], warn=None):
+    def __init__(self, include_dirs=[], warn=None, supple_nodes=[]):
         self.include_dirs = include_dirs
         self.warn = warn
+        self.supple_nodes = supple_nodes
 
     def parse(self, content, path, process_file):
         args_ = ["-I" + x for x in self.include_dirs]

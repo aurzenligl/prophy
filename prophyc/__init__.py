@@ -6,16 +6,17 @@ import os
 from . import options
 from . import model
 from .file_processor import FileProcessor
+from contextlib import contextmanager
 
 __version__ = '1.0.2'
 
 class Emit(object):
     @staticmethod
-    def warn(msg, location = 'prophyc'):
+    def warn(msg, location='prophyc'):
         sys.stderr.write(location + ': warning: ' + msg + '\n')
 
     @staticmethod
-    def error(msg, location = 'prophyc'):
+    def error(msg, location='prophyc'):
         sys.exit(location + ': error: ' + msg)
 
 def main(args=sys.argv[1:]):
@@ -31,12 +32,34 @@ def main(args=sys.argv[1:]):
     if not opts.input_files:
         Emit.error("missing input file")
 
-    parser = get_parser(opts)
     serializers = get_serializers(opts)
     patcher = get_patcher(opts)
 
     if not serializers:
         Emit.error("missing output directives")
+
+    if opts.isar_includes:
+        if opts.isar:
+            Emit.error('Bad usage. Isar include is intended to supplement code '
+                       'of different language.')
+
+        from prophyc.parsers.isar import IsarParser
+        isar_parser = IsarParser(warn=Emit.warn)
+
+        def supple_content_parser(*parse_args):
+            return parse_content(isar_parser, None, *parse_args)
+
+        isar_file_parser = FileProcessor(supple_content_parser, opts.include_dirs)
+
+        for include_file in opts.isar_includes:
+            with parse_error_wrapper():
+                supple_nodes = isar_file_parser(include_file)
+                print type(supple_nodes), map(lambda t: type(t).__name__, supple_nodes)
+                print supple_nodes
+    else:
+        supple_nodes = []
+
+    parser = get_parser(opts, supple_nodes)
 
     def content_parser(*parse_args):
         return parse_content(parser, patcher, *parse_args)
@@ -44,10 +67,8 @@ def main(args=sys.argv[1:]):
     file_parser = FileProcessor(content_parser, opts.include_dirs)
 
     for input_file in opts.input_files:
-        try:
+        with parse_error_wrapper():
             nodes = file_parser(input_file)
-        except model.ParseError as e:
-            sys.exit('\n'.join(('%s: error: %s' % err for err in e.errors)))
 
         for serializer in serializers:
             basename = get_basename(input_file)
@@ -56,16 +77,16 @@ def main(args=sys.argv[1:]):
             except model.GenerateError as e:
                 Emit.error(str(e))
 
-def get_parser(opts):
+def get_parser(opts, supple_nodes):
     if opts.isar:
         from prophyc.parsers.isar import IsarParser
-        return IsarParser(warn = Emit.warn)
+        return IsarParser(warn=Emit.warn)
     elif opts.sack:
         from prophyc.parsers.sack import SackParser
         status = SackParser.check()
         if not status:
             Emit.error(status.error)
-        return SackParser(opts.include_dirs, warn = Emit.warn)
+        return SackParser(opts.include_dirs, warn=Emit.warn, supple_nodes=supple_nodes)
     else:
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
@@ -94,14 +115,20 @@ def parse_content(parser, patcher, *parse_args):
     if patcher:
         patcher(nodes)
     model.topological_sort(nodes)
-    model.cross_reference(nodes, warn = Emit.warn)
+    model.cross_reference(nodes, warn=Emit.warn)
     model.evaluate_kinds(nodes)
-    model.evaluate_sizes(nodes, warn = Emit.warn)
+    model.evaluate_sizes(nodes, warn=Emit.warn)
     return nodes
 
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
 
+@contextmanager
+def parse_error_wrapper():
+    try:
+        yield
+    except model.ParseError as e:
+        sys.exit('\n'.join(('%s: error: %s' % err for err in e.errors)))
 
 if __name__ == "__main__":
     main()

@@ -12,20 +12,19 @@ import prophy
 """
 
 
-def call_as_subprocess(call_args):
-
-    popen = subprocess.Popen([sys.executable, "-m", "prophyc"] + call_args,
-                             cwd=main_dir,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-    out, err = popen.communicate()
-    return popen.returncode, out.decode(), err.decode()
-
-
 @pytest.fixture(params=["subprocess", "py_code"])
 def call(request, mocker):
 
     if request.param == "subprocess":
+
+        def call_as_subprocess(call_args):
+            popen = subprocess.Popen([sys.executable, "-m", "prophyc"] + call_args,
+                                     cwd=main_dir,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+            out, err = popen.communicate()
+            return popen.returncode, out.decode(), err.decode()
+
         return call_as_subprocess
     else:
         if request.node.name == "test_sack_parse_warnings[py_code]":
