@@ -20,7 +20,6 @@ class Emit(object):
     def error(msg, location='prophyc'):
         sys.exit(location + ': error: ' + msg)
 
-
 def main(args=sys.argv[1:]):
     opts = options.parse_options(Emit.error, args)
 
@@ -40,30 +39,27 @@ def main(args=sys.argv[1:]):
     if not serializers:
         Emit.error("missing output directives")
 
-    supple_nodes = []
+    supplementary_nodes = []
     if opts.isar_includes:
         if opts.isar:
             Emit.error('Bad usage. Isar include is intended to supplement code '
-                       'of different language.')
+                       'of different language.\nPass it all together as input files.')
 
-        from prophyc.parsers.isar import IsarParser
-        isar_parser = IsarParser(warn=Emit.warn)
+        isar_parser = get_isar_parser()
 
-        def supple_content_parser(*parse_args):
-            return parse_content(isar_parser, None, *parse_args)
+        def supplementary_parser(*parse_args):
+            return parse_content(isar_parser, patcher, *parse_args)
 
-        isar_file_parser = FileProcessor(supple_content_parser, opts.include_dirs)
+        supple_file_parser = FileProcessor(supplementary_parser, opts.include_dirs)
 
-        for include_file in opts.isar_includes:
+        for input_file in opts.isar_includes:
             with parse_error_wrapper():
-                include_nodes = isar_file_parser(include_file)
+                include_nodes = supple_file_parser(input_file)
+            basename = get_basename(input_file)
+            supplementary_nodes.append(model.Include(basename, include_nodes))
+            generate_target_files(serializers, basename, include_nodes)
 
-            generate_files(serializers, include_file, include_nodes)
-
-            include_model = model.Include(get_basename(include_file), include_nodes)
-            supple_nodes.append(include_model)
-
-    parser = get_parser(opts, supple_nodes)
+    parser = get_target_parser(opts, supplementary_nodes)
 
     def content_parser(*parse_args):
         return parse_content(parser, patcher, *parse_args)
@@ -73,13 +69,17 @@ def main(args=sys.argv[1:]):
     for input_file in opts.input_files:
         with parse_error_wrapper():
             nodes = file_parser(input_file)
-        generate_files(serializers, input_file, nodes)
+        generate_target_files(serializers, get_basename(input_file), nodes)
 
 
-def get_parser(opts, supple_nodes):
+def get_isar_parser():
+    from prophyc.parsers.isar import IsarParser
+    return IsarParser(warn=Emit.warn)
+
+
+def get_target_parser(opts, supple_nodes):
     if opts.isar:
-        from prophyc.parsers.isar import IsarParser
-        return IsarParser(warn=Emit.warn)
+        return get_isar_parser()
     elif opts.sack:
         from prophyc.parsers.sack import SackParser
         status = SackParser.check()
@@ -127,9 +127,8 @@ def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def generate_files(serializers, input_file, nodes):
+def generate_target_files(serializers, basename, nodes):
     for serializer in serializers:
-        basename = get_basename(input_file)
         try:
             serializer.serialize(nodes, basename)
         except model.GenerateError as e:
