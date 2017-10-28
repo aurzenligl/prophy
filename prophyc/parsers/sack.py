@@ -127,7 +127,7 @@ def build_model(tu, supples=[]):
             builder.add_struct(cursor)
     if supples:
         fakery_names = list(get_node_names(supples))
-        builder.nodes = filter(lambda n: n.name not in fakery_names, builder.nodes)
+        builder.nodes = [n for n in builder.nodes if n.name not in fakery_names]
     return builder.nodes
 
 def _get_location(location):

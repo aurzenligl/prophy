@@ -57,7 +57,9 @@ def main(args=sys.argv[1:]):
                 include_nodes = supple_file_parser(input_file)
             basename = get_basename(input_file)
             supplementary_nodes.append(model.Include(basename, include_nodes))
-            generate_target_files(serializers, basename, include_nodes)
+
+        for include_name, include_nodes in get_nodes_with_names(supplementary_nodes):
+            generate_target_files(serializers, include_name, include_nodes)
 
     parser = get_target_parser(opts, supplementary_nodes)
 
@@ -125,6 +127,14 @@ def parse_content(parser, patcher, *parse_args):
 
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
+
+
+def get_nodes_with_names(nodes_list):
+    for elem in nodes_list:
+        if isinstance(elem, model.Include):
+            yield elem
+            for sub_elem in get_nodes_with_names(elem.nodes):
+                yield sub_elem
 
 
 def generate_target_files(serializers, basename, nodes):
