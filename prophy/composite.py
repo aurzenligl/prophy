@@ -116,9 +116,30 @@ def add_composite(cls, name, tp):
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
-    index, (name, tp) = next(
-        (index, field) for index, field in enumerate(descriptor) if field[0] is container_tp._BOUND
-    )
+    sizer_name = container_tp._BOUND
+    all_fields = [e[0] for e in descriptor]
+    msg = "Sizing member '{}' of container '{}' not found in the object '{}'.".format(sizer_name, container_name,
+                                                                                      cls.__name__)
+    if sizer_name not in all_fields:
+        """ Try to be lenient """
+        if (sizer_name + 's') in all_fields:
+            sizer_name += 's'
+        elif sizer_name.endswith('s') and sizer_name[:-1] in all_fields:
+            sizer_name = sizer_name[:-1]
+        elif len(filter(lambda f: f[0].startswith("numOf"), descriptor)) == 1 and\
+                len(filter(lambda f: f[1]._BOUND, descriptor)) == 1:
+            """ If there is one sizer and only one array. """
+            sizer_name = filter(lambda f: f[0].startswith("numOf"), descriptor)[0][0]
+        else:
+            raise ProphyError(msg)
+        print "Warning: " + msg + "\n Picking '{}' as the missing sizer instead.\n".format(sizer_name)
+    try:
+        index, (name, tp) = next(
+            (index, field) for index, field in enumerate(descriptor) if field[0] == sizer_name
+        )
+    except StopIteration:
+        raise ProphyError(msg)
+
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
