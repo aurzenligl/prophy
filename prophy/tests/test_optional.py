@@ -153,7 +153,7 @@ def test_optional_array():
         class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("a_len", prophy.optional(prophy.u32)),
                            ("a", prophy.array(prophy.u32, bound = "a_len"))]
-    assert "array must not be bound to optional field" == str(e.value)
+    assert "array S.a must not be bound to optional field" == str(e.value)
 
     with pytest.raises(Exception) as e:
         prophy.array(prophy.optional(prophy.u32))

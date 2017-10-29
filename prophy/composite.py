@@ -126,26 +126,25 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
             sizer_name += 's'
         elif sizer_name.endswith('s') and sizer_name[:-1] in all_fields:
             sizer_name = sizer_name[:-1]
-        elif len(filter(lambda f: f[0].startswith("numOf"), descriptor)) == 1 and\
-                len(filter(lambda f: f[1]._BOUND, descriptor)) == 1:
+        elif len([f for f in descriptor if f[0].startswith("numOf")]) == 1 and\
+                len([f for f in descriptor if f[1]._BOUND]) == 1:
             """ If there is one sizer and only one array. """
-            sizer_name = filter(lambda f: f[0].startswith("numOf"), descriptor)[0][0]
+            sizer_name = next(f for f in descriptor if f[0].startswith("numOf"))[0]
         else:
             raise ProphyError(msg)
+        container_tp._BOUND = sizer_name
         print("Warning: {}\n Picking '{}' as the missing sizer instead.\n".format(msg, sizer_name))
-    try:
-        index, (name, tp) = next(
-            (index, field) for index, field in enumerate(descriptor) if field[0] == sizer_name
-        )
-    except StopIteration:
-        raise ProphyError(msg)
+
+    index, (name, tp) = next(
+        (index, field) for index, field in enumerate(descriptor) if field[0] == sizer_name
+    )
 
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
-        raise ProphyError("array must not be bound to optional field")
+        raise ProphyError("array {}.{} must not be bound to optional field".format(cls.__name__, container_name))
     if not issubclass(tp, (int, long)):
-        raise ProphyError("array must be bound to an unsigned integer")
+        raise ProphyError("array {}.{} must be bound to an unsigned integer".format(cls.__name__, container_name))
 
     if tp.__name__ == "container_len":
         def is_bound_shift_valid():
@@ -154,7 +153,8 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
         tp.add_bounded_container(container_name)
         if not is_bound_shift_valid():
-            raise ProphyError("Different bound shifts are unsupported in externally sized arrays")
+            raise ProphyError("Different bound shifts are unsupported in externally sized arrays ({}.{})".format(
+                cls.__name__, container_name))
     else:
         class container_len(tp):
             _BOUND = [container_name]
