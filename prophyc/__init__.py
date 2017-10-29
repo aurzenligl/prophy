@@ -12,9 +12,12 @@ __version__ = '1.0.2'
 
 
 class Emit(object):
+    do_warn = True
+
     @staticmethod
     def warn(msg, location='prophyc'):
-        sys.stderr.write(location + ': warning: ' + msg + '\n')
+        if Emit.do_warn:
+            sys.stderr.write(location + ': warning: ' + msg + '\n')
 
     @staticmethod
     def error(msg, location='prophyc'):
@@ -24,7 +27,7 @@ def main(args=sys.argv[1:]):
     opts = options.parse_options(Emit.error, args)
 
     if opts.quiet:
-        Emit.warn = None
+        Emit.do_warn = False
 
     if opts.version:
         print("prophyc {}".format(__version__))
