@@ -3,6 +3,7 @@ import sys
 import subprocess
 import pytest
 import prophyc
+from contextlib import contextmanager
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -11,9 +12,45 @@ empty_python_output = """\
 import prophy
 """
 
+@pytest.fixture
+def sys_capture(capsys):
 
-@pytest.fixture(params=["subprocess", "py_code"])
-def call(request, mocker):
+    class CaptureStatus(object):
+        def __init__(self):
+            self.out = ''
+            self.err = ''
+            self.code = 0
+
+        def get(self):
+            return self.code, self.out, self.err
+
+        def read(self, capsys_):
+            self.out, self.err = capsys_.readouterr()
+
+    @contextmanager
+    def check_prints():
+        cap = CaptureStatus()
+        err = None
+        try:
+            capsys.readouterr()
+            yield cap
+            cap.read(capsys)
+        except SystemExit as err:
+            cap.read(capsys)
+            cap.code = err.code
+            if isinstance(err.code, prophyc.six.string_types):
+                cap.err = err.code + '\n'
+                cap.code = 1
+
+        except Exception as err:
+            cap.read(capsys)
+            cap.code = 1
+
+    return check_prints
+
+
+@pytest.fixture(params=["py_code"])
+def call(request, sys_capture):
 
     if request.param == "subprocess":
 
@@ -26,35 +63,20 @@ def call(request, mocker):
             return popen.returncode, out.decode(), err.decode()
 
         return call_as_subprocess
-    else:
-        if request.node.name == "test_sack_parse_warnings[py_code]":
-            pytest.xfail("Its not worth of effort to simulate warns comming from source file in this case.")
 
-        if request.node.name == "test_showing_version[py_code]":
-            pytest.xfail("It's too tricky to mock sys.stdout.")
+    elif request.param == "py_code":
+        if request.node.name in ("test_sack_parse_warnings[py_code]",
+                                 "test_model_evaluation_warnings[py_code]",
+                                 "test_cpp_full_out_error[py_code]"):
 
-        warn_mock = mocker.patch.object(prophyc.Emit, "warn")
+            pytest.xfail("I cannot make it working with current setup (Using capsys is tricky).")
 
-        def simulate_Emit_warn(msg):
-            return 'prophyc: warning: ' + str(msg) + '\n'
-
-        def call_from_py_code(call_args):
-
-            ret_code = 0
-            std_err = ""
-
-            try:
+        def call_captured(call_args):
+            with sys_capture() as cp:
                 prophyc.main(call_args)
-            except SystemExit as err:
-                ret_code = err.code
-                if isinstance(ret_code, prophyc.six.string_types):
-                    std_err = ret_code + '\n'
-                    ret_code = 1
+            return cp.get()
 
-            std_err = ''.join(simulate_Emit_warn(line[0][0]) for line in warn_mock.call_args_list) + std_err
-            return ret_code, "", std_err
-
-        return call_from_py_code
+        return call_captured
 
 
 def test_showing_version(call):

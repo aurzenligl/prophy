@@ -35,10 +35,11 @@ def get_enum_member(cursor):
     return model.EnumMember(name, value)
 
 class Builder(object):
-    def __init__(self, supples=[]):
+    def __init__(self, included_isar_supples=[]):
         self.known = set()
         self.nodes = []
-        map(self._add_node, supples)
+        for node in included_isar_supples:
+            self._add_node(node)
 
     def _add_node(self, node):
         self.known.add(node.name)
@@ -116,8 +117,8 @@ class Builder(object):
         node = model.Union(alphanumeric_name(cursor), members)
         self._add_node(node)
 
-def build_model(tu, supples=[]):
-    builder = Builder(supples)
+def build_model(tu, isar_supples=[]):
+    builder = Builder(isar_supples)
     for cursor in tu.cursor.get_children():
         if cursor.kind is CursorKind.UNEXPOSED_DECL:
             for in_cursor in cursor.get_children():
@@ -128,9 +129,9 @@ def build_model(tu, supples=[]):
                 builder.add_struct(cursor)
             if cursor.kind is CursorKind.ENUM_DECL:
                 builder.add_enum(cursor)
-    if supples:
-        fakery_names = list(get_node_names(supples))
-        builder.nodes = [n for n in builder.nodes if n.name not in fakery_names]
+    if isar_supples:
+        cheated_names = list(get_node_names(isar_supples))
+        builder.nodes = [n for n in builder.nodes if n.name not in cheated_names]
     return builder.nodes
 
 def _get_location(location):
@@ -192,8 +193,6 @@ class SackParser(object):
             self.prepare_clang_fakery(supple_nodes)
 
     def prepare_clang_fakery(self, supple_nodes):
-        if not supple_nodes:
-            return ""
         import tempfile
         from prophyc.generators.cpp import _generate_def_enum
 
@@ -205,25 +204,31 @@ class SackParser(object):
                 else:
                     yield node
 
-        """ In case of several files including the same root file, is better to get only unique nodes """
-        flatten_nodes = list(set(get_nodes_(supple_nodes)))
-        model.topological_sort(flatten_nodes)
+        def get_nodes_included_from_isar():
+            """ In case of several files including the same root file, is better to get only unique nodes """
+            known = []
+            for node in get_nodes_(supple_nodes):
+                if node.name not in known:
+                    known.append(node.name)
+                    yield node
+        isar_nodes = list(get_nodes_included_from_isar())
+        model.topological_sort(isar_nodes)
 
         def make_cheat(node):
             if isinstance(node, model.Constant):
-                return '#define %s %s\n' % (node.name, node.value)
+                return '#define %s %s' % (node.name, node.value)
             if isinstance(node, model.Enum):
-                return _generate_def_enum(node) + '\n'
+                return _generate_def_enum(node)
             else:
-                return 'struct %s {};\n' % node.name
+                return 'struct %s {};' % node.name
 
-        fakery = ''.join(map(make_cheat, flatten_nodes))
+        fakery = '\n'.join(map(make_cheat, isar_nodes))
         self.supple_dir = tempfile.mkdtemp(prefix="prophy_isar_supples_")
 
         """ TODO: that file created each time the SackParser object is created. """
-        fakery_path = os.path.join(self.supple_dir, "isar_supplementary_defs.hpp")
+        fakery_path = os.path.join(self.supple_dir, "isar_supplementary_defs.h")
         with open(fakery_path, 'wt') as f:
-            f.write(fakery.encode())
+            f.write(fakery)
         return fakery
 
     def parse(self, content, path, _):
@@ -231,14 +236,15 @@ class SackParser(object):
 
         if self.supple_nodes:
             """ Note that line numbers in clang's errors and warnings will be shifted by 1."""
-            args_.append("-I" + self.supple_dir)
-            content = '#include "isar_supplementary_defs.hpp"\n' + content
+            args_.append(("-I" + self.supple_dir).encode())
+            content = '#include "isar_supplementary_defs.h"\n' + content
 
         index = Index.create()
-        in_mem_files = (path.encode(), content.encode())
+        path = path.encode()
+        content = content.encode()
 
         try:
-            tu = index.parse(path, args_, unsaved_files=(in_mem_files,))
+            tu = index.parse(path, args_, unsaved_files=((path, content),))
         except TranslationUnitLoadError:
             raise model.ParseError([(path.decode(), 'error parsing translation unit')])
         if self.warn:
