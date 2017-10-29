@@ -7,25 +7,25 @@ env:
     # https://docs.travis-ci.com/user/environment-variables
   matrix:
     - python: '3.5'
-      env: TOXENV=check
+      TOXENV: check
     - python: '3.5'
-      env: TOXENV=coverage
+      TOXENV: coverage
     - python: '3.5'
-      env: TOXENV=py27
+      TOXENV: py27
     - python: '3.4'
-      env: TOXENV=py34
+      TOXENV: py34
     - python: '3.5'
-      env: TOXENV=py35
+      TOXENV: py35
     - python: 'pypy-5.4'
-      env: TOXENV=pypy
+      TOXENV: pypy
     - python: '3.5'
-      env: TOXENV=noclang
+      TOXENV: noclang
     - python: '3.5'
-      env: TOXENV=check
+      TOXENV: check
     - python: '3.5'
-      env: CXX=g++-6
+      CXX: g++-6
     - python: '3.5'
-      env: CXX=clang++-3.8
+      CXX: clang++-3.8
 before_install:
   - python --version
   - uname -a
@@ -39,7 +39,7 @@ install:
   - if [ $CXX ]; then pip install .; fi
   - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && export LIBRARY_PATH=${LIBRARY_PATH}:/tmp/gtest && cd -; fi
 script:
-  - if [ $TOXENV ]; then tox -v; fi
+  - if [ $TOXENV ]; then tox -v; else exit 1; fi
   - if [ $CXX ]; then cd prophy_cpp && ./waf configure test dist -j1; fi
 cache: pip
 addons:
