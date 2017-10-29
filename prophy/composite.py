@@ -132,7 +132,7 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
             sizer_name = filter(lambda f: f[0].startswith("numOf"), descriptor)[0][0]
         else:
             raise ProphyError(msg)
-        print "Warning: " + msg + "\n Picking '{}' as the missing sizer instead.\n".format(sizer_name)
+        print("Warning: {}\n Picking '{}' as the missing sizer instead.\n".format(msg, sizer_name))
     try:
         index, (name, tp) = next(
             (index, field) for index, field in enumerate(descriptor) if field[0] == sizer_name
