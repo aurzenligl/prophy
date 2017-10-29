@@ -123,8 +123,11 @@ def build_model(tu, supples=[]):
             for in_cursor in cursor.get_children():
                 if in_cursor.kind is CursorKind.STRUCT_DECL and in_cursor.spelling and in_cursor.is_definition():
                     builder.add_struct(in_cursor)
-        if cursor.kind is CursorKind.STRUCT_DECL and cursor.spelling and cursor.is_definition():
-            builder.add_struct(cursor)
+        if cursor.spelling and cursor.is_definition():
+            if cursor.kind is CursorKind.STRUCT_DECL:
+                builder.add_struct(cursor)
+            if cursor.kind is CursorKind.ENUM_DECL:
+                builder.add_enum(cursor)
     if supples:
         fakery_names = list(get_node_names(supples))
         builder.nodes = [n for n in builder.nodes if n.name not in fakery_names]
@@ -185,24 +188,57 @@ class SackParser(object):
         self.include_dirs = include_dirs
         self.warn = warn
         self.supple_nodes = supple_nodes
-        self.clang_supples = SackParser.prepare_clang_fakery(supple_nodes)
+        if supple_nodes:
+            self.prepare_clang_fakery(supple_nodes)
 
-    @staticmethod
-    def prepare_clang_fakery(supple_nodes):
+    def prepare_clang_fakery(self, supple_nodes):
+        if not supple_nodes:
+            return ""
+        import tempfile
+        from prophyc.generators.cpp import _generate_def_enum
 
-        def make_fakery(node_name):
-            return """struct %s {};\n""" % node_name
+        def get_nodes_(nodes):
+            for node in nodes:
+                if isinstance(node, model.Include):
+                    for sub_node in get_nodes_(node.nodes):
+                        yield sub_node
+                else:
+                    yield node
 
-        return ''.join(map(make_fakery, get_node_names(supple_nodes)))
+        """ In case of several files including the same root file, is better to get only unique nodes """
+        flatten_nodes = list(set(get_nodes_(supple_nodes)))
+        model.topological_sort(flatten_nodes)
 
-    def parse(self, content, path, process_file):
+        def make_cheat(node):
+            if isinstance(node, model.Constant):
+                return '#define %s %s\n' % (node.name, node.value)
+            if isinstance(node, model.Enum):
+                return _generate_def_enum(node) + '\n'
+            else:
+                return 'struct %s {};\n' % node.name
+
+        fakery = ''.join(map(make_cheat, flatten_nodes))
+        self.supple_dir = tempfile.mkdtemp(prefix="prophy_isar_supples_")
+
+        """ TODO: that file created each time the SackParser object is created. """
+        fakery_path = os.path.join(self.supple_dir, "isar_supplementary_defs.hpp")
+        with open(fakery_path, 'wt') as f:
+            f.write(fakery.encode())
+        return fakery
+
+    def parse(self, content, path, _):
         args_ = ["-I" + x for x in self.include_dirs]
+
+        if self.supple_nodes:
+            """ Note that line numbers in clang's errors and warnings will be shifted by 1."""
+            args_.append("-I" + self.supple_dir)
+            content = '#include "isar_supplementary_defs.hpp"\n' + content
+
         index = Index.create()
-        path = path.encode()
-        in_mem_file = (path, (self.clang_supples + content).encode())
+        in_mem_files = (path.encode(), content.encode())
 
         try:
-            tu = index.parse(path, args_, unsaved_files=(in_mem_file, ))
+            tu = index.parse(path, args_, unsaved_files=(in_mem_files,))
         except TranslationUnitLoadError:
             raise model.ParseError([(path.decode(), 'error parsing translation unit')])
         if self.warn:

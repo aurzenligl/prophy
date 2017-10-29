@@ -44,6 +44,8 @@ def main(args=sys.argv[1:]):
         if opts.isar:
             Emit.error('Bad usage. Isar include is intended to supplement code '
                        'of different language.\nPass it all together as input files.')
+        if not opts.sack:
+            Emit.error('Isar defines inclusion is supported only in "sack" compilation mode.')
 
         isar_parser = get_isar_parser()
 
@@ -58,7 +60,7 @@ def main(args=sys.argv[1:]):
             basename = get_basename(input_file)
             supplementary_nodes.append(model.Include(basename, include_nodes))
 
-        for include_name, include_nodes in get_nodes_with_names(supplementary_nodes):
+        for include_name, include_nodes in get_supple_includes(supplementary_nodes):
             generate_target_files(serializers, include_name, include_nodes)
 
     parser = get_target_parser(opts, supplementary_nodes)
@@ -79,7 +81,7 @@ def get_isar_parser():
     return IsarParser(warn=Emit.warn)
 
 
-def get_target_parser(opts, supple_nodes):
+def get_target_parser(opts, supplementary_nodes):
     if opts.isar:
         return get_isar_parser()
     elif opts.sack:
@@ -87,11 +89,10 @@ def get_target_parser(opts, supple_nodes):
         status = SackParser.check()
         if not status:
             Emit.error(status.error)
-        return SackParser(opts.include_dirs, warn=Emit.warn, supple_nodes=supple_nodes)
+        return SackParser(opts.include_dirs, warn=Emit.warn, supple_nodes=supplementary_nodes)
     else:
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
-
 
 def get_serializers(opts):
     serializers = []
@@ -106,13 +107,11 @@ def get_serializers(opts):
         serializers.append(CppFullGenerator(opts.cpp_full_out))
     return serializers
 
-
 def get_patcher(opts):
     if opts.patch:
         from prophyc import patch
         patches = patch.parse(opts.patch)
         return lambda nodes: patch.patch(nodes, patches)
-
 
 def parse_content(parser, patcher, *parse_args):
     nodes = parser.parse(*parse_args)
@@ -124,18 +123,18 @@ def parse_content(parser, patcher, *parse_args):
     model.evaluate_sizes(nodes, warn=Emit.warn)
     return nodes
 
-
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
 
-
-def get_nodes_with_names(nodes_list):
-    for elem in nodes_list:
-        if isinstance(elem, model.Include):
-            yield elem
-            for sub_elem in get_nodes_with_names(elem.nodes):
-                yield sub_elem
-
+def get_supple_includes(supple_nodes):
+    def get_nodes_and_names(nodes_list):
+        for elem in nodes_list:
+            if isinstance(elem, model.Include):
+                yield elem
+                for sub_elem in get_nodes_and_names(elem.nodes):
+                    yield sub_elem
+    """ pass trough a dictionary to avoid duplicates """
+    return tuple(dict(get_nodes_and_names(supple_nodes)).items())
 
 def generate_target_files(serializers, basename, nodes):
     for serializer in serializers:
@@ -143,7 +142,6 @@ def generate_target_files(serializers, basename, nodes):
             serializer.serialize(nodes, basename)
         except model.GenerateError as e:
             Emit.error(str(e))
-
 
 @contextmanager
 def parse_error_wrapper():
