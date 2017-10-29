@@ -18,8 +18,8 @@ class Emit(object):
     def error(msg, location = 'prophyc'):
         sys.exit(location + ': error: ' + msg)
 
-def main():
-    opts = options.parse_options(Emit.error)
+def main(args=sys.argv[1:]):
+    opts = options.parse_options(Emit.error, args)
 
     if opts.quiet:
         Emit.warn = None

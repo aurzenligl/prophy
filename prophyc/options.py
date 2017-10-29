@@ -11,7 +11,7 @@ def readable_file(string):
         raise argparse.ArgumentTypeError("%s file not found" % string)
     return string
 
-def parse_options(emit_error):
+def parse_options(emit_error, args):
     class ArgumentParser(argparse.ArgumentParser):
         def error(self, message):
             emit_error(message)
@@ -75,4 +75,4 @@ def parse_options(emit_error):
                         action = 'store_true',
                         help = 'Suppress warnings prints.')
 
-    return parser.parse_args()
+    return parser.parse_args(args)
