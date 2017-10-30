@@ -319,6 +319,7 @@ def validate_copy_from(lhs, rhs):
 def set_field(parent, name, rhs):
     lhs = getattr(parent, name)
     if lhs is None:
+        # FIXME: that case will probably never happen
         setattr(parent, name, True)
         lhs = getattr(parent, name)
     if isinstance(rhs, base_array):
@@ -608,4 +609,4 @@ class FieldDescriptor(object):
         self.kind = kind
 
     def __repr__(self):
-        return ("<{}, {}, {}>".format(self.name, self.kind, self.type))
+        return ("<{}, {!r}, {!r}>".format(self.name, self.type, self.kind))

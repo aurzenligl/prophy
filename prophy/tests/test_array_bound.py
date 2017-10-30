@@ -30,6 +30,17 @@ def test_bound_scalar_array_assignment(BoundScalarArray):
     del x.value[1]
     assert x.value[:] == [6]
 
+    x.value.insert(0, 23)
+    assert x.value[:] == [23, 6]
+    x.value.remove(23)
+    assert x.value == [6]
+
+    x.value[slice(0, 1)] = [123]
+    assert x.value == [123]
+
+    del x.value[:]
+    assert x.value == []
+
     with pytest.raises(Exception):
         x.value.len
     with pytest.raises(Exception):
@@ -137,6 +148,13 @@ def test_bound_scalar_array_with_shift_exceptions(array_type):
         exec(array_type)
     assert str(e.value) == "only shifting bound array implemented"
 
+def test_bound_scalar_array_extend(BoundScalarArray):
+    x = BoundScalarArray()
+    x.value.extend([1, 2])
+    assert x.value == [1, 2]
+    x.value.extend([])
+    assert x.value == [1, 2]
+
 def test_bound_composite_array_assignment(BoundScalarArray, BoundCompositeArray):
     x = BoundCompositeArray()
     assert len(x.value) == 0
@@ -164,15 +182,15 @@ def test_bound_composite_array_assignment(BoundScalarArray, BoundCompositeArray)
     assert x.value[0].value[:] == [1, 2]
     assert x.value[1].value[:] == [3]
 
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         x.value.len
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         x.value.len = 10
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.ProphyError):
         x.value = 10
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         x.value.extend(1)
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         x.value.extend([1])
     with pytest.raises(Exception):
         x.value[:] = 1
@@ -197,6 +215,19 @@ def test_bound_composite_array_copy_from(BoundCompositeArray):
 
     y.copy_from(BoundCompositeArray())
     assert len(y.value) == 0
+
+def test_bound_composite_array_add():
+    class SubType(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        _descriptor = [("some", prophy.u32),
+                       ("value", prophy.array(prophy.u32, size = 2))]
+
+    class BoundCompositeArray_(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        _descriptor = [("len", prophy.u32),
+                       ("value", prophy.array(SubType, bound = "len"))]
+
+    a = BoundCompositeArray_()
+    a.value.add(some = 543)
+    assert a.value[0].some == 543
 
 def test_bound_composite_array_encoding(BoundCompositeArray):
     x = BoundCompositeArray()

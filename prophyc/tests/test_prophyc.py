@@ -1,83 +1,20 @@
 import os
-import sys
-import subprocess
 import pytest
-import prophyc
-from contextlib import contextmanager
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
 
 empty_python_output = """\
 import prophy
 """
 
 @pytest.fixture
-def sys_capture(capsys):
+def call(request, call_prophyc):
+    if request.node.name in ("test_sack_parse_warnings[py_code]",
+                             "test_model_evaluation_warnings[py_code]",
+                             "test_cpp_full_out_error[py_code]"):
 
-    class CaptureStatus(object):
-        def __init__(self):
-            self.out = ''
-            self.err = ''
-            self.code = 0
-
-        def get(self):
-            return self.code, self.out, self.err
-
-        def read(self, capsys_):
-            self.out, self.err = capsys_.readouterr()
-
-    @contextmanager
-    def check_prints():
-        cap = CaptureStatus()
-        err = None
-        try:
-            capsys.readouterr()
-            yield cap
-            cap.read(capsys)
-        except SystemExit as err:
-            cap.read(capsys)
-            cap.code = err.code
-            if isinstance(err.code, prophyc.six.string_types):
-                cap.err = err.code + '\n'
-                cap.code = 1
-
-        except Exception as err:
-            cap.read(capsys)
-            cap.code = 1
-
-    return check_prints
-
-
-@pytest.fixture(params=["py_code"])
-def call(request, sys_capture):
-
-    if request.param == "subprocess":
-
-        def call_as_subprocess(call_args):
-            popen = subprocess.Popen([sys.executable, "-m", "prophyc"] + call_args,
-                                     cwd=main_dir,
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-            out, err = popen.communicate()
-            return popen.returncode, out.decode(), err.decode()
-
-        return call_as_subprocess
-
-    elif request.param == "py_code":
-        if request.node.name in ("test_sack_parse_warnings[py_code]",
-                                 "test_model_evaluation_warnings[py_code]",
-                                 "test_cpp_full_out_error[py_code]"):
-
-            pytest.xfail("I cannot make it working with current setup (Using capsys is tricky).")
-
-        def call_captured(call_args):
-            with sys_capture() as cp:
-                prophyc.main(call_args)
-            return cp.get()
-
-        return call_captured
-
+        pytest.xfail("I cannot make it working with current setup (Using capsys is tricky).")
+    yield call_prophyc
 
 def test_showing_version(call):
     ret, out, err = call(["--version"])
@@ -86,39 +23,43 @@ def test_showing_version(call):
     assert out == 'prophyc %s\n' % expected_version
     assert err == ""
 
-
 def test_missing_input(call):
     ret, out, err = call([])
     assert ret == 1
     assert out == ""
     assert err == "prophyc: error: missing input file\n"
 
-
-def test_no_output_directory(call, tmpdir_cwd):
-    tmpdir_cwd.join("input.xml").write("")
-    ret, out, err = call(["--python_out", "no_dir",
-                          os.path.join(str(tmpdir_cwd), "input_xml")])
+def test_no_output_directory(call, dummy_file):
+    ret, out, err = call(["--python_out", "no_dir", dummy_file])
     assert ret == 1
     assert out == ""
     assert err == "prophyc: error: argument --python_out: no_dir directory not found\n"
 
+def test_no_input_file(call):
+    ret, out, err = call(["path/that/does/not/exist"])
+    assert ret == 1
+    assert out == ""
+    assert err == "prophyc: error: argument INPUT_FILE: path/that/does/not/exist file not found\n"
 
-def test_missing_output(call, tmpdir_cwd):
-    tmpdir_cwd.join("input.xml").write('')
-    ret, out, err = call(["--isar", os.path.join(str(tmpdir_cwd), "input.xml")])
+def test_missing_output(call, dummy_file):
+    ret, out, err = call(["--isar", dummy_file])
     assert ret == 1
     assert out == ""
     assert err == "prophyc: error: missing output directives\n"
 
-
-def test_passing_isar_and_sack(call, tmpdir_cwd):
-    tmpdir_cwd.join("input").write('')
-    ret, out, err = call(["--isar", "--sack", "--python_out", ".",
-                          os.path.join(str(tmpdir_cwd), "input")])
+def test_passing_isar_and_sack(call, dummy_file):
+    ret, out, err = call(["--isar", "--sack", "--python_out", ".", dummy_file])
     assert ret == 1
     assert out == ""
     assert err == "prophyc: error: argument --sack: not allowed with argument --isar\n"
 
+def test_including_isar_with_isar(call, dummy_file):
+    ret, out, err = call(["--isar", "--include_isar", dummy_file, "--python_out", ".",
+                          dummy_file])
+    assert ret == 1
+    assert out == ""
+    assert err == "prophyc: error: Bad usage. Isar include is intended to supplement code of different language.\n"\
+        "Pass it all together as input files.\n"
 
 def test_isar_compiles_single_empty_xml(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("<struct/>")
@@ -128,7 +69,6 @@ def test_isar_compiles_single_empty_xml(call, tmpdir_cwd):
     assert out == ""
     assert err == ""
     assert empty_python_output == tmpdir_cwd.join("input.py").read()
-
 
 def test_isar_compiles_multiple_empty_xmls(call, tmpdir_cwd):
     tmpdir_cwd.join("input1.xml").write("<struct/>")
@@ -147,7 +87,6 @@ def test_isar_compiles_multiple_empty_xmls(call, tmpdir_cwd):
     assert empty_python_output == tmpdir_cwd.join("input2.py").read()
     assert empty_python_output == tmpdir_cwd.join("input3.py").read()
 
-
 def test_outputs_to_correct_directory(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("<struct/>")
     os.mkdir("output")
@@ -158,7 +97,6 @@ def test_outputs_to_correct_directory(call, tmpdir_cwd):
     assert out == ""
     assert err == ""
     assert empty_python_output == tmpdir_cwd.join(os.path.join("output", "input.py")).read()
-
 
 def test_isar_patch(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("""\
@@ -194,7 +132,6 @@ class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
                    ('b', prophy.array(A, bound = 'a'))]
 """ == tmpdir_cwd.join("input.py").read()
 
-
 def test_isar_cpp(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("""
 <xml>
@@ -228,7 +165,6 @@ Test* swap<Test>(Test* payload)
 }
 """ in tmpdir_cwd.join("input.pp.cpp").read()
 
-
 def test_isar_warnings(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("""
 <xml>
@@ -244,7 +180,6 @@ def test_isar_warnings(call, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == "prophyc: warning: file include.xml not found\n"
-
 
 def test_quiet_warnings(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("""
@@ -262,7 +197,6 @@ def test_quiet_warnings(call, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-
 
 def test_isar_with_includes(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("""
@@ -307,7 +241,6 @@ struct X : public prophy::detail::message<X>
 };
 """ in tmpdir_cwd.join("input.ppf.hpp").read()
 
-
 @pytest.clang_installed
 def test_sack_compiles_single_empty_hpp(call, tmpdir_cwd):
     tmpdir_cwd.join("input.hpp").write("")
@@ -319,7 +252,6 @@ def test_sack_compiles_single_empty_hpp(call, tmpdir_cwd):
     assert out == ""
     assert err == ""
     assert empty_python_output == tmpdir_cwd.join("input.py").read()
-
 
 @pytest.clang_installed
 def test_sack_patch(call, tmpdir_cwd):
@@ -344,7 +276,6 @@ X type x r64
 class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('x', prophy.r64)]
 """ == tmpdir_cwd.join("input.py").read()
-
 
 @pytest.clang_installed
 def test_multiple_outputs(call, tmpdir_cwd):
@@ -409,7 +340,6 @@ Test* swap<Test>(Test* payload)
 } // namespace prophy
 """
 
-
 @pytest.clang_not_installed
 def test_clang_not_installed(call, tmpdir_cwd):
     tmpdir_cwd.join("input.hpp").write("")
@@ -420,7 +350,6 @@ def test_clang_not_installed(call, tmpdir_cwd):
     assert ret == 1
     assert out == ""
     assert err == "prophyc: error: %s\n" % pytest.clang_not_installed.args[0].error
-
 
 def test_prophy_language(call, tmpdir_cwd):
     tmpdir_cwd.join("input.prophy").write("""\
@@ -529,7 +458,6 @@ U* swap<U>(U* payload)
 } // namespace prophy
 """
 
-
 def test_prophy_parse_errors(call, tmpdir_cwd):
     tmpdir_cwd.join("input.prophy").write("""\
 struct X {};
@@ -546,7 +474,6 @@ constant
     assert errlines[0].endswith("input.prophy:1:11: error: syntax error at '}'")
     assert errlines[1].endswith("input.prophy:2:10: error: syntax error at '}'")
     assert not os.path.exists("input.py")
-
 
 @pytest.clang_installed
 def test_sack_parse_warnings(call, tmpdir_cwd):
@@ -565,7 +492,6 @@ rubbish;
     assert 'input.cpp:2:1: warning: C++ requires a type specifier for all declarations' in errlines[1]
     assert os.path.exists("input.py")
 
-
 @pytest.clang_installed
 def test_sack_parse_errors(call, tmpdir_cwd):
     tmpdir_cwd.join("input.unknown").write("")
@@ -576,7 +502,6 @@ def test_sack_parse_errors(call, tmpdir_cwd):
     assert out == ""
     assert 'input.unknown: error: error parsing translation unit' in err
     assert not os.path.exists("input.py")
-
 
 def test_cpp_full_out(call, tmpdir_cwd):
     tmpdir_cwd.join("input.prophy").write("""
@@ -695,7 +620,6 @@ template void message_impl<X>::print(const X& x, std::ostream& out, size_t inden
 } // namespace prophy
 """
 
-
 def test_cpp_full_out_error(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("""
 <xml>
@@ -716,7 +640,6 @@ prophyc: warning: type 'Unknown' not found
 prophyc: warning: Test::x has unknown type "Unknown"
 prophyc: error: Test byte size unknown
 """
-
 
 def test_model_evaluation_warnings(call, tmpdir_cwd):
     tmpdir_cwd.join("input.prophy").write("""

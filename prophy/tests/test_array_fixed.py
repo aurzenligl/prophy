@@ -28,6 +28,8 @@ def test_fixed_scalar_array_assignment(FixedScalarArray):
     assert x.value[:] == [1, 2]
     x.value[:] = [6, 7]
     assert x.value[:] == [6, 7]
+    x.value[slice(0, 2)] = [6, 7]
+    assert x.value[:] == [6, 7]
 
     with pytest.raises(Exception):
         del x.value[0]
@@ -50,6 +52,15 @@ def test_fixed_scalar_array_assignment(FixedScalarArray):
     y.value[:] = [1, 2]
     y.copy_from(x)
     assert y.value[:] == [6, 7]
+
+def test_fixed_scalar_array_operators(FixedScalarArray):
+    x = FixedScalarArray()
+    y = FixedScalarArray()
+    assert x.value == x.value
+    x.value[0] = 23
+    assert x.value != y.value
+    y.value[0] = 23
+    assert x.value == y.value
 
 def test_fixed_scalar_array_print(FixedScalarArray):
     x = FixedScalarArray()
@@ -107,6 +118,8 @@ def test_fixed_composite_array_assignment(FixedCompositeArray):
     y.copy_from(x)
     assert y.value[0].x == 1
     assert y.value[1].x == 2
+
+    assert x.value == x.value
 
 def test_fixed_composite_array_print(FixedCompositeArray):
     x = FixedCompositeArray()

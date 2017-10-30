@@ -166,6 +166,19 @@ def test_array_greedy_attributes():
     assert A._BOUND is None
     assert A._PARTIAL_ALIGNMENT is None
 
+def test_array_incorrect_attributes():
+    with pytest.raises(prophy.ProphyError) as err:
+        prophy.array(prophy.u16, anything = 3)
+
+    assert str(err.value) == "unknown arguments to array field"
+
+def test_array_of_arrays_not_allowed():
+    A = prophy.array(prophy.r32)
+    with pytest.raises(prophy.ProphyError) as err:
+        prophy.array(A, size = 3)
+
+    assert str(err.value) == "array of arrays not allowed"
+
 def test_container_len_attributes():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a_len", prophy.u8),
@@ -424,3 +437,37 @@ def test_union_with_discriminator_padding_attributes():
     assert U1._ALIGNMENT == 4
     assert U2._SIZE == 16
     assert U2._ALIGNMENT == 8
+
+def test_getting_descriptor():
+    class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        _descriptor = [("a", prophy.array(prophy.u32, size = 2))]
+
+    class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+        _enumerators = [("E_1", 1)]
+
+    class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+        _descriptor = [("a", prophy.u8),
+                       ("b", prophy.bytes(size = 5))]
+
+    class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        _descriptor = [("a", prophy.u8, 0),
+                       ("b", prophy.u16, 1)]
+
+    class Top(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        _descriptor = [("A", A), ("E", E), ("S", S), ("U", U)]
+
+    t = Top()
+    assert len(t.get_descriptor()) == 4
+    assert len(t.A.get_descriptor()) == 1
+    assert len(t.S.get_descriptor()) == 2
+
+def test_field_descriptor_repr():
+    class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+        _descriptor = [("a", prophy.u8, 0),
+                       ("b", prophy.u16, 1),
+                       ("c", prophy.u32, 2)]
+
+    descriptors = U.get_descriptor()
+    assert list(map(repr, descriptors)) == ["<a, <class 'prophy.scalar.u8'>, ('INT', 0)>",
+                                            "<b, <class 'prophy.scalar.u16'>, ('INT', 0)>",
+                                            "<c, <class 'prophy.scalar.u32'>, ('INT', 0)>"]
