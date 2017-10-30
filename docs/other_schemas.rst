@@ -125,3 +125,72 @@ this command::
     prophyc --isar --python_out . test.xml
 
 generates identical codec to one from previous example.
+
+Mixing Isar and Sack
+--------------------
+
+Since version ``1.1.0`` there is a possibility to implicitly include Isar definitions to
+Sack schema compilation. That's a useful if the Sack code (c++) depends on many definitions originated in
+Isar XMLs. Probably in normal way these are supplied in C++ form by monstrual build system.
+This feature allows to skip the 'build system' stage and supplement definitions directly from Isar XMLs.
+
+Having Isar code defining ``Test`` type from previous subchapter (the ``test.xml`` file) you can successfully
+compile it with such a Sack code::
+
+   // mixing.hpp
+   struct MixingTest
+   {
+       int field_a;
+       Test field_b;
+   };
+
+.. note::
+
+  There is missing definition of ``Test`` and that would fail to compile with any c/c++ compiler. No includes
+  are defined, nor exising in filesystem, besides the ``test.xml``. It's up to user to prepare c/c++ file, e.g.
+  remove all problematic inclusions. That's why we call it `implicit`.
+
+Such a prophyc call::
+
+  prophyc --sack --include_isar test.xml --python_out . mixing.hpp
+
+Will generate two python files.
+
+Comming from Isar: ``test.xml`` -> ``test.py``::
+
+    # test.py
+    import prophy
+
+    class Test(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+        _descriptor = [('x_len', prophy.u32),
+                       ('x', prophy.array(prophy.u32, bound = 'x_len'))]
+
+And from the sack code ``mixing.hpp`` -> ``mixing.py``::
+
+    # mixing.py
+    import prophy
+
+    from test import *
+
+    class MixingTest(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+        _descriptor = [('field_a', prophy.i32),
+                       ('field_b', Test)]
+
+.. note::
+
+  How it wotks from the kitchen side:
+
+  * ``text.xml`` has been compiled to prophy model object.
+  * A supplementary file ``isar_supplementary_defs.h`` has been created in temporary directory.
+    It contains only one line in this case: ``struct Test {};``
+  * The ``mixing.hpp`` file got an ``#include "isar_supplementary_defs.h"`` directive in its first line.
+    (It takes place after reading the file, so no change is made in original file).
+  * Then clang has been called by ``prophyc`` with additional include ``-I`` pointing to directory containing the
+    supplementary file.
+  * At end of build of ``mixing.hpp`` the empty structure definitions were replaced with proper
+    model nodes included from Isar.
+
+.. warning::
+
+  Because of the one additional include line in the sack compiled file. Line numbers in clang's errors and warnings
+  will be shifted by one. So warnings raised from e.g. 36th line will be printed as 37th line.
