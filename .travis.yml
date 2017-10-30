@@ -26,12 +26,8 @@ matrix:
       env: TOXENV=noclang
     - python: '3.5'
       env: TOXENV=noclang
-    - python: '2.7'
-      env: CXX=g++-6
     - python: '3.5'
       env: CXX=g++-6
-    - python: '2.7'
-      env: CXX=clang++-3.8
     - python: '3.5'
       env: CXX=clang++-3.8
 
@@ -42,6 +38,7 @@ before_install:
 install:
   - virtualenv --version
   - pip --version
+  - python --version
   - if [ $TOXENV ]; then pip install tox; fi
   - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
