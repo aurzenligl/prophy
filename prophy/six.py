@@ -9,6 +9,7 @@ if sys.version < '3':
 
     def repr_bytes(x):
         return repr(x)
+
 else:
     long = int
     ifilter = filter
@@ -17,8 +18,6 @@ else:
     def repr_bytes(x):
         return "'" + repr(x)[2:-1] + "'"
 
-def cmp(a, b):
-    return (a > b) - (a < b)
 
 def with_metaclass(meta, *bases):
     class metaclass(meta):

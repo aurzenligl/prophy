@@ -20,6 +20,24 @@ def FixedCompositeArray(X):
         _descriptor = [("value", prophy.array(X, size = 2))]
     return FixedCompositeArray
 
+def test_base_array_operators():
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+        _descriptor = [('values', prophy.array(prophy.i16, size = 4))]
+
+    x = X()
+    x.values[0] = 123
+    x.values[2] = 4
+    x.values[3] = -1
+
+    with pytest.raises(TypeError) as err:
+        set([x.values])
+    assert "unhashable" in str(err.value)
+
+    assert len(x.values) == 4
+    assert repr(x.values) == '[123, 0, 4, -1]'
+    x.values.sort()
+    assert x.values == [-1, 0, 4, 123]
+
 def test_fixed_scalar_array_assignment(FixedScalarArray):
     x = FixedScalarArray()
     assert x.value[:] == [0, 0]

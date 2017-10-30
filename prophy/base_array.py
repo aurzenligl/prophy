@@ -1,4 +1,3 @@
-from .six import cmp
 
 class base_array(object):
     __slots__ = ['_values']
@@ -24,5 +23,5 @@ class base_array(object):
     def __repr__(self):
         return repr(self._values)
 
-    def sort(self, sort_function = cmp):
-        self._values.sort(sort_function)
+    def sort(self, key_function = lambda x: x):
+        self._values.sort(key=key_function)
