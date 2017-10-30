@@ -167,7 +167,7 @@ def get_node_names(nodes_list):
             yield elem.name
 
 class SackParserStatus(object):
-    def __init__(self, error=None):
+    def __init__(self, error = None):
         self.error = error
 
     def __bool__(self):
@@ -233,7 +233,6 @@ class SackParser(object):
 
     def parse(self, content, path, _):
         args_ = ["-I" + x for x in self.include_dirs]
-
         if self.supple_nodes:
             """ Note that line numbers in clang's errors and warnings will be shifted by 1."""
             args_.append(("-I" + self.supple_dir).encode())
@@ -242,7 +241,6 @@ class SackParser(object):
         index = Index.create()
         path = path.encode()
         content = content.encode()
-
         try:
             tu = index.parse(path, args_, unsaved_files=((path, content),))
         except TranslationUnitLoadError:

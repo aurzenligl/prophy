@@ -53,7 +53,6 @@ def test_limited_scalar_array_assignment(LimitedScalarArray):
     b.copy_from(b)
     assert b.value == [10, 2, 3]
 
-
 def test_limited_scalar_array_print(LimitedScalarArray):
     a = LimitedScalarArray()
     a.value[:] = [1, 2]

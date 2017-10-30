@@ -29,13 +29,11 @@ def tmpdir_cwd(tmpdir):
     sys.path.pop(0)
     os.chdir(orig_dir)
 
-
 @pytest.yield_fixture
 def tmpfiles_cwd(tmpdir_cwd):
     def create_tmp_files(*files_to_create):
         return map(tmpdir_cwd.join, files_to_create)
     yield create_tmp_files
-
 
 @pytest.fixture
 def dummy_file(tmpdir_cwd):
@@ -81,7 +79,6 @@ def sys_capture(capsys):
 
 @pytest.fixture(params=["subprocess", "py_code"])
 def call_prophyc(request, sys_capture):
-
     if request.param == "subprocess":
 
         def call_as_subprocess(call_args):

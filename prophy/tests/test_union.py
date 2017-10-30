@@ -66,7 +66,6 @@ def test_union_copy_from(SimpleUnion):
     assert 1 == y.discriminator
     assert 3 == y.b
 
-
 def test_simple_union_discriminator_does_not_clear_fields_if_set_to_same_value(SimpleUnion):
     x = SimpleUnion()
 

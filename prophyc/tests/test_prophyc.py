@@ -13,7 +13,7 @@ def call(request, call_prophyc):
                              "test_model_evaluation_warnings[py_code]",
                              "test_cpp_full_out_error[py_code]"):
 
-        pytest.xfail("I cannot make it working with current setup (Using capsys is tricky).")
+        pytest.xfail("Cannot make it working with current setup (Using capsys is tricky).")
     yield call_prophyc
 
 def test_showing_version(call):

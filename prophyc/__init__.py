@@ -78,11 +78,9 @@ def main(args=sys.argv[1:]):
             nodes = file_parser(input_file)
         generate_target_files(serializers, get_basename(input_file), nodes)
 
-
 def get_isar_parser():
     from prophyc.parsers.isar import IsarParser
     return IsarParser(warn=Emit.warn)
-
 
 def get_target_parser(opts, supplementary_nodes):
     if opts.isar:

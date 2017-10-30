@@ -50,7 +50,7 @@ def test_isar_input(tmpdir_cwd, call_prophyc):
 
 @pytest.clang_installed
 def test_sack_input(tmpdir_cwd, call_prophyc):
-    content = """
+    content = """\
 #include <stdint.h>
 struct X
 {
