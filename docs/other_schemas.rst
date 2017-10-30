@@ -130,7 +130,7 @@ Mixing Isar and Sack
 --------------------
 
 Since version ``1.1.0`` there is a possibility to implicitly include Isar definitions to
-Sack schema compilation. That's a useful if the Sack code (c++) depends on many definitions originated in
+Sack schema compilation. That's useful if the Sack code (c++) depends on many definitions originated in
 Isar XMLs. Probably in normal way these are supplied in C++ form by monstrual build system.
 This feature allows to skip the 'build system' stage and supplement definitions directly from Isar XMLs.
 
@@ -138,9 +138,11 @@ Having Isar code defining ``Test`` type from previous subchapter (the ``test.xml
 compile it with such a Sack code::
 
    // mixing.hpp
+   #include <stdint.h>
+   
    struct MixingTest
    {
-       int field_a;
+       int32_t field_a;
        Test field_b;
    };
 
@@ -148,15 +150,16 @@ compile it with such a Sack code::
 
   There is missing definition of ``Test`` and that would fail to compile with any c/c++ compiler. No includes
   are defined, nor exising in filesystem, besides the ``test.xml``. It's up to user to prepare c/c++ file, e.g.
-  remove all problematic inclusions. That's why we call it `implicit`.
+  remove all problematic inclusions (if any). Types from isar doesn't need to be explicitly included in 
+  the compiled C/C++ code.
 
 Such a prophyc call::
 
   prophyc --sack --include_isar test.xml --python_out . mixing.hpp
 
-Will generate two python files.
+...will generate two python files.
 
-Comming from Isar: ``test.xml`` -> ``test.py``::
+1. Comming from Isar: ``test.xml`` -> ``test.py``::
 
     # test.py
     import prophy
@@ -165,7 +168,7 @@ Comming from Isar: ``test.xml`` -> ``test.py``::
         _descriptor = [('x_len', prophy.u32),
                        ('x', prophy.array(prophy.u32, bound = 'x_len'))]
 
-And from the sack code ``mixing.hpp`` -> ``mixing.py``::
+2. And from the sack code ``mixing.hpp`` -> ``mixing.py``::
 
     # mixing.py
     import prophy
@@ -178,7 +181,7 @@ And from the sack code ``mixing.hpp`` -> ``mixing.py``::
 
 .. note::
 
-  How it wotks from the kitchen side:
+  How it works behind the scenes:
 
   * ``text.xml`` has been compiled to prophy model object.
   * A supplementary file ``isar_supplementary_defs.h`` has been created in temporary directory.
