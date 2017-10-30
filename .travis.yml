@@ -1,31 +1,27 @@
 language: python
 sudo: false
+python: '3.5'
+
 env:
   global:
     - secure: wTG1RUhSgDpxvruC7yWbN3abO74AN9Ka2vI29RmxJGQiPcuZ1/9vzN34BY/2diMvj4ebiy5RXMVButgTihcO9/p/wuX8laW8xsqzJTblUSwB5UJyrHShoZRgXfDM9qsuMWR9BfsHuvdpY6XpsmErUqxTO+RT9AOVyEW9URTFtuWf8o8Q06SCtLqJgTAEflxdeoejZm7t+lLgbk/mrdRrYdGKalox0MhhirAEBr0gKaQwgU0+eoU7k0zoMdZ42hDjjvYwf31rWa16jaQmtkGZoaxpisGUlQGJKcEBdLNRL1d2ZxCi8mMKQfoSqMZaoN1k8v3aBXs9U4sYTJxtWzBPgqbEhmS3/skIFK5YRugQsu9ZafELRv1ZwAJmrH/sOzc0PcHRInpgFB8Hhn0BB7Fb0rbgdo2lG6GRNpGXOtOWKImLvTM4n6vfX0j9jpb7Gg3nAYmBBZNxBRk+rg4a+lAF5wGfmq3IQax4MD/JULREoVoMJImvyDKNPq73lE9Bn2+FB+/0aZrSNIyp2FWHRWeCzkHNTyazGj9gNcdvQzFSkB6zdUi7AS88IBx2StRM9c8xNu+HZZoHywbxNwgYXhhKH/0sI5+Y3LpiKhftGpAt5nwKGnOEL3T+/AtWl5oQpGOwXE8p6Ee2l20V7EGgLdH4JoH431U6epnKBRgrvyw2pjo=
     # coveralls repo token, encrypted according to:
     # https://docs.travis-ci.com/user/environment-variables
   matrix:
-    - python: '3.5'
-      TOXENV: check
-    - python: '3.5'
-      TOXENV: coverage
-    - python: '3.5'
-      TOXENV: py27
-    - python: '3.4'
-      TOXENV: py34
-    - python: '3.5'
-      TOXENV: py35
-    - python: 'pypy-5.4'
-      TOXENV: pypy
-    - python: '3.5'
-      TOXENV: noclang
-    - python: '3.5'
-      TOXENV: check
-    - python: '3.5'
-      CXX: g++-6
-    - python: '3.5'
-      CXX: clang++-3.8
+    - TOXENV=check
+    - TOXENV=coverage
+    - TOXENV=py27 CLANG_VERSION=3.5
+    - TOXENV=py27 CLANG_VERSION=3.8
+    - TOXENV=py34 CLANG_VERSION=3.5
+    - TOXENV=py34 CLANG_VERSION=3.8
+    - TOXENV=py35 CLANG_VERSION=3.5
+    - TOXENV=py35 CLANG_VERSION=3.8
+    - TOXENV=pypy CLANG_VERSION=3.5
+    - TOXENV=pypy CLANG_VERSION=3.8
+    - TOXENV=noclang
+    - CXX=g++-6
+    - CXX=clang++-3.8
+
 before_install:
   - python --version
   - uname -a
@@ -39,7 +35,7 @@ install:
   - if [ $CXX ]; then pip install .; fi
   - if [ $CXX ]; then mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && export LIBRARY_PATH=${LIBRARY_PATH}:/tmp/gtest && cd -; fi
 script:
-  - if [ $TOXENV ]; then tox -v; else exit 1; fi
+  - if [ $TOXENV ]; then tox -v; fi
   - if [ $CXX ]; then cd prophy_cpp && ./waf configure test dist -j1; fi
 cache: pip
 addons:
@@ -49,7 +45,7 @@ addons:
       - llvm-toolchain-precise-3.8
     packages:
       - g++-6
-      - clang-3.8
+      - clang-${CLANG_VERSION}
       - libgtest-dev
       - valgrind
 notifications:
