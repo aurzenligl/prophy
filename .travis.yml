@@ -38,7 +38,6 @@ before_install:
 install:
   - virtualenv --version
   - pip --version
-  - python --version
   - if [ $TOXENV ]; then pip install tox; fi
   - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
