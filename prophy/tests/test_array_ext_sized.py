@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 import pytest
 
 import prophy
@@ -16,22 +15,14 @@ def ExtSizedArr():
 
 @pytest.fixture
 def read_stdout_stderr(capsys):
+    class Capture(object):
+        def __enter__(self):
+            capsys.readouterr()
+            return self
 
-    @contextmanager
-    def check_prints():
-
-        class CaptureStatus(object):
-            out = ""
-            err = ""
-
-            @classmethod
-            def _read(cls, capsys_):
-                cls.out, cls.err = capsys_.readouterr()
-
-        capsys.readouterr()
-        yield CaptureStatus
-        CaptureStatus._read(capsys)
-    return check_prints
+        def __exit__(self, *_):
+            self.out, self.err = capsys.readouterr()
+    return Capture
 
 @pytest.mark.parametrize('sizer_name, expected_sizer_name', [
     ("numOfFields", "numOfField"),

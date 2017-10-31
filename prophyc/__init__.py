@@ -44,9 +44,6 @@ def main(args=sys.argv[1:]):
 
     supplementary_nodes = []
     if opts.isar_includes:
-        if opts.isar:
-            Emit.error('Bad usage. Isar include is intended to supplement code '
-                       'of different language.\nPass it all together as input files.')
         if not opts.sack:
             Emit.error('Isar defines inclusion is supported only in "sack" compilation mode.')
 
@@ -58,7 +55,7 @@ def main(args=sys.argv[1:]):
         supple_file_parser = FileProcessor(supplementary_parser, opts.include_dirs)
 
         for input_file in opts.isar_includes:
-            with parse_error_wrapper():
+            with exit_on_error():
                 include_nodes = supple_file_parser(input_file)
             basename = get_basename(input_file)
             supplementary_nodes.append(model.Include(basename, include_nodes))
@@ -74,7 +71,7 @@ def main(args=sys.argv[1:]):
     file_parser = FileProcessor(content_parser, opts.include_dirs)
 
     for input_file in opts.input_files:
-        with parse_error_wrapper():
+        with exit_on_error():
             nodes = file_parser(input_file)
         generate_target_files(serializers, get_basename(input_file), nodes)
 
@@ -145,7 +142,7 @@ def generate_target_files(serializers, basename, nodes):
             Emit.error(str(e))
 
 @contextmanager
-def parse_error_wrapper():
+def exit_on_error():
     try:
         yield
     except model.ParseError as e:

@@ -58,8 +58,7 @@ def test_including_isar_with_isar(call, dummy_file):
                           dummy_file])
     assert ret == 1
     assert out == ""
-    assert err == "prophyc: error: Bad usage. Isar include is intended to supplement code of different language.\n"\
-        "Pass it all together as input files.\n"
+    assert err == 'prophyc: error: Isar defines inclusion is supported only in "sack" compilation mode.\n'
 
 def test_isar_compiles_single_empty_xml(call, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("<struct/>")
