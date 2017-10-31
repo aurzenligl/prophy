@@ -178,22 +178,3 @@ Such a prophyc call::
     class MixingTest(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('field_a', prophy.i32),
                        ('field_b', Test)]
-
-.. note::
-
-  How it works behind the scenes:
-
-  * ``text.xml`` has been compiled to prophy model object.
-  * A supplementary file ``isar_supplementary_defs.h`` has been created in temporary directory.
-    It contains only one line in this case: ``struct Test {};``
-  * The ``mixing.hpp`` file got an ``#include "isar_supplementary_defs.h"`` directive in its first line.
-    (It takes place after reading the file, so no change is made in original file).
-  * Then clang has been called by ``prophyc`` with additional include ``-I`` pointing to directory containing the
-    supplementary file.
-  * At end of build of ``mixing.hpp`` the empty structure definitions were replaced with proper
-    model nodes included from Isar.
-
-.. warning::
-
-  Because of the one additional include line in the sack compiled file. Line numbers in clang's errors and warnings
-  will be shifted by one. So warnings raised from e.g. 36th line will be printed as 37th line.
