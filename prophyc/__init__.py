@@ -48,27 +48,21 @@ def main(args=sys.argv[1:]):
             Emit.error('Isar defines inclusion is supported only in "sack" compilation mode.')
 
         isar_parser = get_isar_parser()
-
-        def supplementary_parser(*parse_args):
-            return parse_content(isar_parser, patcher, *parse_args)
-
-        supple_file_parser = FileProcessor(supplementary_parser, opts.include_dirs)
+        model_parser = ModelParser(isar_parser, patcher)
+        file_parser = FileProcessor(model_parser, opts.include_dirs)
 
         for input_file in opts.isar_includes:
             with exit_on_error():
-                include_nodes = supple_file_parser(input_file)
+                include_nodes = file_parser(input_file)
             basename = get_basename(input_file)
             supplementary_nodes.append(model.Include(basename, include_nodes))
 
-        for include_name, include_nodes in get_supple_includes(supplementary_nodes):
+        for include_name, include_nodes in flatten_included_defs(supplementary_nodes):
             generate_target_files(serializers, include_name, include_nodes)
 
     parser = get_target_parser(opts, supplementary_nodes)
-
-    def content_parser(*parse_args):
-        return parse_content(parser, patcher, *parse_args)
-
-    file_parser = FileProcessor(content_parser, opts.include_dirs)
+    model_parser = ModelParser(parser, patcher)
+    file_parser = FileProcessor(model_parser, opts.include_dirs)
 
     for input_file in opts.input_files:
         with exit_on_error():
@@ -111,20 +105,25 @@ def get_patcher(opts):
         patches = patch.parse(opts.patch)
         return lambda nodes: patch.patch(nodes, patches)
 
-def parse_content(parser, patcher, *parse_args):
-    nodes = parser.parse(*parse_args)
-    if patcher:
-        patcher(nodes)
-    model.topological_sort(nodes)
-    model.cross_reference(nodes, warn=Emit.warn)
-    model.evaluate_kinds(nodes)
-    model.evaluate_sizes(nodes, warn=Emit.warn)
-    return nodes
+class ModelParser():
+    def __init__(self, parser, patcher):
+        self.parser = parser
+        self.patcher = patcher
+
+    def __call__(self, *parse_args):
+        nodes = self.parser.parse(*parse_args)
+        if self.patcher:
+            self.patcher(nodes)
+        model.topological_sort(nodes)
+        model.cross_reference(nodes, warn=Emit.warn)
+        model.evaluate_kinds(nodes)
+        model.evaluate_sizes(nodes, warn=Emit.warn)
+        return nodes
 
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
 
-def get_supple_includes(supple_nodes):
+def flatten_included_defs(supple_nodes):
     def get_nodes_and_names(nodes_list):
         for elem in nodes_list:
             if isinstance(elem, model.Include):

@@ -61,7 +61,7 @@ class Builder(object):
         decl_start, decl_end = cursor.extent.start.offset, cursor.extent.end.offset
         return self.content[decl_start:decl_end - spelling_len].decode().strip()
 
-    def get_type_name(self, tp, cursor=None):
+    def get_type_name(self, tp, cursor):
         decl = tp.get_declaration()
 
         def dive_deeper(method):
