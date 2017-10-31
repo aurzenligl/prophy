@@ -63,17 +63,12 @@ def sys_capture(capsys):
         try:
             capsys.readouterr()
             yield cap
-            cap.read(capsys)
-        except SystemExit as err:
-            cap.read(capsys)
-            cap.code = err.code
-            if isinstance(err.code, prophyc.six.string_types):
-                cap.err = err.code + '\n'
-                cap.code = 1
 
         except Exception as err:
-            cap.read(capsys)
+            sys.stderr.write(str(err) + '\n')
             cap.code = 1
+        finally:
+            cap.read(capsys)
 
     return check_prints
 

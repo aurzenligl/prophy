@@ -10,78 +10,79 @@ from contextlib import contextmanager
 
 __version__ = '1.0.2'
 
+class ProphycError(Exception):
+    pass
 
 class Emit(object):
-    do_warn = True
+    def __init__(self):
+        self.quiet = False
 
-    @staticmethod
-    def warn(msg, location='prophyc'):
-        if Emit.do_warn:
+    def warn(self, msg, location='prophyc'):
+        if not self.quiet:
             sys.stderr.write(location + ': warning: ' + msg + '\n')
 
-    @staticmethod
-    def error(msg, location='prophyc'):
-        sys.exit(location + ': error: ' + msg)
+    def error(self, msg, location='prophyc'):
+        raise ProphycError(location + ': error: ' + msg)
 
 def main(args=sys.argv[1:]):
-    opts = options.parse_options(Emit.error, args)
+    emit = Emit()
+    opts = options.parse_options(emit.error, args)
 
-    if opts.quiet:
-        Emit.do_warn = False
+    emit.quiet = opts.quiet
 
     if opts.version:
         print("prophyc {}".format(__version__))
-        sys.exit(0)
+        return
 
     if not opts.input_files:
-        Emit.error("missing input file")
+        emit.error("missing input file")
 
     serializers = get_serializers(opts)
     patcher = get_patcher(opts)
 
     if not serializers:
-        Emit.error("missing output directives")
+        emit.error("missing output directives")
 
     supplementary_nodes = []
     if opts.isar_includes:
         if not opts.sack:
-            Emit.error('Isar defines inclusion is supported only in "sack" compilation mode.')
+            emit.error('Isar defines inclusion is supported only in "sack" compilation mode.')
 
-        isar_parser = get_isar_parser()
-        model_parser = ModelParser(isar_parser, patcher)
+        isar_parser = get_isar_parser(emit)
+        model_parser = ModelParser(isar_parser, patcher, emit)
         file_parser = FileProcessor(model_parser, opts.include_dirs)
 
         for input_file in opts.isar_includes:
-            with exit_on_error():
+            with error_on_exception(emit):
                 include_nodes = file_parser(input_file)
             basename = get_basename(input_file)
             supplementary_nodes.append(model.Include(basename, include_nodes))
 
         for include_name, include_nodes in flatten_included_defs(supplementary_nodes):
-            generate_target_files(serializers, include_name, include_nodes)
+            generate_target_files(emit, serializers, include_name, include_nodes)
 
-    parser = get_target_parser(opts, supplementary_nodes)
-    model_parser = ModelParser(parser, patcher)
+    parser = get_target_parser(emit, opts, supplementary_nodes)
+    model_parser = ModelParser(parser, patcher, emit)
     file_parser = FileProcessor(model_parser, opts.include_dirs)
 
     for input_file in opts.input_files:
-        with exit_on_error():
+        with error_on_exception(emit):
             nodes = file_parser(input_file)
-        generate_target_files(serializers, get_basename(input_file), nodes)
+        generate_target_files(emit, serializers, get_basename(input_file), nodes)
 
-def get_isar_parser():
+def get_isar_parser(emit):
     from prophyc.parsers.isar import IsarParser
-    return IsarParser(warn=Emit.warn)
+    return IsarParser(warn=emit.warn)
 
-def get_target_parser(opts, supplementary_nodes):
+def get_target_parser(emit, opts, supplementary_nodes):
     if opts.isar:
-        return get_isar_parser()
+        return get_isar_parser(emit)
     elif opts.sack:
         from prophyc.parsers.sack import SackParser
         status = SackParser.check()
         if not status:
-            Emit.error(status.error)
-        return SackParser(opts.include_dirs, warn=Emit.warn, supple_nodes=supplementary_nodes)
+            emit.error(status.error)
+        return SackParser(opts.include_dirs, warn=emit.warn, supple_nodes=supplementary_nodes)
     else:
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
@@ -106,18 +107,19 @@ def get_patcher(opts):
         return lambda nodes: patch.patch(nodes, patches)
 
 class ModelParser():
-    def __init__(self, parser, patcher):
+    def __init__(self, parser, patcher, emit):
         self.parser = parser
         self.patcher = patcher
+        self.emit = emit
 
     def __call__(self, *parse_args):
         nodes = self.parser.parse(*parse_args)
         if self.patcher:
             self.patcher(nodes)
         model.topological_sort(nodes)
-        model.cross_reference(nodes, warn=Emit.warn)
+        model.cross_reference(nodes, warn=self.emit.warn)
         model.evaluate_kinds(nodes)
-        model.evaluate_sizes(nodes, warn=Emit.warn)
+        model.evaluate_sizes(nodes, warn=self.emit.warn)
         return nodes
 
 def get_basename(path):
@@ -133,20 +135,16 @@ def flatten_included_defs(supple_nodes):
     """ pass trough a dictionary to avoid duplicates """
     return tuple(dict(get_nodes_and_names(supple_nodes)).items())
 
-def generate_target_files(serializers, basename, nodes):
+def generate_target_files(emit, serializers, basename, nodes):
     for serializer in serializers:
         try:
             serializer.serialize(nodes, basename)
         except model.GenerateError as e:
-            Emit.error(str(e))
+            emit.error(str(e))
 
 @contextmanager
-def exit_on_error():
+def error_on_exception(emit):
     try:
         yield
     except model.ParseError as e:
-        sys.exit('\n'.join(('%s: error: %s' % err for err in e.errors)))
-
-
-if __name__ == "__main__":
-    main()
+        emit.error('\n'.join(('%s: error: %s' % err for err in e.errors)))
