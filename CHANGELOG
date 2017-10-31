@@ -1,4 +1,4 @@
-1.0.3
+1.1.0
 -----------------------------------
 - prophyc: can be invoked directly from python code
 - prophyc: sack parser can implicity include definitionos from isar files
