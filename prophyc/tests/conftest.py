@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 import os
 import pytest
 import subprocess
@@ -41,36 +40,27 @@ def dummy_file(tmpdir_cwd):
     the_file.write('')
     yield str(the_file)
 
+
 @pytest.fixture
 def sys_capture(capsys):
 
-    class CaptureStatus(object):
-        def __init__(self):
-            self.out = ''
-            self.err = ''
-            self.code = 0
+    class Capture(object):
+        def __enter__(self):
+            capsys.readouterr()
+            return self
+
+        def __exit__(self, _, exc_value, __):
+            if exc_value:
+                sys.stderr.write(str(exc_value) + '\n')
+                self.code = 1
+            else:
+                self.code = 0
+            self.out, self.err = capsys.readouterr()
+            return True
 
         def get(self):
             return self.code, self.out, self.err
-
-        def read(self, capsys_):
-            self.out, self.err = capsys_.readouterr()
-
-    @contextmanager
-    def check_prints():
-        cap = CaptureStatus()
-        err = None
-        try:
-            capsys.readouterr()
-            yield cap
-
-        except Exception as err:
-            sys.stderr.write(str(err) + '\n')
-            cap.code = 1
-        finally:
-            cap.read(capsys)
-
-    return check_prints
+    return Capture
 
 @pytest.fixture(params=["subprocess", "py_code"])
 def call_prophyc(request, sys_capture):
