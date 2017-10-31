@@ -165,6 +165,7 @@ def build_model(tu, tree, content):
 
 
 class SackParser(object):
+
     @staticmethod
     def check():
         class SackParserStatus(object):
@@ -202,16 +203,21 @@ class SackParser(object):
         index = Index.create()
         path = path.encode()
         content = content.encode()
+        tree = SackModel(self.supple_nodes)
 
         try:
             tu = index.parse(path, args_, unsaved_files=((path, content),))
         except TranslationUnitLoadError:
             raise model.ParseError([(path.decode(), 'error parsing translation unit')])
-        if self.warn:
-            for diag in tu.diagnostics:
-                self.warn(diag.spelling.decode(), location=SackParser._get_location(diag.location))
 
-        tree = SackModel(self.supple_nodes)
+        if self.warn:
+            unknown_type_name_warning_prog = re.compile("unknown type name '(\w+)'")
+            for diag in tu.diagnostics:
+                spelling = diag.spelling.decode()
+                match = unknown_type_name_warning_prog.search(spelling)
+                if not match or match.group(1) not in tree.names_defined_in_isar:
+                    self.warn(spelling, location=SackParser._get_location(diag.location))
+
         build_model(tu, tree, content)
         return tree.nodes
 

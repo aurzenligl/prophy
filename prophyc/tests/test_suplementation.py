@@ -1,8 +1,8 @@
-import pytest
-
-import prophyc
 from collections import namedtuple
 from contextlib import contextmanager
+import os
+import pytest
+
 
 IsarTestItem = namedtuple("IsarTestItem", "file_name_base, input_xml, expected_py")
 
@@ -128,13 +128,14 @@ def isar_test_helper(tmpdir_cwd):
         yield xmls
 
         for py_file, py_content in zip(pys, expected_py_contents):
+            assert os.path.isfile(str(py_file)), "The PY file {} doesn't exist.".format(py_file)
             assert py_file.read() == py_content
 
     return check_isars_generated
 
 
 @pytest.clang_installed
-def test_sack_supples(isar_test_helper, tmpdir_cwd):
+def test_sack_supples(isar_test_helper, tmpdir_cwd, call_prophyc):
     cpp = tmpdir_cwd.join('the_sack.hpp')
     cppy = tmpdir_cwd.join('the_sack.py')
     cpp.write("""\
@@ -148,10 +149,14 @@ struct cppX
 };
 """)
 
-    with isar_test_helper(ISAR_TEST_SET_1) as isars:
-        prophyc.main(["--sack", "--include_isar", str(isars[1]), "--include_isar", str(isars[2]),
-                      "--python_out", str(tmpdir_cwd), str(cpp)])
+    with isar_test_helper(ISAR_TEST_SET_1) as (_, xml2, xml3):
+        args = ["--sack", "--include_isar", str(xml2), "--include_isar", str(xml3),
+                "--python_out", str(tmpdir_cwd), str(cpp)]
+        ret, out, err = call_prophyc(args)
 
+        assert out == ""
+        assert err == ""
+        assert ret == 0
     assert cppy.read() == """\
 import prophy
 
