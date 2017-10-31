@@ -350,5 +350,7 @@ class CppGenerator(object):
         _check_nodes(nodes)
         hpp_path = os.path.join(self.output_dir, basename + ".pp.hpp")
         cpp_path = os.path.join(self.output_dir, basename + ".pp.cpp")
-        open(hpp_path, "w").write(self.serialize_string_hpp(nodes, basename))
-        open(cpp_path, "w").write(self.serialize_string_cpp(nodes, basename))
+        with open(hpp_path, "w") as f:
+            f.write(self.serialize_string_hpp(nodes, basename))
+        with open(cpp_path, "w") as f:
+            f.write(self.serialize_string_cpp(nodes, basename))

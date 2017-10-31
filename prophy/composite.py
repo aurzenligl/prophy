@@ -116,15 +116,35 @@ def add_composite(cls, name, tp):
     setattr(cls, name, property(getter, setter))
 
 def substitute_len_field(cls, descriptor, container_name, container_tp):
+    sizer_name = container_tp._BOUND
+    all_fields = [e[0] for e in descriptor]
+    msg = "Sizing member '{}' of container '{}' not found in the object '{}'.".format(sizer_name, container_name,
+                                                                                      cls.__name__)
+    if sizer_name not in all_fields:
+        """ Try to be lenient """
+        if (sizer_name + 's') in all_fields:
+            sizer_name += 's'
+        elif sizer_name.endswith('s') and sizer_name[:-1] in all_fields:
+            sizer_name = sizer_name[:-1]
+        elif len([f for f in descriptor if f[0].startswith("numOf")]) == 1 and\
+                len([f for f in descriptor if f[1]._BOUND]) == 1:
+            """ If there is one sizer and only one array. """
+            sizer_name = next(f for f in descriptor if f[0].startswith("numOf"))[0]
+        else:
+            raise ProphyError(msg)
+        container_tp._BOUND = sizer_name
+        print("Warning: {}\n Picking '{}' as the missing sizer instead.\n".format(msg, sizer_name))
+
     index, (name, tp) = next(
-        (index, field) for index, field in enumerate(descriptor) if field[0] is container_tp._BOUND
+        (index, field) for index, field in enumerate(descriptor) if field[0] == sizer_name
     )
+
     bound_shift = container_tp._BOUND_SHIFT
 
     if tp._OPTIONAL:
-        raise ProphyError("array must not be bound to optional field")
+        raise ProphyError("array {}.{} must not be bound to optional field".format(cls.__name__, container_name))
     if not issubclass(tp, (int, long)):
-        raise ProphyError("array must be bound to an unsigned integer")
+        raise ProphyError("array {}.{} must be bound to an unsigned integer".format(cls.__name__, container_name))
 
     if tp.__name__ == "container_len":
         def is_bound_shift_valid():
@@ -133,7 +153,8 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
 
         tp.add_bounded_container(container_name)
         if not is_bound_shift_valid():
-            raise ProphyError("Different bound shifts are unsupported in externally sized arrays")
+            raise ProphyError("Different bound shifts are unsupported in externally sized arrays ({}.{})".format(
+                cls.__name__, container_name))
     else:
         class container_len(tp):
             _BOUND = [container_name]
@@ -297,9 +318,6 @@ def validate_copy_from(lhs, rhs):
 
 def set_field(parent, name, rhs):
     lhs = getattr(parent, name)
-    if lhs is None:
-        setattr(parent, name, True)
-        lhs = getattr(parent, name)
     if isinstance(rhs, base_array):
         if issubclass(rhs._TYPE, (struct, union)):
             if rhs._DYNAMIC:
@@ -587,4 +605,4 @@ class FieldDescriptor(object):
         self.kind = kind
 
     def __repr__(self):
-        return ("<{}, {}, {}>".format(self.name, self.kind, self.type))
+        return ("<{}, {!r}, {!r}>".format(self.name, self.type, self.kind))

@@ -112,4 +112,5 @@ class PythonGenerator(object):
     def serialize(self, nodes, basename):
         path = os.path.join(self.output_dir, basename + ".py")
         out = self.serialize_string(nodes)
-        open(path, "w").write(out)
+        with open(path, "w") as f:
+            f.write(out)

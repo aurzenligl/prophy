@@ -1,3 +1,10 @@
+1.0.3
+-----------------------------------
+- prophyc: can be invoked directly from python code
+- prophyc: sack parser can implicity include definitionos from isar files
+- prophyc: enums also included in model even if not used in structures
+- prophy: forgiving misspelling in sizer name of ext sized array
+
 1.0.2
 -----------------------------------
 - prophyc: sack parser properly handles typedef in namespace

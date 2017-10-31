@@ -4,6 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
+SPHINXAUTO    = sphinx-autobuild
 PAPER         =
 BUILDDIR      = _build
 
@@ -45,6 +46,7 @@ help:
 	@echo "  pseudoxml  to make pseudoxml-XML files for display purposes"
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
+	@echo "  livehtml   to run sphinx local-server with live-update of html documents (requires sphinx-autobuild)"
 
 clean:
 	rm -rf $(BUILDDIR)/*
@@ -175,3 +177,6 @@ pseudoxml:
 	$(SPHINXBUILD) -b pseudoxml $(ALLSPHINXOPTS) $(BUILDDIR)/pseudoxml
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
+
+livehtml:
+	$(SPHINXAUTO) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

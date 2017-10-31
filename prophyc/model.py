@@ -282,7 +282,7 @@ def topological_sort(nodes):
         if not model_sort_rotate(nodes, known, available, index):
             index = index + 1
 
-def cross_reference(nodes, warn = None):
+def cross_reference(nodes, warn = null_warn):
     """
     Adds definition reference to Typedef and StructMember.
     Adds numeric_size to StructMember if it's a sized array.
@@ -341,8 +341,7 @@ def cross_reference(nodes, warn = None):
             return
         found = types.get(node.type_)
         if not found:
-            if warn:
-                warn("type '%s' not found" % node.type_)
+            warn("type '%s' not found" % node.type_)
         node.definition = found
 
     def evaluate_array_sizes(node):
@@ -356,8 +355,7 @@ def cross_reference(nodes, warn = None):
             try:
                 node.numeric_size = to_int(node.size)
             except calc.ParseError as e:
-                if warn:
-                    warn(str(e))
+                warn(str(e))
                 node.numeric_size = None
 
     for node in nodes:
@@ -408,7 +406,7 @@ def evaluate_sizes(nodes, warn = null_warn):
     Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
     Requires cross referenced nodes and evaluated kinds.
     """
-    def evaluate_node_size(node, parent, member, warn):
+    def evaluate_node_size(node, parent, member):
         while isinstance(node, Typedef) and node.definition:
             node = node.definition
         if isinstance(node, (Struct, Union)):
@@ -430,13 +428,13 @@ def evaluate_sizes(nodes, warn = null_warn):
             member.alignment = max(DISC_SIZE, member.alignment)
             member.byte_size = member.byte_size + member.alignment
 
-    def evaluate_member_size(node, member, warn):
+    def evaluate_member_size(node, member):
         if isinstance(member, StructMember) and (member.size and member.numeric_size is None):
             # unknown array size
             warn('%s::%s array has unknown size "%s"' % (node.name, member.name, member.size))
             size_alignment = (None, None)
         elif member.definition:
-            size_alignment = evaluate_node_size(node=member.definition, parent=node, member=member, warn=warn)
+            size_alignment = evaluate_node_size(node=member.definition, parent=node, member=member)
         elif member.type_ in BUILTIN_SIZES:
             byte_size = BUILTIN_SIZES[member.type_]
             size_alignment = (byte_size, byte_size)
@@ -450,8 +448,8 @@ def evaluate_sizes(nodes, warn = null_warn):
     def evaluate_empty_size(node):
         node.byte_size, node.alignment = (None, None)
 
-    def evaluate_members_sizes(node, warn):
-        if not all([evaluate_member_size(node, mem, warn) for mem in node.members]):
+    def evaluate_members_sizes(node):
+        if not all([evaluate_member_size(node, mem) for mem in node.members]):
             evaluate_empty_size(node)
             return False
         return True
@@ -491,12 +489,12 @@ def evaluate_sizes(nodes, warn = null_warn):
 
     for node in nodes:
         if isinstance(node, Struct):
-            if evaluate_members_sizes(node, warn):
+            if evaluate_members_sizes(node):
                 [evaluate_array_and_optional_size(mem) for mem in node.members]
                 evaluate_partial_padding_size(node)
                 evaluate_struct_size(node)
         elif isinstance(node, Union):
-            if evaluate_members_sizes(node, warn):
+            if evaluate_members_sizes(node):
                 evaluate_union_size(node)
 
 def partition(members):

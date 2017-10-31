@@ -604,5 +604,7 @@ class CppFullGenerator(object):
         check_nodes(nodes)
         hpp_path = os.path.join(self.output_dir, basename + '.ppf.hpp')
         cpp_path = os.path.join(self.output_dir, basename + '.ppf.cpp')
-        open(hpp_path, 'w').write(generate_hpp(nodes, basename))
-        open(cpp_path, 'w').write(generate_cpp(nodes, basename))
+        with open(hpp_path, 'w') as f:
+            f.write(generate_hpp(nodes, basename))
+        with open(cpp_path, 'w') as f:
+            f.write(generate_cpp(nodes, basename))

@@ -956,3 +956,16 @@ def test_evaluate_sizes_with_include():
         (1, 1, 3),
         (8, 4)
     ]
+
+def test_enum_repr():
+    E = model.Enum('TheEnum', [
+        model.EnumMember('E1', '1'),
+        model.EnumMember('E2', '2'),
+        model.EnumMember('E3', '3')
+    ])
+    assert repr(E) == """\
+TheEnum
+    E1 1
+    E2 2
+    E3 3
+"""

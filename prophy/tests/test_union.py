@@ -61,6 +61,11 @@ def test_union_copy_from(SimpleUnion):
     assert 1 == y.discriminator
     assert 3 == y.b
 
+    y.copy_from(y)
+    assert y == y
+    assert 1 == y.discriminator
+    assert 3 == y.b
+
 def test_simple_union_discriminator_does_not_clear_fields_if_set_to_same_value(SimpleUnion):
     x = SimpleUnion()
 
@@ -197,6 +202,10 @@ def test_union_with_struct():
     assert x.discriminator == 0
     assert x.a == 0x25
 
+    with pytest.raises(prophy.ProphyError) as err:
+        x.b
+    assert str(err.value) == 'currently field 0 is discriminated'
+
     x.decode(b"\x01\x00\x00\x00\x25\x00\x00\x00\x35\x00\x00\x00", "<")
     assert x.discriminator == 1
     assert x.b.a == 0x25
@@ -206,6 +215,10 @@ def test_union_with_struct():
     assert x.discriminator == 1
     assert x.b.a == 0x25
     assert x.b.b == 0x35
+
+    with pytest.raises(prophy.ProphyError) as err:
+        x.b = 'anythig'
+    assert str(err.value) == 'assignment to composite field not allowed'
 
 def test_union_discriminator_exceptions(VariableLengthFieldsUnion):
     x = VariableLengthFieldsUnion()

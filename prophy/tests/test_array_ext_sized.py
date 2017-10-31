@@ -1,5 +1,7 @@
-import prophy
 import pytest
+
+import prophy
+
 
 @pytest.fixture(scope = 'session')
 def ExtSizedArr():
@@ -9,6 +11,55 @@ def ExtSizedArr():
                        ("b", prophy.array(prophy.u8, bound = "sz")),
                        ("c", prophy.array(prophy.u16, bound = "sz"))]
     return ExtSizedArr
+
+
+@pytest.fixture
+def read_stdout_stderr(capsys):
+    class Capture(object):
+        def __enter__(self):
+            capsys.readouterr()
+            return self
+
+        def __exit__(self, *_):
+            self.out, self.err = capsys.readouterr()
+    return Capture
+
+@pytest.mark.parametrize('sizer_name, expected_sizer_name', [
+    ("numOfFields", "numOfField"),
+    ("numOfField", "numOfFields"),
+    ("numOfany_other_name_will_be_forgotten_in_this_case", "numOfField"),
+    ("numOfany_other_name_will_be_forgotten_in_this_case", "any_wrong_name_expected")])
+def test_ext_sized_can_be_lenient(sizer_name, expected_sizer_name, read_stdout_stderr):
+
+    with read_stdout_stderr() as capture:
+
+        class IForgotS(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [(sizer_name, prophy.u8),
+                           ("field", prophy.array(prophy.u8, bound=expected_sizer_name))]
+
+    assert capture.err == ""
+    assert capture.out == "Warning: Sizing member '{}' of container 'field' not "\
+        "found in the object 'IForgotS'.\n Picking '{}' as the missing sizer instead.\n\n".format(expected_sizer_name,
+                                                                                                  sizer_name)
+    assert IForgotS().field._BOUND == sizer_name
+
+def test_ext_sized_will_not_forgive_mistakes_with_many_arrays():
+    with pytest.raises(prophy.ProphyError) as e:
+        class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [
+                ('numOfField', prophy.u8),
+                ("field", prophy.array(prophy.u8, bound="numOfField")),
+                ('numOfField2', prophy.u8),
+                ("field2", prophy.array(prophy.u8, bound="numOfField2_incorrect"))]
+    assert "Sizing member 'numOfField2_incorrect' of container 'field2' not found in the object 'K'" in str(e.value)
+
+def test_ext_sized_wrong_sizer_type():
+    with pytest.raises(prophy.ProphyError) as e:
+        class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [
+                ('numOfField', prophy.r32),
+                ("field", prophy.array(prophy.u8, bound="numOfField"))]
+    assert "array K.field must be bound to an unsigned integer" == str(e.value)
 
 def test_ext_sized_scalar_array_assignment(ExtSizedArr):
     x = ExtSizedArr()
@@ -56,14 +107,14 @@ def test_ext_sized_scalar_array_with_shift_exceptions():
             _descriptor = [("len", prophy.u8),
                            ("a", prophy.array(prophy.u8, bound = "len", shift = 2)),
                            ("b", prophy.array(prophy.u8, bound = "len"))]
-    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
+    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays (XS1.b)"
 
     with pytest.raises(Exception) as e:
         class XS2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("len", prophy.u8),
                            ("a", prophy.array(prophy.u8, bound = "len")),
                            ("b", prophy.array(prophy.u8, bound = "len", shift = 2))]
-    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays"
+    assert str(e.value) == "Different bound shifts are unsupported in externally sized arrays (XS2.b)"
 
 def test_ext_sized_scalar_array_decoding_exceptions(ExtSizedArr):
     x = ExtSizedArr()

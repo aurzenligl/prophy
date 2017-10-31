@@ -1,4 +1,7 @@
 import sys
 from . import main
 
-sys.exit(main())
+try:
+    main()
+except Exception as e:
+    sys.exit(str(e))

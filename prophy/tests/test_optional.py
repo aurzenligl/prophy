@@ -2,10 +2,10 @@ import prophy
 import pytest
 
 def test_optional_scalar():
-    class O(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+    class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(prophy.u32))]
 
-    x = O()
+    x = K()
     assert x.a is None
     assert x.encode(">") == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert str(x) == """\
@@ -34,10 +34,10 @@ def test_optional_struct():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u32)]
 
-    class O(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+    class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(S))]
 
-    x = O()
+    x = K()
     assert x.a is None
     assert x.encode(">") == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert str(x) == """\
@@ -77,10 +77,10 @@ def test_optional_union():
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u32, 5)]
 
-    class O(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+    class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(U))]
 
-    x = O()
+    x = K()
     assert x.encode(">") == b"\x00\x00\x00\x00" b"\x00\x00\x00\x00\x00\x00\x00\x00"
 
     x.a = True
@@ -153,7 +153,7 @@ def test_optional_array():
         class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("a_len", prophy.optional(prophy.u32)),
                            ("a", prophy.array(prophy.u32, bound = "a_len"))]
-    assert "array must not be bound to optional field" == str(e.value)
+    assert "array S.a must not be bound to optional field" == str(e.value)
 
     with pytest.raises(Exception) as e:
         prophy.array(prophy.optional(prophy.u32))
