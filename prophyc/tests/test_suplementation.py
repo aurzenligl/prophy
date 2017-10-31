@@ -1,6 +1,7 @@
-import prophyc
 import pytest
 import os
+
+import prophyc
 
 XML_1_CONTENT = """\
 <x>
@@ -57,8 +58,8 @@ XML_3_CONTENT = """\
 def test_sack_includes_isar(tmpdir_cwd, tmpfiles_cwd):
 
     input_file_names = ("isar_root_defs.xml",
-                        "included_by_sack.xml",
-                        "included_by_sack2.xml",
+                        "included_by_sack_a.xml",
+                        "included_by_sack_b.xml",
                         "the_sack.cpp")
 
     xml1, xml2, xml3, cpp = tmpfiles_cwd(*input_file_names)
@@ -125,11 +126,23 @@ class IsarL(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
                    ('theBItems', prophy.array(IsarDefB, bound = 'numOfItems'))]
 """
 
+    assert xml3_py.read() == """\
+import prophy
+
+from isar_root_defs import *
+
+class IsarV(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+    _descriptor = [('ifV_a', IsarDefA),
+                   ('ifV_b_len', prophy.u32),
+                   ('ifV_b', prophy.array(IsarDefB, bound = 'ifV_b_len', size = IsarCONST_B)),
+                   ('ifV_c', EIsarDefEnum)]
+"""
+
     assert cpp_py.read() == """\
 import prophy
 
-from included_by_sack import *
-from included_by_sack2 import *
+from included_by_sack_a import *
+from included_by_sack_b import *
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('defined_in_xml', IsarK),
@@ -137,29 +150,3 @@ class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
                    ('regular_type', prophy.u16),
                    ('typedefed_deeper_in_xmls', IsarDefA)]
 """
-
-
-@pytest.mark.xfail(reason="isar supples not implemented in prophy parser")
-def test_prophy_includes_isar(tmpdir_cwd, tmpfiles_cwd):
-
-    input_file_names = ("isar_root_defs.xml",
-                        "included_by_prophy.xml",
-                        "the.prophy")
-
-    xml1, xml2, the_prophy = tmpfiles_cwd(*input_file_names)
-
-    xml1.write(XML_1_CONTENT)
-    xml2.write(XML_2_CONTENT)
-    the_prophy.write("""
-
-struct X
-{
-    IsarK defined_in_xml;
-    IsarDefC defined_deeper_in_xmls;
-    u16 regular_type;
-    IsarDefA typedefed_deeper_in_xmls;
-};
-""")
-
-    prophyc.main(["--include_isar", str(xml2),
-                  "--python_out", str(tmpdir_cwd), str(the_prophy)])
