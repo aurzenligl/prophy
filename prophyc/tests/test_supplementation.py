@@ -247,3 +247,23 @@ class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
                    ('tricky2', prophy.array(prophy.u16, size = 20)),
                    ('tricky3', prophy.array(prophy.u16, size = 64))]
 """
+
+@pytest.clang_installed
+def test_warns_with_supplementation(isar_test_helper, tmpdir_cwd, call_prophyc):
+    cpp = tmpdir_cwd.join('the_sack.hpp')
+    cpp.write("""\
+#include <stdint.h>
+struct cppX
+{
+    static const int8_t A = 256 * IsarCONST_A;
+    uint8_t straigth[2];
+};
+""")
+
+    with isar_test_helper(ISAR_TEST_SET_1) as (_, xml2, xml3):
+        args = ["--sack", "--include_isar", str(xml2), "--include_isar", str(xml3),
+                "--python_out", str(tmpdir_cwd), str(cpp)]
+        ret, out, err = call_prophyc(args)
+        assert out == ""
+        assert "the_sack.hpp:4:33: warning: implicit conversion from 'int' to 'const int8_t'" in err
+        assert ret == 0

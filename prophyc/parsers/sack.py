@@ -88,10 +88,8 @@ class Builder(object):
 
         elif tp.kind in (TypeKind.SHORT, TypeKind.INT, TypeKind.LONG, TypeKind.LONGLONG):
             return 'i%d' % (tp.get_size() * 8)
-        try:
-            return self.unambiguous_builtins[tp.kind]
-        except KeyError as e:
-            raise SackParserError("Unknown declaration, {} {} {}".format(tp.spelling, decl.kind, e))
+
+        return self.unambiguous_builtins[tp.kind]
 
     def add_enum(self, cursor):
         def enum_member(cursor):
@@ -154,8 +152,7 @@ class SupplementaryDefs(object):
         self.include_tree = include_tree
         self.stub_names = [node.name for node in SupplementaryDefs.flatten_nodes(include_tree)]
         self.stub_defs = SupplementaryDefs.prepare_stubs(include_tree)
-        stubs_lines = len(self.stub_defs)
-        self.stubs_lines_count = stubs_lines and stubs_lines + 1 or 0
+        self.stubs_lines_count = len(self.stub_defs)
 
     @staticmethod
     def flatten_nodes(nodes_list):
@@ -268,10 +265,12 @@ class SackParser(object):
     def _get_location(self, location, target_path):
         location_file = location.file.name.decode()
         if os.path.basename(location_file) == os.path.basename(target_path):
-            location_line = location.line - self.supples.stubs_lines_count
-            if location_line < 0:
-                location_file = "supplementary_defs_in_{}".format(os.path.basename(target_path))
-                location_line = location.line
+            stubs_len = self.supples.stubs_lines_count
+            is_in_stubs = location.line < stubs_len
+            stubs_file = "supplementary_defs_in_{}".format(os.path.basename(target_path))
+            location_line = location.line if is_in_stubs else (location.line - stubs_len)
+            location_file = location_file if not is_in_stubs else stubs_file
+
         else:
             location_line = location.line
         return '%s:%s:%s' % (location_file, location_line, location.column)
