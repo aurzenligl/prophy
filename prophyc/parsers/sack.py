@@ -264,10 +264,11 @@ class SackParser(object):
 
     def _get_location(self, location, target_path):
         location_file = location.file.name.decode()
-        if os.path.basename(location_file) == os.path.basename(target_path):
+        target_file_name = os.path.basename(target_path.decode())
+        if os.path.basename(location_file) == target_file_name:
             stubs_len = self.supples.stubs_lines_count
             is_in_stubs = location.line < stubs_len
-            stubs_file = "supplementary_defs_in_{}".format(os.path.basename(target_path))
+            stubs_file = "supplementary_defs_in_{}".format(target_file_name)
             location_line = location.line if is_in_stubs else (location.line - stubs_len)
             location_file = location_file if not is_in_stubs else stubs_file
 
