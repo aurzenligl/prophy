@@ -82,7 +82,7 @@ def get_target_parser(emit, opts, supplementary_nodes):
         status = SackParser.check()
         if not status:
             emit.error(status.error)
-        return SackParser(opts.include_dirs, warn=emit.warn, supple_nodes=supplementary_nodes)
+        return SackParser(opts.include_dirs, warn=emit.warn, include_tree=supplementary_nodes)
     else:
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
