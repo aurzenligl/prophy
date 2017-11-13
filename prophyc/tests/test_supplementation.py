@@ -153,7 +153,6 @@ struct cppX
         args = ["--sack", "--include_isar", str(xml2), "--include_isar", str(xml3),
                 "--python_out", str(tmpdir_cwd), str(cpp)]
         ret, out, err = call_prophyc(args)
-
         assert out == ""
         assert err == ""
         assert ret == 0
@@ -169,3 +168,102 @@ class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
                    ('regular_type', prophy.u16),
                    ('typedefed_deeper_in_xmls', IsarDefA)]
 """
+
+
+@pytest.clang_installed
+def test_sack_supples_array_size_from_isar(isar_test_helper, tmpdir_cwd, call_prophyc):
+    cpp = tmpdir_cwd.join('the_sack.hpp')
+    cppy = tmpdir_cwd.join('the_sack.py')
+    cpp.write("""\
+#include <stdint.h>
+struct cppX
+{
+    IsarV type_from_isar[IsarCONST_A];
+    uint16_t regular_type[IsarCONST_B];
+};
+""")
+
+    with isar_test_helper(ISAR_TEST_SET_1) as (_, xml2, xml3):
+        args = ["--sack", "--include_isar", str(xml2), "--include_isar", str(xml3),
+                "--python_out", str(tmpdir_cwd), str(cpp)]
+        ret, out, err = call_prophyc(args)
+        assert out == ""
+        assert err == ""
+        assert ret == 0
+    assert cppy.read() == """\
+import prophy
+
+from included_by_sack_a import *
+from included_by_sack_b import *
+
+class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+    _descriptor = [('type_from_isar', prophy.array(IsarV, size = 4)),
+                   ('regular_type', prophy.array(prophy.u16, size = 16))]
+"""
+
+
+@pytest.clang_installed
+def test_sack_supples_static_consts_values_from_isar(isar_test_helper, tmpdir_cwd, call_prophyc):
+    cpp = tmpdir_cwd.join('the_sack.hpp')
+    cppy = tmpdir_cwd.join('the_sack.py')
+    cpp.write("""\
+#include <stdint.h>
+struct constants
+{
+    static const uint16_t A = IsarCONST_A;
+    static const uint16_t B = IsarCONST_B;
+    static const uint16_t C = A + B;
+};
+
+struct cppX
+{
+    uint8_t straigth[2];
+    uint16_t tricky1[constants::A];
+    uint16_t tricky2[constants::C];
+    uint16_t tricky3[constants::A * constants::B];
+};
+""")
+
+    with isar_test_helper(ISAR_TEST_SET_1) as (_, xml2, xml3):
+        args = ["--sack", "--include_isar", str(xml2), "--include_isar", str(xml3),
+                "--python_out", str(tmpdir_cwd), str(cpp)]
+        ret, out, err = call_prophyc(args)
+        assert out == ""
+        assert err == ""
+        assert ret == 0
+
+    assert cppy.read() == """\
+import prophy
+
+from included_by_sack_a import *
+from included_by_sack_b import *
+
+class constants(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+    _descriptor = []
+
+class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+    _descriptor = [('straigth', prophy.array(prophy.u8, size = 2)),
+                   ('tricky1', prophy.array(prophy.u16, size = 4)),
+                   ('tricky2', prophy.array(prophy.u16, size = 20)),
+                   ('tricky3', prophy.array(prophy.u16, size = 64))]
+"""
+
+@pytest.clang_installed
+def test_warns_with_supplementation(isar_test_helper, tmpdir_cwd, call_prophyc):
+    cpp = tmpdir_cwd.join('the_sack.hpp')
+    cpp.write("""\
+#include <stdint.h>
+struct cppX
+{
+    static const int8_t A = 256 * IsarCONST_A;
+    uint8_t straigth[2];
+};
+""")
+
+    with isar_test_helper(ISAR_TEST_SET_1) as (_, xml2, xml3):
+        args = ["--sack", "--include_isar", str(xml2), "--include_isar", str(xml3),
+                "--python_out", str(tmpdir_cwd), str(cpp)]
+        ret, out, err = call_prophyc(args)
+        assert out == ""
+        assert "the_sack.hpp:4:33: warning: implicit conversion from 'int' to 'const int8_t'" in err
+        assert ret == 0

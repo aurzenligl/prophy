@@ -4,45 +4,38 @@ import ctypes.util
 from .clang.cindex import Config, Index, CursorKind, TypeKind, TranslationUnitLoadError, LibclangError
 
 from prophyc import model
-
-unambiguous_builtins = {
-    TypeKind.UCHAR: 'u8',
-    TypeKind.SCHAR: 'i8',
-    TypeKind.CHAR_S: 'i8',
-    TypeKind.POINTER: 'u32',
-    TypeKind.FLOAT: 'r32',
-    TypeKind.DOUBLE: 'r64',
-    TypeKind.BOOL: 'i32'
-}
+from prophyc.generators.cpp import _generate_def_enum
+from contextlib import contextmanager
 
 class SackParserError(Exception):
     pass
 
-class SackModel(object):
-    def __init__(self, included_isar_supples=[]):
+class SackModelTree(object):
+    def __init__(self):
         self.known = set()
         self.nodes = []
-        list(map(self.add_node, included_isar_supples))
-        self.names_defined_in_isar = list(SackModel.get_node_names(included_isar_supples))
 
     def add_node(self, node):
         self.known.add(node.name)
         self.nodes.append(node)
 
-    @staticmethod
-    def get_node_names(nodes_list):
-        for node in nodes_list:
-            if isinstance(node, model.Include):
-                for name in SackModel.get_node_names(node.nodes):
-                    yield name
-            else:
-                yield node.name
+    def remove_nodes(self, node_names_to_remove):
+        self.nodes = [node for node in self.nodes if node.name not in node_names_to_remove]
+        self.known -= set(node_names_to_remove)
 
 class Builder(object):
+    unambiguous_builtins = {
+        TypeKind.UCHAR: 'u8',
+        TypeKind.SCHAR: 'i8',
+        TypeKind.CHAR_S: 'i8',
+        TypeKind.POINTER: 'u32',
+        TypeKind.FLOAT: 'r32',
+        TypeKind.DOUBLE: 'r64',
+        TypeKind.BOOL: 'i32'
+    }
 
-    def __init__(self, tree_model, parsed_file_content):
+    def __init__(self, tree_model):
         self.tree = tree_model
-        self.content = parsed_file_content
 
     @staticmethod
     def alphanumeric_name(cursor):
@@ -55,13 +48,7 @@ class Builder(object):
             name = name.replace('union ', '', 1)
         return re.sub('[^0-9a-zA-Z_]+', '__', name)
 
-    def get_type_name_of_missing_declaration(self, cursor):
-        spelling = cursor.spelling
-        spelling_len = len(spelling) if spelling else 0
-        decl_start, decl_end = cursor.extent.start.offset, cursor.extent.end.offset
-        return self.content[decl_start:decl_end - spelling_len].decode().strip()
-
-    def get_type_name(self, tp, cursor):
+    def get_type_name(self, tp):
         decl = tp.get_declaration()
 
         def dive_deeper(method):
@@ -71,7 +58,8 @@ class Builder(object):
             return name
 
         if tp.kind is TypeKind.TYPEDEF:
-            return self.get_type_name(decl.underlying_typedef_type, cursor)
+            return self.get_type_name(decl.underlying_typedef_type)
+
         elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.ELABORATED, TypeKind.RECORD):
 
             if decl.kind in (CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL):
@@ -81,24 +69,19 @@ class Builder(object):
                 return dive_deeper(self.add_union)
 
             elif decl.kind is CursorKind.ENUM_DECL:
-                return self.get_type_name(decl.type, cursor)
+                return self.get_type_name(decl.type)
 
             elif decl.kind is CursorKind.TYPEDEF_DECL:
-                return self.get_type_name(decl.underlying_typedef_type, cursor)
+                return self.get_type_name(decl.underlying_typedef_type)
 
             else:
-                raise SackParserError("Unknown declaration")
+                raise SackParserError("Unknown declaration, {} {}".format(tp.spelling, decl.kind))
 
         elif tp.kind in (TypeKind.CONSTANTARRAY, TypeKind.INCOMPLETEARRAY):
-            return self.get_type_name(tp.element_type, cursor)
+            return self.get_type_name(tp.element_type)
 
         elif tp.kind is TypeKind.ENUM:
             return dive_deeper(self.add_enum)
-
-        if decl.kind is CursorKind.NO_DECL_FOUND and cursor:
-            name = self.get_type_name_of_missing_declaration(cursor)
-            if name in self.tree.names_defined_in_isar:
-                return name
 
         if tp.kind in (TypeKind.USHORT, TypeKind.UINT, TypeKind.ULONG, TypeKind.ULONGLONG):
             return 'u%d' % (tp.get_size() * 8)
@@ -106,7 +89,7 @@ class Builder(object):
         elif tp.kind in (TypeKind.SHORT, TypeKind.INT, TypeKind.LONG, TypeKind.LONGLONG):
             return 'i%d' % (tp.get_size() * 8)
 
-        return unambiguous_builtins[tp.kind]
+        return self.unambiguous_builtins[tp.kind]
 
     def add_enum(self, cursor):
         def enum_member(cursor):
@@ -130,7 +113,7 @@ class Builder(object):
 
         def struct_member(cursor_):
             name = cursor_.spelling.decode()
-            type_name = self.get_type_name(cursor_.type, cursor_)
+            type_name = self.get_type_name(cursor_.type)
             array_len = array_length(cursor_.type)
             return model.StructMember(name, type_name, size=array_len)
 
@@ -142,7 +125,7 @@ class Builder(object):
     def add_union(self, cursor):
         def union_member(cursor, disc):
             name = cursor.spelling.decode()
-            type_name = self.get_type_name(cursor.type, cursor)
+            type_name = self.get_type_name(cursor.type)
             return model.UnionMember(name, type_name, str(disc))
 
         members = [union_member(x, i) for i, x in enumerate(cursor.get_children())
@@ -150,18 +133,75 @@ class Builder(object):
         node = model.Union(Builder.alphanumeric_name(cursor), members)
         self.tree.add_node(node)
 
-def build_model(tu, tree, content):
-    builder = Builder(tree, content)
-    for cursor in tu.cursor.get_children():
-        if cursor.kind is CursorKind.UNEXPOSED_DECL:
-            for in_cursor in cursor.get_children():
-                if in_cursor.kind is CursorKind.STRUCT_DECL and in_cursor.spelling and in_cursor.is_definition():
-                    builder.add_struct(in_cursor)
-        if cursor.spelling and cursor.is_definition():
-            if cursor.kind is CursorKind.STRUCT_DECL:
-                builder.add_struct(cursor)
-            if cursor.kind is CursorKind.ENUM_DECL:
-                builder.add_enum(cursor)
+    def build_model(self, translation_unit):
+        for cursor in translation_unit.cursor.get_children():
+            if cursor.kind is CursorKind.UNEXPOSED_DECL:
+                for in_cursor in cursor.get_children():
+                    if in_cursor.kind is CursorKind.STRUCT_DECL and in_cursor.spelling and in_cursor.is_definition():
+                        self.add_struct(in_cursor)
+            if cursor.spelling and cursor.is_definition():
+                if cursor.kind is CursorKind.STRUCT_DECL:
+                    self.add_struct(cursor)
+                if cursor.kind is CursorKind.ENUM_DECL:
+                    self.add_enum(cursor)
+
+class SupplementaryDefs(object):
+
+    def __init__(self, include_tree):
+
+        self.include_tree = include_tree
+        self.stub_names = [node.name for node in SupplementaryDefs.flatten_nodes(include_tree)]
+        self.stub_defs = SupplementaryDefs.prepare_stubs(include_tree)
+        self.stubs_lines_count = len(self.stub_defs)
+
+    @staticmethod
+    def flatten_nodes(nodes_list):
+        for node in nodes_list:
+            if isinstance(node, model.Include):
+                for node in SupplementaryDefs.flatten_nodes(node.nodes):
+                    yield node
+            else:
+                yield node
+
+    @staticmethod
+    def unique_nodes(include_tree):
+        picked = []
+        for node in SupplementaryDefs.flatten_nodes(include_tree):
+            if node.name not in picked:
+                picked.append(node.name)
+                yield node
+
+    @staticmethod
+    def prepare_stubs(include_tree):
+        def create_stub_definition(node):
+            if isinstance(node, model.Constant):
+                yield "#define {} {}".format(node.name, node.value)
+            elif isinstance(node, model.Enum):
+                for line in _generate_def_enum(node).split('\n'):
+                    # need to have all lines separated to know its count
+                    yield line
+            else:
+                yield "struct {} {{}};".format(node.name)
+
+        flatten_nodes = SupplementaryDefs.unique_nodes(include_tree)
+        return [line for node in flatten_nodes for line in create_stub_definition(node)]
+
+    def prepend_stubs(self, content):
+        if not self.stub_defs:
+            return content
+        return '\n'.join(self.stub_defs) + '\n' + content
+
+    @contextmanager
+    def implicit_supplementation(self, parsed_content):
+        enriched_content = self.prepend_stubs(parsed_content)
+
+        sack_tree = SackModelTree()
+        for include_node in self.include_tree:
+            sack_tree.add_node(include_node)
+
+        yield enriched_content, sack_tree
+
+        sack_tree.remove_nodes(self.stub_names)
 
 
 class SackParser(object):
@@ -192,38 +232,49 @@ class SackParser(object):
             return SackParserStatus("sack input requires libclang and it's not installed")
         return SackParserStatus()
 
-    def __init__(self, include_dirs=[], warn=None, supple_nodes=[]):
+    def __init__(self, include_dirs=[], warn=None, include_tree=[]):
         self.include_dirs = include_dirs
         self.warn = warn
-        self.supple_nodes = supple_nodes
+        self.supples = SupplementaryDefs(include_tree)
 
     def parse(self, content, path, _):
         args_ = ["-I" + x for x in self.include_dirs]
-
         index = Index.create()
-        path = path.encode()
-        content = content.encode()
-        tree = SackModel(self.supple_nodes)
+        with self.supples.implicit_supplementation(content) as (content_, tree):
+            builder = Builder(tree)
+            path = path.encode()
+            content_ = content_.encode()
 
-        try:
-            tu = index.parse(path, args_, unsaved_files=((path, content),))
-        except TranslationUnitLoadError:
-            raise model.ParseError([(path.decode(), 'error parsing translation unit')])
+            try:
+                translation_unit = index.parse(path, args_, unsaved_files=((path, content_),))
+            except TranslationUnitLoadError:
+                raise model.ParseError([(path.decode(), 'error parsing translation unit')])
 
-        if self.warn:
-            unknown_type_name_warning_prog = re.compile("unknown type name '(\w+)'")
-            for diag in tu.diagnostics:
-                spelling = diag.spelling.decode()
-                match = unknown_type_name_warning_prog.search(spelling)
-                if not match or match.group(1) not in tree.names_defined_in_isar:
-                    self.warn(spelling, location=SackParser._get_location(diag.location))
+            self.print_diagnostics(path, translation_unit)
+            builder.build_model(translation_unit)
 
-        build_model(tu, tree, content)
         return tree.nodes
 
-    @staticmethod
-    def _get_location(location):
-        return '%s:%s:%s' % (location.file.name.decode(), location.line, location.column)
+    def print_diagnostics(self, path, translation_unit):
+        if self.warn:
+            for diag in translation_unit.diagnostics:
+                spelling = diag.spelling.decode()
+                location = self._get_location(diag.location, path)
+                self.warn(spelling, location)
+
+    def _get_location(self, location, target_path):
+        location_file = location.file.name.decode()
+        target_file_name = os.path.basename(target_path.decode())
+        if os.path.basename(location_file) == target_file_name:
+            stubs_len = self.supples.stubs_lines_count
+            is_in_stubs = location.line < stubs_len
+            stubs_file = "supplementary_defs_in_{}".format(target_file_name)
+            location_line = location.line if is_in_stubs else (location.line - stubs_len)
+            location_file = location_file if not is_in_stubs else stubs_file
+
+        else:
+            location_line = location.line
+        return '%s:%s:%s' % (location_file, location_line, location.column)
 
 
 def _setup_libclang():
