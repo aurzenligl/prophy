@@ -24,7 +24,7 @@ class Emit(object):
     def error(self, msg, location='prophyc'):
         raise ProphycError(location + ': error: ' + msg)
 
-def main(args=sys.argv[1:]):
+def main(args):
     emit = Emit()
     opts = options.parse_options(emit.error, args)
 
