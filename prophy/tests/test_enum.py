@@ -75,7 +75,7 @@ def test_enum_encoding(Enum):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"\x00\x00\x00\x09", ">")
-    assert 'unknown enumerator value' in str(e.value)
+    assert 'unknown enumerator Enumeration value' in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"\x00\x00\x01", ">")
@@ -110,7 +110,7 @@ def test_enum8_encoding(Enum8):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"\x09", ">")
-    assert 'unknown enumerator value' in str(e.value)
+    assert 'unknown enumerator Enumeration8 value' in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"", ">")
