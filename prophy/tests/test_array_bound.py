@@ -81,7 +81,7 @@ def test_bound_scalar_array_encoding(BoundScalarArray):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
-    assert 'not all bytes read' in str(e.value)
+    assert 'not all bytes of BoundScalarArray read' in str(e.value)
 
 def test_bound_scalar_array_exceptions():
     with pytest.raises(Exception):
@@ -128,15 +128,15 @@ def test_bound_scalar_array_with_shift():
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x01", ">")
-    assert str(e.value) == "decoded array length smaller than shift"
+    assert str(e.value) == "XS: decoded array length smaller than shift"
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x05", ">")
-    assert str(e.value) == "too few bytes to decode integer"
+    assert str(e.value) == "XS: too few bytes to decode integer"
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x02\x00", ">")
-    assert str(e.value) == "not all bytes read"
+    assert str(e.value) == "not all bytes of XS read"
 
 @pytest.mark.parametrize('array_type', [
     'prophy.array(prophy.u8, shift = 2)',

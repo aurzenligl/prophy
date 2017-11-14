@@ -390,14 +390,17 @@ class struct(object):
 
         for name, tp, _, decode_ in self._descriptor:
             pos += self._get_padding_size(pos, tp._ALIGNMENT)
-            pos += decode_(self, name, tp, data, pos, endianness, len_hints)
+            try:
+                pos += decode_(self, name, tp, data, pos, endianness, len_hints)
+            except ProphyError as e:
+                raise ProphyError("{}: {}".format(self.__class__.__name__, e))
             if tp._PARTIAL_ALIGNMENT:
                 pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
         pos += self._get_padding_size(pos, self._ALIGNMENT)
 
         if terminal and pos < len(data):
-            raise ProphyError("not all bytes read")
+            raise ProphyError("not all bytes of {} read".format(self.__class__.__name__))
 
         return pos - start_pos
 
@@ -565,7 +568,7 @@ class union(object):
         if (len(data) - pos) < self._SIZE:
             raise ProphyError("not enough bytes")
         if terminal and (len(data) - pos) > self._SIZE:
-            raise ProphyError("not all bytes read")
+            raise ProphyError("not all bytes of {} read".format(self.__class__.__name__))
         return self._SIZE
 
     def copy_from(self, other):

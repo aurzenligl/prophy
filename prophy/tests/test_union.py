@@ -258,7 +258,7 @@ def test_union_decode_exceptions(VariableLengthFieldsUnion):
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x00" b"\x12\x34\x56\x78\x00\x00\x00\x00\x00", ">")
-    assert "not all bytes read" == str(e.value)
+    assert "not all bytes of VariableLengthFieldsUnion read" == str(e.value)
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x00" b"\x12\x34\x56\x78\x00\x00\x00", ">")

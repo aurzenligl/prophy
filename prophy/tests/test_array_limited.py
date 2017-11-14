@@ -79,7 +79,7 @@ def test_limited_scalar_array_decode(LimitedScalarArray):
 
     with pytest.raises(prophy.ProphyError) as e:
         a.decode(b"\x00\x00\x00\x03\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00", ">")
-    assert 'not all bytes read' in str(e.value)
+    assert 'not all bytes of LimitedScalarArray read' in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         a.decode(b"\x00\x00\x00\x00", ">")
@@ -142,7 +142,7 @@ def test_limited_composite_array_exception(LimitedCompositeArray, Composite):
                   b"\x00\x00\x00\x22\x00\x00\x00\x13"
                   b"\x00\x00\x00\x22\x00\x00\x00\x13"
                   b"\x00\x00\x00\x33\x00\x00\x00\x14"), ">")
-    assert "exceeded array limit" == str(e.value)
+    assert "LimitedCompositeArray: exceeded array limit" == str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         a.decode((b"\x00\x00\x00\x03"
@@ -150,11 +150,11 @@ def test_limited_composite_array_exception(LimitedCompositeArray, Composite):
                   b"\x00\x00\x00\x22\x00\x00\x00\x13"
                   b"\x00\x00\x00\x22\x00\x00\x00\x13"
                   b"\x00"), ">")
-    assert "not all bytes read" == str(e.value)
+    assert "not all bytes of LimitedCompositeArray read" == str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         a.decode((b"\x00\x00\x00\x00"), ">")
-    assert "too few bytes to decode array" == str(e.value)
+    assert "LimitedCompositeArray: too few bytes to decode array" == str(e.value)
 
 def test_limited_composite_array_encode(LimitedCompositeArray, Composite):
     a = LimitedCompositeArray()

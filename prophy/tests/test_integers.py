@@ -105,4 +105,4 @@ def test_integer_codec(IntType, a, encoded_a, b, encoded_b, too_short, too_long)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(too_long, ">")
-    assert "not all bytes read" in str(e.value)
+    assert "not all bytes of {} read".format(X.__name__) in str(e.value)

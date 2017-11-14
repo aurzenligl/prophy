@@ -83,7 +83,7 @@ def test_enum_encoding(Enum):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"\x00\x00\x00\x01\x01", ">")
-    assert 'not all bytes read' in str(e.value)
+    assert 'not all bytes of Enum read' in str(e.value)
 
 def test_enum_exceptions():
     with pytest.raises(Exception):
@@ -118,7 +118,7 @@ def test_enum8_encoding(Enum8):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"\x01\x01", ">")
-    assert 'not all bytes read' in str(e.value)
+    assert 'not all bytes of Enum8 read' in str(e.value)
 
 def test_enum_with_overlapping_values():
     class ValuesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
