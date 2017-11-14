@@ -4,7 +4,7 @@ long_description = open('README.rst').read()
 
 setup(
     name = 'prophy',
-    version = '1.1.0',
+    version = '1.1.1',
     author = 'Krzysztof Laskowski',
     author_email = 'krzysztof.laskowski@nokia.com',
     maintainer = 'Krzysztof Laskowski',
