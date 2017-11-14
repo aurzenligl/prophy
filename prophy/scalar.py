@@ -105,16 +105,16 @@ class r64(float):
 
 def add_enum_attributes(cls, enumerators):
 
-    @staticmethod
-    def check(value):
+    @classmethod
+    def check(cls, value):
         if isinstance(value, str):
             value = name_to_int.get(value)
             if value is None:
-                raise ProphyError("unknown enumerator name")
+                raise ProphyError("unknown enumerator name in {}".format(cls.__name__))
             return cls(value)
         elif isinstance(value, (int, long)):
             if value not in int_to_name:
-                raise ProphyError("unknown enumerator value")
+                raise ProphyError("unknown enumerator {} value".format(cls.__name__))
             return cls(value)
         else:
             raise ProphyError("neither string nor int")
