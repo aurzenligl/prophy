@@ -182,7 +182,7 @@ def test_fixed_array_decode_exception():
 
     with pytest.raises(Exception) as e:
         A().decode(b"\x00", ">")
-    assert "too few bytes to decode array" == str(e.value)
+    assert "A: too few bytes to decode array" == str(e.value)
 
 def test_fixed_array_decode_size_over_255():
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):

@@ -124,7 +124,7 @@ def test_ext_sized_scalar_array_decoding_exceptions(ExtSizedArr):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(b"\x01\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
-    assert 'not all bytes read' in str(e.value)
+    assert 'not all bytes of ExtSizedArr read' in str(e.value)
 
 def test_multiple_arrays_size_mismatch_during_encoding(ExtSizedArr):
     x = ExtSizedArr()

@@ -60,7 +60,7 @@ def test_float_codec(FloatTypeFactory, one, minus_one, too_long, too_short):
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(too_long, ">")
-    assert "not all bytes read" in str(e.value)
+    assert "not all bytes of {} read".format(FloatTypeFactory.__name__) in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
         x.decode(too_short, ">")

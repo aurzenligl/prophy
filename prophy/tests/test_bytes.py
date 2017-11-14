@@ -191,15 +191,15 @@ def test_shift_bound_bytes_encoding_exceptions(ShiftBoundBytes):
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x01", ">")
-    assert str(e.value) == "decoded array length smaller than shift"
+    assert str(e.value) == "ShiftBoundBytes: decoded array length smaller than shift"
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x05", ">")
-    assert str(e.value) == "too few bytes to decode string"
+    assert str(e.value) == "ShiftBoundBytes: too few bytes to decode string"
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x02\x00", ">")
-    assert str(e.value) == "not all bytes read"
+    assert str(e.value) == "not all bytes of ShiftBoundBytes read"
 
 @pytest.mark.parametrize('bytes_type', [
     'prophy.bytes(shift = 2)',
