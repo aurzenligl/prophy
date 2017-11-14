@@ -42,7 +42,7 @@ setup(
     ],
     entry_points = {
         'console_scripts': [
-            'prophyc = prophyc:main'
+            'prophyc = prophyc.__main__:entry_main'
         ],
     },
 )
