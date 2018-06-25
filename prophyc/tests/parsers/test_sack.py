@@ -2,10 +2,10 @@ import pytest
 
 from prophyc import model
 
-def parse(content, extension='.hpp', warn=None):
+def parse(content, extension='.hpp', warn=None, includes=[]):
     from prophyc.parsers.sack import SackParser
     file_name = 'test'
-    return SackParser(warn=warn).parse(content, file_name + extension, None)
+    return SackParser(warn=warn, include_dirs=includes).parse(content, file_name + extension, None)
 
 class contains_cmp(object):
     def __init__(self, x):
@@ -584,3 +584,24 @@ def test_libclang_parsing_error():
     with pytest.raises(model.ParseError) as e:
         parse('content', '')
     assert e.value.errors == [('test', 'error parsing translation unit')]
+
+@pytest.mark.parametrize('extension', [('.h'), ('.hpp')])
+@pytest.clang_installed
+def test_include_dirs(extension, tmpdir):
+    dependency_hpp = '''\
+typedef double Double;
+'''
+    hpp = '''\
+#include <dependency.hpp>
+struct X
+{
+    Double x;
+};
+'''
+    include_dir = tmpdir.join('include')
+
+    include_dir.join('dependency.hpp').write(dependency_hpp, ensure=True)
+
+    assert parse(hpp, extension, includes=[str(include_dir)]) == [model.Struct("X", [
+        model.StructMember("x", "r64")
+    ])]

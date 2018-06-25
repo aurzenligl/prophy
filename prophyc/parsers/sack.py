@@ -5,6 +5,7 @@ from .clang.cindex import Config, Index, CursorKind, TypeKind, TranslationUnitLo
 
 from prophyc import model
 from prophyc.generators.cpp import _generate_def_enum
+from prophyc.six import to_bytes
 from contextlib import contextmanager
 
 class SackParserError(Exception):
@@ -238,7 +239,7 @@ class SackParser(object):
         self.supples = SupplementaryDefs(include_tree)
 
     def parse(self, content, path, _):
-        args_ = ["-I" + x for x in self.include_dirs]
+        args_ = [to_bytes("-I" + x) for x in self.include_dirs]
         index = Index.create()
         with self.supples.implicit_supplementation(content) as (content_, tree):
             builder = Builder(tree)
