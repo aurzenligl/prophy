@@ -17,15 +17,18 @@ primitive_types = {
     'byte': 'uint8_t',
 }
 
+
 def _indent(string_, spaces):
     indentation = spaces * ' '
     return '\n'.join(indentation + x if x else x for x in string_.split('\n'))
+
 
 def _to_literal(value):
     try:
         return '{}{}'.format(value, int(value, 0) > 0 and 'u' or '')
     except ValueError:
         return value
+
 
 class _Padder(object):
     PADDINGS = (
@@ -46,20 +49,25 @@ class _Padder(object):
         assert 0 < padding < 8
         return ''.join(self._gen_padding_var(type_) for val, type_ in self.PADDINGS if padding & val)
 
+
 def _generate_def_include(include):
     return '#include "{}.pp.hpp"'.format(include.name)
 
+
 def _generate_def_constant(constant):
     return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
+
 
 def _generate_def_typedef(typedef):
     tp = primitive_types.get(typedef.type_, typedef.type_)
     return 'typedef {} {};'.format(tp, typedef.name)
 
+
 def _generate_def_enum(enum):
     members = ',\n'.join('{} = {}'.format(member.name, _to_literal(member.value))
                          for member in enum.members)
     return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
+
 
 def _generate_def_struct(struct):
     def gen_member(member, padder):
@@ -112,6 +120,7 @@ def _generate_def_struct(struct):
     )
     return 'PROPHY_STRUCT(%s) %s\n{\n%s};' % (struct.alignment, struct.name, '\n'.join(blocks))
 
+
 def _generate_def_union(union):
     def gen_disc(member):
         return 'discriminator_{0} = {1}'.format(member.name, member.discriminator)
@@ -143,6 +152,7 @@ _generate_def_visitor = {
     model.Union: _generate_def_union
 }
 
+
 def _generator_def(nodes):
     last_node = None
     for node in nodes:
@@ -152,14 +162,16 @@ def _generator_def(nodes):
         yield prepend_newline * '\n' + _generate_def_visitor[type(node)](node) + '\n'
         last_node = node
 
+
 def _member_access_statement(member):
     out = '&payload->%s' % member.name
     if isinstance(member, model.StructMember) and member.array:
         out = out[1:]
     return out
 
+
 def _generate_swap_struct(struct):
-    def gen_member(member, delimiters = []):
+    def gen_member(member, delimiters=[]):
         if member.array:
             is_dynamic = member.kind == model.Kind.DYNAMIC
             swap_mode = 'dynamic' if is_dynamic else 'fixed'
@@ -179,7 +191,7 @@ def _generate_swap_struct(struct):
                 preamble = ''
             return preamble + 'swap({0})'.format(_member_access_statement(member))
 
-    def gen_last_member(name, last_mem, delimiters = []):
+    def gen_last_member(name, last_mem, delimiters=[]):
         if last_mem.kind == model.Kind.UNLIMITED or last_mem.greedy:
             return 'return cast<{0}*>({1});\n'.format(
                 name,
@@ -243,6 +255,7 @@ def _generate_swap_struct(struct):
     return '\n'.join([gen_part(i + 2, part) for i, part in enumerate(parts)] +
                      [gen_main(main, parts)])
 
+
 def _generate_swap_union(union):
     return ('template <>\n'
             '{0}* swap<{0}>({0}* payload)\n'
@@ -264,6 +277,7 @@ _generate_swap_visitor = {
     model.Struct: _generate_swap_struct,
     model.Union: _generate_swap_union
 }
+
 
 def _generator_swap(nodes):
     for node in nodes:
@@ -292,14 +306,16 @@ swap_footer = """\
 } // namespace prophy
 """
 
+
 def _check_nodes(nodes):
     for n in nodes:
         if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
             raise GenerateError('{0} byte size unknown'.format(n.name))
 
+
 class CppGenerator(object):
 
-    def __init__(self, output_dir = "."):
+    def __init__(self, output_dir="."):
         self.output_dir = output_dir
 
     def generate_definitions(self, nodes):

@@ -5,11 +5,14 @@ import ply.lex as lex
 import ply.yacc as yacc
 
 from prophyc.six import ifilter
-from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, Kind, ParseError
+from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, \
+    Kind, ParseError
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
-def get_column(input, pos):
-    return pos - input.rfind('\n', 0, pos)
+
+def get_column(input_, pos):
+    return pos - input_.rfind('\n', 0, pos)
+
 
 class Parser(object):
 
@@ -98,17 +101,17 @@ class Parser(object):
 
     def __init__(self):
         self._init_parse_data()
-        self.lexer = lex.lex(module = self, debug = 0)
-        self.yacc = yacc.yacc(module = self, tabmodule = 'parsetab_prophy', write_tables = 0, debug = 0)
+        self.lexer = lex.lex(module=self, debug=0)
+        self.yacc = yacc.yacc(module=self, tabmodule='parsetab_prophy', write_tables=0, debug=0)
 
-    def parse(self, input, parse_error_prefix, parse_file):
+    def parse(self, input_, parse_error_prefix, parse_file):
         self._init_parse_data(parse_error_prefix)
         self.parse_file = parse_file
         self.lexer.lineno = 1
-        self.yacc.parse(input, lexer = self.lexer)
+        self.yacc.parse(input_, lexer=self.lexer)
         return self.nodes
 
-    def _init_parse_data(self, parse_error_prefix = ""):
+    def _init_parse_data(self, parse_error_prefix=""):
         self.nodes = []
         self.typedecls = {}
         self.constdecls = {}
@@ -237,7 +240,7 @@ class Parser(object):
 
     def p_typedef_def(self, t):
         '''typedef_def : TYPEDEF type_spec unique_id SEMI'''
-        node = Typedef(t[3], t[2][0], definition = t[2][1])
+        node = Typedef(t[3], t[2][0], definition=t[2][1])
         self.typedecls[t[3]] = node
         self.nodes.append(node)
 
@@ -264,44 +267,45 @@ class Parser(object):
 
     def p_struct_member_1(self, t):
         '''struct_member : type_spec ID'''
-        t[0] = [(StructMember(t[2], t[1][0], definition = t[1][1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(StructMember(t[2], t[1][0], definition=t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_2(self, t):
         '''struct_member : bytes ID LBRACKET positive_expression RBRACKET
                          | type_spec ID LBRACKET positive_expression RBRACKET'''
-        t[0] = [(StructMember(t[2], t[1][0], size = str(t[4]), definition = t[1][1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(StructMember(t[2], t[1][0], size=str(t[4]), definition=t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_3(self, t):
         '''struct_member : bytes ID LT AT ID GT
                          | type_spec ID LT AT ID GT'''
         t[0] = [
-            (StructMember(t[2], t[1][0], bound = t[5], definition = t[1][1]), t.lineno(2), t.lexpos(2))
+            (StructMember(t[2], t[1][0], bound=t[5], definition=t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_4(self, t):
         '''struct_member : bytes ID LT GT
                          | type_spec ID LT GT'''
         t[0] = [
-            (StructMember('num_of_' + t[2], 'u32', definition = None), t.lineno(2), t.lexpos(2)),
-            (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], definition = t[1][1]), t.lineno(2), t.lexpos(2))
+            (StructMember('num_of_' + t[2], 'u32', definition=None), t.lineno(2), t.lexpos(2)),
+            (StructMember(t[2], t[1][0], bound='num_of_' + t[2], definition=t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_5(self, t):
         '''struct_member : bytes ID LT positive_expression GT
                          | type_spec ID LT positive_expression GT'''
         t[0] = [
-            (StructMember('num_of_' + t[2], 'u32', definition = None), t.lineno(2), t.lexpos(2)),
-            (StructMember(t[2], t[1][0], bound = 'num_of_' + t[2], size = str(t[4]), definition = t[1][1]), t.lineno(2), t.lexpos(2))
+            (StructMember('num_of_' + t[2], 'u32', definition=None), t.lineno(2), t.lexpos(2)),
+            (StructMember(t[2], t[1][0], bound='num_of_' + t[2],
+                          size=str(t[4]), definition=t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_6(self, t):
         '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
-        t[0] = [(StructMember(t[2], t[1][0], unlimited = True, definition = t[1][1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(StructMember(t[2], t[1][0], unlimited=True, definition=t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_7(self, t):
         '''struct_member : type_spec '*' ID'''
-        t[0] = [(StructMember(t[3], t[1][0], optional = True, definition = t[1][1]), t.lineno(3), t.lexpos(3))]
+        t[0] = [(StructMember(t[3], t[1][0], optional=True, definition=t[1][1]), t.lineno(3), t.lexpos(3))]
 
     def p_bytes(self, t):
         '''bytes : BYTES'''
@@ -351,7 +355,7 @@ class Parser(object):
 
     def p_union_member(self, t):
         '''union_member : expression COLON type_spec ID'''
-        t[0] = (UnionMember(t[4], t[3][0], str(t[1]), definition = t[3][1]), t.lineno(4), t.lexpos(4))
+        t[0] = (UnionMember(t[4], t[3][0], str(t[1]), definition=t[3][1]), t.lineno(4), t.lexpos(4))
 
     def p_type_spec_1(self, t):
         '''type_spec : U8
@@ -407,12 +411,18 @@ class Parser(object):
                       | expression LSHIFT expression
                       | expression RSHIFT expression'''
         try:
-            if t[2] == '+': t[0] = t[1] + t[3]
-            elif t[2] == '-': t[0] = t[1] - t[3]
-            elif t[2] == '*': t[0] = t[1] * t[3]
-            elif t[2] == '/': t[0] = t[1] / t[3]
-            elif t[2] == '<<': t[0] = t[1] << t[3]
-            elif t[2] == '>>': t[0] = t[1] >> t[3]
+            if t[2] == '+':
+                t[0] = t[1] + t[3]
+            elif t[2] == '-':
+                t[0] = t[1] - t[3]
+            elif t[2] == '*':
+                t[0] = t[1] * t[3]
+            elif t[2] == '/':
+                t[0] = t[1] / t[3]
+            elif t[2] == '<<':
+                t[0] = t[1] << t[3]
+            elif t[2] == '>>':
+                t[0] = t[1] >> t[3]
         except ZeroDivisionError:
             self._parser_error(
                 'division by zero',
@@ -474,8 +484,9 @@ class Parser(object):
             pos = len(self.lexer.lexdata) - 1
         self._parser_error(message, line, pos)
 
+
 @contextmanager
-def allocate_parser(parsers = []):
+def allocate_parser(parsers=[]):
     """
     Creating parsers is very expensive, so there is a need to reuse them.
     On the other hand, recursive parser usage requires a unique one for each
@@ -488,12 +499,14 @@ def allocate_parser(parsers = []):
     finally:
         parsers.append(parser)
 
-def build_model(input, parse_error_prefix, parse_file):
+
+def build_model(input_, parse_error_prefix, parse_file):
     with allocate_parser() as parser:
-        parser.parse(input, parse_error_prefix, parse_file)
+        parser.parse(input_, parse_error_prefix, parse_file)
         if parser.errors:
             raise ParseError(parser.errors)
         return parser.nodes
+
 
 class ProphyParser(object):
 

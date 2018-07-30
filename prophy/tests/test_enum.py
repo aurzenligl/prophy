@@ -1,7 +1,8 @@
 import prophy
 import pytest
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Enumeration():
     class Enumeration(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("Enumeration_One", 1),
@@ -9,7 +10,8 @@ def Enumeration():
                         ("Enumeration_Three", 3)]
     return Enumeration
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Enumeration8():
     class Enumeration8(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("Enumeration_One", 1),
@@ -17,34 +19,40 @@ def Enumeration8():
                         ("Enumeration_Three", 3)]
     return Enumeration8
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Enum(Enumeration):
     class Enum(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration)]
     return Enum
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Enum8(Enumeration8):
     class Enum8(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration8)]
     return Enum8
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def EnumFixedArray(Enumeration):
     class EnumFixedArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-        _descriptor = [("value", prophy.array(Enumeration, size = 2))]
+        _descriptor = [("value", prophy.array(Enumeration, size=2))]
     return EnumFixedArray
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def EnumBoundArray(Enumeration):
     class EnumBoundArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value_len", prophy.u32),
-                       ("value", prophy.array(Enumeration, bound = "value_len"))]
+                       ("value", prophy.array(Enumeration, bound="value_len"))]
     return EnumBoundArray
+
 
 def test_enum_dictionaties(Enumeration):
     assert Enumeration._name_to_int == {'Enumeration_One': 1, 'Enumeration_Two': 2, 'Enumeration_Three': 3}
     assert Enumeration._int_to_name == {1: 'Enumeration_One', 2: 'Enumeration_Two', 3: 'Enumeration_Three'}
+
 
 def test_enum_assignment(Enum):
     x = Enum()
@@ -62,6 +70,7 @@ def test_enum_assignment(Enum):
     y = Enum()
     y.copy_from(x)
     assert y.value == 3
+
 
 def test_enum_encoding(Enum):
     x = Enum()
@@ -85,6 +94,7 @@ def test_enum_encoding(Enum):
         x.decode(b"\x00\x00\x00\x01\x01", ">")
     assert 'not all bytes of Enum read' in str(e.value)
 
+
 def test_enum_exceptions():
     with pytest.raises(Exception):
         class NoEnumerators(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
@@ -96,6 +106,7 @@ def test_enum_exceptions():
     with pytest.raises(Exception):
         class ValueOutOfBounds(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("OutOfBounds", 0xFFFFFFFF + 1)]
+
 
 def test_enum8_encoding(Enum8):
     x = Enum8()
@@ -120,6 +131,7 @@ def test_enum8_encoding(Enum8):
         x.decode(b"\x01\x01", ">")
     assert 'not all bytes of Enum8 read' in str(e.value)
 
+
 def test_enum_with_overlapping_values():
     class ValuesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("ValuesOverlapping_First", 42),
@@ -138,6 +150,7 @@ def test_enum_with_overlapping_values():
     assert 42 == x.x
     assert "x: ValuesOverlapping_Second\n" == str(x)
 
+
 def test_enum_fixed_array_assignment(EnumFixedArray):
     x = EnumFixedArray()
     assert x.value == [1, 1]
@@ -152,6 +165,7 @@ def test_enum_fixed_array_assignment(EnumFixedArray):
     y.copy_from(x)
     assert y.value == [2, 2]
 
+
 def test_enum_fixed_array_encoding(EnumFixedArray):
     x = EnumFixedArray()
     x.value[:] = [2, 2]
@@ -165,6 +179,7 @@ def test_enum_fixed_array_encoding(EnumFixedArray):
     assert x.value[0] == 2
     assert x.value[1] == 2
 
+
 def test_enum_bound_array_assignment(EnumBoundArray):
     x = EnumBoundArray()
     assert x.value == []
@@ -175,6 +190,7 @@ def test_enum_bound_array_assignment(EnumBoundArray):
     x.value[0] = 2
     x.value[1] = "Enumeration_Two"
     assert x.value == [2, 2]
+
 
 def test_enum_bound_array_encoding(EnumBoundArray):
     x = EnumBoundArray()
@@ -189,6 +205,7 @@ def test_enum_bound_array_encoding(EnumBoundArray):
     assert x.value[0] == 2
     assert x.value[1] == 2
 
+
 def test_enum_with_0xFFFFFFFF_value():
     class Enum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [('Enum_Infinity', 0xFFFFFFFF)]
@@ -197,6 +214,7 @@ def test_enum_with_0xFFFFFFFF_value():
         _descriptor = [("value", Enum)]
 
     assert Enclosing().value == 0xFFFFFFFF
+
 
 def test_enum_access_to_members():
     class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):

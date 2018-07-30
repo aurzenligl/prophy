@@ -2,6 +2,7 @@ from . import scalar
 from .exception import ProphyError
 from .base_array import base_array
 
+
 def optional(cls):
     if issubclass(cls, bytes):
         raise ProphyError("optional bytes not implemented")

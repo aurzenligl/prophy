@@ -16,8 +16,12 @@ BUILTIN2C = {
     'r64': 'double'
 }
 
+
+# flake8: noqa E501
+
 def _indent(text):
     return '\n'.join(x and '    ' + x or '' for x in text.split('\n'))
+
 
 def _get_initializer(m):
     while isinstance(m.definition, model.Typedef):
@@ -28,8 +32,10 @@ def _get_initializer(m):
         return ''
     return None
 
-def _const_refize(apply, text):
-    return apply and text.join(('const ', '&')) or text
+
+def _const_refize(apply_, text):
+    return apply_ and text.join(('const ', '&')) or text
+
 
 def _get_leaf(node):
     """
@@ -39,6 +45,7 @@ def _get_leaf(node):
     while getattr(node, 'definition', None):
         node = node.definition
     return node
+
 
 def _get_byte_size(node):
     """Gets byte size of any node."""
@@ -50,9 +57,11 @@ def _get_byte_size(node):
     else:
         return node.byte_size
 
+
 def _get_cpp_builtin_type(node):
     """Gets C++ float or int type from stdint.h, or throws miserably."""
     return BUILTIN2C[_get_leaf(node).type_]
+
 
 def _to_literal(value):
     try:
@@ -60,18 +69,23 @@ def _to_literal(value):
     except ValueError:
         return value
 
+
 def generate_include_definition(node):
     return '#include "{0}.ppf.hpp"\n'.format(node.name)
 
+
 def generate_constant_definition(node):
     return 'enum {{ {} = {} }};\n'.format(node.name, _to_literal(node.value))
+
 
 def generate_enum_definition(node):
     body = ',\n'.join('    {0} = {1}'.format(m.name, _to_literal(m.value)) for m in node.members) + '\n'
     return 'enum {0}\n'.format(node.name) + '{\n' + body + '};\n'
 
+
 def generate_typedef_definition(node):
     return 'typedef {0} {1};\n'.format(BUILTIN2C.get(node.type_, node.type_), node.name)
+
 
 def generate_struct_definition(node):
     return (
@@ -91,6 +105,7 @@ def generate_struct_definition(node):
         '};\n'
     )
 
+
 def generate_union_definition(node):
     return (
         'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
@@ -109,6 +124,7 @@ def generate_union_definition(node):
         '};\n'
     )
 
+
 def generate_enum_implementation(node):
     return (
         'template <>\n' +
@@ -125,6 +141,7 @@ def generate_enum_implementation(node):
         ) +
         '}\n'
     )
+
 
 def generate_struct_implementation(node):
     def encode_impl(node):
@@ -157,7 +174,8 @@ def generate_struct_implementation(node):
             ) +
             '}\n' +
             ''.join(
-                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(node.name, e)
+                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
+                    node.name, e)
                 for e in ('native', 'little', 'big')
             )
         )
@@ -169,13 +187,15 @@ def generate_struct_implementation(node):
             '{\n' +
             _indent(generate_struct_print(node)) +
             '}\n' +
-            'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(node.name)
+            'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
+                node.name)
         )
     return (
         encode_impl(node) + '\n' +
         decode_impl(node) + '\n' +
         print_impl(node)
     )
+
 
 def generate_union_implementation(node):
     def encode_impl(node):
@@ -204,7 +224,8 @@ def generate_union_implementation(node):
             _indent(generate_union_decode(node)) +
             '}\n' +
             ''.join(
-                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(node.name, e)
+                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
+                    node.name, e)
                 for e in ('native', 'little', 'big')
             )
         )
@@ -216,13 +237,15 @@ def generate_union_implementation(node):
             '{\n' +
             _indent(generate_union_print(node)) +
             '}\n' +
-            'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(node.name)
+            'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
+                node.name)
         )
     return (
         encode_impl(node) + '\n' +
         decode_impl(node) + '\n' +
         print_impl(node)
     )
+
 
 def generate_struct_encode(node):
     text = ''
@@ -265,6 +288,7 @@ def generate_struct_encode(node):
                 text += 'pos = pos + {0};\n'.format(m.padding)
     return text
 
+
 def generate_struct_decode(node):
     text = []
     bound = {m.bound: m for m in node.members if m.bound}
@@ -296,6 +320,7 @@ def generate_struct_decode(node):
                 text.append('do_decode_advance({0}, pos, end)'.format(m.padding))
     return ' &&\n'.join(text) + '\n'
 
+
 def generate_struct_print(node):
     text = ''
     bound = {m.bound: m for m in node.members if m.bound}
@@ -320,8 +345,10 @@ def generate_struct_print(node):
             text += 'do_print(out, indent, "{0}", x.{0});\n'.format(m.name)
     return text
 
+
 def generate_struct_encoded_byte_size(node):
     return (node.kind == model.Kind.FIXED) and str(node.byte_size) or '-1'
+
 
 def generate_struct_get_byte_size(node):
     bytes = 0
@@ -350,6 +377,7 @@ def generate_struct_get_byte_size(node):
         elems += [str(bytes)]
     return 'return {0};\n'.format(' + '.join(elems))
 
+
 def generate_struct_fields(node):
     bound = {m.bound: m for m in node.members if m.bound}
     text = ''
@@ -370,12 +398,13 @@ def generate_struct_fields(node):
             text += '{0} {1};\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name)
     return text
 
+
 def generate_struct_constructor(node):
     def add_to_default(lst, m, init):
         if init is not None:
             lst.append('{0}({1})'.format(m.name, init))
 
-    def add_to_full(lst, const_ref, m, fmt = '{0}'):
+    def add_to_full(lst, const_ref, m, fmt='{0}'):
         lst.append((const_ref, fmt.format(BUILTIN2C.get(m.type_, m.type_)), m.name))
 
     bound = {m.bound: m for m in node.members if m.bound}
@@ -405,10 +434,12 @@ def generate_struct_constructor(node):
          '{0}() {{ }}\n'.format(node.name)) +
         '{0}({1}): {2} {{ }}\n'.format(
             node.name,
-            ', '.join(_const_refize(const_ref, tp) + ' _%s' % idx for idx, (const_ref, tp, _) in enumerate(full_ctor, 1)),
+            ', '.join(_const_refize(const_ref, tp) + ' _%s' %
+                      idx for idx, (const_ref, tp, _) in enumerate(full_ctor, 1)),
             ', '.join('{0}(_{1})'.format(name, idx) for idx, (_, _, name) in enumerate(full_ctor, 1))
         )
     )
+
 
 def generate_union_decode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
@@ -428,6 +459,7 @@ def generate_union_decode(node):
         'return do_decode_advance({0}, pos, end);\n'.format(node.byte_size - DISC_SIZE - discpad)
     )
 
+
 def generate_union_encode(node):
     discpad = (node.alignment > DISC_SIZE) and (node.alignment - DISC_SIZE) or 0
 
@@ -445,6 +477,7 @@ def generate_union_encode(node):
         'pos = pos + {0};\n'.format(node.byte_size - DISC_SIZE - discpad)
     )
 
+
 def generate_union_print(node):
     def gen_case(member):
         return ('case {0}::discriminator_{1}: do_print(out, indent, "{1}", x.{1}); break;\n'
@@ -457,11 +490,14 @@ def generate_union_print(node):
         '}\n'
     )
 
+
 def generate_union_encoded_byte_size(node):
     return str(node.byte_size)
 
+
 def generate_union_get_byte_size(node):
     return 'return {0};\n'.format(node.byte_size)
+
 
 def generate_union_fields(node):
     body = ',\n'.join('discriminator_{0} = {1}'.format(m.name, m.discriminator) for m in node.members) + '\n'
@@ -471,6 +507,7 @@ def generate_union_fields(node):
     )
     fields = ''.join('{0} {1};\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name) for m in node.members)
     return 'enum _discriminator\n{\n' + _indent(body) + '} discriminator;\n' + '\n' + disc_defs + '\n' + fields
+
 
 def generate_union_constructor(node):
     inits = [_get_initializer(m) for m in node.members]
@@ -527,6 +564,7 @@ _hpp_visitor = {
     model.Union: generate_union_definition
 }
 
+
 def _hpp_generator(nodes):
     last_node = None
     for node in nodes:
@@ -537,6 +575,7 @@ def _hpp_generator(nodes):
                                 type(last_node) is not type(node)))
         yield (prepend_newline and '\n' or '') + _hpp_visitor[type(node)](node)
         last_node = node
+
 
 def generate_hpp_content(nodes):
     return ''.join(_hpp_generator(nodes))
@@ -569,8 +608,10 @@ _cpp_visitor = {
     model.Union: generate_union_implementation
 }
 
+
 def generate_cpp_content(nodes):
     return '\n'.join(_cpp_visitor[type(node)](node) for node in nodes if type(node) in _cpp_visitor)
+
 
 def generate_hpp(nodes, basename):
     includes = ''.join(generate_include_definition(node) for node in nodes if isinstance(node, model.Include))
@@ -578,8 +619,10 @@ def generate_hpp(nodes, basename):
         includes += '\n'
     return '\n'.join((_hpp_header.format(basename, includes), generate_hpp_content(nodes), _hpp_footer.format(basename)))
 
+
 def generate_cpp(nodes, basename):
     return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
+
 
 def check_nodes(nodes):
     for n in nodes:
@@ -594,6 +637,7 @@ def check_nodes(nodes):
                                             .format(m.bound, n.name))
                     else:
                         occured.add(m.bound)
+
 
 class CppFullGenerator(object):
 

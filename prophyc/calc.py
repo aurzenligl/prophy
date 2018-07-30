@@ -1,7 +1,10 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
-class ParseError(Exception): pass
+
+class ParseError(Exception):
+    pass
+
 
 class Parser(object):
     """
@@ -11,11 +14,12 @@ class Parser(object):
     precedence = ()
 
     def __init__(self):
-        self.lexer = lex.lex(module = self, debug = 0)
-        self.parser = yacc.yacc(module = self, tabmodule = 'parsetab_calc', write_tables = 0, debug = 0)
+        self.lexer = lex.lex(module=self, debug=0)
+        self.parser = yacc.yacc(module=self, tabmodule='parsetab_calc', write_tables=0, debug=0)
 
     def eval(self, expr):
-        return self.parser.parse(expr, lexer = self.lexer)
+        return self.parser.parse(expr, lexer=self.lexer)
+
 
 class Calc(Parser):
     tokens = ('NAME', 'NUMBER', 'LSHIFT', 'RSHIFT')
@@ -58,12 +62,18 @@ class Calc(Parser):
                       | expression '/' expression
                       | expression LSHIFT expression
                       | expression RSHIFT expression'''
-        if p[2] == '+': p[0] = p[1] + p[3]
-        elif p[2] == '-': p[0] = p[1] - p[3]
-        elif p[2] == '*': p[0] = p[1] * p[3]
-        elif p[2] == '/': p[0] = p[1] / p[3]
-        elif p[2] == '<<': p[0] = p[1] << p[3]
-        elif p[2] == '>>': p[0] = p[1] >> p[3]
+        if p[2] == '+':
+            p[0] = p[1] + p[3]
+        elif p[2] == '-':
+            p[0] = p[1] - p[3]
+        elif p[2] == '*':
+            p[0] = p[1] * p[3]
+        elif p[2] == '/':
+            p[0] = p[1] / p[3]
+        elif p[2] == '<<':
+            p[0] = p[1] << p[3]
+        elif p[2] == '>>':
+            p[0] = p[1] >> p[3]
 
     def p_expression_uminus(self, p):
         "expression : '-' expression %prec UMINUS"
@@ -95,6 +105,7 @@ class Calc(Parser):
 
 
 calc = Calc()
+
 
 def eval(expr, vars):
     return calc.eval(expr, vars)

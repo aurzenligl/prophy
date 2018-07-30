@@ -1,6 +1,7 @@
 import prophy
 import pytest
 
+
 @pytest.mark.parametrize('IntType, min, max', [
     (prophy.i8, -(0x80), 0x7F),
     (prophy.i16, -(0x8000), 0x7FFF),
@@ -38,6 +39,7 @@ def test_integer(IntType, min, max):
     y.value == 42
     y.copy_from(x)
     assert y.value == min
+
 
 @pytest.mark.parametrize('IntType, a, encoded_a, b, encoded_b, too_short, too_long', [
     (prophy.i8,

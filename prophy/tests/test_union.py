@@ -1,7 +1,8 @@
 import prophy
 import pytest
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def SimpleUnion():
     class SimpleUnion(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u32, 0),
@@ -9,7 +10,8 @@ def SimpleUnion():
                        ("c", prophy.u32, 2)]
     return SimpleUnion
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def VariableLengthFieldsUnion():
     class VariableLengthFieldsUnion(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u8, 0),
@@ -17,6 +19,7 @@ def VariableLengthFieldsUnion():
                        ("c", prophy.u32, 2),
                        ("d", prophy.u64, 3)]
     return VariableLengthFieldsUnion
+
 
 def test_simple_union(SimpleUnion):
     x = SimpleUnion()
@@ -33,6 +36,7 @@ def test_simple_union(SimpleUnion):
     assert 'c: 16\n' == str(x)
     assert b'\x00\x00\x00\x02\x00\x00\x00\x10' == x.encode(">")
 
+
 def test_simple_union_discriminator_accepts_ints_or_field_name_and_clears(SimpleUnion):
     x = SimpleUnion()
 
@@ -48,6 +52,7 @@ def test_simple_union_discriminator_accepts_ints_or_field_name_and_clears(Simple
     assert 0 == x.c
     assert 'c: 0\n' == str(x)
     assert b'\x00\x00\x00\x02\x00\x00\x00\x00' == x.encode(">")
+
 
 def test_union_copy_from(SimpleUnion):
     x = SimpleUnion()
@@ -66,6 +71,7 @@ def test_union_copy_from(SimpleUnion):
     assert 1 == y.discriminator
     assert 3 == y.b
 
+
 def test_simple_union_discriminator_does_not_clear_fields_if_set_to_same_value(SimpleUnion):
     x = SimpleUnion()
 
@@ -78,6 +84,7 @@ def test_simple_union_discriminator_does_not_clear_fields_if_set_to_same_value(S
     x.discriminator = "a"
 
     assert 42 == x.a
+
 
 def test_union_nonsequential_discriminators():
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
@@ -111,6 +118,7 @@ def test_union_nonsequential_discriminators():
     assert 55 == x.discriminator
     assert 0 == x.c
 
+
 def test_union_encode_according_to_largest_field(VariableLengthFieldsUnion):
     x = VariableLengthFieldsUnion()
 
@@ -133,6 +141,7 @@ def test_union_encode_according_to_largest_field(VariableLengthFieldsUnion):
     x.d = 0x123456789ABCDEF1
     assert b"\x00\x00\x00\x03\x00\x00\x00\x00" b"\x12\x34\x56\x78\x9a\xbc\xde\xf1" == x.encode(">")
     assert b"\x03\x00\x00\x00\x00\x00\x00\x00" b"\xf1\xde\xbc\x9a\x78\x56\x34\x12" == x.encode("<")
+
 
 def test_union_decode_according_to_largest_field(VariableLengthFieldsUnion):
     x = VariableLengthFieldsUnion()
@@ -168,6 +177,7 @@ def test_union_decode_according_to_largest_field(VariableLengthFieldsUnion):
     assert 16 == x.decode(b"\x03\x00\x00\x00\x00\x00\x00\x00" b"\xf1\xde\xbc\x9a\x78\x56\x34\x12", "<")
     assert 3 == x.discriminator
     assert 0x123456789ABCDEF1 == x.d
+
 
 def test_union_with_struct():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
@@ -220,6 +230,7 @@ def test_union_with_struct():
         x.b = 'anythig'
     assert str(err.value) == 'assignment to composite field not allowed'
 
+
 def test_union_discriminator_exceptions(VariableLengthFieldsUnion):
     x = VariableLengthFieldsUnion()
 
@@ -249,6 +260,7 @@ def test_union_discriminator_exceptions(VariableLengthFieldsUnion):
     assert 1 == x.discriminator
     assert 42 == x.b
 
+
 def test_union_decode_exceptions(VariableLengthFieldsUnion):
     x = VariableLengthFieldsUnion()
 
@@ -263,6 +275,7 @@ def test_union_decode_exceptions(VariableLengthFieldsUnion):
     with pytest.raises(Exception) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x00" b"\x12\x34\x56\x78\x00\x00\x00", ">")
     assert "not enough bytes" == str(e.value)
+
 
 def test_struct_with_union():
     class UVarLen(prophy.with_metaclass(prophy.union_generator, prophy.union)):
@@ -300,6 +313,7 @@ b {
 c: 32
 """ == str(x)
 
+
 def test_array_with_union():
     class UVarLen(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u16, 0),
@@ -308,7 +322,7 @@ def test_array_with_union():
 
     class StructWithU(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a_len", prophy.u8),
-                       ("a", prophy.array(UVarLen, bound = "a_len"))]
+                       ("a", prophy.array(UVarLen, bound="a_len"))]
 
     x = StructWithU()
 
@@ -352,6 +366,7 @@ a {
 }
 """ == str(x)
 
+
 def test_union_with_plain_struct():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8),
@@ -380,15 +395,16 @@ b {
 }
 """ == str(x)
 
+
 def test_union_with_struct_with_array_and_bytes():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.u8)]
 
     class SBytesSized(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-        _descriptor = [("a", prophy.bytes(size = 3))]
+        _descriptor = [("a", prophy.bytes(size=3))]
 
     class SArraySized(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-        _descriptor = [("a", prophy.array(S, size = 3))]
+        _descriptor = [("a", prophy.array(S, size=3))]
 
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", SBytesSized, 0),
@@ -425,6 +441,7 @@ b {
   }
 }
 """ == str(x)
+
 
 def test_union_with_nested_struct_and_union():
     class SInner(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
@@ -467,6 +484,7 @@ a {
     assert 1 == y.a.discriminator
     assert 8 == y.a.b
 
+
 def test_union_with_typedef_and_enum():
     TU16 = prophy.u16
 
@@ -496,6 +514,7 @@ def test_union_with_typedef_and_enum():
 b: E_1
 """ == str(x)
 
+
 def test_union_exceptions_with_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
         class U1(prophy.with_metaclass(prophy.union_generator, prophy.union)):
@@ -505,7 +524,7 @@ def test_union_exceptions_with_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
         class U2(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
-                           ("a", prophy.array(prophy.u32, bound = "a_len"), 1)]
+                           ("a", prophy.array(prophy.u32, bound="a_len"), 1)]
     assert "dynamic types not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
@@ -516,8 +535,9 @@ def test_union_exceptions_with_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
         class U4(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
-                           ("a", prophy.bytes(bound = "a_len"), 1)]
+                           ("a", prophy.bytes(bound="a_len"), 1)]
     assert "dynamic types not allowed in union" == str(e.value)
+
 
 def test_union_exceptions_with_nested_limited_greedy_dynamic_arrays_and_bytes():
     with pytest.raises(Exception) as e:
@@ -531,27 +551,29 @@ def test_union_exceptions_with_nested_limited_greedy_dynamic_arrays_and_bytes():
             _descriptor = [("a", S, 0)]
     assert "dynamic types not allowed in union" == str(e.value)
 
+
 def test_union_with_limited_array_and_bytes():
     with pytest.raises(Exception) as e:
         class U1(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
-                           ("a", prophy.bytes(bound = "a_len", size = 3), 1)]
+                           ("a", prophy.bytes(bound="a_len", size=3), 1)]
     assert "bound array/bytes not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
         class U2(prophy.with_metaclass(prophy.union_generator, prophy.union)):
             _descriptor = [("a_len", prophy.u8, 0),
-                           ("a", prophy.array(prophy.u32, bound = "a_len", size = 3), 1)]
+                           ("a", prophy.array(prophy.u32, bound="a_len", size=3), 1)]
     assert "bound array/bytes not allowed in union" == str(e.value)
 
     with pytest.raises(Exception) as e:
         class U3(prophy.with_metaclass(prophy.union_generator, prophy.union)):
-            _descriptor = [("a", prophy.array(prophy.u8, size = 3), 0)]
+            _descriptor = [("a", prophy.array(prophy.u8, size=3), 0)]
     assert "static array not implemented in union" == str(e.value)
+
 
 def test_union_with_static_bytes():
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
-        _descriptor = [("a", prophy.bytes(size = 3), 0)]
+        _descriptor = [("a", prophy.bytes(size=3), 0)]
 
     x = U()
 
@@ -562,6 +584,7 @@ def test_union_with_static_bytes():
     assert """\
 a: '\\x01\\x02\\x03'
 """ == str(x)
+
 
 def test_union_with_optional_exception():
     with pytest.raises(Exception) as e:

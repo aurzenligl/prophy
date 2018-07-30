@@ -2,6 +2,7 @@ import pytest
 from prophyc import model
 from prophyc.generators.cpp import CppGenerator, GenerateError, _Padder, _check_nodes
 
+
 def process(nodes):
     model.cross_reference(nodes)
     model.evaluate_kinds(nodes)
@@ -9,20 +10,26 @@ def process(nodes):
     _check_nodes(nodes)
     return nodes
 
+
 def generate_definitions(nodes):
     return CppGenerator().generate_definitions(nodes)
+
 
 def generate_swap_declarations(nodes):
     return CppGenerator().generate_swap_declarations(nodes)
 
+
 def generate_swap(nodes):
     return CppGenerator().generate_swap(nodes)
+
 
 def generate_hpp(nodes, basename):
     return CppGenerator().serialize_string_hpp(nodes, basename)
 
+
 def generate_cpp(nodes, basename):
     return CppGenerator().serialize_string_cpp(nodes, basename)
+
 
 def test_padder_indexing():
     padder = _Padder()
@@ -34,12 +41,14 @@ def test_padder_indexing():
     assert (padder.generate_padding(1) ==
             'uint8_t _padding2; /// manual padding to ensure natural alignment layout\n')
 
+
 def test_padder_non_pow2():
     padder = _Padder()
 
     assert (padder.generate_padding(5) ==
             ('uint8_t _padding0; /// manual padding to ensure natural alignment layout\n'
              'uint32_t _padding1; /// manual padding to ensure natural alignment layout\n'))
+
 
 def test_definitions_includes():
     nodes = process([
@@ -53,6 +62,7 @@ def test_definitions_includes():
 #include "mydlo.pp.hpp"
 #include "powidlo.pp.hpp"
 """
+
 
 def test_definitions_constants():
     nodes = process([
@@ -69,6 +79,7 @@ enum { CONST_B = 0x123u };
 enum { CONST_B = 0o741u };
 """
 
+
 def test_definitions_typedefs():
     nodes = process([
         model.Typedef("a", "b"),
@@ -79,6 +90,7 @@ def test_definitions_typedefs():
 typedef b a;
 typedef uint8_t c;
 """
+
 
 def test_definitions_enums():
     nodes = process([
@@ -99,6 +111,7 @@ enum EEnum
     EEnum_D = abc
 };
 """
+
 
 def test_definitions_struct():
     nodes = process([
@@ -124,12 +137,13 @@ PROPHY_STRUCT(8) Struct
 };
 """
 
+
 def test_definitions_struct_with_dynamic_array():
     nodes = process([
         model.Typedef('TNumberOfItems', 'u32'),
         model.Struct("Struct", [
             model.StructMember("tmpName", "TNumberOfItems"),
-            model.StructMember("a", "u8", bound = "tmpName")
+            model.StructMember("a", "u8", bound="tmpName")
         ])
     ])
 
@@ -141,10 +155,11 @@ PROPHY_STRUCT(4) Struct
 };
 """
 
+
 def test_definitions_struct_with_fixed_array():
     nodes = process([
         model.Constant("NUM_OF_ARRAY_ELEMS", "3"),
-        model.Struct("Struct", [model.StructMember("a", "u8", size = "NUM_OF_ARRAY_ELEMS")])
+        model.Struct("Struct", [model.StructMember("a", "u8", size="NUM_OF_ARRAY_ELEMS")])
     ])
 
     assert generate_definitions(nodes[-1:]) == """\
@@ -154,12 +169,13 @@ PROPHY_STRUCT(1) Struct
 };
 """
 
+
 def test_definitions_struct_with_limited_array():
     nodes = process([
         model.Constant('NUM_OF_ARRAY_ELEMS', '1'),
         model.Struct("Struct", [
             model.StructMember("a_len", "u8"),
-            model.StructMember("a", "u8", bound = "a_len", size = "NUM_OF_ARRAY_ELEMS")
+            model.StructMember("a", "u8", bound="a_len", size="NUM_OF_ARRAY_ELEMS")
         ])
     ])
 
@@ -171,13 +187,14 @@ PROPHY_STRUCT(1) Struct
 };
 """
 
+
 def test_definitions_struct_with_ext_sized_array():
     nodes = process([
         model.Struct("Struct", [
             model.StructMember("count", "u8"),
-            model.StructMember("a", "u8", bound = "count"),
-            model.StructMember("b", "u8", bound = "count"),
-            model.StructMember("c", "u8", bound = "count")
+            model.StructMember("a", "u8", bound="count"),
+            model.StructMember("b", "u8", bound="count"),
+            model.StructMember("c", "u8", bound="count")
         ])
     ])
 
@@ -199,6 +216,7 @@ PROPHY_STRUCT(1) Struct
 };
 """
 
+
 def test_definitions_struct_with_byte():
     nodes = process([
         model.Struct("Struct", [model.StructMember("a", "byte")])
@@ -211,9 +229,10 @@ PROPHY_STRUCT(1) Struct
 };
 """
 
+
 def test_definitions_struct_with_byte_array():
     nodes = process([
-        model.Struct("Struct", [model.StructMember("a", "byte", unlimited = True)])
+        model.Struct("Struct", [model.StructMember("a", "byte", unlimited=True)])
     ])
 
     assert generate_definitions(nodes) == """\
@@ -223,15 +242,16 @@ PROPHY_STRUCT(1) Struct
 };
 """
 
+
 def test_definitions_struct_many_arrays():
     nodes = process([
         model.Struct("ManyArrays", [
             model.StructMember("num_of_a", "u8"),
-            model.StructMember("a", "u8", bound = "num_of_a"),
+            model.StructMember("a", "u8", bound="num_of_a"),
             model.StructMember("num_of_b", "u8"),
-            model.StructMember("b", "u8", bound = "num_of_b"),
+            model.StructMember("b", "u8", bound="num_of_b"),
             model.StructMember("num_of_c", "u8"),
-            model.StructMember("c", "u8", bound = "num_of_c")
+            model.StructMember("c", "u8", bound="num_of_c")
         ])
     ])
 
@@ -255,13 +275,14 @@ PROPHY_STRUCT(1) ManyArrays
 };
 """
 
+
 def test_definitions_struct_many_arrays_mixed():
     nodes = process([
         model.Struct("ManyArraysMixed", [
             model.StructMember("num_of_a", "u8"),
             model.StructMember("num_of_b", "u8"),
-            model.StructMember("a", "u8", bound = "num_of_a"),
-            model.StructMember("b", "u8", bound = "num_of_b")
+            model.StructMember("a", "u8", bound="num_of_a"),
+            model.StructMember("b", "u8", bound="num_of_b")
         ])
     ])
 
@@ -279,13 +300,14 @@ PROPHY_STRUCT(1) ManyArraysMixed
 };
 """
 
+
 def test_definitions_struct_many_arrays_bounded_by_the_same_member():
     nodes = process([
         model.Struct("ManyArraysBoundedByTheSame", [
             model.StructMember("num_of_elements", "u8"),
             model.StructMember("dummy", "u8"),
-            model.StructMember("a", "u8", bound = "num_of_elements"),
-            model.StructMember("b", "u8", bound = "num_of_elements")
+            model.StructMember("a", "u8", bound="num_of_elements"),
+            model.StructMember("b", "u8", bound="num_of_elements")
         ])
     ])
 
@@ -303,11 +325,12 @@ PROPHY_STRUCT(1) ManyArraysBoundedByTheSame
 };
 """
 
+
 def test_definitions_struct_with_dynamic_fields():
     nodes = process([
         model.Struct("Dynamic", [
             model.StructMember("num_of_a", "u8"),
-            model.StructMember("a", "u8", bound = "num_of_a")
+            model.StructMember("a", "u8", bound="num_of_a")
         ]),
         model.Struct("X", [
             model.StructMember("a", "u8"),
@@ -329,10 +352,11 @@ PROPHY_STRUCT(1) X
 };
 """
 
+
 def test_definitions_struct_with_optional_field():
     nodes = process([
         model.Struct("Struct", [
-            (model.StructMember("a", "u8", optional = True))
+            (model.StructMember("a", "u8", optional=True))
         ])
     ])
 
@@ -346,11 +370,12 @@ PROPHY_STRUCT(4) Struct
 };
 """
 
+
 def test_definitions_struct_padding():
     nodes = process([
         model.Struct("B", [
             model.StructMember("num_of_a", "u16"),
-            model.StructMember("a", "u8", bound = "num_of_a")
+            model.StructMember("a", "u8", bound="num_of_a")
         ]),
         model.Struct("C", [
             model.StructMember("a", "u16")
@@ -361,7 +386,7 @@ def test_definitions_struct_padding():
             model.StructMember("c", "C"),
             model.StructMember("d", "u32"),
             model.StructMember("num_of_e", "u32"),
-            model.StructMember("e", "u64", bound = "num_of_e"),
+            model.StructMember("e", "u64", bound="num_of_e"),
             model.StructMember("f", "u8")
         ])
     ])
@@ -389,6 +414,7 @@ PROPHY_STRUCT(8) X
     } _3;
 };
 """
+
 
 def test_definitions_union():
     nodes = process([
@@ -441,6 +467,7 @@ PROPHY_STRUCT(8) UnionPadded
 };
 """
 
+
 def test_definitions_newlines():
     nodes = process([
         model.Typedef("a", "b"),
@@ -487,6 +514,7 @@ PROPHY_STRUCT(4) B
 };
 """
 
+
 def test_swap_empty_struct():
     nodes = process([
         model.Struct("X", [])
@@ -499,6 +527,7 @@ X* swap<X>(X* payload)
     return payload + 1;
 }
 """
+
 
 def test_swap_struct_with_fixed_element():
     nodes = process([
@@ -516,12 +545,13 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_optional_element():
     nodes = process([
         model.Typedef('Y', 'u32'),
         model.Struct("X", [
-            (model.StructMember("x", "u32", optional = True)),
-            (model.StructMember("y", "Y", optional = True))
+            (model.StructMember("x", "u32", optional=True)),
+            (model.StructMember("y", "Y", optional=True))
         ])
     ])
 
@@ -536,6 +566,7 @@ X* swap<X>(X* payload)
     return payload + 1;
 }
 """
+
 
 def test_swap_union():
     nodes = process([
@@ -563,10 +594,11 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_fixed_array_of_fixed_elements():
     nodes = process([
         model.Struct("X", [
-            (model.StructMember("x", "u16", size = 5))
+            (model.StructMember("x", "u16", size=5))
         ])
     ])
 
@@ -579,12 +611,13 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_limited_array_of_fixed_elements():
     nodes = process([
         model.Typedef('Y', 'u32'),
         model.Struct("X", [
             (model.StructMember("num_of_x", "u16")),
-            (model.StructMember("x", "Y", bound = "num_of_x", size = 3))
+            (model.StructMember("x", "Y", bound="num_of_x", size=3))
         ])
     ])
 
@@ -598,11 +631,12 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_dynamic_array_of_fixed_elements():
     nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u32")),
-            (model.StructMember("x", "u16", bound = "num_of_x"))
+            (model.StructMember("x", "u16", bound="num_of_x"))
         ])
     ])
 
@@ -615,12 +649,13 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_ext_sized_array_of_fixed_elements():
     nodes = process([
         model.Struct("X", [
             (model.StructMember("szr", "u32")),
-            (model.StructMember("x", "u16", bound = "szr")),
-            (model.StructMember("y", "u16", bound = "szr"))
+            (model.StructMember("x", "u16", bound="szr")),
+            (model.StructMember("y", "u16", bound="szr"))
         ])
     ])
 
@@ -639,13 +674,14 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_greedy_array():
     nodes = process([
         model.Typedef('X', 'u32'),
         model.Typedef('Y', 'u32'),
         model.Struct("X", [
             (model.StructMember("x", "u8")),
-            (model.StructMember("y", "Y", unlimited = True))
+            (model.StructMember("y", "Y", unlimited=True))
         ]),
         model.Struct("Z", [
             (model.StructMember("z", "X"))
@@ -667,6 +703,7 @@ Z* swap<Z>(Z* payload)
 }
 """
 
+
 def test_swap_enum_in_struct():
     nodes = process([
         model.Enum("E1", [
@@ -686,17 +723,18 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_enum_in_arrays():
     nodes = process([
         model.Enum("E1", [
             model.EnumMember("E1_A", "0")
         ]),
         model.Struct("EnumArrays", [
-            (model.StructMember("a", "E1", size = 2)),
+            (model.StructMember("a", "E1", size=2)),
             (model.StructMember("num_of_b", "u32")),
-            (model.StructMember("b", "E1", size = 2, bound = "num_of_b")),
+            (model.StructMember("b", "E1", size=2, bound="num_of_b")),
             (model.StructMember("num_of_c", "u32")),
-            (model.StructMember("c", "E1", bound = "num_of_c"))
+            (model.StructMember("c", "E1", bound="num_of_c"))
         ])
     ])
 
@@ -712,13 +750,14 @@ EnumArrays* swap<EnumArrays>(EnumArrays* payload)
 }
 """
 
+
 def test_swap_enum_in_greedy_array():
     nodes = process([
         model.Enum("E1", [
             model.EnumMember("E1_A", "0")
         ]),
         model.Struct("EnumGreedyArray", [
-            (model.StructMember("x", "E1", unlimited = True))
+            (model.StructMember("x", "E1", unlimited=True))
         ])
     ])
 
@@ -729,6 +768,7 @@ EnumGreedyArray* swap<EnumGreedyArray>(EnumGreedyArray* payload)
     return cast<EnumGreedyArray*>(payload->x);
 }
 """
+
 
 def test_swap_enum_in_union():
     nodes = process([
@@ -754,11 +794,12 @@ EnumUnion* swap<EnumUnion>(EnumUnion* payload)
 }
 """
 
+
 def test_swap_struct_with_dynamic_element():
     nodes = process([
         model.Struct("Dynamic", [
             (model.StructMember("num_of_x", "u32")),
-            (model.StructMember("x", "u16", bound = "num_of_x"))
+            (model.StructMember("x", "u16", bound="num_of_x"))
         ]),
         model.Struct("X", [
             (model.StructMember("a", "Dynamic"))
@@ -780,15 +821,16 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_dynamic_array_of_dynamic_elements():
     nodes = process([
         model.Struct("Y", [
             (model.StructMember("num_of_x", "u32")),
-            (model.StructMember("x", "u16", bound = "num_of_x"))
+            (model.StructMember("x", "u16", bound="num_of_x"))
         ]),
         model.Struct("X", [
             (model.StructMember("num_of_x", "u32")),
-            (model.StructMember("x", "Y", bound = "num_of_x"))
+            (model.StructMember("x", "Y", bound="num_of_x"))
         ])
     ])
 
@@ -808,15 +850,16 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_many_arrays():
     nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u32")),
-            (model.StructMember("x", "u32", bound = "num_of_x")),
+            (model.StructMember("x", "u32", bound="num_of_x")),
             (model.StructMember("num_of_y", "u32")),
-            (model.StructMember("y", "u32", bound = "num_of_y")),
+            (model.StructMember("y", "u32", bound="num_of_y")),
             (model.StructMember("num_of_z", "u32")),
-            (model.StructMember("z", "u32", bound = "num_of_z"))
+            (model.StructMember("z", "u32", bound="num_of_z"))
         ])
     ])
 
@@ -843,13 +886,14 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_many_arrays_bounded_by_the_same_member():
     nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_elements", "u32")),
             (model.StructMember("dummy", "u32")),
-            (model.StructMember("x", "u32", bound = "num_of_elements")),
-            (model.StructMember("y", "u32", bound = "num_of_elements"))
+            (model.StructMember("x", "u32", bound="num_of_elements")),
+            (model.StructMember("y", "u32", bound="num_of_elements"))
         ])
     ])
 
@@ -869,13 +913,14 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_many_arrays_passing_numbering_fields():
     nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u32")),
             (model.StructMember("num_of_y", "u32")),
-            (model.StructMember("x", "u32", bound = "num_of_x")),
-            (model.StructMember("y", "u32", bound = "num_of_y"))
+            (model.StructMember("x", "u32", bound="num_of_x")),
+            (model.StructMember("y", "u32", bound="num_of_y"))
         ])
     ])
 
@@ -895,15 +940,16 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_many_arrays_passing_numbering_fields_heavily():
     nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_a", "u32")),
             (model.StructMember("num_of_b", "u32")),
-            (model.StructMember("b", "u16", bound = "num_of_b")),
+            (model.StructMember("b", "u16", bound="num_of_b")),
             (model.StructMember("num_of_c", "u32")),
-            (model.StructMember("c", "u16", bound = "num_of_c")),
-            (model.StructMember("a", "u16", bound = "num_of_a"))
+            (model.StructMember("c", "u16", bound="num_of_c")),
+            (model.StructMember("a", "u16", bound="num_of_a"))
         ])
     ])
 
@@ -930,11 +976,12 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_dynamic_field_and_tail_fixed():
     nodes = process([
         model.Struct("X", [
             (model.StructMember("num_of_x", "u8")),
-            (model.StructMember("x", "u8", bound = "num_of_x")),
+            (model.StructMember("x", "u8", bound="num_of_x")),
             (model.StructMember("y", "u32")),
             (model.StructMember("z", "u64"))
         ])
@@ -957,11 +1004,12 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_swap_struct_with_many_dynamic_fields():
     nodes = process([
         model.Struct("Y", [
             (model.StructMember("num_of_x", "u32")),
-            (model.StructMember("x", "u16", bound = "num_of_x"))
+            (model.StructMember("x", "u16", bound="num_of_x"))
         ]),
         model.Struct("X", [
             (model.StructMember("x", "Y")),
@@ -997,6 +1045,7 @@ X* swap<X>(X* payload)
 }
 """
 
+
 def test_generate_swap_declarations():
     nodes = process([
         model.Struct("A", [
@@ -1020,6 +1069,7 @@ template <> B* swap<B>(B*);
 
 } // namespace prophy
 """
+
 
 def test_generate_empty_file():
     assert generate_hpp([], "TestEmpty") == """\
@@ -1051,6 +1101,7 @@ namespace prophy
 
 } // namespace prophy
 """
+
 
 def test_generate_file():
     nodes = process([
@@ -1099,6 +1150,7 @@ Struct* swap<Struct>(Struct* payload)
 
 } // namespace prophy
 """
+
 
 def test_struct_size_error():
     nodes = [
