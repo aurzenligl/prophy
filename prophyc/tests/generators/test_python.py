@@ -1,8 +1,10 @@
 from prophyc import model
 from prophyc.generators.python import PythonGenerator
 
+
 def serialize(nodes):
     return PythonGenerator().generate_definitions(nodes)
+
 
 def test_includes_rendering():
     nodes = [
@@ -18,6 +20,7 @@ from nowiejsze_powidlo import *
 """
     assert ref == serialize(nodes)
 
+
 def test_constants_rendering():
     nodes = [model.Constant("CONST_A", "0"),
              model.Constant("CONST_B", "31")]
@@ -28,6 +31,7 @@ CONST_B = 31
 """
     assert ref == serialize(nodes)
 
+
 def test_typedefs_rendering():
     nodes = [model.Typedef("a", "b")]
 
@@ -35,6 +39,7 @@ def test_typedefs_rendering():
 a = b
 """
     assert ref == serialize(nodes)
+
 
 def test_enums_rendering():
     nodes = [model.Enum("EEnum", [(model.EnumMember("EEnum_A", "0")),
@@ -53,6 +58,7 @@ EEnum_C = 2
 """
     assert ref == serialize(nodes)
 
+
 def test_struct_rendering():
     nodes = [model.Struct("Struct", [(model.StructMember("a", "u8")),
                                      (model.StructMember("b", "i64")),
@@ -68,9 +74,10 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
     assert ref == serialize(nodes)
 
+
 def test_struct_rendering_with_dynamic_array():
     nodes = [model.Struct("Struct", [model.StructMember("tmpName", "TNumberOfItems"),
-                                     model.StructMember("a", "u8", bound = "tmpName")])]
+                                     model.StructMember("a", "u8", bound="tmpName")])]
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
@@ -79,11 +86,12 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
     assert ref == serialize(nodes)
 
+
 def test_struct_rendering_with_dynamic_arrays_bounded_by_the_same_member():
     nodes = [model.Struct("Struct", [model.StructMember("numOfElements", "TNumberOfItems"),
                                      model.StructMember("tmpName", "u32"),
-                                     model.StructMember("a", "u8", bound = "numOfElements"),
-                                     model.StructMember("b", "r32", bound = "numOfElements")])]
+                                     model.StructMember("a", "u8", bound="numOfElements"),
+                                     model.StructMember("b", "r32", bound="numOfElements")])]
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
@@ -94,8 +102,9 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
     assert ref == serialize(nodes)
 
+
 def test_struct_rendering_with_static_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", size = "NUM_OF_ARRAY_ELEMS")])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u8", size="NUM_OF_ARRAY_ELEMS")])]
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
@@ -103,9 +112,10 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
     assert ref == serialize(nodes)
 
+
 def test_struct_rendering_with_limited_array():
     nodes = [model.Struct("Struct", [model.StructMember("a_len", "u8"),
-                                     model.StructMember("a", "u8", bound = "a_len", size = "NUM_OF_ARRAY_ELEMS")])]
+                                     model.StructMember("a", "u8", bound="a_len", size="NUM_OF_ARRAY_ELEMS")])]
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
@@ -114,14 +124,16 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
     assert ref == serialize(nodes)
 
+
 def test_struct_rendering_with_optional():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "u32", optional = True)])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "u32", optional=True)])]
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('a', prophy.optional(prophy.u32))]
 """
     assert ref == serialize(nodes)
+
 
 def test_struct_rendering_with_byte():
     nodes = [model.Struct("Struct", [model.StructMember("a", "byte")])]
@@ -132,14 +144,16 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
     assert ref == serialize(nodes)
 
+
 def test_struct_rendering_with_byte_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", unlimited = True)])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", unlimited=True)])]
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [('a', prophy.bytes())]
 """
     assert ref == serialize(nodes)
+
 
 def test_union_rendering():
     nodes = [model.Union("U", [model.UnionMember("a", "A", "0"),
@@ -154,6 +168,7 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
 """
     assert ref == serialize(nodes)
 
+
 def test_union_rendering_2():
     nodes = [model.Union("U", [model.UnionMember("a", "i8", "0"),
                                model.UnionMember("b", "u32", "1"),
@@ -166,6 +181,7 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
                    ('c', prophy.r64, 2)]
 """
     assert ref == serialize(nodes)
+
 
 def test_of_PythonGenerator():
     ih = []

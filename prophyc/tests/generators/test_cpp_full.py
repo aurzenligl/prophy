@@ -31,26 +31,32 @@ from prophyc.generators.cpp_full import (
     CppFullGenerator
 )
 
+# flake8: noqa E501
+
+
 def process(nodes):
     model.cross_reference(nodes)
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes)
     return nodes
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Include():
     return process([
         model.Include('Arrays', [])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Constant():
     return process([
         model.Constant('CONSTANT', '3'),
         model.Constant('CONSTANT_WITH_IDENTIFIER', 'xyz')
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Enum():
     return process([
         model.Enum('Enum', [
@@ -61,14 +67,16 @@ def Enum():
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Typedef():
     return process([
         model.Typedef('TU16', 'u16'),
         model.Typedef('TX', 'X')
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Struct():
     return process([
         model.Struct('X', [
@@ -77,11 +85,12 @@ def Struct():
         ]),
         model.Struct('Y', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'X', bound = 'num_of_x')
+            model.StructMember('x', 'X', bound='num_of_x')
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Union():
     return process([
         model.Union('X', [
@@ -89,10 +98,12 @@ def Union():
         ])
     ])
 
+
 def test_generate_include_definition(Include):
     assert generate_include_definition(Include[0]) == """\
 #include "Arrays.ppf.hpp"
 """
+
 
 def test_generate_constant_definition(Constant):
     assert generate_constant_definition(Constant[0]) == """\
@@ -101,6 +112,7 @@ enum { CONSTANT = 3u };
     assert generate_constant_definition(Constant[1]) == """\
 enum { CONSTANT_WITH_IDENTIFIER = xyz };
 """
+
 
 def test_generate_enum_definition(Enum):
     assert generate_enum_definition(Enum[0]) == """\
@@ -113,6 +125,7 @@ enum Enum
 };
 """
 
+
 def test_generate_typedef_definition(Typedef):
     assert generate_typedef_definition(Typedef[0]) == """\
 typedef uint16_t TU16;
@@ -120,6 +133,7 @@ typedef uint16_t TU16;
     assert generate_typedef_definition(Typedef[1]) == """\
 typedef X TX;
 """
+
 
 def test_generate_struct_definition(Struct):
     assert generate_struct_definition(Struct[0]) == """\
@@ -156,6 +170,7 @@ struct Y : public prophy::detail::message<Y>
 };
 """
 
+
 def test_generate_union_definition(Union):
     assert generate_union_definition(Union[0]) == """\
 struct X : public prophy::detail::message<X>
@@ -181,6 +196,7 @@ struct X : public prophy::detail::message<X>
 };
 """
 
+
 def test_generate_enum_implementation(Enum):
     assert generate_enum_implementation(Enum[0]) == """\
 template <>
@@ -196,6 +212,7 @@ const char* print_traits<Enum>::to_literal(Enum x)
     }
 }
 """
+
 
 def test_generate_struct_implementation(Struct):
     assert generate_struct_implementation(Struct[0]) == """\
@@ -266,6 +283,7 @@ void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent)
 template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent);
 """
 
+
 def test_generate_union_implementation(Union):
     assert generate_union_implementation(Union[0]) == """\
 template <>
@@ -311,7 +329,8 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
 template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
 """
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Builtin():
     return process([
         model.Struct('Builtin', [
@@ -319,22 +338,23 @@ def Builtin():
             model.StructMember('y', 'u32')
         ]),
         model.Struct('BuiltinFixed', [
-            model.StructMember('x', 'u32', size = 2)
+            model.StructMember('x', 'u32', size=2)
         ]),
         model.Struct('BuiltinDynamic', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u32', bound = 'num_of_x')
+            model.StructMember('x', 'u32', bound='num_of_x')
         ]),
         model.Struct('BuiltinLimited', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u32', size = 2, bound = 'num_of_x')
+            model.StructMember('x', 'u32', size=2, bound='num_of_x')
         ]),
         model.Struct('BuiltinGreedy', [
-            model.StructMember('x', 'u32', unlimited = True)
+            model.StructMember('x', 'u32', unlimited=True)
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Fixcomp():
     return process([
         model.Struct('Builtin', [
@@ -346,41 +366,43 @@ def Fixcomp():
             model.StructMember('y', 'Builtin')
         ]),
         model.Struct('FixcompFixed', [
-            model.StructMember('x', 'Builtin', size = 2)
+            model.StructMember('x', 'Builtin', size=2)
         ]),
         model.Struct('FixcompDynamic', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'Builtin', bound = 'num_of_x')
+            model.StructMember('x', 'Builtin', bound='num_of_x')
         ]),
         model.Struct('FixcompLimited', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'Builtin', size = 2, bound = 'num_of_x')
+            model.StructMember('x', 'Builtin', size=2, bound='num_of_x')
         ]),
         model.Struct('FixcompGreedy', [
-            model.StructMember('x', 'Builtin', unlimited = True)
+            model.StructMember('x', 'Builtin', unlimited=True)
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Dyncomp():
     return process([
         model.Struct('BuiltinDynamic', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u32', bound = 'num_of_x')
+            model.StructMember('x', 'u32', bound='num_of_x')
         ]),
         model.Struct('Dyncomp', [
             model.StructMember('x', 'BuiltinDynamic')
         ]),
         model.Struct('DyncompDynamic', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'BuiltinDynamic', bound = 'num_of_x')
+            model.StructMember('x', 'BuiltinDynamic', bound='num_of_x')
         ]),
         model.Struct('DyncompGreedy', [
-            model.StructMember('x', 'BuiltinDynamic', unlimited = True)
+            model.StructMember('x', 'BuiltinDynamic', unlimited=True)
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Unions():
     return process([
         model.Struct('Builtin', [
@@ -393,14 +415,15 @@ def Unions():
             model.UnionMember('c', 'Builtin', '3')
         ]),
         model.Struct('BuiltinOptional', [
-            model.StructMember('x', 'u32', optional = True)
+            model.StructMember('x', 'u32', optional=True)
         ]),
         model.Struct('FixcompOptional', [
-            model.StructMember('x', 'Builtin', optional = True)
+            model.StructMember('x', 'Builtin', optional=True)
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Enums():
     return process([
         model.Enum('Enum', [
@@ -409,18 +432,19 @@ def Enums():
         ]),
         model.Struct('DynEnum', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'Enum', bound = 'num_of_x')
+            model.StructMember('x', 'Enum', bound='num_of_x')
         ]),
         model.Constant('CONSTANT', '3'),
         model.Typedef('TU16', 'u16'),
         model.Struct('ConstantTypedefEnum', [
-            model.StructMember('a', 'u16', size = 'CONSTANT'),
+            model.StructMember('a', 'u16', size='CONSTANT'),
             model.StructMember('b', 'TU16'),
             model.StructMember('c', 'Enum')
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Floats():
     return process([
         model.Struct('Floats', [
@@ -429,26 +453,28 @@ def Floats():
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Bytes():
     return process([
         model.Struct('BytesFixed', [
-            model.StructMember('x', 'byte', size = 3)
+            model.StructMember('x', 'byte', size=3)
         ]),
         model.Struct('BytesDynamic', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'byte', bound = 'num_of_x')
+            model.StructMember('x', 'byte', bound='num_of_x')
         ]),
         model.Struct('BytesLimited', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'byte', size = 4, bound = 'num_of_x')
+            model.StructMember('x', 'byte', size=4, bound='num_of_x')
         ]),
         model.Struct('BytesGreedy', [
-            model.StructMember('x', 'byte', unlimited = True)
+            model.StructMember('x', 'byte', unlimited=True)
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Endpad():
     return process([
         model.Struct('Endpad', [
@@ -457,23 +483,24 @@ def Endpad():
         ]),
         model.Struct('EndpadFixed', [
             model.StructMember('x', 'u32'),
-            model.StructMember('y', 'u8', size = 3)
+            model.StructMember('y', 'u8', size=3)
         ]),
         model.Struct('EndpadDynamic', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound = 'num_of_x')
+            model.StructMember('x', 'u8', bound='num_of_x')
         ]),
         model.Struct('EndpadLimited', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', size = 2, bound = 'num_of_x')
+            model.StructMember('x', 'u8', size=2, bound='num_of_x')
         ]),
         model.Struct('EndpadGreedy', [
             model.StructMember('x', 'u32'),
-            model.StructMember('y', 'u8', unlimited = True)
+            model.StructMember('y', 'u8', unlimited=True)
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Scalarpad():
     return process([
         model.Struct('Scalarpad', [
@@ -496,15 +523,16 @@ def Scalarpad():
         ]),
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Unionpad():
     return process([
         model.Struct('UnionpadOptionalboolpad', [
             model.StructMember('x', 'u8'),
-            model.StructMember('y', 'u8', optional = True)
+            model.StructMember('y', 'u8', optional=True)
         ]),
         model.Struct('UnionpadOptionalvaluepad', [
-            model.StructMember('x', 'u64', optional = True)
+            model.StructMember('x', 'u64', optional=True)
         ]),
         model.Union('UnionpadDiscpad_Helper', [
             model.UnionMember('a', 'u8', '1')
@@ -523,21 +551,22 @@ def Unionpad():
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Arraypad():
     return process([
         model.Struct('ArraypadCounter', [
             model.StructMember('num_of_x', 'u8'),
-            model.StructMember('x', 'u16', bound = 'num_of_x')
+            model.StructMember('x', 'u16', bound='num_of_x')
         ]),
         model.Struct('ArraypadCounterSeparated', [
             model.StructMember('num_of_x', 'u8'),
             model.StructMember('y', 'u32'),
-            model.StructMember('x', 'u32', bound = 'num_of_x')
+            model.StructMember('x', 'u32', bound='num_of_x')
         ]),
         model.Struct('ArraypadCounterAligns_Helper', [
             model.StructMember('num_of_x', 'u16'),
-            model.StructMember('x', 'u8', bound = 'num_of_x')
+            model.StructMember('x', 'u8', bound='num_of_x')
         ]),
         model.Struct('ArraypadCounterAligns', [
             model.StructMember('x', 'u8'),
@@ -545,48 +574,49 @@ def Arraypad():
         ]),
         model.Struct('ArraypadFixed', [
             model.StructMember('x', 'u32'),
-            model.StructMember('y', 'u8', size = 3),
+            model.StructMember('y', 'u8', size=3),
             model.StructMember('z', 'u32')
         ]),
         model.Struct('ArraypadDynamic', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('x', 'u8', bound='num_of_x'),
             model.StructMember('y', 'u32')
         ]),
         model.Struct('ArraypadLimited', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', size = 2, bound = 'num_of_x'),
+            model.StructMember('x', 'u8', size=2, bound='num_of_x'),
             model.StructMember('y', 'u32')
         ])
     ])
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Dynfields():
     return process([
         model.Struct('Dynfields', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('x', 'u8', bound='num_of_x'),
             model.StructMember('num_of_y', 'u16'),
-            model.StructMember('y', 'u16', bound = 'num_of_y'),
+            model.StructMember('y', 'u16', bound='num_of_y'),
             model.StructMember('z', 'u64')
         ]),
         model.Struct('DynfieldsMixed', [
             model.StructMember('num_of_x', 'u32'),
             model.StructMember('num_of_y', 'u16'),
-            model.StructMember('x', 'u8', bound = 'num_of_x'),
-            model.StructMember('y', 'u16', bound = 'num_of_y')
+            model.StructMember('x', 'u8', bound='num_of_x'),
+            model.StructMember('y', 'u16', bound='num_of_y')
         ]),
         model.Struct('DynfieldsOverlapped', [
             model.StructMember('num_of_a', 'u32'),
             model.StructMember('num_of_b', 'u32'),
-            model.StructMember('b', 'u16', bound = 'num_of_b'),
+            model.StructMember('b', 'u16', bound='num_of_b'),
             model.StructMember('num_of_c', 'u32'),
-            model.StructMember('c', 'u16', bound = 'num_of_c'),
-            model.StructMember('a', 'u16', bound = 'num_of_a')
+            model.StructMember('c', 'u16', bound='num_of_c'),
+            model.StructMember('a', 'u16', bound='num_of_a')
         ]),
         model.Struct('DynfieldsPartialpad_Helper', [
             model.StructMember('num_of_x', 'u8'),
-            model.StructMember('x', 'u8', bound = 'num_of_x'),
+            model.StructMember('x', 'u8', bound='num_of_x'),
             model.StructMember('y', 'u8'),
             model.StructMember('z', 'u64')
         ]),
@@ -596,7 +626,7 @@ def Dynfields():
         ]),
         model.Struct('DynfieldsScalarpartialpad_Helper', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound = 'num_of_x')
+            model.StructMember('x', 'u8', bound='num_of_x')
         ]),
         model.Struct('DynfieldsScalarpartialpad', [
             model.StructMember('x', 'DynfieldsScalarpartialpad_Helper'),
@@ -604,6 +634,7 @@ def Dynfields():
             model.StructMember('z', 'DynfieldsScalarpartialpad_Helper')
         ])
     ])
+
 
 def test_generate_builtin_encode(Builtin):
     assert generate_struct_encode(Builtin[0]) == """\
@@ -626,6 +657,7 @@ pos = pos + 8;
 pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
 
+
 def test_generate_fixcomp_encode(Fixcomp):
     assert generate_struct_encode(Fixcomp[1]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -647,6 +679,7 @@ pos = pos + 16;
 pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
 
+
 def test_generate_dyncomp_encode(Dyncomp):
     assert generate_struct_encode(Dyncomp[1]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -658,6 +691,7 @@ pos = do_encode<E>(pos, x.x.data(), uint32_t(x.x.size()));
     assert generate_struct_encode(Dyncomp[3]) == """\
 pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
+
 
 def test_generate_unions_encode(Unions):
     assert generate_union_encode(Unions[1]) == """\
@@ -677,6 +711,7 @@ pos = do_encode<E>(pos, x.x);
 pos = do_encode<E>(pos, x.x);
 """
 
+
 def test_generate_enums_encode(Enums):
     assert generate_struct_encode(Enums[1]) == """\
 pos = do_encode<E>(pos, uint32_t(x.x.size()));
@@ -688,12 +723,14 @@ pos = do_encode<E>(pos, x.b);
 pos = do_encode<E>(pos, x.c);
 """
 
+
 def test_generate_floats_encode(Floats):
     assert generate_struct_encode(Floats[0]) == """\
 pos = do_encode<E>(pos, x.a);
 pos = pos + 4;
 pos = do_encode<E>(pos, x.b);
 """
+
 
 def test_generate_bytes_encode(Bytes):
     assert generate_struct_encode(Bytes[0]) == """\
@@ -712,6 +749,7 @@ pos = pos + 4;
     assert generate_struct_encode(Bytes[3]) == """\
 pos = do_encode<E>(pos, x.x.data(), x.x.size());
 """
+
 
 def test_generate_endpad_encode(Endpad):
     assert generate_struct_encode(Endpad[0]) == """\
@@ -741,6 +779,7 @@ pos = do_encode<E>(pos, x.y.data(), x.y.size());
 pos = align<4>(pos);
 """
 
+
 def test_generate_scalarpad_encode(Scalarpad):
     assert generate_struct_encode(Scalarpad[0]) == """\
 pos = do_encode<E>(pos, x.x);
@@ -757,6 +796,7 @@ pos = do_encode<E>(pos, x.x);
 pos = pos + 1;
 pos = do_encode<E>(pos, x.y);
 """
+
 
 def test_generate_unionpad_encode(Unionpad):
     assert generate_struct_encode(Unionpad[0]) == """\
@@ -796,6 +836,7 @@ pos = do_encode<E>(pos, x.x);
 pos = pos + 7;
 pos = do_encode<E>(pos, x.y);
 """
+
 
 def test_generate_arraypad_encode(Arraypad):
     assert generate_struct_encode(Arraypad[0]) == """\
@@ -838,6 +879,7 @@ pos = pos + 2;
 pos = pos + 2;
 pos = do_encode<E>(pos, x.y);
 """
+
 
 def test_generate_dynfields_encode(Dynfields):
     assert generate_struct_encode(Dynfields[0]) == """\
@@ -891,6 +933,7 @@ pos = do_encode<E>(pos, x.y);
 pos = do_encode<E>(pos, x.z);
 """
 
+
 def test_generate_builtin_decode(Builtin):
     assert generate_struct_decode(Builtin[0]) == """\
 do_decode<E>(x.x, pos, end) &&
@@ -911,6 +954,7 @@ do_decode_advance(8, pos, end)
     assert generate_struct_decode(Builtin[4]) == """\
 do_decode_greedy<E>(x.x, pos, end)
 """
+
 
 def test_generate_fixcomp_decode(Fixcomp):
     assert generate_struct_decode(Fixcomp[1]) == """\
@@ -933,6 +977,7 @@ do_decode_advance(16, pos, end)
 do_decode_greedy<E>(x.x, pos, end)
 """
 
+
 def test_generate_dyncomp_decode(Dyncomp):
     assert generate_struct_decode(Dyncomp[1]) == """\
 do_decode<E>(x.x, pos, end)
@@ -944,6 +989,7 @@ do_decode<E>(x.x.data(), x.x.size(), pos, end)
     assert generate_struct_decode(Dyncomp[3]) == """\
 do_decode_greedy<E>(x.x, pos, end)
 """
+
 
 def test_generate_unions_decode(Unions):
     assert generate_union_decode(Unions[1]) == """\
@@ -964,6 +1010,7 @@ do_decode<E>(x.x, pos, end)
 do_decode<E>(x.x, pos, end)
 """
 
+
 def test_generate_enums_decode(Enums):
     assert generate_struct_decode(Enums[1]) == """\
 do_decode_resize<E, uint32_t>(x.x, pos, end) &&
@@ -975,12 +1022,14 @@ do_decode<E>(x.b, pos, end) &&
 do_decode<E>(x.c, pos, end)
 """
 
+
 def test_generate_floats_decode(Floats):
     assert generate_struct_decode(Floats[0]) == """\
 do_decode<E>(x.a, pos, end) &&
 do_decode_advance(4, pos, end) &&
 do_decode<E>(x.b, pos, end)
 """
+
 
 def test_generate_bytes_decode(Bytes):
     assert generate_struct_decode(Bytes[0]) == """\
@@ -999,6 +1048,7 @@ do_decode_advance(4, pos, end)
     assert generate_struct_decode(Bytes[3]) == """\
 do_decode_greedy<E>(x.x, pos, end)
 """
+
 
 def test_generate_endpad_decode(Endpad):
     assert generate_struct_decode(Endpad[0]) == """\
@@ -1028,6 +1078,7 @@ do_decode_greedy<E>(x.y, pos, end) &&
 do_decode_align<4>(pos, end)
 """
 
+
 def test_generate_scalarpad_decode(Scalarpad):
     assert generate_struct_decode(Scalarpad[0]) == """\
 do_decode<E>(x.x, pos, end) &&
@@ -1044,6 +1095,7 @@ do_decode<E>(x.x, pos, end) &&
 do_decode_advance(1, pos, end) &&
 do_decode<E>(x.y, pos, end)
 """
+
 
 def test_generate_unionpad_decode(Unionpad):
     assert generate_struct_decode(Unionpad[0]) == """\
@@ -1086,6 +1138,7 @@ do_decode_advance(7, pos, end) &&
 do_decode<E>(x.y, pos, end)
 """
 
+
 def test_generate_arraypad_decode(Arraypad):
     assert generate_struct_decode(Arraypad[0]) == """\
 do_decode_resize<E, uint8_t>(x.x, pos, end) &&
@@ -1127,6 +1180,7 @@ do_decode_advance(2, pos, end) &&
 do_decode_advance(2, pos, end) &&
 do_decode<E>(x.y, pos, end)
 """
+
 
 def test_generate_dynfields_decode(Dynfields):
     assert generate_struct_decode(Dynfields[0]) == """\
@@ -1180,6 +1234,7 @@ do_decode<E>(x.y, pos, end) &&
 do_decode<E>(x.z, pos, end)
 """
 
+
 def test_generate_builtin_print(Builtin):
     assert generate_struct_print(Builtin[0]) == """\
 do_print(out, indent, "x", x.x);
@@ -1197,6 +1252,7 @@ do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
     assert generate_struct_print(Builtin[4]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
 """
+
 
 def test_generate_fixcomp_print(Fixcomp):
     assert generate_struct_print(Fixcomp[1]) == """\
@@ -1216,6 +1272,7 @@ do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
 do_print(out, indent, "x", x.x.data(), x.x.size());
 """
 
+
 def test_generate_dyncomp_print(Dyncomp):
     assert generate_struct_print(Dyncomp[1]) == """\
 do_print(out, indent, "x", x.x);
@@ -1226,6 +1283,7 @@ do_print(out, indent, "x", x.x.data(), x.x.size());
     assert generate_struct_print(Dyncomp[3]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
 """
+
 
 def test_generate_unions_print(Unions):
     assert generate_union_print(Unions[1]) == """\
@@ -1243,6 +1301,7 @@ if (x.x) do_print(out, indent, "x", *x.x);
 if (x.x) do_print(out, indent, "x", *x.x);
 """
 
+
 def test_generate_enums_print(Enums):
     assert generate_struct_print(Enums[1]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1253,11 +1312,13 @@ do_print(out, indent, "b", x.b);
 do_print(out, indent, "c", x.c);
 """
 
+
 def test_generate_floats_print(Floats):
     assert generate_struct_print(Floats[0]) == """\
 do_print(out, indent, "a", x.a);
 do_print(out, indent, "b", x.b);
 """
+
 
 def test_generate_bytes_print(Bytes):
     assert generate_struct_print(Bytes[0]) == """\
@@ -1272,6 +1333,7 @@ do_print(out, indent, "x", std::make_pair(x.x.data(), std::min(x.x.size(), size_
     assert generate_struct_print(Bytes[3]) == """\
 do_print(out, indent, "x", std::make_pair(x.x.data(), x.x.size()));
 """
+
 
 def test_generate_endpad_print(Endpad):
     assert generate_struct_print(Endpad[0]) == """\
@@ -1293,6 +1355,7 @@ do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y.data(), x.y.size());
 """
 
+
 def test_generate_scalarpad_print(Scalarpad):
     assert generate_struct_print(Scalarpad[0]) == """\
 do_print(out, indent, "x", x.x);
@@ -1306,6 +1369,7 @@ do_print(out, indent, "y", x.y);
 do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y);
 """
+
 
 def test_generate_unionpad_print(Unionpad):
     assert generate_struct_print(Unionpad[0]) == """\
@@ -1337,6 +1401,7 @@ do_print(out, indent, "x", x.x);
 do_print(out, indent, "y", x.y);
 """
 
+
 def test_generate_arraypad_print(Arraypad):
     assert generate_struct_print(Arraypad[0]) == """\
 do_print(out, indent, "x", x.x.data(), x.x.size());
@@ -1365,6 +1430,7 @@ do_print(out, indent, "y", x.y);
 do_print(out, indent, "x", x.x.data(), std::min(x.x.size(), size_t(2)));
 do_print(out, indent, "y", x.y);
 """
+
 
 def test_generate_dynfields_print(Dynfields):
     assert generate_struct_print(Dynfields[0]) == """\
@@ -1399,12 +1465,14 @@ do_print(out, indent, "y", x.y);
 do_print(out, indent, "z", x.z);
 """
 
+
 def test_generate_builtin_encoded_byte_size(Builtin):
     assert generate_struct_encoded_byte_size(Builtin[0]) == '8'
     assert generate_struct_encoded_byte_size(Builtin[1]) == '8'
     assert generate_struct_encoded_byte_size(Builtin[2]) == '-1'
     assert generate_struct_encoded_byte_size(Builtin[3]) == '12'
     assert generate_struct_encoded_byte_size(Builtin[4]) == '-1'
+
 
 def test_generate_fixcomp_encoded_byte_size(Fixcomp):
     assert generate_struct_encoded_byte_size(Fixcomp[1]) == '16'
@@ -1413,28 +1481,34 @@ def test_generate_fixcomp_encoded_byte_size(Fixcomp):
     assert generate_struct_encoded_byte_size(Fixcomp[4]) == '20'
     assert generate_struct_encoded_byte_size(Fixcomp[5]) == '-1'
 
+
 def test_generate_dyncomp_encoded_byte_size(Dyncomp):
     assert generate_struct_encoded_byte_size(Dyncomp[1]) == '-1'
     assert generate_struct_encoded_byte_size(Dyncomp[2]) == '-1'
     assert generate_struct_encoded_byte_size(Dyncomp[3]) == '-1'
+
 
 def test_generate_unions_encoded_byte_size(Unions):
     assert generate_union_encoded_byte_size(Unions[1]) == '12'
     assert generate_struct_encoded_byte_size(Unions[2]) == '8'
     assert generate_struct_encoded_byte_size(Unions[3]) == '12'
 
+
 def test_generate_enums_encoded_byte_size(Enums):
     assert generate_struct_encoded_byte_size(Enums[1]) == '-1'
     assert generate_struct_encoded_byte_size(Enums[4]) == '12'
 
+
 def test_generate_floats_encoded_byte_size(Floats):
     assert generate_struct_encoded_byte_size(Floats[0]) == '16'
+
 
 def test_generate_bytes_encoded_byte_size(Bytes):
     assert generate_struct_encoded_byte_size(Bytes[0]) == '3'
     assert generate_struct_encoded_byte_size(Bytes[1]) == '-1'
     assert generate_struct_encoded_byte_size(Bytes[2]) == '8'
     assert generate_struct_encoded_byte_size(Bytes[3]) == '-1'
+
 
 def test_generate_endpad_encoded_byte_size(Endpad):
     assert generate_struct_encoded_byte_size(Endpad[0]) == '4'
@@ -1443,10 +1517,12 @@ def test_generate_endpad_encoded_byte_size(Endpad):
     assert generate_struct_encoded_byte_size(Endpad[3]) == '8'
     assert generate_struct_encoded_byte_size(Endpad[4]) == '-1'
 
+
 def test_generate_scalarpad_encoded_byte_size(Scalarpad):
     assert generate_struct_encoded_byte_size(Scalarpad[0]) == '4'
     assert generate_struct_encoded_byte_size(Scalarpad[2]) == '4'
     assert generate_struct_encoded_byte_size(Scalarpad[4]) == '4'
+
 
 def test_generate_unionpad_encoded_byte_size(Unionpad):
     assert generate_struct_encoded_byte_size(Unionpad[0]) == '12'
@@ -1455,6 +1531,7 @@ def test_generate_unionpad_encoded_byte_size(Unionpad):
     assert generate_struct_encoded_byte_size(Unionpad[3]) == '12'
     assert generate_union_encoded_byte_size(Unionpad[4]) == '16'
     assert generate_struct_encoded_byte_size(Unionpad[5]) == '24'
+
 
 def test_generate_arraypad_encoded_byte_size(Arraypad):
     assert generate_struct_encoded_byte_size(Arraypad[0]) == '-1'
@@ -1465,6 +1542,7 @@ def test_generate_arraypad_encoded_byte_size(Arraypad):
     assert generate_struct_encoded_byte_size(Arraypad[5]) == '-1'
     assert generate_struct_encoded_byte_size(Arraypad[6]) == '12'
 
+
 def test_generate_dynfields_encoded_byte_size(Dynfields):
     assert generate_struct_encoded_byte_size(Dynfields[0]) == '-1'
     assert generate_struct_encoded_byte_size(Dynfields[1]) == '-1'
@@ -1473,6 +1551,7 @@ def test_generate_dynfields_encoded_byte_size(Dynfields):
     assert generate_struct_encoded_byte_size(Dynfields[4]) == '-1'
     assert generate_struct_encoded_byte_size(Dynfields[5]) == '-1'
     assert generate_struct_encoded_byte_size(Dynfields[6]) == '-1'
+
 
 def test_generate_builtin_get_byte_size(Builtin):
     assert generate_struct_get_byte_size(Builtin[0]) == """\
@@ -1491,6 +1570,7 @@ return 12;
 return x.size() * 4;
 """
 
+
 def test_generate_fixcomp_get_byte_size(Fixcomp):
     assert generate_struct_get_byte_size(Fixcomp[1]) == """\
 return 16;
@@ -1508,6 +1588,7 @@ return 20;
 return x.size() * 8;
 """
 
+
 def test_generate_dyncomp_get_byte_size(Dyncomp):
     assert generate_struct_get_byte_size(Dyncomp[1]) == """\
 return x.get_byte_size();
@@ -1518,6 +1599,7 @@ return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size()
     assert generate_struct_get_byte_size(Dyncomp[3]) == """\
 return std::accumulate(x.begin(), x.end(), size_t(), prophy::detail::byte_size());
 """
+
 
 def test_generate_unions_get_byte_size(Unions):
     assert generate_union_get_byte_size(Unions[1]) == """\
@@ -1530,6 +1612,7 @@ return 8;
 return 12;
 """
 
+
 def test_generate_enums_get_byte_size(Enums):
     assert generate_struct_get_byte_size(Enums[1]) == """\
 return x.size() * 4 + 4;
@@ -1538,10 +1621,12 @@ return x.size() * 4 + 4;
 return 12;
 """
 
+
 def test_generate_floats_get_byte_size(Floats):
     assert generate_struct_get_byte_size(Floats[0]) == """\
 return 16;
 """
+
 
 def test_generate_bytes_get_byte_size(Bytes):
     assert generate_struct_get_byte_size(Bytes[0]) == """\
@@ -1558,6 +1643,7 @@ return 8;
     assert generate_struct_get_byte_size(Bytes[3]) == """\
 return x.size() * 1;
 """
+
 
 def test_generate_endpad_get_byte_size(Endpad):
     assert generate_struct_get_byte_size(Endpad[0]) == """\
@@ -1580,6 +1666,7 @@ return prophy::detail::nearest<4>(
 );
 """
 
+
 def test_generate_scalarpad_get_byte_size(Scalarpad):
     assert generate_struct_get_byte_size(Scalarpad[0]) == """\
 return 4;
@@ -1590,6 +1677,7 @@ return 4;
     assert generate_struct_get_byte_size(Scalarpad[4]) == """\
 return 4;
 """
+
 
 def test_generate_unionpad_get_byte_size(Unionpad):
     assert generate_struct_get_byte_size(Unionpad[0]) == """\
@@ -1610,6 +1698,7 @@ return 16;
     assert generate_struct_get_byte_size(Unionpad[5]) == """\
 return 24;
 """
+
 
 def test_generate_arraypad_get_byte_size(Arraypad):
     assert generate_struct_get_byte_size(Arraypad[0]) == """\
@@ -1637,6 +1726,7 @@ return prophy::detail::nearest<4>(
     assert generate_struct_get_byte_size(Arraypad[6]) == """\
 return 12;
 """
+
 
 def test_generate_dynfields_get_byte_size(Dynfields):
     assert generate_struct_get_byte_size(Dynfields[0]) == """\
@@ -1677,6 +1767,7 @@ return prophy::detail::nearest<4>(
 return x.get_byte_size() + y.get_byte_size() + z.get_byte_size();
 """
 
+
 def test_generate_builtin_fields(Builtin):
     assert generate_struct_fields(Builtin[0]) == """\
 uint32_t x;
@@ -1694,6 +1785,7 @@ std::vector<uint32_t> x; /// limit 2
     assert generate_struct_fields(Builtin[4]) == """\
 std::vector<uint32_t> x; /// greedy
 """
+
 
 def test_generate_fixcomp_fields(Fixcomp):
     assert generate_struct_fields(Fixcomp[1]) == """\
@@ -1713,6 +1805,7 @@ std::vector<Builtin> x; /// limit 2
 std::vector<Builtin> x; /// greedy
 """
 
+
 def test_generate_dyncomp_fields(Dyncomp):
     assert generate_struct_fields(Dyncomp[1]) == """\
 BuiltinDynamic x;
@@ -1723,6 +1816,7 @@ std::vector<BuiltinDynamic> x;
     assert generate_struct_fields(Dyncomp[3]) == """\
 std::vector<BuiltinDynamic> x; /// greedy
 """
+
 
 def test_generate_unions_fields(Unions):
     assert generate_union_fields(Unions[1]) == """\
@@ -1748,6 +1842,7 @@ optional<uint32_t> x;
 optional<Builtin> x;
 """
 
+
 def test_generate_enums_fields(Enums):
     assert generate_struct_fields(Enums[1]) == """\
 std::vector<Enum> x;
@@ -1758,11 +1853,13 @@ TU16 b;
 Enum c;
 """
 
+
 def test_generate_floats_fields(Floats):
     assert generate_struct_fields(Floats[0]) == """\
 float a;
 double b;
 """
+
 
 def test_generate_bytes_fields(Bytes):
     assert generate_struct_fields(Bytes[0]) == """\
@@ -1777,6 +1874,7 @@ std::vector<uint8_t> x; /// limit 4
     assert generate_struct_fields(Bytes[3]) == """\
 std::vector<uint8_t> x; /// greedy
 """
+
 
 def test_generate_endpad_fields(Endpad):
     assert generate_struct_fields(Endpad[0]) == """\
@@ -1798,6 +1896,7 @@ uint32_t x;
 std::vector<uint8_t> y; /// greedy
 """
 
+
 def test_generate_scalarpad_fields(Scalarpad):
     assert generate_struct_fields(Scalarpad[0]) == """\
 uint8_t x;
@@ -1811,6 +1910,7 @@ uint16_t y;
 uint8_t x;
 ScalarpadComppost_Helper y;
 """
+
 
 def test_generate_unionpad_fields(Unionpad):
     assert generate_struct_fields(Unionpad[0]) == """\
@@ -1852,6 +1952,7 @@ uint8_t x;
 UnionpadArmpad_Helper y;
 """
 
+
 def test_generate_arraypad_fields(Arraypad):
     assert generate_struct_fields(Arraypad[0]) == """\
 std::vector<uint16_t> x;
@@ -1880,6 +1981,7 @@ uint32_t y;
 std::vector<uint8_t> x; /// limit 2
 uint32_t y;
 """
+
 
 def test_generate_dynfields_fields(Dynfields):
     assert generate_struct_fields(Dynfields[0]) == """\
@@ -1914,6 +2016,7 @@ DynfieldsScalarpartialpad_Helper y;
 DynfieldsScalarpartialpad_Helper z;
 """
 
+
 def test_generate_builtin_constructor(Builtin):
     assert generate_struct_constructor(Builtin[0]) == """\
 Builtin(): x(), y() { }
@@ -1935,6 +2038,7 @@ BuiltinLimited(const std::vector<uint32_t>& _1): x(_1) { }
 BuiltinGreedy() { }
 BuiltinGreedy(const std::vector<uint32_t>& _1): x(_1) { }
 """
+
 
 def test_generate_fixcomp_constructor(Fixcomp):
     assert generate_struct_constructor(Fixcomp[1]) == """\
@@ -1958,6 +2062,7 @@ FixcompGreedy() { }
 FixcompGreedy(const std::vector<Builtin>& _1): x(_1) { }
 """
 
+
 def test_generate_dyncomp_constructor(Dyncomp):
     assert generate_struct_constructor(Dyncomp[1]) == """\
 Dyncomp() { }
@@ -1971,6 +2076,7 @@ DyncompDynamic(const std::vector<BuiltinDynamic>& _1): x(_1) { }
 DyncompGreedy() { }
 DyncompGreedy(const std::vector<BuiltinDynamic>& _1): x(_1) { }
 """
+
 
 def test_generate_unions_constructor(Unions):
     assert generate_union_constructor(Unions[1]) == """\
@@ -1988,6 +2094,7 @@ FixcompOptional() { }
 FixcompOptional(const optional<Builtin>& _1): x(_1) { }
 """
 
+
 def test_generate_enums_constructor(Enums):
     assert generate_struct_constructor(Enums[1]) == """\
 DynEnum() { }
@@ -1998,11 +2105,13 @@ ConstantTypedefEnum(): a(), b(), c(Enum_One) { }
 ConstantTypedefEnum(const array<uint16_t, CONSTANT>& _1, TU16 _2, Enum _3): a(_1), b(_2), c(_3) { }
 """
 
+
 def test_generate_floats_constructor(Floats):
     assert generate_struct_constructor(Floats[0]) == """\
 Floats(): a(), b() { }
 Floats(float _1, double _2): a(_1), b(_2) { }
 """
+
 
 def test_generate_bytes_constructor(Bytes):
     assert generate_struct_constructor(Bytes[0]) == """\
@@ -2021,6 +2130,7 @@ BytesLimited(const std::vector<uint8_t>& _1): x(_1) { }
 BytesGreedy() { }
 BytesGreedy(const std::vector<uint8_t>& _1): x(_1) { }
 """
+
 
 def test_generate_endpad_constructor(Endpad):
     assert generate_struct_constructor(Endpad[0]) == """\
@@ -2044,6 +2154,7 @@ EndpadGreedy(): x() { }
 EndpadGreedy(uint32_t _1, const std::vector<uint8_t>& _2): x(_1), y(_2) { }
 """
 
+
 def test_generate_scalarpad_constructor(Scalarpad):
     assert generate_struct_constructor(Scalarpad[0]) == """\
 Scalarpad(): x(), y() { }
@@ -2057,6 +2168,7 @@ ScalarpadComppre(const ScalarpadComppre_Helper& _1, uint16_t _2): x(_1), y(_2) {
 ScalarpadComppost(): x() { }
 ScalarpadComppost(uint8_t _1, const ScalarpadComppost_Helper& _2): x(_1), y(_2) { }
 """
+
 
 def test_generate_unionpad_constructor(Unionpad):
     assert generate_struct_constructor(Unionpad[0]) == """\
@@ -2084,6 +2196,7 @@ UnionpadArmpad_Helper(prophy::detail::int2type<discriminator_b>, uint64_t _1): d
 UnionpadArmpad(): x() { }
 UnionpadArmpad(uint8_t _1, const UnionpadArmpad_Helper& _2): x(_1), y(_2) { }
 """
+
 
 def test_generate_arraypad_constructor(Arraypad):
     assert generate_struct_constructor(Arraypad[0]) == """\
@@ -2115,6 +2228,7 @@ ArraypadLimited(): y() { }
 ArraypadLimited(const std::vector<uint8_t>& _1, uint32_t _2): x(_1), y(_2) { }
 """
 
+
 def test_generate_dynfields_constructor(Dynfields):
     assert generate_struct_constructor(Dynfields[0]) == """\
 Dynfields(): z() { }
@@ -2145,6 +2259,7 @@ DynfieldsScalarpartialpad() { }
 DynfieldsScalarpartialpad(const DynfieldsScalarpartialpad_Helper& _1, const DynfieldsScalarpartialpad_Helper& _2, const DynfieldsScalarpartialpad_Helper& _3): x(_1), y(_2), z(_3) { }
 """
 
+
 def test_initializer_list_typedefed_enum():
     nodes = process([
         model.Enum('Enum', [
@@ -2166,6 +2281,7 @@ Struct(TEnum _1): x(_1) { }
 Union(): discriminator(discriminator_x), x(Enum_One) { }
 Union(prophy::detail::int2type<discriminator_x>, TEnum _1): discriminator(discriminator_x), x(_1) { }
 """
+
 
 def test_generate_hpp_newlines():
     nodes = process([
@@ -2241,6 +2357,7 @@ struct B : public prophy::detail::message<B>
 };
 """
 
+
 def test_generate_hpp(Union):
     assert generate_hpp(Union, 'MyFile') == """\
 #ifndef _PROPHY_GENERATED_FULL_MyFile_HPP
@@ -2289,6 +2406,7 @@ struct X : public prophy::detail::message<X>
 
 #endif  /* _PROPHY_GENERATED_FULL_MyFile_HPP */
 """
+
 
 def test_generate_cpp(Struct):
     assert generate_cpp(Struct, 'MyFile') == """\
@@ -2375,6 +2493,7 @@ template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t inden
 } // namespace prophy
 """
 
+
 def test_generate_hpp_with_included_struct():
     nodes = process([
         model.Include('Input', process([
@@ -2414,6 +2533,7 @@ struct Y : public prophy::detail::message<Y>
 } // namespace prophy
 """ in generate_hpp(nodes, 'MyFile')
 
+
 def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
     nodes = process([
         model.Struct('X', [
@@ -2424,15 +2544,17 @@ def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
         CppFullGenerator('.').serialize(nodes, 'Filename')
     assert "X byte size unknown" == str(e.value)
 
+
 def test_exception_when_numeric_size_is_unknown(tmpdir_cwd):
     nodes = process([
         model.Struct('X', [
-            model.StructMember('x', 'u32', size = 'Unknown')
+            model.StructMember('x', 'u32', size='Unknown')
         ])
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
     assert "X byte size unknown" == str(e.value)
+
 
 def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
     nodes = process([
@@ -2444,34 +2566,37 @@ def test_exception_when_union_byte_size_is_unknown(tmpdir_cwd):
         CppFullGenerator('.').serialize(nodes, 'Filename')
     assert "X byte size unknown" == str(e.value)
 
+
 def test_exception_when_multiple_arrays_are_bounded_by_the_same_member(tmpdir_cwd):
     nodes = process([
         model.Struct('X', [
             model.StructMember('num_of_elements', 'u32'),
-            model.StructMember('array1', 'u32', bound = 'num_of_elements'),
-            model.StructMember('array2', 'u32', bound = 'num_of_elements'),
+            model.StructMember('array1', 'u32', bound='num_of_elements'),
+            model.StructMember('array2', 'u32', bound='num_of_elements'),
         ])
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
     assert "Multiple arrays bounded by the same member (num_of_elements) in struct X is unsupported" == str(e.value)
 
+
 def test_get_byte_size_when_array_delimiter_is_a_typedef():
     nodes = process([
         model.Typedef('IntType', 'u32'),
         model.Struct('X', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'IntType', bound = 'num_of_x')
+            model.StructMember('x', 'IntType', bound='num_of_x')
         ])
     ])
     assert 'x.size() * 4 + 4' in generate_struct_get_byte_size(nodes[1])
+
 
 def test_encode_and_decode_when_array_delimiter_is_a_typedef():
     nodes = process([
         model.Typedef('IntType', 'u32'),
         model.Struct('X', [
             model.StructMember('num_of_x', 'IntType'),
-            model.StructMember('x', 'u32', bound = 'num_of_x')
+            model.StructMember('x', 'u32', bound='num_of_x')
         ])
     ])
     assert 'uint32_t(x.x.size())' in generate_struct_encode(nodes[1])

@@ -5,8 +5,10 @@ opd = os.path.dirname
 opr = os.path.realpath
 main_dir = opd(opd(opr(__file__)))
 
+
 def form_args(mode, tmpdir_cwd, target_file_name):
     return [mode, "--python_out", str(tmpdir_cwd), os.path.join(str(tmpdir_cwd), target_file_name)]
+
 
 def test_isar_input(tmpdir_cwd, call_prophyc):
     content = """\
@@ -47,6 +49,7 @@ def test_isar_input(tmpdir_cwd, call_prophyc):
     s.nodeAddr = 0x1231
 
     assert b"\x00\x00\x00\x01\x12\x31\x00\x00" == s.encode(">")
+
 
 @pytest.clang_installed
 def test_sack_input(tmpdir_cwd, call_prophyc):

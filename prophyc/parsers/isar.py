@@ -5,6 +5,7 @@ from ..six import reduce
 from prophyc import model
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
+
 def extract_operator_args(string_, pos):
     brackets = 0
     open_pos = pos
@@ -33,6 +34,7 @@ operators = (
     ('bitMaskOr(', '|')
 )
 
+
 def expand_operators(string_):
     for operator in operators:
         while True:
@@ -55,6 +57,7 @@ primitive_types = {"8 bit integer unsigned": "u8",
                    "32 bit float": "r32",
                    "64 bit float": "r64"}
 
+
 def make_include(elem, process_file, warn):
     path = elem.get("href")
     try:
@@ -65,14 +68,17 @@ def make_include(elem, process_file, warn):
         nodes = []
     return model.Include(os.path.splitext(path)[0], nodes)
 
+
 def make_constant(elem):
     return model.Constant(elem.get("name"), expand_operators(elem.get("value")))
+
 
 def make_typedef(elem):
     if "type" in elem.attrib:
         return model.Typedef(elem.get("name"), elem.get("type"))
     elif "primitiveType" in elem.attrib and elem.get("name") not in primitive_types.values():
         return model.Typedef(elem.get("name"), primitive_types[elem.get("primitiveType")])
+
 
 def make_enum_member(elem):
     value = elem.get('value')
@@ -84,6 +90,7 @@ def make_enum_member(elem):
         pass
     return model.EnumMember(elem.get("name"), expand_operators(value))
 
+
 def _check_for_duplicates(enum):
     values = set()
     for m in enum.members:
@@ -91,13 +98,15 @@ def _check_for_duplicates(enum):
             raise ValueError("Duplicate Enum value in '{}', value '{}'.".format(enum.name, m.value))
         values.add(m.value)
 
+
 def make_enum(elem):
     if len(elem):
         enum = model.Enum(elem.get("name"), [make_enum_member(member) for member in elem])
         _check_for_duplicates(enum)
         return enum
 
-def make_struct_members(elem, dynamic_array = False):
+
+def make_struct_members(elem, dynamic_array=False):
     members = []
     ename = elem.get("name")
     etype = elem.get("type")
@@ -113,50 +122,56 @@ def make_struct_members(elem, dynamic_array = False):
 
         sizer_name = dimension.get("variableSizeFieldName", None)
         if sizer_name and "@" in sizer_name[0]:
-            members.append(model.StructMember(ename, etype, bound = sizer_name[1:]))
+            members.append(model.StructMember(ename, etype, bound=sizer_name[1:]))
 
         elif size and "THIS_IS_VARIABLE_SIZE_ARRAY" in size:
             sizer_name = "numOf" + ename[0].upper() + ename[1:]
-            members.append(model.StructMember(ename, etype, bound = sizer_name))
+            members.append(model.StructMember(ename, etype, bound=sizer_name))
 
         elif "isVariableSize" in dimension.attrib:
             type_ = dimension.get("variableSizeFieldType", "u32")
             sizer_name = dimension.get("variableSizeFieldName", ename + "_len")
             members.append(model.StructMember(sizer_name, type_))
-            members.append(model.StructMember(ename, etype, bound = sizer_name, size = None if dynamic_array else size))
+            members.append(model.StructMember(ename, etype, bound=sizer_name, size=None if dynamic_array else size))
         else:
-            members.append(model.StructMember(ename, etype, size = size))
+            members.append(model.StructMember(ename, etype, size=size))
     else:
-        members.append(model.StructMember(ename, etype, optional = optional))
+        members.append(model.StructMember(ename, etype, optional=optional))
     return members
 
-def make_struct(elem, last_member_array_is_dynamic = False):
+
+def make_struct(elem, last_member_array_is_dynamic=False):
     if len(elem):
         members = reduce(lambda x, y: x + y, (make_struct_members(member) for member in elem[:-1]), [])
         members += make_struct_members(elem[-1], last_member_array_is_dynamic)
         return model.Struct(elem.get("name"), members)
 
+
 def make_union_member(elem):
     return model.UnionMember(elem.get("name"), elem.get("type"), elem.get("discriminatorValue"))
+
 
 def make_union(elem):
     if len(elem):
         return model.Union(elem.get('name'), [make_union_member(member) for member in elem])
 
+
 class IsarParser(object):
 
-    def __init__(self, warn = None):
+    def __init__(self, warn=None):
         self.warn = warn
 
     def __get_model(self, root, process_file):
         nodes = []
-        nodes += [make_include(elem, process_file, self.warn) for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
+        nodes += [make_include(elem, process_file, self.warn)
+                  for elem in filter(lambda elem: "include" in elem.tag, root.iterfind('.//*[@href]'))]
         nodes += [make_constant(elem) for elem in root.iterfind('.//constant')]
         nodes += filter(None, (make_typedef(elem) for elem in root.iterfind('.//typedef')))
         nodes += filter(None, (make_enum(elem) for elem in root.iterfind('.//enum')))
         nodes += filter(None, (make_struct(elem) for elem in root.iterfind('.//struct')))
         nodes += filter(None, (make_union(elem) for elem in root.iterfind('.//union')))
-        nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic = True) for elem in root.iterfind('.//message')))
+        nodes += filter(None, (make_struct(elem, last_member_array_is_dynamic=True)
+                               for elem in root.iterfind('.//message')))
         return nodes
 
     def parse(self, content, path, process_file):

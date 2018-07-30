@@ -10,8 +10,10 @@ from contextlib import contextmanager
 
 __version__ = '1.1.2'
 
+
 class ProphycError(Exception):
     pass
+
 
 class Emit(object):
     def __init__(self):
@@ -23,6 +25,7 @@ class Emit(object):
 
     def error(self, msg, location='prophyc'):
         raise ProphycError(location + ': error: ' + msg)
+
 
 def main(args):
     emit = Emit()
@@ -70,9 +73,11 @@ def main(args):
             nodes = file_parser(input_file)
         generate_target_files(emit, serializers, get_basename(input_file), nodes)
 
+
 def get_isar_parser(emit):
     from prophyc.parsers.isar import IsarParser
     return IsarParser(warn=emit.warn)
+
 
 def get_target_parser(emit, opts, supplementary_nodes):
     if opts.isar:
@@ -87,6 +92,7 @@ def get_target_parser(emit, opts, supplementary_nodes):
         from prophyc.parsers.prophy import ProphyParser
         return ProphyParser()
 
+
 def get_serializers(opts):
     serializers = []
     if opts.python_out:
@@ -100,11 +106,13 @@ def get_serializers(opts):
         serializers.append(CppFullGenerator(opts.cpp_full_out))
     return serializers
 
+
 def get_patcher(opts):
     if opts.patch:
         from prophyc import patch
         patches = patch.parse(opts.patch)
         return lambda nodes: patch.patch(nodes, patches)
+
 
 class ModelParser():
     def __init__(self, parser, patcher, emit):
@@ -122,8 +130,10 @@ class ModelParser():
         model.evaluate_sizes(nodes, warn=self.emit.warn)
         return nodes
 
+
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
+
 
 def flatten_included_defs(supple_nodes):
     def get_nodes_and_names(nodes_list):
@@ -135,12 +145,14 @@ def flatten_included_defs(supple_nodes):
     """ pass trough a dictionary to avoid duplicates """
     return tuple(dict(get_nodes_and_names(supple_nodes)).items())
 
+
 def generate_target_files(emit, serializers, basename, nodes):
     for serializer in serializers:
         try:
             serializer.serialize(nodes, basename)
         except model.GenerateError as e:
             emit.error(str(e))
+
 
 @contextmanager
 def error_on_exception(emit):

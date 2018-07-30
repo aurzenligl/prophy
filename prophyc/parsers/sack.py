@@ -8,8 +8,10 @@ from prophyc.generators.cpp import _generate_def_enum
 from prophyc.six import to_bytes
 from contextlib import contextmanager
 
+
 class SackParserError(Exception):
     pass
+
 
 class SackModelTree(object):
     def __init__(self):
@@ -23,6 +25,7 @@ class SackModelTree(object):
     def remove_nodes(self, node_names_to_remove):
         self.nodes = [node for node in self.nodes if node.name not in node_names_to_remove]
         self.known -= set(node_names_to_remove)
+
 
 class Builder(object):
     unambiguous_builtins = {
@@ -146,6 +149,7 @@ class Builder(object):
                 if cursor.kind is CursorKind.ENUM_DECL:
                     self.add_enum(cursor)
 
+
 class SupplementaryDefs(object):
 
     def __init__(self, include_tree):
@@ -210,7 +214,7 @@ class SackParser(object):
     @staticmethod
     def check():
         class SackParserStatus(object):
-            def __init__(self, error = None):
+            def __init__(self, error=None):
                 self.error = error
 
             def __bool__(self):

@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 
+# flake8: noqa
+
 long_description = open('README.rst').read()
 
 setup(

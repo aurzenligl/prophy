@@ -1,19 +1,22 @@
 import prophy
 import pytest
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def BoundScalarArray():
     class BoundScalarArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u32),
-                       ("value", prophy.array(prophy.u32, bound = "len"))]
+                       ("value", prophy.array(prophy.u32, bound="len"))]
     return BoundScalarArray
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def BoundCompositeArray(BoundScalarArray):
     class BoundCompositeArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u32),
-                       ("value", prophy.array(BoundScalarArray, bound = "len"))]
+                       ("value", prophy.array(BoundScalarArray, bound="len"))]
     return BoundCompositeArray
+
 
 def test_bound_scalar_array_assignment(BoundScalarArray):
     x = BoundScalarArray()
@@ -54,6 +57,7 @@ def test_bound_scalar_array_assignment(BoundScalarArray):
     with pytest.raises(Exception):
         x.value[:] = [1, 2, "abc"]
 
+
 def test_bound_scalar_array_copy_from(BoundScalarArray):
     x = BoundScalarArray()
     x.value[:] = [1, 2]
@@ -62,6 +66,7 @@ def test_bound_scalar_array_copy_from(BoundScalarArray):
 
     y.copy_from(x)
     assert y.value[:] == [1, 2]
+
 
 def test_bound_scalar_array_encoding(BoundScalarArray):
     x = BoundScalarArray()
@@ -83,25 +88,27 @@ def test_bound_scalar_array_encoding(BoundScalarArray):
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
     assert 'not all bytes of BoundScalarArray read' in str(e.value)
 
+
 def test_bound_scalar_array_exceptions():
     with pytest.raises(Exception):
         class LengthFieldNonexistent(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("a", prophy.array(prophy.i32, bound = "nonexistent"))]
+            _descriptor = [("a", prophy.array(prophy.i32, bound="nonexistent"))]
     with pytest.raises(Exception):
         class LengthFieldAfter(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("a", prophy.array(prophy.i32, bound = "after")),
+            _descriptor = [("a", prophy.array(prophy.i32, bound="after")),
                            ("after", prophy.i32)]
     with pytest.raises(Exception):
         class LengthFieldIsNotAnInteger(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("not_an_int", "not_an_int"),
-                           ("a", prophy.array(prophy.i32, bound = "not_an_int"))]
+                           ("a", prophy.array(prophy.i32, bound="not_an_int"))]
+
 
 def test_bound_scalar_array_twice_in_struct():
     class X2(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("b_len", prophy.u8),
                        ("a_len", prophy.u8),
-                       ("a", prophy.array(prophy.u8, bound = "a_len")),
-                       ("b", prophy.array(prophy.u8, bound = "b_len"))]
+                       ("a", prophy.array(prophy.u8, bound="a_len")),
+                       ("b", prophy.array(prophy.u8, bound="b_len"))]
 
     x = X2()
 
@@ -113,10 +120,11 @@ def test_bound_scalar_array_twice_in_struct():
     assert [7, 8] == x.a[:]
     assert [1] == x.b[:]
 
+
 def test_bound_scalar_array_with_shift():
     class XS(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u8),
-                       ("value", prophy.array(prophy.u8, bound = "len", shift = 2))]
+                       ("value", prophy.array(prophy.u8, bound="len", shift=2))]
 
     x = XS()
     x.value[:] = [1, 2, 3, 4]
@@ -138,6 +146,7 @@ def test_bound_scalar_array_with_shift():
         x.decode(b"\x02\x00", ">")
     assert str(e.value) == "not all bytes of XS read"
 
+
 @pytest.mark.parametrize('array_type', [
     'prophy.array(prophy.u8, shift = 2)',
     'prophy.array(prophy.u8, size = 1, shift = 2)',
@@ -148,12 +157,14 @@ def test_bound_scalar_array_with_shift_exceptions(array_type):
         exec(array_type)
     assert str(e.value) == "only shifting bound array implemented"
 
+
 def test_bound_scalar_array_extend(BoundScalarArray):
     x = BoundScalarArray()
     x.value.extend([1, 2])
     assert x.value == [1, 2]
     x.value.extend([])
     assert x.value == [1, 2]
+
 
 def test_bound_composite_array_assignment(BoundScalarArray, BoundCompositeArray):
     x = BoundCompositeArray()
@@ -199,6 +210,7 @@ def test_bound_composite_array_assignment(BoundScalarArray, BoundCompositeArray)
     with pytest.raises(Exception):
         x.value[0] = 5
 
+
 def test_bound_composite_array_copy_from(BoundCompositeArray):
     x = BoundCompositeArray()
     x.value.add().value[:] = [1, 2]
@@ -216,18 +228,20 @@ def test_bound_composite_array_copy_from(BoundCompositeArray):
     y.copy_from(BoundCompositeArray())
     assert len(y.value) == 0
 
+
 def test_bound_composite_array_add():
     class SubType(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("some", prophy.u32),
-                       ("value", prophy.array(prophy.u32, size = 2))]
+                       ("value", prophy.array(prophy.u32, size=2))]
 
     class BoundCompositeArray_(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u32),
-                       ("value", prophy.array(SubType, bound = "len"))]
+                       ("value", prophy.array(SubType, bound="len"))]
 
     a = BoundCompositeArray_()
-    a.value.add(some = 543)
+    a.value.add(some=543)
     assert a.value[0].some == 543
+
 
 def test_bound_composite_array_encoding(BoundCompositeArray):
     x = BoundCompositeArray()
@@ -265,20 +279,22 @@ value {
     with pytest.raises(Exception):
         x.decode(b"\x00\x00\x00\x00\x00", ">")
 
+
 def test_bound_composite_array_decode_multiple():
     class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('x', prophy.u8)]
 
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('num_of_x', prophy.u8),
-                       ('x', prophy.array(Y, bound = 'num_of_x')),
+                       ('x', prophy.array(Y, bound='num_of_x')),
                        ('num_of_y', prophy.u8),
-                       ('y', prophy.array(Y, bound = 'num_of_y')),
+                       ('y', prophy.array(Y, bound='num_of_y')),
                        ('num_of_z', prophy.u8),
-                       ('z', prophy.array(Y, bound = 'num_of_z'))]
+                       ('z', prophy.array(Y, bound='num_of_z'))]
 
     x = X()
     x.decode(b'\x01\x00\x01\x00\x01\x00', '<')
+
 
 def test_bound_composite_add_via_kwargs(BoundCompositeArray):
     x = BoundCompositeArray()

@@ -1,6 +1,7 @@
 import prophy
 import pytest
 
+
 def test_optional_scalar():
     class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.optional(prophy.u32))]
@@ -29,6 +30,7 @@ a: 10
 
     x.decode(b"\x00\x00\x00\x00\x00\x00\x00\x00", ">")
     assert x.a is None
+
 
 def test_optional_struct():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
@@ -73,6 +75,7 @@ a {
     x.decode(b"\x00\x00\x00\x00\x00\x00\x00\x00", ">")
     assert x.a is None
 
+
 def test_optional_union():
     class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [("a", prophy.u32, 5)]
@@ -99,6 +102,7 @@ def test_optional_union():
     x.decode(b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", ">")
     assert x.a is None
 
+
 def test_optional_struct_in_array():
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [('a', prophy.u32),
@@ -109,7 +113,7 @@ def test_optional_struct_in_array():
 
     class C(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [('a_len', prophy.u32),
-                       ('a', prophy.array(B, bound = 'a_len'))]
+                       ('a', prophy.array(B, bound='a_len'))]
 
     x = C()
     x.a.add()
@@ -131,33 +135,37 @@ a {
 }
 """
 
+
 def test_optional_bytes():
     with pytest.raises(Exception) as e:
-        prophy.optional(prophy.bytes(size = 3))
+        prophy.optional(prophy.bytes(size=3))
     assert "optional bytes not implemented" == str(e.value)
+
 
 def test_optional_dynamic_field():
     class Dynamic(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [('a_len', prophy.u32),
-                       ('a', prophy.array(prophy.u8, bound = 'a_len'))]
+                       ('a', prophy.array(prophy.u8, bound='a_len'))]
     with pytest.raises(Exception) as e:
         prophy.optional(Dynamic)
     assert "optional dynamic fields not implemented" == str(e.value)
 
+
 def test_optional_array():
     with pytest.raises(Exception) as e:
-        prophy.optional(prophy.array(prophy.u8, size = 3))
+        prophy.optional(prophy.array(prophy.u8, size=3))
     assert "optional array not implemented" == str(e.value)
 
     with pytest.raises(Exception) as e:
         class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("a_len", prophy.optional(prophy.u32)),
-                           ("a", prophy.array(prophy.u32, bound = "a_len"))]
+                           ("a", prophy.array(prophy.u32, bound="a_len"))]
     assert "array S.a must not be bound to optional field" == str(e.value)
 
     with pytest.raises(Exception) as e:
         prophy.array(prophy.optional(prophy.u32))
     assert "array of optional type not allowed" == str(e.value)
+
 
 def test_optional_padded():
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):

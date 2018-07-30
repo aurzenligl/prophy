@@ -1,15 +1,18 @@
 import prophy
 import pytest
 
+
 def Float():
     class Float(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("value", prophy.r32)]
     return Float
 
+
 def Double():
     class Double(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("value", prophy.r64)]
     return Double
+
 
 @pytest.mark.parametrize("FloatTypeFactory", [Float, Double])
 def test_float(FloatTypeFactory):
@@ -27,6 +30,7 @@ def test_float(FloatTypeFactory):
     y.value = 4.1
     y.copy_from(x)
     assert y.value == 1.455
+
 
 @pytest.mark.parametrize("FloatTypeFactory, one, minus_one, too_long, too_short", [
     (Float,

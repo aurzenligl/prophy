@@ -5,13 +5,18 @@ from .six import ifilter, reduce
 from . import calc
 
 """ Exception types """
-class GenerateError(Exception): pass
+
+
+class GenerateError(Exception):
+    pass
+
 
 class ParseError(Exception):
     def __init__(self, errors):
         Exception.__init__(self, "parsing error")
         self.errors = errors
         """Collection of 2-tuples of location and message."""
+
 
 class Kind:
     """ Determines struct member wire format type. """
@@ -48,6 +53,7 @@ Include = namedtuple("Include", ["name", "nodes"])
 
 Constant = namedtuple("Constant", ["name", "value"])
 
+
 class Enum(object):
 
     def __init__(self, name, members):
@@ -61,6 +67,7 @@ class Enum(object):
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
 
+
 class EnumMember(object):
 
     def __init__(self, name, value):
@@ -73,6 +80,7 @@ class EnumMember(object):
 
     def __repr__(self):
         return '{0} {1}'.format(self.name, self.value)
+
 
 class Typedef(object):
 
@@ -88,6 +96,7 @@ class Typedef(object):
 
     def __repr__(self):
         return '{0} {1}'.format(self.type_, self.name)
+
 
 class Struct(object):
 
@@ -109,12 +118,13 @@ class Struct(object):
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
 
+
 class StructMember(object):
 
     def __init__(self, name, type_,
-                 bound = None, size = None,
-                 unlimited = False, optional = False,
-                 definition = None):
+                 bound=None, size=None,
+                 unlimited=False, optional=False,
+                 definition=None):
         assert(sum((bool(bound or size), unlimited, optional)) <= 1)
 
         self.name = name
@@ -176,6 +186,7 @@ class StructMember(object):
     def greedy(self):
         return self.array and not self.bound and not self.size
 
+
 class Union(object):
 
     def __init__(self, name, members):
@@ -193,10 +204,11 @@ class Union(object):
     def __repr__(self):
         return self.name + ''.join(('\n    {}'.format(x) for x in self.members)) + '\n'
 
+
 class UnionMember(object):
 
     def __init__(self, name, type_, discriminator,
-                 definition = None):
+                 definition=None):
         self.name = name
         self.type_ = type_
         self.discriminator = discriminator
@@ -217,6 +229,7 @@ class UnionMember(object):
 
 """ Utils """
 
+
 def split_after(nodes, pred):
     part = []
     for x in nodes:
@@ -227,11 +240,13 @@ def split_after(nodes, pred):
     if part:
         yield part
 
+
 def null_warn(str):
     pass
 
 
 """ Following functions process model. """
+
 
 def topological_sort(nodes):
     """Sorts nodes."""
@@ -256,19 +271,25 @@ def topological_sort(nodes):
         return [member.type_ for member in union.members]
 
     def get_deps(node):
-        if isinstance(node, Include): return get_include_deps(node)
-        elif isinstance(node, Constant): return get_constant_deps(node)
-        elif isinstance(node, Typedef): return get_typedef_deps(node)
-        elif isinstance(node, Enum): return get_enum_deps(node)
-        elif isinstance(node, Struct): return get_struct_deps(node)
-        elif isinstance(node, Union): return get_union_deps(node)
+        if isinstance(node, Include):
+            return get_include_deps(node)
+        elif isinstance(node, Constant):
+            return get_constant_deps(node)
+        elif isinstance(node, Typedef):
+            return get_typedef_deps(node)
+        elif isinstance(node, Enum):
+            return get_enum_deps(node)
+        elif isinstance(node, Struct):
+            return get_struct_deps(node)
+        elif isinstance(node, Union):
+            return get_union_deps(node)
 
     def model_sort_rotate(nodes, known, available, index):
         node = nodes[index]
         for dep in get_deps(node):
             if dep not in known and dep in available:
                 found_index, found = next(ifilter(lambda x: x[1].name == dep,
-                                          enumerate(islice(nodes, index + 1, None), start = index + 1)))
+                                                  enumerate(islice(nodes, index + 1, None), start=index + 1)))
                 nodes.insert(index, nodes.pop(found_index))
                 return True
         known.add(node.name)
@@ -282,7 +303,8 @@ def topological_sort(nodes):
         if not model_sort_rotate(nodes, known, available, index):
             index = index + 1
 
-def cross_reference(nodes, warn = null_warn):
+
+def cross_reference(nodes, warn=null_warn):
     """
     Adds definition reference to Typedef and StructMember.
     Adds numeric_size to StructMember if it's a sized array.
@@ -367,6 +389,7 @@ def cross_reference(nodes, warn = null_warn):
         elif isinstance(node, Union):
             list(map(cross_reference_types, node.members))
 
+
 def evaluate_struct_kind(node):
     """Adds kind to Struct. Requires cross referenced nodes."""
     if node.members:
@@ -378,6 +401,7 @@ def evaluate_struct_kind(node):
             return max(x.kind for x in node.members)
     else:
         return Kind.FIXED
+
 
 def evaluate_member_kind(member):
     """Adds kind to StructMember. Requires cross referenced nodes."""
@@ -393,6 +417,7 @@ def evaluate_member_kind(member):
     else:
         return Kind.FIXED
 
+
 def evaluate_kinds(nodes):
     """Adds kind to all Structs and StructMembers. Requires cross referenced nodes."""
     for node in nodes:
@@ -401,7 +426,8 @@ def evaluate_kinds(nodes):
                 member.kind = evaluate_member_kind(member)
             node.kind = evaluate_struct_kind(node)
 
-def evaluate_sizes(nodes, warn = null_warn):
+
+def evaluate_sizes(nodes, warn=null_warn):
     """
     Adds byte_size and alignment to Struct, StructMember, Union, UnionMember.
     Requires cross referenced nodes and evaluated kinds.
@@ -496,6 +522,7 @@ def evaluate_sizes(nodes, warn = null_warn):
         elif isinstance(node, Union):
             if evaluate_members_sizes(node):
                 evaluate_union_size(node)
+
 
 def partition(members):
     """

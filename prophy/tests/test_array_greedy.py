@@ -1,38 +1,44 @@
 import prophy
 import pytest
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def GreedyScalarArray():
     class GreedyScalarArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.array(prophy.u32))]
     return GreedyScalarArray
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Composite():
     class Composite(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.u16),
                        ("y", prophy.i16)]
     return Composite
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def GreedyCompositeArray(Composite):
     class GreedyCompositeArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.array(Composite))]
     return GreedyCompositeArray
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def ComplexComposite(Composite):
     class ComplexComposite(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("y_len", prophy.u32),
                        ("x", Composite),
-                       ("y", prophy.array(Composite, bound = "y_len"))]
+                       ("y", prophy.array(Composite, bound="y_len"))]
     return ComplexComposite
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def GreedyComplexCompositeArray(ComplexComposite):
     class GreedyComplexCompositeArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", prophy.array(ComplexComposite))]
     return GreedyComplexCompositeArray
+
 
 def test_greedy_scalar_array_assignment(GreedyScalarArray):
     a = GreedyScalarArray()
@@ -48,6 +54,7 @@ def test_greedy_scalar_array_assignment(GreedyScalarArray):
     b.copy_from(a)
     assert b.x[:] == [10, 4]
 
+
 def test_greedy_scalar_array_print(GreedyScalarArray):
     a = GreedyScalarArray()
     a.x[:] = [1, 2, 3, 4]
@@ -56,10 +63,12 @@ def test_greedy_scalar_array_print(GreedyScalarArray):
                       "x: 3\n"
                       "x: 4\n")
 
+
 def test_greedy_scalar_array_encode(GreedyScalarArray):
     a = GreedyScalarArray()
     a.x[:] = [1, 2, 3, 4]
     assert a.encode(">") == b"\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04"
+
 
 def test_greedy_scalar_array_decode(GreedyScalarArray):
     a = GreedyScalarArray()
@@ -68,6 +77,7 @@ def test_greedy_scalar_array_decode(GreedyScalarArray):
 
     with pytest.raises(prophy.ProphyError):
         a.decode(b"\x00\x00\x00\x0a\x00\x00\x00\x04\x00", ">")
+
 
 def test_greedy_composite_array_assignment(GreedyCompositeArray, Composite):
     a = GreedyCompositeArray()
@@ -93,6 +103,7 @@ def test_greedy_composite_array_assignment(GreedyCompositeArray, Composite):
     assert b.x[1].y == 20
     assert b.x[2].x == 1
     assert b.x[2].y == -1
+
 
 def test_greedy_composite_array_print(GreedyCompositeArray, Composite):
     a = GreedyCompositeArray()
@@ -122,6 +133,7 @@ def test_greedy_composite_array_print(GreedyCompositeArray, Composite):
                       "  y: -1\n"
                       "}\n")
 
+
 def test_greedy_composite_array_encode(GreedyCompositeArray, Composite):
     a = GreedyCompositeArray()
     c = Composite()
@@ -131,6 +143,7 @@ def test_greedy_composite_array_encode(GreedyCompositeArray, Composite):
     c = a.x.add()
     c.x, c.y = 1, -1
     assert a.encode(">") == b"\x00\x0a\x00\x14\x00\x0a\x00\x14\x00\x01\xff\xff"
+
 
 def test_greedy_composite_array_decode(GreedyCompositeArray):
     a = GreedyCompositeArray()
@@ -151,6 +164,7 @@ def test_greedy_composite_array_decode(GreedyCompositeArray):
 
     with pytest.raises(Exception):
         a.decode(b"\x00\x0a\x00\x14\x00\x0a\x00\x14\x00\x01\xff\xff\x00", ">")
+
 
 def test_greedy_complex_composite_array_assignment(GreedyComplexCompositeArray):
     a = GreedyComplexCompositeArray()
@@ -195,6 +209,7 @@ def test_greedy_complex_composite_array_assignment(GreedyComplexCompositeArray):
     assert b.x[0].y[1].y == 6
     assert b.x[1].x.x == 7
     assert b.x[1].x.y == 8
+
 
 def test_greedy_complex_composite_array_print(GreedyComplexCompositeArray):
     a = GreedyComplexCompositeArray()
@@ -241,6 +256,7 @@ def test_greedy_complex_composite_array_print(GreedyComplexCompositeArray):
                       "  }\n"
                       "}\n")
 
+
 def test_greedy_complex_composite_array_encode(GreedyComplexCompositeArray):
     a = GreedyComplexCompositeArray()
     c = a.x.add()
@@ -254,6 +270,7 @@ def test_greedy_complex_composite_array_encode(GreedyComplexCompositeArray):
     c.x.x, c.x.y = 7, 8
     assert a.encode(">") == (b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04"
                              b"\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08")
+
 
 def test_greedy_complex_composite_array_decode(GreedyComplexCompositeArray):
     a = GreedyComplexCompositeArray()
@@ -283,6 +300,7 @@ def test_greedy_complex_composite_array_decode(GreedyComplexCompositeArray):
         a.decode(b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04"
                  b"\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08\x00", ">")
 
+
 def test_greedy_array_exceptions():
     with pytest.raises(Exception) as e:
         class NotLast(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
@@ -295,6 +313,7 @@ def test_greedy_array_exceptions():
             _descriptor = [("x", prophy.array(prophy.u32))]
         prophy.array(GreedyComposite)
     assert "array with unlimited field disallowed" == str(e.value)
+
 
 def test_greedy_array_comparisons():
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):

@@ -3,6 +3,7 @@ from .exception import ProphyError
 from .base_array import base_array
 from .six import xrange
 
+
 def decode_scalar_array(tp, data, pos, endianness, count):
     if count is None:
         items, remainder = divmod(len(data) - pos, tp._SIZE)
@@ -15,6 +16,7 @@ def decode_scalar_array(tp, data, pos, endianness, count):
         values.append(value)
     return values, cursor
 
+
 def scalar_array_eq(self, other):
     if self is other:
         return True
@@ -24,6 +26,7 @@ def scalar_array_eq(self, other):
     # We are presumably comparing against some other sequence type.
     return other == self._values
 
+
 def composite_array_eq(self, other):
     if self is other:
         return True
@@ -31,6 +34,7 @@ def composite_array_eq(self, other):
         raise ProphyError('Can only compare repeated composite fields against '
                           'other repeated composite fields.')
     return self._values == other._values
+
 
 class fixed_scalar_array(base_array):
     __slots__ = []
@@ -60,6 +64,7 @@ class fixed_scalar_array(base_array):
     def _decode_impl(self, data, pos, endianness, _):
         self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len(self))
         return size
+
 
 class bound_scalar_array(base_array):
     __slots__ = []
@@ -119,6 +124,7 @@ class bound_scalar_array(base_array):
         self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len_hint)
         return max(size, self._SIZE)
 
+
 class fixed_composite_array(base_array):
 
     __slots__ = []
@@ -131,13 +137,14 @@ class fixed_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return b"".join(value.encode(endianness, terminal = False) for value in self)
+        return b"".join(value.encode(endianness, terminal=False) for value in self)
 
     def _decode_impl(self, data, pos, endianness, _):
         cursor = 0
         for elem in self:
-            cursor += elem._decode_impl(data, pos + cursor, endianness, terminal = False)
+            cursor += elem._decode_impl(data, pos + cursor, endianness, terminal=False)
         return cursor
+
 
 class bound_composite_array(base_array):
     __slots__ = []
@@ -179,7 +186,7 @@ class bound_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return b"".join(value.encode(endianness, terminal = False) for value in self).ljust(self._SIZE, b"\x00")
+        return b"".join(value.encode(endianness, terminal=False) for value in self).ljust(self._SIZE, b"\x00")
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
@@ -188,11 +195,12 @@ class bound_composite_array(base_array):
         cursor = 0
         if not self._SIZE and not self._BOUND:
             while (pos + cursor) < len(data):
-                cursor += self.add()._decode_impl(data, pos + cursor, endianness, terminal = False)
+                cursor += self.add()._decode_impl(data, pos + cursor, endianness, terminal=False)
         else:
             for _ in xrange(len_hint):
-                cursor += self.add()._decode_impl(data, pos + cursor, endianness, terminal = False)
+                cursor += self.add()._decode_impl(data, pos + cursor, endianness, terminal=False)
         return max(cursor, self._SIZE)
+
 
 def array(type_, **kwargs):
     size = kwargs.pop("size", 0)

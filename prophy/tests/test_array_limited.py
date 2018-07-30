@@ -1,26 +1,30 @@
 import prophy
 import pytest
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def LimitedScalarArray():
     class LimitedScalarArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("len", prophy.u32),
-                       ("value", prophy.array(prophy.u32, size = 3, bound = "len"))]
+                       ("value", prophy.array(prophy.u32, size=3, bound="len"))]
     return LimitedScalarArray
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def Composite():
     class Composite(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.u32),
                        ("y", prophy.u32)]
     return Composite
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def LimitedCompositeArray(Composite):
     class LimitedCompositeArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u32),
-                       ("value", prophy.array(Composite, size = 3, bound = "len"))]
+                       ("value", prophy.array(Composite, size=3, bound="len"))]
     return LimitedCompositeArray
+
 
 def test_limited_scalar_array_assignment(LimitedScalarArray):
     a = LimitedScalarArray()
@@ -53,16 +57,19 @@ def test_limited_scalar_array_assignment(LimitedScalarArray):
     b.copy_from(b)
     assert b.value == [10, 2, 3]
 
+
 def test_limited_scalar_array_print(LimitedScalarArray):
     a = LimitedScalarArray()
     a.value[:] = [1, 2]
     assert str(a) == ("value: 1\n"
                       "value: 2\n")
 
+
 def test_limited_scalar_array_encode(LimitedScalarArray):
     a = LimitedScalarArray()
     a.value[:] = [1, 2]
     assert a.encode(">") == b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x00"
+
 
 def test_limited_scalar_array_decode(LimitedScalarArray):
     a = LimitedScalarArray()
@@ -84,6 +91,7 @@ def test_limited_scalar_array_decode(LimitedScalarArray):
     with pytest.raises(prophy.ProphyError) as e:
         a.decode(b"\x00\x00\x00\x00", ">")
     assert 'too few bytes to decode array' in str(e.value)
+
 
 def test_limited_composite_array_assigment(LimitedCompositeArray, Composite):
     a = LimitedCompositeArray()
@@ -121,6 +129,7 @@ def test_limited_composite_array_assigment(LimitedCompositeArray, Composite):
                       "  y: 0\n"
                       "}\n")
 
+
 def test_limited_composite_array_exception(LimitedCompositeArray, Composite):
     a = LimitedCompositeArray()
     c = Composite()
@@ -155,6 +164,7 @@ def test_limited_composite_array_exception(LimitedCompositeArray, Composite):
     with pytest.raises(prophy.ProphyError) as e:
         a.decode((b"\x00\x00\x00\x00"), ">")
     assert "LimitedCompositeArray: too few bytes to decode array" == str(e.value)
+
 
 def test_limited_composite_array_encode(LimitedCompositeArray, Composite):
     a = LimitedCompositeArray()
@@ -191,6 +201,7 @@ def test_limited_composite_array_encode(LimitedCompositeArray, Composite):
                              b"\x11\x00\x00\x00\x00\x00\x00\x00"
                              b"\x11\x00\x00\x00\x00\x00\x00\x00")
 
+
 def test_limited_composite_array_decode(LimitedCompositeArray):
     a = LimitedCompositeArray()
 
@@ -226,6 +237,7 @@ def test_limited_composite_array_decode(LimitedCompositeArray):
     assert a.value[2].x == 0x33
     assert a.value[2].y == 0x39
 
+
 def test_limited_array_with_enum():
     class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("E_1", 1),
@@ -234,7 +246,7 @@ def test_limited_array_with_enum():
 
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a_len", prophy.u32),
-                       ("a", prophy.array(E, size = 3, bound = "a_len"))]
+                       ("a", prophy.array(E, size=3, bound="a_len"))]
 
     x = A()
 
@@ -249,13 +261,14 @@ def test_limited_array_with_enum():
 
     assert [3, 1] == x.a[:]
 
+
 def test_limited_array_with_field_afterwards():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8)]
 
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a_len", prophy.u8),
-                       ("a", prophy.array(S, size = 3, bound = "a_len")),
+                       ("a", prophy.array(S, size=3, bound="a_len")),
                        ("b", prophy.u8)]
 
     x = A()

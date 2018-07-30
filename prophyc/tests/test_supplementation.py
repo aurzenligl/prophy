@@ -248,6 +248,7 @@ class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
                    ('tricky3', prophy.array(prophy.u16, size = 64))]
 """
 
+
 @pytest.clang_installed
 def test_warns_with_supplementation(isar_test_helper, tmpdir_cwd, call_prophyc):
     cpp = tmpdir_cwd.join('the_sack.hpp')

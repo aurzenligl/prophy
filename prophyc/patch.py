@@ -3,6 +3,7 @@ from . import model
 
 Action = namedtuple("Action", ["action", "params"])
 
+
 def parse(filename):
     def make_item(line):
         words = line.split()
@@ -14,11 +15,13 @@ def parse(filename):
         patches.setdefault(name, []).append(action)
     return patches
 
+
 def patch(nodes, patchdict):
     for idx, node in enumerate(nodes):
         patches = patchdict.get(node.name)
         if patches:
             nodes[idx] = _apply(node, patches)
+
 
 def _apply(node, patches):
     for patch in patches:
@@ -27,6 +30,7 @@ def _apply(node, patches):
             raise Exception("Unknown action: %s %s" % (node.name, patch))
         node = action(node, patch)
     return node
+
 
 def _type(node, patch):
     if not isinstance(node, model.Struct):
@@ -44,6 +48,7 @@ def _type(node, patch):
     mem.type_ = tp
     return node
 
+
 def _insert(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can insert field only in struct: %s %s" % (node.name, patch))
@@ -59,6 +64,7 @@ def _insert(node, patch):
     node.members.insert(index, model.StructMember(name, tp))
     return node
 
+
 def _remove(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can remove field only in struct: %s %s" % (node.name, patch))
@@ -73,6 +79,7 @@ def _remove(node, patch):
 
     del node.members[i]
     return node
+
 
 def _dynamic(node, patch):
     if not isinstance(node, model.Struct):
@@ -93,6 +100,7 @@ def _dynamic(node, patch):
     mem.optional = False
     return node
 
+
 def _greedy(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
@@ -111,6 +119,7 @@ def _greedy(node, patch):
     mem.size = None
     mem.optional = False
     return node
+
 
 def _static(node, patch):
     if not isinstance(node, model.Struct):
@@ -134,6 +143,7 @@ def _static(node, patch):
     mem.optional = False
     return node
 
+
 def _limited(node, patch):
     if not isinstance(node, model.Struct):
         raise Exception("Can change field only in struct: %s %s" % (node.name, patch))
@@ -156,6 +166,7 @@ def _limited(node, patch):
     mem.optional = False
     return node
 
+
 def _struct(node, patch):
     if not isinstance(node, model.Union):
         raise Exception("Can only change union to struct: %s" % (node.name))
@@ -164,9 +175,10 @@ def _struct(node, patch):
         raise Exception("Change union to struct takes no params: %s" % (node.name))
 
     def to_struct_member(member):
-        return model.StructMember(name = member.name, type_ = member.type_, definition = member.definition)
+        return model.StructMember(name=member.name, type_=member.type_, definition=member.definition)
 
     return model.Struct(node.name, [to_struct_member(mem) for mem in node.members])
+
 
 def _rename(node, patch):
     def rename_node(node, new_name):
@@ -200,6 +212,7 @@ _actions = {'type': _type,
             'dynamic': _dynamic,
             'struct': _struct,
             'rename': _rename}
+
 
 def _is_int(s):
     try:

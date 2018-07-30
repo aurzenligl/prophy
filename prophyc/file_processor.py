@@ -1,19 +1,23 @@
 import os
 from contextlib import contextmanager
 
+
 class CyclicIncludeError(Exception):
     def __init__(self, path):
         Exception.__init__(self, "file %s included again during parsing" % path)
 
+
 class FileNotFoundError(Exception):
     def __init__(self, path):
         Exception.__init__(self, "file %s not found" % path)
+
 
 def _get_first_existing_path(leaf, dirs):
     for dir in dirs:
         path = os.path.join(dir, leaf)
         if os.path.exists(path):
             return path
+
 
 @contextmanager
 def push_dir(dirs, dir):
@@ -23,6 +27,7 @@ def push_dir(dirs, dir):
     finally:
         dirs.pop(0)
 
+
 @contextmanager
 def swap_dir(dirs, dir):
     try:
@@ -31,6 +36,7 @@ def swap_dir(dirs, dir):
         yield dirs
     finally:
         dirs[0] = tmp
+
 
 class FileProcessor(object):
 

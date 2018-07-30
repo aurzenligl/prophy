@@ -6,11 +6,14 @@ libname = "prophy"
 primitive_types = {x + y: "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
 primitive_types['byte'] = '%s.u8' % libname
 
+
 def _generate_include(include):
     return "from %s import *" % include.name.split("/")[-1]
 
+
 def _generate_constant(constant):
     return "%s = %s" % constant
+
 
 def _generate_typedef(typedef):
     return "%s = %s" % (
@@ -19,11 +22,14 @@ def _generate_typedef(typedef):
         ".".join((libname, typedef.type_)) or
         typedef.type_)
 
+
 def _generate_enum_members(members):
     return (",\n" + " " * 21).join(("('%s', %s)" % (member.name, member.value) for member in members))
 
+
 def _generate_enum_constants(members):
     return "\n".join(("%s = %s" % (member.name, member.value) for member in members))
+
 
 def _generate_enum(enum):
     return ("class {1}({0}.with_metaclass({0}.enum_generator, {0}.enum)):\n"
@@ -33,6 +39,7 @@ def _generate_enum(enum):
                           enum.name,
                           _generate_enum_members(enum.members),
                           _generate_enum_constants(enum.members))
+
 
 def _generate_struct_member(member):
     prefixed_type = primitive_types.get(member.type_, member.type_)
@@ -50,8 +57,10 @@ def _generate_struct_member(member):
             prefixed_type = '%s.array(%s)' % (libname, ', '.join([prefixed_type] + elem_strs))
     return "('%s', %s)" % (member.name, prefixed_type)
 
+
 def _generate_struct_members(keys):
     return (",\n" + " " * 19).join((_generate_struct_member(member) for member in keys))
+
 
 def _generate_struct(struct):
     return ("class {1}({0}.with_metaclass({0}.struct_generator, {0}.struct)):\n"
@@ -59,12 +68,15 @@ def _generate_struct(struct):
                                               struct.name,
                                               _generate_struct_members(struct.members))
 
+
 def _generate_union_member(member):
     prefixed_type = ".".join((libname, member.type_)) if member.type_ in primitive_types else member.type_
     return "('%s', %s, %s)" % (member.name, prefixed_type, member.discriminator)
 
+
 def _generate_union_members(members):
     return (",\n" + " " * 19).join(_generate_union_member(member) for member in members)
+
 
 def _generate_union(union):
     return ("class {1}({0}.with_metaclass({0}.union_generator, {0}.union)):\n"
@@ -82,8 +94,10 @@ generate_visitor = {
     model.Union: _generate_union
 }
 
+
 def _generate(node):
     return generate_visitor[type(node)](node)
+
 
 def _generator(nodes):
     last_node = None
@@ -94,9 +108,10 @@ def _generator(nodes):
         yield prepend_newline * '\n' + _generate(node) + '\n'
         last_node = node
 
+
 class PythonGenerator(object):
 
-    def __init__(self, output_dir = "."):
+    def __init__(self, output_dir="."):
         self.output_dir = output_dir
 
     def generate_definitions(self, nodes):

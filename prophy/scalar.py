@@ -2,6 +2,7 @@ import struct
 from .exception import ProphyError
 from .six import long
 
+
 def numeric_decorator(cls, size, id):
     @staticmethod
     def encode(value, endianness):
@@ -27,6 +28,7 @@ def numeric_decorator(cls, size, id):
 
     return cls
 
+
 def int_decorator(size, id, min, max):
     def decorator(cls):
         cls = numeric_decorator(cls, size, id)
@@ -46,6 +48,7 @@ def int_decorator(size, id, min, max):
         return cls
     return decorator
 
+
 def float_decorator(size, id):
     def decorator(cls):
         cls = numeric_decorator(cls, size, id)
@@ -63,45 +66,56 @@ def float_decorator(size, id):
         return cls
     return decorator
 
-@int_decorator(size = 1, id = 'b', min = -(1 << 7), max = (1 << 7) - 1)
+
+@int_decorator(size=1, id='b', min=-(1 << 7), max=(1 << 7) - 1)
 class i8(long):
     __slots__ = []
 
-@int_decorator(size = 2, id = 'h', min = -(1 << 15), max = (1 << 15) - 1)
+
+@int_decorator(size=2, id='h', min=-(1 << 15), max=(1 << 15) - 1)
 class i16(long):
     __slots__ = []
 
-@int_decorator(size = 4, id = 'i', min = -(1 << 31), max = (1 << 31) - 1)
+
+@int_decorator(size=4, id='i', min=-(1 << 31), max=(1 << 31) - 1)
 class i32(long):
     __slots__ = []
 
-@int_decorator(size = 8, id = 'q', min = -(1 << 63), max = (1 << 63) - 1)
+
+@int_decorator(size=8, id='q', min=-(1 << 63), max=(1 << 63) - 1)
 class i64(long):
     __slots__ = []
 
-@int_decorator(size = 1, id = 'B', min = 0, max = (1 << 8) - 1)
+
+@int_decorator(size=1, id='B', min=0, max=(1 << 8) - 1)
 class u8(long):
     __slots__ = []
 
-@int_decorator(size = 2, id = 'H', min = 0, max = (1 << 16) - 1)
+
+@int_decorator(size=2, id='H', min=0, max=(1 << 16) - 1)
 class u16(long):
     __slots__ = []
 
-@int_decorator(size = 4, id = 'I', min = 0, max = (1 << 32) - 1)
+
+@int_decorator(size=4, id='I', min=0, max=(1 << 32) - 1)
 class u32(long):
     __slots__ = []
 
-@int_decorator(size = 8, id = 'Q', min = 0, max = (1 << 64) - 1)
+
+@int_decorator(size=8, id='Q', min=0, max=(1 << 64) - 1)
 class u64(long):
     __slots__ = []
 
-@float_decorator(size = 4, id = 'f')
+
+@float_decorator(size=4, id='f')
 class r32(float):
     __slots__ = []
 
-@float_decorator(size = 8, id = 'd')
+
+@float_decorator(size=8, id='d')
 class r64(float):
     __slots__ = []
+
 
 def add_enum_attributes(cls, enumerators):
 
@@ -129,6 +143,7 @@ def add_enum_attributes(cls, enumerators):
     cls._int_to_name = int_to_name
     cls._check = check
 
+
 class enum_generator(type):
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = []
@@ -139,6 +154,7 @@ class enum_generator(type):
             cls._generated = True
             add_enum_attributes(cls, cls._enumerators)
         super(enum_generator, cls).__init__(name, bases, attrs)
+
 
 class enum(u32):
     __slots__ = []
@@ -151,8 +167,10 @@ class enum(u32):
     def number(self):
         return int(self)
 
+
 class enum8(u8, enum):
     __slots__ = []
+
 
 def bytes_(**kwargs):
     size = kwargs.pop("size", 0)
