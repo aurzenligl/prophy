@@ -1,7 +1,7 @@
-import os
-
 from prophyc import model
 from prophyc.model import GenerateError
+from prophyc.generators.base import GeneratorBase
+
 
 primitive_types = {
     'u8': 'uint8_t',
@@ -313,10 +313,7 @@ def _check_nodes(nodes):
             raise GenerateError('{0} byte size unknown'.format(n.name))
 
 
-class CppGenerator(object):
-
-    def __init__(self, output_dir="."):
-        self.output_dir = output_dir
+class CppGenerator(GeneratorBase):
 
     def generate_definitions(self, nodes):
         return ''.join(_generator_def(nodes))
@@ -364,9 +361,11 @@ class CppGenerator(object):
 
     def serialize(self, nodes, basename):
         _check_nodes(nodes)
-        hpp_path = os.path.join(self.output_dir, basename + ".pp.hpp")
-        cpp_path = os.path.join(self.output_dir, basename + ".pp.cpp")
-        with open(hpp_path, "w") as f:
-            f.write(self.serialize_string_hpp(nodes, basename))
-        with open(cpp_path, "w") as f:
-            f.write(self.serialize_string_cpp(nodes, basename))
+        hpp_path = self.localize(basename + ".pp.hpp")
+        cpp_path = self.localize(basename + ".pp.cpp")
+
+        hpp_contents = self.serialize_string_hpp(nodes, basename)
+        cpp_contents = self.serialize_string_cpp(nodes, basename)
+
+        self.write_file(hpp_path, hpp_contents)
+        self.write_file(cpp_path, cpp_contents)

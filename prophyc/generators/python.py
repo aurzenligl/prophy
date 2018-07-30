@@ -1,6 +1,5 @@
-import os
-
 from prophyc import model
+from prophyc.generators.base import GeneratorBase
 
 libname = "prophy"
 primitive_types = {x + y: "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
@@ -113,10 +112,7 @@ def _generator(nodes):
         last_node = node
 
 
-class PythonGenerator(object):
-
-    def __init__(self, output_dir="."):
-        self.output_dir = output_dir
+class PythonGenerator(GeneratorBase):
 
     def generate_definitions(self, nodes):
         return ''.join(_generator(nodes))
@@ -129,7 +125,6 @@ class PythonGenerator(object):
         return header + "\n" + definitions
 
     def serialize(self, nodes, basename):
-        path = os.path.join(self.output_dir, basename + ".py")
+        path = self.localize(basename + ".py")
         out = self.serialize_string(nodes)
-        with open(path, "w") as f:
-            f.write(out)
+        self.write_file(path, out)
