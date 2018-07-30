@@ -3,16 +3,16 @@ from .exception import ProphyError
 from .six import long
 
 
-def numeric_decorator(cls, size, id):
+def numeric_decorator(cls, size, id_):
     @staticmethod
     def encode(value, endianness):
-        return struct.pack(endianness + id, value)
+        return struct.pack(endianness + id_, value)
 
     @staticmethod
     def decode(data, pos, endianness):
         if (len(data) - pos) < size:
             raise ProphyError("too few bytes to decode integer")
-        value, = struct.unpack(endianness + id, data[pos:(pos + size)])
+        value, = struct.unpack(endianness + id_, data[pos:(pos + size)])
         return value, size
 
     cls._encode = encode
@@ -29,15 +29,15 @@ def numeric_decorator(cls, size, id):
     return cls
 
 
-def int_decorator(size, id, min, max):
+def int_decorator(size, id_, min_, max_):
     def decorator(cls):
-        cls = numeric_decorator(cls, size, id)
+        cls = numeric_decorator(cls, size, id_)
 
         @staticmethod
         def check(value):
             if not isinstance(value, (int, long)):
                 raise ProphyError("not an int")
-            if not min <= value <= max:
+            if not min_ <= value <= max_:
                 raise ProphyError("out of bounds")
             return value
 
@@ -49,9 +49,9 @@ def int_decorator(size, id, min, max):
     return decorator
 
 
-def float_decorator(size, id):
+def float_decorator(size, id_):
     def decorator(cls):
-        cls = numeric_decorator(cls, size, id)
+        cls = numeric_decorator(cls, size, id_)
 
         @staticmethod
         def check(value):
@@ -67,52 +67,52 @@ def float_decorator(size, id):
     return decorator
 
 
-@int_decorator(size=1, id='b', min=-(1 << 7), max=(1 << 7) - 1)
+@int_decorator(size=1, id_='b', min_=-(1 << 7), max_=(1 << 7) - 1)
 class i8(long):
     __slots__ = []
 
 
-@int_decorator(size=2, id='h', min=-(1 << 15), max=(1 << 15) - 1)
+@int_decorator(size=2, id_='h', min_=-(1 << 15), max_=(1 << 15) - 1)
 class i16(long):
     __slots__ = []
 
 
-@int_decorator(size=4, id='i', min=-(1 << 31), max=(1 << 31) - 1)
+@int_decorator(size=4, id_='i', min_=-(1 << 31), max_=(1 << 31) - 1)
 class i32(long):
     __slots__ = []
 
 
-@int_decorator(size=8, id='q', min=-(1 << 63), max=(1 << 63) - 1)
+@int_decorator(size=8, id_='q', min_=-(1 << 63), max_=(1 << 63) - 1)
 class i64(long):
     __slots__ = []
 
 
-@int_decorator(size=1, id='B', min=0, max=(1 << 8) - 1)
+@int_decorator(size=1, id_='B', min_=0, max_=(1 << 8) - 1)
 class u8(long):
     __slots__ = []
 
 
-@int_decorator(size=2, id='H', min=0, max=(1 << 16) - 1)
+@int_decorator(size=2, id_='H', min_=0, max_=(1 << 16) - 1)
 class u16(long):
     __slots__ = []
 
 
-@int_decorator(size=4, id='I', min=0, max=(1 << 32) - 1)
+@int_decorator(size=4, id_='I', min_=0, max_=(1 << 32) - 1)
 class u32(long):
     __slots__ = []
 
 
-@int_decorator(size=8, id='Q', min=0, max=(1 << 64) - 1)
+@int_decorator(size=8, id_='Q', min_=0, max_=(1 << 64) - 1)
 class u64(long):
     __slots__ = []
 
 
-@float_decorator(size=4, id='f')
+@float_decorator(size=4, id_='f')
 class r32(float):
     __slots__ = []
 
 
-@float_decorator(size=8, id='d')
+@float_decorator(size=8, id_='d')
 class r64(float):
     __slots__ = []
 

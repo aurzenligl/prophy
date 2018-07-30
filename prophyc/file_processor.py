@@ -13,26 +13,26 @@ class FileNotFoundError(Exception):
 
 
 def _get_first_existing_path(leaf, dirs):
-    for dir in dirs:
-        path = os.path.join(dir, leaf)
+    for directory in dirs:
+        path = os.path.join(directory, leaf)
         if os.path.exists(path):
             return path
 
 
 @contextmanager
-def push_dir(dirs, dir):
+def push_dir(dirs, directory):
     try:
-        dirs.insert(0, dir)
+        dirs.insert(0, directory)
         yield dirs
     finally:
         dirs.pop(0)
 
 
 @contextmanager
-def swap_dir(dirs, dir):
+def swap_dir(dirs, directory):
     try:
         tmp = dirs[0]
-        dirs[0] = dir
+        dirs[0] = directory
         yield dirs
     finally:
         dirs[0] = tmp

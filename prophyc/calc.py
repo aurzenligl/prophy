@@ -99,13 +99,13 @@ class Calc(Parser):
     def p_error(self, p):
         raise ParseError("syntax error at '%s'" % p.value)
 
-    def eval(self, expr, vars):
-        self.vars = vars
+    def eval(self, expr, vars_):
+        self.vars = vars_
         return super(Calc, self).eval(expr)
 
 
 calc = Calc()
 
 
-def eval(expr, vars):
-    return calc.eval(expr, vars)
+def eval(expr, vars_):
+    return calc.eval(expr, vars_)

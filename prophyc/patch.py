@@ -152,8 +152,8 @@ def _limited(node, patch):
         raise Exception("Change field must have 2 params: %s %s" % (node.name, patch))
     name, len_array = patch.params
 
-    i, member = next((x for x in enumerate(node.members) if x[1].name == len_array), (None, None))
-    if not member:
+    sizer_found = len(tuple(x for x in node.members if x.name == len_array))
+    if not sizer_found:
         raise Exception("Array len member not found: %s %s" % (node.name, patch))
 
     i, member = next((x for x in enumerate(node.members) if x[1].name == name), (None, None))
@@ -188,7 +188,7 @@ def _rename(node, patch):
     def rename_field(node, orig_name, new_name):
         if not isinstance(node, (model.Struct, model.Union)):
             raise Exception("Can rename fields only in composites: %s %s" % (node.name, patch))
-        i, member = next((x for x in enumerate(node.members) if x[1].name == orig_name), (None, None))
+        member = next((x for x in node.members if x.name == orig_name), None)
         if not member:
             raise Exception("Member not found: %s %s" % (node.name, patch))
         member.name = new_name
