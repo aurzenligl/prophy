@@ -48,9 +48,11 @@ def test_enums_rendering():
 
     ref = """\
 class EEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
-    _enumerators  = [('EEnum_A', 0),
-                     ('EEnum_B', 1),
-                     ('EEnum_C', 2)]
+    _enumerators = [
+        ('EEnum_A', 0),
+        ('EEnum_B', 1),
+        ('EEnum_C', 2)
+    ]
 
 EEnum_A = 0
 EEnum_B = 1
@@ -67,10 +69,12 @@ def test_struct_rendering():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a', prophy.u8),
-                   ('b', prophy.i64),
-                   ('c', prophy.r32),
-                   ('d', TTypeX)]
+    _descriptor = [
+        ('a', prophy.u8),
+        ('b', prophy.i64),
+        ('c', prophy.r32),
+        ('d', TTypeX)
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -81,8 +85,10 @@ def test_struct_rendering_with_dynamic_array():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('tmpName', TNumberOfItems),
-                   ('a', prophy.array(prophy.u8, bound = 'tmpName'))]
+    _descriptor = [
+        ('tmpName', TNumberOfItems),
+        ('a', prophy.array(prophy.u8, bound = 'tmpName'))
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -95,10 +101,12 @@ def test_struct_rendering_with_dynamic_arrays_bounded_by_the_same_member():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('numOfElements', TNumberOfItems),
-                   ('tmpName', prophy.u32),
-                   ('a', prophy.array(prophy.u8, bound = 'numOfElements')),
-                   ('b', prophy.array(prophy.r32, bound = 'numOfElements'))]
+    _descriptor = [
+        ('numOfElements', TNumberOfItems),
+        ('tmpName', prophy.u32),
+        ('a', prophy.array(prophy.u8, bound = 'numOfElements')),
+        ('b', prophy.array(prophy.r32, bound = 'numOfElements'))
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -108,7 +116,9 @@ def test_struct_rendering_with_static_array():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a', prophy.array(prophy.u8, size = NUM_OF_ARRAY_ELEMS))]
+    _descriptor = [
+        ('a', prophy.array(prophy.u8, size = NUM_OF_ARRAY_ELEMS))
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -119,8 +129,10 @@ def test_struct_rendering_with_limited_array():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a_len', prophy.u8),
-                   ('a', prophy.array(prophy.u8, bound = 'a_len', size = NUM_OF_ARRAY_ELEMS))]
+    _descriptor = [
+        ('a_len', prophy.u8),
+        ('a', prophy.array(prophy.u8, bound = 'a_len', size = NUM_OF_ARRAY_ELEMS))
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -130,7 +142,9 @@ def test_struct_rendering_with_optional():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a', prophy.optional(prophy.u32))]
+    _descriptor = [
+        ('a', prophy.optional(prophy.u32))
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -140,7 +154,9 @@ def test_struct_rendering_with_byte():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a', prophy.u8)]
+    _descriptor = [
+        ('a', prophy.u8)
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -150,7 +166,9 @@ def test_struct_rendering_with_byte_array():
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a', prophy.bytes())]
+    _descriptor = [
+        ('a', prophy.bytes())
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -162,9 +180,11 @@ def test_union_rendering():
 
     ref = """\
 class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
-    _descriptor = [('a', A, 0),
-                   ('b', B, 1),
-                   ('c', C, 2)]
+    _descriptor = [
+        ('a', A, 0),
+        ('b', B, 1),
+        ('c', C, 2)
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -176,9 +196,11 @@ def test_union_rendering_2():
 
     ref = """\
 class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
-    _descriptor = [('a', prophy.i8, 0),
-                   ('b', prophy.u32, 1),
-                   ('c', prophy.r64, 2)]
+    _descriptor = [
+        ('a', prophy.i8, 0),
+        ('b', prophy.u32, 1),
+        ('c', prophy.r64, 2)
+    ]
 """
     assert ref == serialize(nodes)
 
@@ -232,10 +254,12 @@ td_elem_name_140 = i_td_elem_val_140
 td_elem_name_140 = u_td_elem_val_140
 
 class test(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
-    _enumerators  = [('elem_1', val_1),
-                     ('elem_31', val_31),
-                     ('elem_61', val_61),
-                     ('elem_91', val_91)]
+    _enumerators = [
+        ('elem_1', val_1),
+        ('elem_31', val_31),
+        ('elem_61', val_61),
+        ('elem_91', val_91)
+    ]
 
 elem_1 = val_1
 elem_31 = val_31
@@ -243,6 +267,8 @@ elem_61 = val_61
 elem_91 = val_91
 
 class MAC_L2CallConfigResp(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('messageResult', SMessageResult)]
+    _descriptor = [
+        ('messageResult', SMessageResult)
+    ]
 """
     assert ref == output

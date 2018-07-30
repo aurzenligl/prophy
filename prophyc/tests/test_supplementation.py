@@ -40,10 +40,12 @@ IsarDefA = prophy.r32
 IsarDefB = prophy.r64
 
 class EIsarDefEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
-    _enumerators  = [('EIsarDefEnum_A', 0),
-                     ('EIsarDefEnum_B', 1),
-                     ('EIsarDefEnum_C', 2),
-                     ('EIsarDefEnum_D', 4)]
+    _enumerators = [
+        ('EIsarDefEnum_A', 0),
+        ('EIsarDefEnum_B', 1),
+        ('EIsarDefEnum_C', 2),
+        ('EIsarDefEnum_D', 4)
+    ]
 
 EIsarDefEnum_A = 0
 EIsarDefEnum_B = 1
@@ -51,9 +53,11 @@ EIsarDefEnum_C = 2
 EIsarDefEnum_D = 4
 
 class IsarDefC(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('ifC_a', prophy.u16),
-                   ('ifC_b_len', prophy.u32),
-                   ('ifC_b', prophy.array(prophy.u64, bound = 'ifC_b_len'))]
+    _descriptor = [
+        ('ifC_a', prophy.u16),
+        ('ifC_b_len', prophy.u32),
+        ('ifC_b', prophy.array(prophy.u64, bound = 'ifC_b_len'))
+    ]
 """),
 
 
@@ -81,12 +85,16 @@ import prophy
 from isar_root_defs import *
 
 class IsarK(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('ifK_a', prophy.u8),
-                   ('ifK_B', prophy.array(IsarDefB, size = IsarCONST_A))]
+    _descriptor = [
+        ('ifK_a', prophy.u8),
+        ('ifK_B', prophy.array(IsarDefB, size = IsarCONST_A))
+    ]
 
 class IsarL(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('numOfItems', prophy.u32),
-                   ('theBItems', prophy.array(IsarDefB, bound = 'numOfItems'))]
+    _descriptor = [
+        ('numOfItems', prophy.u32),
+        ('theBItems', prophy.array(IsarDefB, bound = 'numOfItems'))
+    ]
 """),
 
     IsarTestItem(
@@ -109,10 +117,12 @@ import prophy
 from isar_root_defs import *
 
 class IsarV(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('ifV_a', IsarDefA),
-                   ('ifV_b_len', prophy.u32),
-                   ('ifV_b', prophy.array(IsarDefB, bound = 'ifV_b_len', size = IsarCONST_B)),
-                   ('ifV_c', EIsarDefEnum)]
+    _descriptor = [
+        ('ifV_a', IsarDefA),
+        ('ifV_b_len', prophy.u32),
+        ('ifV_b', prophy.array(IsarDefB, bound = 'ifV_b_len', size = IsarCONST_B)),
+        ('ifV_c', EIsarDefEnum)
+    ]
 """)
 ]
 
@@ -163,10 +173,12 @@ from included_by_sack_a import *
 from included_by_sack_b import *
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('defined_in_xml', IsarK),
-                   ('defined_deeper_in_xmls', IsarDefC),
-                   ('regular_type', prophy.u16),
-                   ('typedefed_deeper_in_xmls', IsarDefA)]
+    _descriptor = [
+        ('defined_in_xml', IsarK),
+        ('defined_deeper_in_xmls', IsarDefC),
+        ('regular_type', prophy.u16),
+        ('typedefed_deeper_in_xmls', IsarDefA)
+    ]
 """
 
 
@@ -197,8 +209,10 @@ from included_by_sack_a import *
 from included_by_sack_b import *
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('type_from_isar', prophy.array(IsarV, size = 4)),
-                   ('regular_type', prophy.array(prophy.u16, size = 16))]
+    _descriptor = [
+        ('type_from_isar', prophy.array(IsarV, size = 4)),
+        ('regular_type', prophy.array(prophy.u16, size = 16))
+    ]
 """
 
 
@@ -242,10 +256,12 @@ class constants(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = []
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('straigth', prophy.array(prophy.u8, size = 2)),
-                   ('tricky1', prophy.array(prophy.u16, size = 4)),
-                   ('tricky2', prophy.array(prophy.u16, size = 20)),
-                   ('tricky3', prophy.array(prophy.u16, size = 64))]
+    _descriptor = [
+        ('straigth', prophy.array(prophy.u8, size = 2)),
+        ('tricky1', prophy.array(prophy.u16, size = 4)),
+        ('tricky2', prophy.array(prophy.u16, size = 20)),
+        ('tricky3', prophy.array(prophy.u16, size = 64))
+    ]
 """
 
 
