@@ -126,11 +126,15 @@ B dynamic b a
     assert empty_python_output + """\
 
 class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a', prophy.u8)]
+    _descriptor = [
+        ('a', prophy.u8)
+    ]
 
 class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('a', prophy.u8),
-                   ('b', prophy.array(A, bound = 'a'))]
+    _descriptor = [
+        ('a', prophy.u8),
+        ('b', prophy.array(A, bound = 'a'))
+    ]
 """ == tmpdir_cwd.join("input.py").read()
 
 
@@ -281,7 +285,9 @@ X type x r64
     assert empty_python_output + """\
 
 class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('x', prophy.r64)]
+    _descriptor = [
+        ('x', prophy.r64)
+    ]
 """ == tmpdir_cwd.join("input.py").read()
 
 
@@ -306,7 +312,9 @@ def test_multiple_outputs(call_prophyc, tmpdir_cwd):
 import prophy
 
 class Test(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('x', prophy.u32)]
+    _descriptor = [
+        ('x', prophy.u32)
+    ]
 """
     assert tmpdir_cwd.join("input.pp.hpp").read() == """\
 #ifndef _PROPHY_GENERATED_input_HPP
@@ -385,13 +393,17 @@ union U
 import prophy
 
 class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-    _descriptor = [('x', prophy.array(prophy.u32, size = 5)),
-                   ('num_of_y', prophy.u32),
-                   ('y', prophy.array(prophy.u64, bound = 'num_of_y', size = 2))]
+    _descriptor = [
+        ('x', prophy.array(prophy.u32, size = 5)),
+        ('num_of_y', prophy.u32),
+        ('y', prophy.array(prophy.u64, bound = 'num_of_y', size = 2))
+    ]
 
 class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
-    _descriptor = [('x', X, 1),
-                   ('y', prophy.u32, 2)]
+    _descriptor = [
+        ('x', X, 1),
+        ('y', prophy.u32, 2)
+    ]
 """
     assert tmpdir_cwd.join("input.pp.hpp").read() == """\
 #ifndef _PROPHY_GENERATED_input_HPP
