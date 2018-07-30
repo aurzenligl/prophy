@@ -6,7 +6,7 @@ from prophyc.parsers.prophy import ProphyParser
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
 
-def parse(content, parse_file=lambda path: []):
+def parse(content, parse_file=lambda _: []):
     return ProphyParser().parse(content, 'test.prophy', parse_file)
 
 

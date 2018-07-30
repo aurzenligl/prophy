@@ -51,7 +51,7 @@ def test_limited_scalar_array_assignment(LimitedScalarArray):
     assert str(err.value) == "exceeded array limit"
 
     b = LimitedScalarArray()
-    b.value[:] == [9, 9]
+    b.value[:] = [9, 9]
     b.copy_from(a)
     assert b.value[:] == [10, 2, 3]
     b.copy_from(b)

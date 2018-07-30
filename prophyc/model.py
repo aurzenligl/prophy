@@ -241,7 +241,7 @@ def split_after(nodes, pred):
         yield part
 
 
-def null_warn(str):
+def null_warn(_):
     pass
 
 
@@ -251,7 +251,7 @@ def null_warn(str):
 def topological_sort(nodes):
     """Sorts nodes."""
 
-    def get_include_deps(include):
+    def get_include_deps(_):
         return []
 
     def get_constant_deps(constant):
@@ -288,8 +288,8 @@ def topological_sort(nodes):
         node = nodes[index]
         for dep in get_deps(node):
             if dep not in known and dep in available:
-                found_index, found = next(ifilter(lambda x: x[1].name == dep,
-                                                  enumerate(islice(nodes, index + 1, None), start=index + 1)))
+                found_index, _ = next(ifilter(lambda x: x[1].name == dep,
+                                              enumerate(islice(nodes, index + 1, None), start=index + 1)))
                 nodes.insert(index, nodes.pop(found_index))
                 return True
         known.add(node.name)

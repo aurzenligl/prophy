@@ -2,7 +2,7 @@ import prophy
 import pytest
 
 
-@pytest.mark.parametrize('IntType, min, max', [
+@pytest.mark.parametrize('IntType, min_, max_', [
     (prophy.i8, -(0x80), 0x7F),
     (prophy.i16, -(0x8000), 0x7FFF),
     (prophy.i32, -(0x80000000), 0x7FFFFFFF),
@@ -12,33 +12,33 @@ import pytest
     (prophy.u32, 0, 0xFFFFFFFF),
     (prophy.u64, 0, 0xFFFFFFFFFFFFFFFF)
 ])
-def test_integer(IntType, min, max):
+def test_integer(IntType, min_, max_):
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("value", IntType)]
 
     x = X()
     assert x.value == 0
-    x.value = max
-    assert x.value == max
-    x.value = min
-    assert x.value == min
+    x.value = max_
+    assert x.value == max_
+    x.value = min_
+    assert x.value == min_
 
     with pytest.raises(prophy.ProphyError) as e:
         x.value = "123"
     assert "not an int" in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.value = max + 1
+        x.value = max_ + 1
     assert "out of bounds" in str(e.value)
 
     with pytest.raises(prophy.ProphyError) as e:
-        x.value = min - 1
+        x.value = min_ - 1
     assert "out of bounds" in str(e.value)
 
     y = X()
-    y.value == 42
+    y.value = 42
     y.copy_from(x)
-    assert y.value == min
+    assert y.value == min_
 
 
 @pytest.mark.parametrize('IntType, a, encoded_a, b, encoded_b, too_short, too_long', [
