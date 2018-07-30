@@ -1,6 +1,7 @@
-import os
 from prophyc import model
 from prophyc.model import DISC_SIZE, BUILTIN_SIZES, GenerateError
+from prophyc.generators.base import GeneratorBase
+
 
 BUILTIN2C = {
     'i8': 'int8_t',
@@ -639,16 +640,15 @@ def check_nodes(nodes):
                         occured.add(m.bound)
 
 
-class CppFullGenerator(object):
-
-    def __init__(self, output_dir):
-        self.output_dir = output_dir
+class CppFullGenerator(GeneratorBase):
 
     def serialize(self, nodes, basename):
         check_nodes(nodes)
-        hpp_path = os.path.join(self.output_dir, basename + '.ppf.hpp')
-        cpp_path = os.path.join(self.output_dir, basename + '.ppf.cpp')
-        with open(hpp_path, 'w') as f:
-            f.write(generate_hpp(nodes, basename))
-        with open(cpp_path, 'w') as f:
-            f.write(generate_cpp(nodes, basename))
+        hpp_path = self.localize(basename + '.ppf.hpp')
+        cpp_path = self.localize(basename + '.ppf.cpp')
+
+        hpp_contents = generate_hpp(nodes, basename)
+        cpp_contents = generate_cpp(nodes, basename)
+
+        self.write_file(hpp_path, hpp_contents)
+        self.write_file(cpp_path, cpp_contents)
