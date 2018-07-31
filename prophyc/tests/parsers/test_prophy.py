@@ -33,6 +33,7 @@ const B = A * 2;
 const C = (B - A) * 3;
 const D = -C;
 const E = D << 2;
+const F = 0xF >> (E + 10 + C);
 """
 
     assert parse(content) == [
@@ -40,7 +41,8 @@ const E = D << 2;
         model.Constant("B", "2"),
         model.Constant("C", "3"),
         model.Constant("D", "-3"),
-        model.Constant("E", "-12")
+        model.Constant("E", "-12"),
+        model.Constant("F", "7")
     ]
 
 

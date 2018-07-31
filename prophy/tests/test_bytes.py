@@ -40,6 +40,13 @@ def GreedyBytes():
     return GreedyBytes
 
 
+def test_bad_bytes_definition():
+    with pytest.raises(prophy.ProphyError) as e:
+        class FixedBytes(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+            _descriptor = [("value", prophy.bytes(bad_keyword=5))]
+    assert "unknown arguments to bytes field" in str(e.value)
+
+
 def test_fixed_bytes_assignment(FixedBytes):
     x = FixedBytes()
     assert x.value == b"\x00\x00\x00\x00\x00"

@@ -1,6 +1,6 @@
 import sys
 
-if sys.version < '3':
+if sys.version < '3':  # pragma: no cover
     from itertools import ifilter
     reduce = reduce
     string_types = (str, unicode)
@@ -8,7 +8,7 @@ if sys.version < '3':
     def to_bytes(str_):
         return str_
 
-else:
+else:  # pragma: no cover
     ifilter = filter
     from functools import reduce
     string_types = str

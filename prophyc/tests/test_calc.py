@@ -9,6 +9,8 @@ def test_calc_numeric():
     assert calc.eval('10 / 2', {}) == 5
     assert calc.eval('10 << 2', {}) == 40
     assert calc.eval('10 >> 2', {}) == 2
+    assert calc.eval('-10', {}) == -10
+    assert calc.eval('\n-10\n', {}) == -10
 
 
 def test_calc_parens():
