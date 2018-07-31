@@ -2,7 +2,7 @@
 
 import sys
 
-if sys.version < '3':
+if sys.version < '3':  # pragma: no cover
     long = long
     from itertools import ifilter
     xrange = xrange
@@ -10,7 +10,7 @@ if sys.version < '3':
     def repr_bytes(x):
         return repr(x)
 
-else:
+else:  # pragma: no cover
     long = int
     ifilter = filter
     xrange = range

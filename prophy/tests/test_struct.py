@@ -103,6 +103,9 @@ def test_nested_struct_assignment(NestedStruct):
     assert y.b.x == 3
     assert y.b.y == 4
 
+    with pytest.raises(prophy.ProphyError, match="assignment to composite field not allowed"):
+        x.a = 23
+
 
 def test_nested_struct_print(NestedStruct):
     y = NestedStruct()

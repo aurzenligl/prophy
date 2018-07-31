@@ -40,6 +40,9 @@ def test_optional_struct():
         _descriptor = [("a", prophy.optional(S))]
 
     x = K()
+    with pytest.raises(prophy.ProphyError, match="assignment to composite field not allowed"):
+        x.a = 123
+
     assert x.a is None
     assert x.encode(">") == b"\x00\x00\x00\x00\x00\x00\x00\x00"
     assert str(x) == """\
