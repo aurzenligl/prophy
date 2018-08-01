@@ -1,34 +1,40 @@
 import pytest
 from prophyc import model
-from prophyc.generators.cpp import CppGenerator, GenerateError, _Padder, _check_nodes
+from prophyc.generators.cpp import CppGenerator, GenerateError, _Padder, _HppTranslator,\
+    _HppDefinitionsTranslator, _HppSwapDeclarations, _HppIncludesTranslator, _CppSwapTranslator
+
+hpp_translator = _HppTranslator()
+cpp_translator = _CppSwapTranslator()
 
 
 def process(nodes):
     model.cross_reference(nodes)
     model.evaluate_kinds(nodes)
     model.evaluate_sizes(nodes)
-    _check_nodes(nodes)
+    CppGenerator().check_nodes(nodes)
     return nodes
 
 
 def generate_definitions(nodes):
-    return CppGenerator().generate_definitions(nodes)
+    defs_translator = _HppDefinitionsTranslator()
+    return defs_translator.process_nodes(nodes, "")
 
 
 def generate_swap_declarations(nodes):
-    return CppGenerator().generate_swap_declarations(nodes)
+    swap_translator = _HppSwapDeclarations()
+    return swap_translator(nodes, "")
 
 
 def generate_swap(nodes):
-    return CppGenerator().generate_swap(nodes)
+    return cpp_translator.process_nodes(nodes, "")
 
 
 def generate_hpp(nodes, basename):
-    return CppGenerator().serialize_string_hpp(nodes, basename)
+    return hpp_translator(nodes, basename)
 
 
 def generate_cpp(nodes, basename):
-    return CppGenerator().serialize_string_cpp(nodes, basename)
+    return cpp_translator(nodes, basename)
 
 
 def test_padder_indexing():
@@ -56,8 +62,8 @@ def test_definitions_includes():
         model.Include("mydlo", []),
         model.Include("powidlo", [])
     ])
-
-    assert generate_definitions(nodes) == """\
+    include_translator = _HppIncludesTranslator()
+    assert include_translator(nodes, "") == """\
 #include "szydlo.pp.hpp"
 #include "mydlo.pp.hpp"
 #include "powidlo.pp.hpp"
@@ -1063,9 +1069,9 @@ def test_generate_swap_declarations():
 namespace prophy
 {
 
-template <> inline C* swap<C>(C* in) { swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }
 template <> A* swap<A>(A*);
 template <> B* swap<B>(B*);
+template <> inline C* swap<C>(C* in) { swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }
 
 } // namespace prophy
 """
@@ -1160,5 +1166,5 @@ def test_struct_size_error():
     ]
 
     with pytest.raises(GenerateError) as e:
-        _check_nodes(nodes)
+        CppGenerator().check_nodes(nodes)
     assert "X byte size unknown" == str(e.value)

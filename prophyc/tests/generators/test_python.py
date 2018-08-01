@@ -1,9 +1,10 @@
 from prophyc import model
-from prophyc.generators.python import PythonGenerator
+from prophyc.generators.python import _PythonTranslator
 
 
 def serialize(nodes):
-    return PythonGenerator().generate_definitions(nodes)
+    python_translator = _PythonTranslator()
+    return python_translator.process_nodes(nodes, "")
 
 
 def test_includes_rendering():
@@ -229,8 +230,8 @@ def test_of_PythonGenerator():
     nodes += [model.Enum("test", enum)]
     nodes += [msg_h]
 
-    ps = PythonGenerator()
-    output = ps.serialize_string(nodes)
+    python_translator = _PythonTranslator()
+    output = python_translator(nodes, "")
 
     ref = """\
 import prophy
@@ -271,4 +272,4 @@ class MAC_L2CallConfigResp(prophy.with_metaclass(prophy.struct_generator, prophy
         ('messageResult', SMessageResult)
     ]
 """
-    assert ref == output
+    assert output == ref

@@ -4,7 +4,7 @@ import ctypes.util
 from .clang.cindex import Config, Index, CursorKind, TypeKind, TranslationUnitLoadError, LibclangError
 
 from prophyc import model
-from prophyc.generators.cpp import _generate_def_enum
+from prophyc.generators.cpp import _HppDefinitionsTranslator
 from prophyc.six import to_bytes
 from contextlib import contextmanager
 
@@ -182,7 +182,8 @@ class SupplementaryDefs(object):
             if isinstance(node, model.Constant):
                 yield "#define {} {}".format(node.name, node.value)
             elif isinstance(node, model.Enum):
-                for line in _generate_def_enum(node).split('\n'):
+                cpp_translator = _HppDefinitionsTranslator()
+                for line in cpp_translator._translate_enum(node).split('\n'):
                     # need to have all lines separated to know its count
                     yield line
             else:
