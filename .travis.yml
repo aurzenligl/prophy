@@ -18,17 +18,19 @@ matrix:
       env: TOXENV=py34
     - python: '3.5'
       env: TOXENV=py35
+    - python: '3.6'
+      env: TOXENV=py36
     - python: 'pypy'
       env: TOXENV=pypy
     - python: '2.7'
       env: TOXENV=noclang
-    - python: '3.4'
-      env: TOXENV=noclang
     - python: '3.5'
       env: TOXENV=noclang
-    - python: '3.5'
+    - python: '3.6'
+      env: TOXENV=noclang
+    - python: '3.6'
       env: CXX=g++-6
-    - python: '3.5'
+    - python: '3.6'
       env: CXX=clang++-3.8
 
 before_install:
