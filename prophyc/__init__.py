@@ -1,12 +1,14 @@
 #! /usr/bin/env python
 
-import sys
-import os
-
-from . import options
-from . import model
-from .file_processor import FileProcessor
 from contextlib import contextmanager
+import os
+import sys
+
+from . import model
+from . import options
+from .file_processor import FileProcessor
+from .generators.base import GenerateError
+
 
 __version__ = '1.1.2'
 
@@ -150,7 +152,7 @@ def generate_target_files(emit, serializers, basename, nodes):
     for serializer in serializers:
         try:
             serializer.serialize(nodes, basename)
-        except model.GenerateError as e:
+        except GenerateError as e:
             emit.error(str(e))
 
 

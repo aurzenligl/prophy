@@ -560,6 +560,7 @@ struct X {
 #include <prophy/detail/message.hpp>
 #include <prophy/detail/mpl.hpp>
 
+
 namespace prophy
 {
 namespace generated

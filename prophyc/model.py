@@ -7,10 +7,6 @@ from . import calc
 """ Exception types """
 
 
-class GenerateError(Exception):
-    pass
-
-
 class ParseError(Exception):
     def __init__(self, errors):
         Exception.__init__(self, "parsing error")

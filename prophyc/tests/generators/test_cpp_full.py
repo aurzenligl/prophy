@@ -1,13 +1,7 @@
 import pytest
 from prophyc import model
+from prophyc.generators.base import GenerateError
 from prophyc.generators.cpp_full import (
-    generate_include_definition,
-    generate_constant_definition,
-    generate_typedef_definition,
-    generate_enum_definition,
-    generate_enum_implementation,
-    generate_struct_definition,
-    generate_struct_implementation,
     generate_struct_encode,
     generate_struct_decode,
     generate_struct_print,
@@ -15,8 +9,6 @@ from prophyc.generators.cpp_full import (
     generate_struct_get_byte_size,
     generate_struct_fields,
     generate_struct_constructor,
-    generate_union_definition,
-    generate_union_implementation,
     generate_union_encode,
     generate_union_decode,
     generate_union_print,
@@ -24,14 +16,33 @@ from prophyc.generators.cpp_full import (
     generate_union_get_byte_size,
     generate_union_fields,
     generate_union_constructor,
-    generate_hpp_content,
-    generate_hpp,
-    generate_cpp,
-    GenerateError,
-    CppFullGenerator
-)
+    CppFullGenerator,
+    _CppTranslator,
+    _HppTranslator,
+    _HppDefinitionsTranslator,
+    _HppIncludesTranslator)
 
 # flake8: noqa E501
+
+hpp_content_translator = _HppDefinitionsTranslator()
+generate_constant_definition = hpp_content_translator._translate_constant
+generate_enum_definition = hpp_content_translator._translate_enum
+generate_typedef_definition = hpp_content_translator._translate_typedef
+generate_struct_definition = hpp_content_translator._translate_struct
+generate_union_definition = hpp_content_translator._translate_union
+
+cpp_translator = _CppTranslator()
+generate_struct_implementation = cpp_translator._translate_struct
+generate_union_implementation = cpp_translator._translate_union
+
+
+def generate_hpp_content(nodes):
+    return hpp_content_translator.process_nodes(nodes, "")
+
+
+def generate_hpp(nodes, base_name):
+    hpp_translator = _HppTranslator()
+    return hpp_translator(nodes, base_name)
 
 
 def process(nodes):
@@ -100,18 +111,18 @@ def Union():
 
 
 def test_generate_include_definition(Include):
-    assert generate_include_definition(Include[0]) == """\
+    includes_translator = _HppIncludesTranslator()
+    assert includes_translator(Include[0:1], "") == """\
 #include "Arrays.ppf.hpp"
+
 """
 
 
 def test_generate_constant_definition(Constant):
     assert generate_constant_definition(Constant[0]) == """\
-enum { CONSTANT = 3u };
-"""
+enum { CONSTANT = 3u };"""
     assert generate_constant_definition(Constant[1]) == """\
-enum { CONSTANT_WITH_IDENTIFIER = xyz };
-"""
+enum { CONSTANT_WITH_IDENTIFIER = xyz };"""
 
 
 def test_generate_enum_definition(Enum):
@@ -122,17 +133,14 @@ enum Enum
     Enum_Two = 0x2u,
     Enum_Three = 0o3u,
     Enum_Four = -4
-};
-"""
+};"""
 
 
 def test_generate_typedef_definition(Typedef):
     assert generate_typedef_definition(Typedef[0]) == """\
-typedef uint16_t TU16;
-"""
+typedef uint16_t TU16;"""
     assert generate_typedef_definition(Typedef[1]) == """\
-typedef X TX;
-"""
+typedef X TX;"""
 
 
 def test_generate_struct_definition(Struct):
@@ -151,8 +159,7 @@ struct X : public prophy::detail::message<X>
     {
         return 8;
     }
-};
-"""
+};"""
     assert generate_struct_definition(Struct[1]) == """\
 struct Y : public prophy::detail::message<Y>
 {
@@ -167,8 +174,7 @@ struct Y : public prophy::detail::message<Y>
     {
         return x.size() * 8 + 4;
     }
-};
-"""
+};"""
 
 
 def test_generate_union_definition(Union):
@@ -193,12 +199,11 @@ struct X : public prophy::detail::message<X>
     {
         return 8;
     }
-};
-"""
+};"""
 
 
 def test_generate_enum_implementation(Enum):
-    assert generate_enum_implementation(Enum[0]) == """\
+    assert cpp_translator._translate_enum(Enum[0]) == """\
 template <>
 const char* print_traits<Enum>::to_literal(Enum x)
 {
@@ -210,8 +215,7 @@ const char* print_traits<Enum>::to_literal(Enum x)
         case Enum_Four: return "Enum_Four";
         default: return 0;
     }
-}
-"""
+}"""
 
 
 def test_generate_struct_implementation(Struct):
@@ -247,8 +251,8 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
     do_print(out, indent, "x", x.x);
     do_print(out, indent, "y", x.y);
 }
-template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
-"""
+template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);"""
+
     assert generate_struct_implementation(Struct[1]) == """\
 template <>
 template <endianness E>
@@ -280,8 +284,7 @@ void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent)
 {
     do_print(out, indent, "x", x.x.data(), x.x.size());
 }
-template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent);
-"""
+template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent);"""
 
 
 def test_generate_union_implementation(Union):
@@ -2374,6 +2377,7 @@ def test_generate_hpp(Union):
 #include <prophy/detail/message.hpp>
 #include <prophy/detail/mpl.hpp>
 
+
 namespace prophy
 {
 namespace generated
@@ -2409,7 +2413,9 @@ struct X : public prophy::detail::message<X>
 
 
 def test_generate_cpp(Struct):
-    assert generate_cpp(Struct, 'MyFile') == """\
+    cpp_translator = _CppTranslator()
+
+    assert cpp_translator(Struct, 'MyFile') == """\
 #include "MyFile.ppf.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
@@ -2501,13 +2507,34 @@ def test_generate_hpp_with_included_struct():
                 model.StructMember('x', 'u64'),
             ])
         ])),
+        model.Include('Input2', process([
+            model.Struct('Z', [
+                model.StructMember('z', 'i32'),
+            ])
+        ])),
+
         model.Struct('Y', [
-            model.StructMember('x', 'X')
+            model.StructMember('x', 'X'),
+            model.StructMember('z', 'Z')
         ])
     ])
+    assert generate_hpp(nodes, 'MyFile') == """\
+#ifndef _PROPHY_GENERATED_FULL_MyFile_HPP
+#define _PROPHY_GENERATED_FULL_MyFile_HPP
 
-    assert """\
+#include <stdint.h>
+#include <numeric>
+#include <vector>
+#include <string>
+#include <prophy/array.hpp>
+#include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
+#include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
+
 #include "Input.ppf.hpp"
+#include "Input2.ppf.hpp"
 
 namespace prophy
 {
@@ -2516,22 +2543,25 @@ namespace generated
 
 struct Y : public prophy::detail::message<Y>
 {
-    enum { encoded_byte_size = 8 };
+    enum { encoded_byte_size = 16 };
 
     X x;
+    Z z;
 
     Y() { }
-    Y(const X& _1): x(_1) { }
+    Y(const X& _1, const Z& _2): x(_1), z(_2) { }
 
     size_t get_byte_size() const
     {
-        return 8;
+        return 16;
     }
 };
 
 } // namespace generated
 } // namespace prophy
-""" in generate_hpp(nodes, 'MyFile')
+
+#endif  /* _PROPHY_GENERATED_FULL_MyFile_HPP */
+"""
 
 
 def test_exception_when_byte_size_is_unknown(tmpdir_cwd):
@@ -2577,7 +2607,7 @@ def test_exception_when_multiple_arrays_are_bounded_by_the_same_member(tmpdir_cw
     ])
     with pytest.raises(GenerateError) as e:
         CppFullGenerator('.').serialize(nodes, 'Filename')
-    assert "Multiple arrays bounded by the same member (num_of_elements) in struct X is unsupported" == str(e.value)
+    assert "Multiple arrays bounded by the same member (num_of_elements) in struct X is not supported" == str(e.value)
 
 
 def test_get_byte_size_when_array_delimiter_is_a_typedef():

@@ -1,6 +1,6 @@
 from prophyc import model
-from prophyc.model import DISC_SIZE, BUILTIN_SIZES, GenerateError
-from prophyc.generators.base import GeneratorBase
+from prophyc.model import DISC_SIZE, BUILTIN_SIZES
+from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
 
 
 BUILTIN2C = {
@@ -71,181 +71,249 @@ def _to_literal(value):
         return value
 
 
-def generate_include_definition(node):
-    return '#include "{0}.ppf.hpp"\n'.format(node.name)
+class _HppIncludesTranslator(TranslatorBase):
+    block_template = "{content}\n"
+
+    def _translate_include(self, include):
+        return '#include "{}.ppf.hpp"'.format(include.name)
 
 
-def generate_constant_definition(node):
-    return 'enum {{ {} = {} }};\n'.format(node.name, _to_literal(node.value))
+HPP_DEFS_TEMPLATE = """\
+namespace prophy
+{{
+namespace generated
+{{
+
+{content}
+}} // namespace generated
+}} // namespace prophy
+"""
 
 
-def generate_enum_definition(node):
-    body = ',\n'.join('    {0} = {1}'.format(m.name, _to_literal(m.value)) for m in node.members) + '\n'
-    return 'enum {0}\n'.format(node.name) + '{\n' + body + '};\n'
+class _HppDefinitionsTranslator(TranslatorBase):
+    block_template = HPP_DEFS_TEMPLATE
+
+    def _translate_constant(self, constant):
+        return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
+
+    def _translate_enum(self, enum):
+        body = ',\n'.join('    {0} = {1}'.format(m.name, _to_literal(m.value)) for m in enum.members) + '\n'
+        return 'enum {0}\n'.format(enum.name) + '{\n' + body + '};'
+
+    def _translate_typedef(self, node):
+        return 'typedef {0} {1};'.format(BUILTIN2C.get(node.type_, node.type_), node.name)
+
+    def _translate_struct(self, node):
+        return (
+            'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
+            '{\n' +
+            _indent(
+                '\n'.join((
+                    'enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)),
+                    generate_struct_fields(node),
+                    generate_struct_constructor(node),
+                    'size_t get_byte_size() const\n' +
+                    '{\n' +
+                    _indent(generate_struct_get_byte_size(node)) +
+                    '}\n'
+                ))
+            ) +
+            '};'
+        )
+
+    def _translate_union(self, node):
+        return (
+            'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
+            '{\n' +
+            _indent(
+                '\n'.join((
+                    'enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)),
+                    generate_union_fields(node),
+                    generate_union_constructor(node),
+                    'size_t get_byte_size() const\n' +
+                    '{\n' +
+                    _indent(generate_union_get_byte_size(node)) +
+                    '}\n'
+                ))
+            ) +
+            '};'
+        )
 
 
-def generate_typedef_definition(node):
-    return 'typedef {0} {1};\n'.format(BUILTIN2C.get(node.type_, node.type_), node.name)
+HPP_HEADER_TEMPLATE = """\
+#ifndef _PROPHY_GENERATED_FULL_{base_name}_HPP
+#define _PROPHY_GENERATED_FULL_{base_name}_HPP
+
+#include <stdint.h>
+#include <numeric>
+#include <vector>
+#include <string>
+#include <prophy/array.hpp>
+#include <prophy/endianness.hpp>
+#include <prophy/optional.hpp>
+#include <prophy/detail/byte_size.hpp>
+#include <prophy/detail/message.hpp>
+#include <prophy/detail/mpl.hpp>
+
+{content}
+#endif  /* _PROPHY_GENERATED_FULL_{base_name}_HPP */
+"""
 
 
-def generate_struct_definition(node):
-    return (
-        'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
-        '{\n' +
-        _indent(
-            '\n'.join((
-                'enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)),
-                generate_struct_fields(node),
-                generate_struct_constructor(node),
-                'size_t get_byte_size() const\n' +
+class _HppTranslator(TranslatorBase):
+    block_template = HPP_HEADER_TEMPLATE
+    block_translators = [
+        _HppIncludesTranslator,
+        _HppDefinitionsTranslator
+    ]
+
+
+CPP_SOURCE_TEMPLATE = """\
+#include "{0}.ppf.hpp"
+#include <algorithm>
+#include <prophy/detail/encoder.hpp>
+#include <prophy/detail/decoder.hpp>
+#include <prophy/detail/printer.hpp>
+#include <prophy/detail/align.hpp>
+
+using namespace prophy::generated;
+
+namespace prophy
+{{
+namespace detail
+{{
+
+{1}
+}} // namespace detail
+}} // namespace prophy
+"""
+
+
+class _CppTranslator(TranslatorBase):
+
+    def block_post_process(self, content, base_name, _):
+        return CPP_SOURCE_TEMPLATE.format(base_name, content)
+
+    def _translate_enum(self, node):
+        return (
+            'template <>\n' +
+            'const char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name) +
+            '{\n' +
+            _indent(
+                'switch (x)\n' +
                 '{\n' +
-                _indent(generate_struct_get_byte_size(node)) +
+                _indent(
+                    ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members) +
+                    'default: return 0;\n'
+                ) +
                 '}\n'
-            ))
-        ) +
-        '};\n'
-    )
+            ) +
+            '}'
+        )
 
-
-def generate_union_definition(node):
-    return (
-        'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
-        '{\n' +
-        _indent(
-            '\n'.join((
-                'enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)),
-                generate_union_fields(node),
-                generate_union_constructor(node),
-                'size_t get_byte_size() const\n' +
+    def _translate_struct(self, node):
+        def encode_impl(node):
+            return (
+                'template <>\n' +
+                'template <endianness E>\n' +
+                'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
                 '{\n' +
-                _indent(generate_union_get_byte_size(node)) +
-                '}\n'
-            ))
-        ) +
-        '};\n'
-    )
-
-
-def generate_enum_implementation(node):
-    return (
-        'template <>\n' +
-        'const char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name) +
-        '{\n' +
-        _indent(
-            'switch (x)\n' +
-            '{\n' +
-            _indent(
-                ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members) +
-                'default: return 0;\n'
-            ) +
-            '}\n'
-        ) +
-        '}\n'
-    )
-
-
-def generate_struct_implementation(node):
-    def encode_impl(node):
-        return (
-            'template <>\n' +
-            'template <endianness E>\n' +
-            'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
-            '{\n' +
-            _indent(
-                generate_struct_encode(node) +
-                'return pos;\n'
-            ) +
-            '}\n' +
-            ''.join(
-                'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(node.name, e)
-                for e in ('native', 'little', 'big')
+                _indent(
+                    generate_struct_encode(node) +
+                    'return pos;\n'
+                ) +
+                '}\n' +
+                ''.join(
+                    'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(
+                        node.name, e)
+                    for e in ('native', 'little', 'big')
+                )
             )
-        )
 
-    def decode_impl(node):
-        return (
-            'template <>\n' +
-            'template <endianness E>\n' +
-            'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name) +
-            '{\n' +
-            _indent(
-                'return (\n' +
-                _indent(generate_struct_decode(node)) +
-                ');\n'
-            ) +
-            '}\n' +
-            ''.join(
-                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
-                    node.name, e)
-                for e in ('native', 'little', 'big')
+        def decode_impl(node):
+            return (
+                'template <>\n' +
+                'template <endianness E>\n' +
+                'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name) +
+                '{\n' +
+                _indent(
+                    'return (\n' +
+                    _indent(generate_struct_decode(node)) +
+                    ');\n'
+                ) +
+                '}\n' +
+                ''.join(
+                    'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
+                        node.name, e)
+                    for e in ('native', 'little', 'big')
+                )
             )
-        )
 
-    def print_impl(node):
-        return (
-            'template <>\n' +
-            'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name) +
-            '{\n' +
-            _indent(generate_struct_print(node)) +
-            '}\n' +
-            'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
-                node.name)
-        )
-    return (
-        encode_impl(node) + '\n' +
-        decode_impl(node) + '\n' +
-        print_impl(node)
-    )
-
-
-def generate_union_implementation(node):
-    def encode_impl(node):
-        return (
-            'template <>\n' +
-            'template <endianness E>\n' +
-            'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
-            '{\n' +
-            _indent(
-                generate_union_encode(node) +
-                'return pos;\n'
-            ) +
-            '}\n' +
-            ''.join(
-                'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(node.name, e)
-                for e in ('native', 'little', 'big')
+        def print_impl(node):
+            return (
+                'template <>\n' +
+                'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name) +
+                '{\n' +
+                _indent(generate_struct_print(node)) +
+                '}\n' +
+                'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);'.format(
+                    node.name)
             )
+        return (
+            encode_impl(node) + '\n' +
+            decode_impl(node) + '\n' +
+            print_impl(node)
         )
 
-    def decode_impl(node):
-        return (
-            'template <>\n' +
-            'template <endianness E>\n' +
-            'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name) +
-            '{\n' +
-            _indent(generate_union_decode(node)) +
-            '}\n' +
-            ''.join(
-                'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
-                    node.name, e)
-                for e in ('native', 'little', 'big')
+    def _translate_union(self, node):
+        def encode_impl(node):
+            return (
+                'template <>\n' +
+                'template <endianness E>\n' +
+                'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
+                '{\n' +
+                _indent(
+                    generate_union_encode(node) +
+                    'return pos;\n'
+                ) +
+                '}\n' +
+                ''.join(
+                    'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(
+                        node.name, e)
+                    for e in ('native', 'little', 'big')
+                )
             )
-        )
 
-    def print_impl(node):
+        def decode_impl(node):
+            return (
+                'template <>\n' +
+                'template <endianness E>\n' +
+                'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name) +
+                '{\n' +
+                _indent(generate_union_decode(node)) +
+                '}\n' +
+                ''.join(
+                    'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
+                        node.name, e)
+                    for e in ('native', 'little', 'big')
+                )
+            )
+
+        def print_impl(node):
+            return (
+                'template <>\n' +
+                'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name) +
+                '{\n' +
+                _indent(generate_union_print(node)) +
+                '}\n' +
+                'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
+                    node.name)
+            )
         return (
-            'template <>\n' +
-            'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name) +
-            '{\n' +
-            _indent(generate_union_print(node)) +
-            '}\n' +
-            'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
-                node.name)
+            encode_impl(node) + '\n' +
+            decode_impl(node) + '\n' +
+            print_impl(node)
         )
-    return (
-        encode_impl(node) + '\n' +
-        decode_impl(node) + '\n' +
-        print_impl(node)
-    )
 
 
 def generate_struct_encode(node):
@@ -352,30 +420,32 @@ def generate_struct_encoded_byte_size(node):
 
 
 def generate_struct_get_byte_size(node):
-    bytes = 0
+    bytes_ = 0
     elems = []
     for m in node.members:
         if m.kind == model.Kind.FIXED:
             if m.dynamic or m.greedy:
                 elems += ['{0}.size() * {1}'.format(m.name, _get_byte_size(m))]
             else:
-                bytes += m.byte_size + m.padding
+                bytes_ += m.byte_size + m.padding
         else:
             if m.dynamic or m.greedy:
-                elems += ['std::accumulate({0}.begin(), {0}.end(), size_t(), prophy::detail::byte_size())'.format(m.name)]
+                elems += [
+                    'std::accumulate({0}.begin(), {0}.end(), size_t(), prophy::detail::byte_size())'.format(m.name)
+                ]
             else:
                 elems += ['{0}.get_byte_size()'.format(m.name)]
         if m.padding < 0:
-            if bytes:
-                elems += [str(bytes)]
-                bytes = 0
+            if bytes_:
+                elems += [str(bytes_)]
+                bytes_ = 0
             elems = [
                 'prophy::detail::nearest<{0}>(\n'.format(abs(m.padding)) +
                 _indent(' + '.join(elems)) +
                 '\n)'
             ]
-    if bytes:
-        elems += [str(bytes)]
+    if bytes_:
+        elems += [str(bytes_)]
     return 'return {0};\n'.format(' + '.join(elems))
 
 
@@ -529,126 +599,22 @@ def generate_union_constructor(node):
     )
 
 
-_hpp_header = """\
-#ifndef _PROPHY_GENERATED_FULL_{0}_HPP
-#define _PROPHY_GENERATED_FULL_{0}_HPP
-
-#include <stdint.h>
-#include <numeric>
-#include <vector>
-#include <string>
-#include <prophy/array.hpp>
-#include <prophy/endianness.hpp>
-#include <prophy/optional.hpp>
-#include <prophy/detail/byte_size.hpp>
-#include <prophy/detail/message.hpp>
-#include <prophy/detail/mpl.hpp>
-
-{1}namespace prophy
-{{
-namespace generated
-{{
-"""
-
-_hpp_footer = """\
-}} // namespace generated
-}} // namespace prophy
-
-#endif  /* _PROPHY_GENERATED_FULL_{0}_HPP */
-"""
-
-_hpp_visitor = {
-    model.Constant: generate_constant_definition,
-    model.Typedef: generate_typedef_definition,
-    model.Enum: generate_enum_definition,
-    model.Struct: generate_struct_definition,
-    model.Union: generate_union_definition
-}
-
-
-def _hpp_generator(nodes):
-    last_node = None
-    for node in nodes:
-        if isinstance(node, model.Include):
-            continue
-        prepend_newline = bool(last_node and
-                               (isinstance(last_node, (model.Enum, model.Struct, model.Union)) or
-                                type(last_node) is not type(node)))
-        yield (prepend_newline and '\n' or '') + _hpp_visitor[type(node)](node)
-        last_node = node
-
-
-def generate_hpp_content(nodes):
-    return ''.join(_hpp_generator(nodes))
-
-
-_cpp_header = """\
-#include "{0}.ppf.hpp"
-#include <algorithm>
-#include <prophy/detail/encoder.hpp>
-#include <prophy/detail/decoder.hpp>
-#include <prophy/detail/printer.hpp>
-#include <prophy/detail/align.hpp>
-
-using namespace prophy::generated;
-
-namespace prophy
-{{
-namespace detail
-{{
-"""
-
-_cpp_footer = """\
-} // namespace detail
-} // namespace prophy
-"""
-
-_cpp_visitor = {
-    model.Enum: generate_enum_implementation,
-    model.Struct: generate_struct_implementation,
-    model.Union: generate_union_implementation
-}
-
-
-def generate_cpp_content(nodes):
-    return '\n'.join(_cpp_visitor[type(node)](node) for node in nodes if type(node) in _cpp_visitor)
-
-
-def generate_hpp(nodes, basename):
-    includes = ''.join(generate_include_definition(node) for node in nodes if isinstance(node, model.Include))
-    if includes:
-        includes += '\n'
-    return '\n'.join((_hpp_header.format(basename, includes), generate_hpp_content(nodes), _hpp_footer.format(basename)))
-
-
-def generate_cpp(nodes, basename):
-    return '\n'.join((_cpp_header.format(basename), generate_cpp_content(nodes), _cpp_footer))
-
-
-def check_nodes(nodes):
-    for n in nodes:
-        if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
-            raise GenerateError('{0} byte size unknown'.format(n.name))
-        if isinstance(n, model.Struct):
-            occured = set()
-            for m in n.members:
-                if m.bound:
-                    if m.bound in occured:
-                        raise GenerateError('Multiple arrays bounded by the same member ({}) in struct {} is unsupported'
-                                            .format(m.bound, n.name))
-                    else:
-                        occured.add(m.bound)
-
-
 class CppFullGenerator(GeneratorBase):
+    file_translators = {
+        ".ppf.hpp": _HppTranslator,
+        ".ppf.cpp": _CppTranslator
+    }
 
-    def serialize(self, nodes, basename):
-        check_nodes(nodes)
-        hpp_path = self.localize(basename + '.ppf.hpp')
-        cpp_path = self.localize(basename + '.ppf.cpp')
-
-        hpp_contents = generate_hpp(nodes, basename)
-        cpp_contents = generate_cpp(nodes, basename)
-
-        self.write_file(hpp_path, hpp_contents)
-        self.write_file(cpp_path, cpp_contents)
+    def check_nodes(self, nodes):
+        for n in nodes:
+            if isinstance(n, (model.Struct, model.Union)) and n.byte_size is None:
+                raise GenerateError('{0} byte size unknown'.format(n.name))
+            if isinstance(n, model.Struct):
+                occured = set()
+                for m in n.members:
+                    if m.bound:
+                        if m.bound in occured:
+                            raise GenerateError('Multiple arrays bounded by the same member ({}) in struct {} is '
+                                                'not supported'.format(m.bound, n.name))
+                        else:
+                            occured.add(m.bound)

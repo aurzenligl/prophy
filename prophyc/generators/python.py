@@ -1,25 +1,10 @@
-from prophyc import model
-from prophyc.generators.base import GeneratorBase
+
+from prophyc.generators.base import GeneratorBase, TranslatorBase
+
 
 libname = "prophy"
 primitive_types = {x + y: "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
 primitive_types['byte'] = '%s.u8' % libname
-
-
-def _generate_include(include):
-    return "from %s import *" % include.name.split("/")[-1]
-
-
-def _generate_constant(constant):
-    return "%s = %s" % constant
-
-
-def _generate_typedef(typedef):
-    return "%s = %s" % (
-        typedef.name,
-        typedef.type_ in primitive_types and
-        ".".join((libname, typedef.type_)) or
-        typedef.type_)
 
 
 def _make_list(repr_function, members):
@@ -44,16 +29,6 @@ def _generate_enum_constants(members):
     return "\n".join(("%s = %s" % (member.name, member.value) for member in members))
 
 
-def _generate_enum(enum):
-    members_list = _make_list(_form_enum_member, enum.members)
-    constants_list = _generate_enum_constants(enum.members)
-
-    return ("class {1}({0}.with_metaclass({0}.enum_generator, {0}.enum)):\n"
-            "    _enumerators = {2}"
-            "\n\n"
-            "{3}").format(libname, enum.name, members_list, constants_list)
-
-
 def _form_struct_member(member):
     prefixed_type = primitive_types.get(member.type_, member.type_)
     if member.optional:
@@ -71,60 +46,65 @@ def _form_struct_member(member):
     return "('%s', %s)" % (member.name, prefixed_type)
 
 
-def _generate_struct(struct):
-    members_list = _make_list(_form_struct_member, struct.members)
-    return ("class {1}({0}.with_metaclass({0}.struct_generator, {0}.struct)):\n"
-            "    _descriptor = {2}").format(libname, struct.name, members_list)
-
-
 def _form_union_member(member):
     prefixed_type = "%s.%s" % (libname, member.type_) if member.type_ in primitive_types else member.type_
     return "('%s', %s, %s)" % (member.name, prefixed_type, member.discriminator)
 
 
-def _generate_union(union):
-    members_list = _make_list(_form_union_member, union.members)
-    return ("class {1}({0}.with_metaclass({0}.union_generator, {0}.union)):\n"
-            "    _descriptor = {2}").format(libname, union.name, members_list)
+ENUM_TEMPLATE = """\
+class {enum_name}({libname}.with_metaclass({libname}.enum_generator, {libname}.enum)):
+    _enumerators = {members_list}
+
+{constants}"""
+
+STRUCT_TEMPLATE = """\
+class {struct_name}({libname}.with_metaclass({libname}.struct_generator, {libname}.struct)):
+    _descriptor = {members_list}"""
+
+UNION_TEMPLATE = """\
+class {union_name}({libname}.with_metaclass({libname}.union_generator, {libname}.union)):
+    _descriptor = {members_list}"""
 
 
-generate_visitor = {
-    model.Include: _generate_include,
-    model.Constant: _generate_constant,
-    model.Typedef: _generate_typedef,
-    model.Enum: _generate_enum,
-    model.Struct: _generate_struct,
-    model.Union: _generate_union
-}
+class _PythonTranslator(TranslatorBase):
 
+    def block_post_process(self, content, _, __):
+        header = "import {0}\n".format(libname)
+        if content:
+            return header + "\n" + content
+        else:
+            return header
 
-def _generate(node):
-    return generate_visitor[type(node)](node)
+    def _translate_include(self, include):
+        return "from %s import *" % include.name.split("/")[-1]
 
+    def _translate_constant(self, constant):
+        return "%s = %s" % constant
 
-def _generator(nodes):
-    last_node = None
-    for node in nodes:
-        prepend_newline = bool(last_node and
-                               (isinstance(last_node, (model.Enum, model.Struct, model.Union)) or
-                                type(last_node) is not type(node)))
-        yield prepend_newline * '\n' + _generate(node) + '\n'
-        last_node = node
+    def _translate_typedef(self, typedef):
+        if typedef.type_ in primitive_types:
+            value = "{0}.{1}".format(libname, typedef.type_)
+        else:
+            value = typedef.type_
+
+        return "%s = %s" % (typedef.name, value)
+
+    def _translate_enum(self, enum):
+        members_list = _make_list(_form_enum_member, enum.members)
+        constants_list = _generate_enum_constants(enum.members)
+        return ENUM_TEMPLATE.format(libname=libname, enum_name=enum.name, members_list=members_list,
+                                    constants=constants_list)
+
+    def _translate_struct(self, struct):
+        members_list = _make_list(_form_struct_member, struct.members)
+        return STRUCT_TEMPLATE.format(libname=libname, struct_name=struct.name, members_list=members_list)
+
+    def _translate_union(self, union):
+        members_list = _make_list(_form_union_member, union.members)
+        return UNION_TEMPLATE.format(libname=libname, union_name=union.name, members_list=members_list)
 
 
 class PythonGenerator(GeneratorBase):
-
-    def generate_definitions(self, nodes):
-        return ''.join(_generator(nodes))
-
-    def serialize_string(self, nodes):
-        header = "import {}\n".format(libname)
-        definitions = self.generate_definitions(nodes)
-        if not definitions:
-            return header
-        return header + "\n" + definitions
-
-    def serialize(self, nodes, basename):
-        path = self.localize(basename + ".py")
-        out = self.serialize_string(nodes)
-        self.write_file(path, out)
+    file_translators = {
+        ".py": _PythonTranslator
+    }
