@@ -1,3 +1,7 @@
+forthcoming
+-----------------------------------
+- prophyc: Python codecs source code is pep8-compliant
+
 1.1.2
 -----------------------------------
 - prophyc: python3 bug in C++ frontend fixed (libclang invocation contained unicode strings)
