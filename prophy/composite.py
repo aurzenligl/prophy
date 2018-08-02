@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 from . import scalar
 from .base_array import base_array
 from .exception import ProphyError
@@ -7,22 +5,28 @@ from .kind import kind
 from .six import long, repr_bytes
 
 
-def make_codec_gen(extended_type):
-    def add_codecs(self):
-        encode_fcn = get_encode_function(self.type)
-        decode_fcn = get_decode_function(self.type)
-        item_with_codecs = extended_type(*(self + (encode_fcn, decode_fcn)))
-        return item_with_codecs
-    return add_codecs
+class codec_kind(object):
+    OPTIONAL = "OPTIONAL"
+    ARRAY_SIZER = "ARRAY_SIZER"
+    ARRAY = "ARRAY"
+    COMPOSITE = "COMPOSITE"
+    BYTES = "BYTES"
+    SCALAR = "SCALAR"
 
-
-RawStructItem = namedtuple("RawStructItem", "name, type")
-StructItem = namedtuple("StructItem", "name, type, encode_fcn, decode_fcn")
-RawStructItem._add_codecs = make_codec_gen(StructItem)
-
-RawUnionItem = namedtuple("RawUnionItem", "name, type, discriminator")
-UnionItem = namedtuple("UnionItem", "name, type, discriminator, encode_fcn, decode_fcn")
-RawUnionItem._add_codecs = make_codec_gen(UnionItem)
+    @classmethod
+    def classify(cls, type_):
+        if type_._OPTIONAL:
+            return cls.OPTIONAL
+        elif type_._BOUND and issubclass(type_, (int, long)):
+            return cls.ARRAY_SIZER
+        elif issubclass(type_, base_array):
+            return cls.ARRAY
+        elif issubclass(type_, (struct, union)):
+            return cls.COMPOSITE
+        elif issubclass(type_, bytes):
+            return cls.BYTES
+        else:
+            return cls.SCALAR
 
 
 def distance_to_next_multiply(number, alignment):
@@ -68,20 +72,56 @@ def build_container_length_field(sizer_item_type, container_name, bound_shift):
     return container_len
 
 
-def get_encode_function(type_):
-    if type_._OPTIONAL:
-        type_._encode = staticmethod(get_encode_function(type_.__bases__[0]))
-        return encode_optional
-    elif type_._BOUND and issubclass(type_, (int, long)):
-        return encode_array_delimiter
-    elif issubclass(type_, base_array):
-        return encode_array
-    elif issubclass(type_, (struct, union)):
-        return encode_composite
-    elif issubclass(type_, bytes):
-        return encode_bytes
-    else:
-        return encode_scalar
+class descriptor_item_type(object):
+    __slots__ = ["name", "type", "discriminator", "encode_fcn", "decode_fcn"]
+
+    def __init__(self, name, type_, discriminator=None):
+        self.name = name
+        self.type = type_
+        self.discriminator = discriminator
+        self.encode_fcn = None
+        self.decode_fcn = None
+
+    def evaluate_codecs(self):
+        all_codecs = {
+            codec_kind.OPTIONAL: (encode_optional, decode_optional),
+            codec_kind.ARRAY_SIZER: (encode_array_delimiter, decode_array_delimiter),
+            codec_kind.ARRAY: (encode_array, decode_array),
+            codec_kind.COMPOSITE: (encode_composite, decode_composite),
+            codec_kind.BYTES: (encode_bytes, decode_bytes),
+            codec_kind.SCALAR: (encode_scalar, decode_scalar)
+        }
+        kind = codec_kind.classify(self.type)
+        assert kind in all_codecs
+        self.encode_fcn, self.decode_fcn = all_codecs.get(kind)
+
+        if kind == codec_kind.OPTIONAL:
+            base_kind = codec_kind.classify(self.type.__bases__[0])
+            opt_encode, opt_decode = all_codecs.get(base_kind)
+
+            self.type._encode = staticmethod(opt_encode)
+            self.type._decode = staticmethod(opt_decode)
+
+    @property
+    def is_union_descriptor(self):
+        return self.discriminator is not None
+
+    @property
+    def _slots(self):
+        fields = self.__slots__[:]
+        if not self.is_union_descriptor:
+            fields.pop(fields.index("discriminator"))
+        return fields
+
+    def __len__(self):
+        return len(self._slots)
+
+    def __getitem__(self, index):
+        field_name = self._slots[index]
+        return getattr(self, field_name)
+
+    def __setitem__(self, index, value):
+        return setattr(self, self._slots[index], value)
 
 
 def encode_optional(parent, type_, value, endianness):
@@ -110,22 +150,6 @@ def encode_bytes(parent, type_, value, endianness):
 
 def encode_scalar(parent, type_, value, endianness):
     return type_._encode(value, endianness)
-
-
-def get_decode_function(type_):
-    if type_._OPTIONAL:
-        type_._decode = staticmethod(get_decode_function(type_.__bases__[0]))
-        return decode_optional
-    elif type_._BOUND and issubclass(type_, (int, long)):
-        return decode_array_delimiter
-    elif issubclass(type_, base_array):
-        return decode_array
-    elif issubclass(type_, (struct, union)):
-        return decode_composite
-    elif issubclass(type_, bytes):
-        return decode_bytes
-    else:
-        return decode_scalar
 
 
 def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
@@ -248,18 +272,6 @@ class struct(object):
     def _get_padding_size(offset, alignment):
         return distance_to_next_multiply(offset, alignment)
 
-    @classmethod
-    def _wire_walk(cls):
-        data = ""
-        for item in cls._descriptor:
-            data += (cls._get_padding(len(data), item.type._ALIGNMENT))
-            data += item.encode_fcn(cls, item.type, getattr(cls, item.name, None), endianness)
-
-            if item.type._PARTIAL_ALIGNMENT:
-                data += cls._get_padding(len(data), item.type._PARTIAL_ALIGNMENT)
-
-        data += cls._get_padding(len(data), cls._ALIGNMENT)
-
     def encode(self, endianness, terminal=True):
         data = b""
 
@@ -335,7 +347,6 @@ class struct_packed(struct):
 
 class composite_generator_base(type):
     _slots = []
-    _descriptor_item_type = None
 
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = cls._slots
@@ -344,7 +355,7 @@ class composite_generator_base(type):
     def __init__(self, name, bases, attrs):
         if not hasattr(self, "_generated"):
             self._generated = True
-            self._descriptor = [self._descriptor_item_type(*item) for item in self._descriptor]
+            self._descriptor = [descriptor_item_type(*item) for item in self._descriptor]
             self.validate()
             self.add_attributes()
             self.extend_descriptor()
@@ -360,13 +371,12 @@ class composite_generator_base(type):
         pass
 
     def extend_descriptor(self):
-        for i, raw_item in enumerate(self._descriptor):
-            self._descriptor[i] = raw_item._add_codecs()
+        for raw_item in self._descriptor:
+            raw_item.evaluate_codecs()
 
 
 class struct_generator(composite_generator_base):
     _slots = ["_fields"]
-    _descriptor_item_type = RawStructItem
 
     def validate(self):
         for type_ in list(self._types())[:-1]:
@@ -493,9 +503,8 @@ class struct_generator(composite_generator_base):
             self.validate_bound_shift(sizer_item.type, container_item.name, bound_shift)
 
         else:
-            container_len_class = build_container_length_field(sizer_item.type, container_item.name, bound_shift)
-            raw_item = RawStructItem(sizer_item.name, container_len_class)
-            self._descriptor[index] = raw_item._add_codecs()
+            sizer_item.type = build_container_length_field(sizer_item.type, container_item.name, bound_shift)
+            sizer_item.evaluate_codecs()
             delattr(self, sizer_item.name)
 
     def validate_and_fix_sizer_name(self, container_item):
@@ -562,7 +571,7 @@ class union(object):
         return field_to_string(name, self._discriminated.type, value)
 
     def get_discriminated(self):
-        name, tp = self._discriminated[:2]
+        name, tp = self._discriminated.name, self._discriminated.type
         return FieldDescriptor(name, tp, get_kind(tp))
 
     @classmethod
@@ -609,7 +618,6 @@ class union(object):
 
 class union_generator(composite_generator_base):
     _slots = ["_fields", "_discriminated"]
-    _descriptor_item_type = RawUnionItem
 
     def validate(self):
         for type_ in self._types():
