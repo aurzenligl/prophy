@@ -1,211 +1,71 @@
-from .six import long, repr_bytes
+from collections import namedtuple
 
 from . import scalar
-from .exception import ProphyError
 from .base_array import base_array
+from .exception import ProphyError
 from .kind import kind
+from .six import long, repr_bytes
 
 
-def validate(descriptor):
-    if any(type_._UNLIMITED for _, type_ in descriptor[:-1]):
-        raise ProphyError("unlimited field is not the last one")
+def make_codec_gen(extended_type):
+    def add_codecs(self):
+        encode_fcn = get_encode_function(self.type)
+        decode_fcn = get_decode_function(self.type)
+        item_with_codecs = extended_type(*(self + (encode_fcn, decode_fcn)))
+        return item_with_codecs
+    return add_codecs
 
 
-def calc_alignment(desc):
-    if desc:
-        return max((type_._OPTIONAL and type_._OPTIONAL_ALIGNMENT or type_._ALIGNMENT) for _, type_ in desc)
-    else:
-        return 1
+RawStructItem = namedtuple("RawStructItem", "name, type")
+StructItem = namedtuple("StructItem", "name, type, encode_fcn, decode_fcn")
+RawStructItem._add_codecs = make_codec_gen(StructItem)
+
+RawUnionItem = namedtuple("RawUnionItem", "name, type, discriminator")
+UnionItem = namedtuple("UnionItem", "name, type, discriminator, encode_fcn, decode_fcn")
+RawUnionItem._add_codecs = make_codec_gen(UnionItem)
 
 
-def add_attributes(cls, descriptor):
-    cls._SIZE = sum((type_._OPTIONAL and type_._OPTIONAL_SIZE or type_._SIZE) for _, type_ in descriptor)
-    cls._DYNAMIC = any(type_._DYNAMIC for _, type_ in descriptor)
-    cls._UNLIMITED = any(type_._UNLIMITED for _, type_ in descriptor)
-    cls._OPTIONAL = False
-    cls._BOUND = None
-    cls._ALIGNMENT = calc_alignment(descriptor)
-    cls._PARTIAL_ALIGNMENT = None
-
-    alignment = 1
-    for _, tp in reversed(descriptor):
-        if issubclass(tp, (base_array, bytes)) and tp._DYNAMIC:
-            tp._PARTIAL_ALIGNMENT = alignment
-            alignment = 1
-        alignment = max(tp._ALIGNMENT, alignment)
+def distance_to_next_multiply(number, alignment):
+    remainer = number % alignment
+    return (alignment - remainer) % alignment
 
 
-class Padder(object):
-    def __init__(self):
-        self.offset = 0
+def build_container_length_field(sizer_item_type, container_name, bound_shift):
+    class container_len(sizer_item_type):
+        _BOUND = [container_name]
 
-    def __call__(self, size, alignment):
-        self.offset += size
-        padding = (alignment - self.offset % alignment) % alignment
-        self.offset += padding
-        return padding
+        @classmethod
+        def add_bounded_container(cls, cont_name):
+            cls._BOUND.append(cont_name)
 
+        @classmethod
+        def evaluate(cls, parent):
+            sizes = set(len(getattr(parent, c_name)) for c_name in cls._BOUND)
+            if len(sizes) != 1:
+                msg = "Size mismatch of arrays in {}: {}"
+                raise ProphyError(msg.format(parent.__class__.__name__, ", ".join(cls._BOUND)))
+            return sizes.pop()
 
-def add_padding(cls, descriptor):
-    if not descriptor:
-        return
+        @staticmethod
+        def _encode(value, endianness):
+            return sizer_item_type._encode(value + bound_shift, endianness)
 
-    sizes = [tp._SIZE for _, tp in descriptor]
-    alignments = [tp._ALIGNMENT for _, tp in descriptor[1:]] + [cls._ALIGNMENT]
-    paddings = map(Padder(), sizes, alignments)
-    cls._SIZE += sum(paddings)
+        @staticmethod
+        def _decode(data, pos, endianness):
+            value, size = sizer_item_type._decode(data, pos, endianness)
+            array_guard = 65536
+            if value > array_guard:
+                raise ProphyError("decoded array length over %s" % array_guard)
+            value -= bound_shift
+            if value < 0:
+                raise ProphyError("decoded array length smaller than shift")
+            return value, size
 
+        @classmethod
+        def _bricks(cls):
+            yield sizer_item_type, None
 
-def add_properties(cls, descriptor):
-    for name, tp in descriptor:
-        if issubclass(tp, base_array):
-            add_repeated(cls, name, tp)
-        elif issubclass(tp, (struct, union)):
-            add_composite(cls, name, tp)
-        else:
-            add_scalar(cls, name, tp)
-
-
-def add_repeated(cls, name, tp):
-    def getter(self):
-        value = self._fields.get(name)
-        if value is None:
-            value = tp()
-            self._fields[name] = value
-        return value
-
-    def setter(self, new_value):
-        raise ProphyError("assignment to array field not allowed")
-
-    setattr(cls, name, property(getter, setter))
-    if tp._BOUND:
-        substitute_len_field(cls, cls._descriptor, name, tp)
-
-
-def add_scalar(cls, field_name, field_type):
-    if field_type._OPTIONAL:
-        def getter(self):
-            return self._fields.get(field_name)
-
-        def setter(self, new_value):
-            self._fields[field_name] = None if new_value is None else field_type._check(new_value)
-    else:
-        def getter(self):
-            return self._fields.get(field_name, field_type._DEFAULT)
-
-        def setter(self, new_value):
-            self._fields[field_name] = field_type._check(new_value)
-    setattr(cls, field_name, property(getter, setter))
-    if field_type._BOUND:
-        substitute_len_field(cls, cls._descriptor, field_name, field_type)
-
-
-def add_composite(cls, name, tp):
-    if tp._OPTIONAL:
-        def getter(self):
-            return self._fields.get(name)
-
-        def setter(self, new_value):
-            if new_value is True:
-                self._fields[name] = tp()
-            elif new_value is None:
-                self._fields.pop(name, None)
-            else:
-                raise ProphyError("assignment to composite field not allowed")
-    else:
-        def getter(self):
-            value = self._fields.get(name)
-            if value:
-                return value
-            else:
-                return self._fields.setdefault(name, tp())
-
-        def setter(self, new_value):
-            raise ProphyError("assignment to composite field not allowed")
-    setattr(cls, name, property(getter, setter))
-
-
-def substitute_len_field(cls, descriptor, container_name, container_tp):
-    sizer_name = container_tp._BOUND
-    all_fields = [e[0] for e in descriptor]
-    msg = "Sizing member '{}' of container '{}' not found in the object '{}'.".format(sizer_name, container_name,
-                                                                                      cls.__name__)
-    if sizer_name not in all_fields:
-        """ Try to be lenient """
-        if (sizer_name + 's') in all_fields:
-            sizer_name += 's'
-        elif sizer_name.endswith('s') and sizer_name[:-1] in all_fields:
-            sizer_name = sizer_name[:-1]
-        elif len([f for f in descriptor if f[0].startswith("numOf")]) == 1 and\
-                len([f for f in descriptor if f[1]._BOUND]) == 1:
-            """ If there is one sizer and only one array. """
-            sizer_name = next(f for f in descriptor if f[0].startswith("numOf"))[0]
-        else:
-            raise ProphyError(msg)
-        container_tp._BOUND = sizer_name
-        print("Warning: {}\n Picking '{}' as the missing sizer instead.\n".format(msg, sizer_name))
-
-    index, (name, tp) = next(
-        (index, field) for index, field in enumerate(descriptor) if field[0] == sizer_name
-    )
-
-    bound_shift = container_tp._BOUND_SHIFT
-
-    if tp._OPTIONAL:
-        raise ProphyError("array {}.{} must not be bound to optional field".format(cls.__name__, container_name))
-    if not issubclass(tp, (int, long)):
-        raise ProphyError("array {}.{} must be bound to an unsigned integer".format(cls.__name__, container_name))
-
-    if tp.__name__ == "container_len":
-        def is_bound_shift_valid():
-            _, t = next(field for field in descriptor if field[0] in tp._BOUND)
-            return t._BOUND_SHIFT == bound_shift
-
-        tp.add_bounded_container(container_name)
-        if not is_bound_shift_valid():
-            raise ProphyError("Different bound shifts are unsupported in externally sized arrays ({}.{})".format(
-                cls.__name__, container_name))
-    else:
-        class container_len(tp):
-            _BOUND = [container_name]
-
-            @staticmethod
-            def add_bounded_container(cont_name):
-                container_len._BOUND.append(cont_name)
-
-            @staticmethod
-            def evaluate(parent):
-                result = len(getattr(parent, container_len._BOUND[0]))
-
-                for array_name in container_len._BOUND[1:]:
-                    if result != len(getattr(parent, array_name)):
-                        raise ProphyError("Size mismatch of arrays in {}: {}"
-                                          .format(parent.__class__.__name__,
-                                                  ", ".join(container_len._BOUND)))
-                return result
-
-            @staticmethod
-            def _encode(value, endianness):
-                return tp._encode(value + bound_shift, endianness)
-
-            @staticmethod
-            def _decode(data, pos, endianness):
-                value, size = tp._decode(data, pos, endianness)
-                array_guard = 65536
-                if value > array_guard:
-                    raise ProphyError("decoded array length over %s" % array_guard)
-                value -= bound_shift
-                if value < 0:
-                    raise ProphyError("decoded array length smaller than shift")
-                return value, size
-
-        descriptor[index] = (name, container_len)
-        delattr(cls, name)
-
-
-def extend_descriptor(cls, descriptor):
-    for i, (name, type_) in enumerate(descriptor):
-        descriptor[i] = (name, type_, get_encode_function(type_), get_decode_function(type_))
+    return container_len
 
 
 def get_encode_function(type_):
@@ -289,21 +149,21 @@ def decode_array_delimiter(parent, name, type_, data, pos, endianness, len_hints
     return size
 
 
-def decode_array(parent, name, type_, data, pos, endianness, len_hints):
+def decode_array(parent, name, _, data, pos, endianness, len_hints):
     return getattr(parent, name)._decode_impl(data, pos, endianness, len_hints.get(name))
 
 
-def decode_composite(parent, name, type_, data, pos, endianness, len_hints):
+def decode_composite(parent, name, _, data, pos, endianness, __):
     return getattr(parent, name)._decode_impl(data, pos, endianness, terminal=False)
 
 
-def decode_bytes(parent, name, type_, data, pos, endianness, len_hints):
+def decode_bytes(parent, name, type_, data, pos, _, len_hints):
     value, size = type_._decode(data, pos, len_hints.get(name))
     setattr(parent, name, value)
     return size
 
 
-def decode_scalar(parent, name, type_, data, pos, endianness, len_hints):
+def decode_scalar(parent, name, type_, data, pos, endianness, _):
     value, size = type_._decode(data, pos, endianness)
     setattr(parent, name, value)
     return size
@@ -371,42 +231,44 @@ class struct(object):
         self._fields = {}
 
     def __str__(self):
-        out = ""
-        for name, tp, _, _ in self._descriptor:
-            value = getattr(self, name, None)
-            if value is not None:
-                out += field_to_string(name, tp, value)
-        return out
+        def to_str(item):
+            value = getattr(self, item.name, None)
+            return field_to_string(item.name, item.type, value) if value is not None else ""
+        return "".join(to_str(i) for i in self._descriptor)
 
     @classmethod
     def get_descriptor(cls):
-        descriptor = []
-        for name, tp, _, _ in cls._descriptor:
-            elem = FieldDescriptor(name, tp, get_kind(tp))
-            descriptor.append(elem)
-        return descriptor
+        return [FieldDescriptor(item.name, item.type, get_kind(item.type)) for item in cls._descriptor]
 
-    @staticmethod
-    def _get_padding(offset, alignment):
-        remainder = offset % alignment
-        if remainder:
-            return b'\x00' * (alignment - remainder)
-        else:
-            return b''
+    @classmethod
+    def _get_padding(cls, offset, alignment):
+        return b'\x00' * cls._get_padding_size(offset, alignment)
 
     @staticmethod
     def _get_padding_size(offset, alignment):
-        remainder = offset % alignment
-        return alignment - remainder if remainder else 0
+        return distance_to_next_multiply(offset, alignment)
+
+    @classmethod
+    def _wire_walk(cls):
+        data = ""
+        for item in cls._descriptor:
+            data += (cls._get_padding(len(data), item.type._ALIGNMENT))
+            data += item.encode_fcn(cls, item.type, getattr(cls, item.name, None), endianness)
+
+            if item.type._PARTIAL_ALIGNMENT:
+                data += cls._get_padding(len(data), item.type._PARTIAL_ALIGNMENT)
+
+        data += cls._get_padding(len(data), cls._ALIGNMENT)
 
     def encode(self, endianness, terminal=True):
         data = b""
 
-        for name, tp, encode_, _ in self._descriptor:
-            data += (self._get_padding(len(data), tp._ALIGNMENT) +
-                     encode_(self, tp, getattr(self, name, None), endianness))
-            if tp._PARTIAL_ALIGNMENT:
-                data += self._get_padding(len(data), tp._PARTIAL_ALIGNMENT)
+        for item in self._descriptor:
+            data += (self._get_padding(len(data), item.type._ALIGNMENT))
+            data += item.encode_fcn(self, item.type, getattr(self, item.name, None), endianness)
+
+            if item.type._PARTIAL_ALIGNMENT:
+                data += self._get_padding(len(data), item.type._PARTIAL_ALIGNMENT)
 
         data += self._get_padding(len(data), self._ALIGNMENT)
 
@@ -419,14 +281,14 @@ class struct(object):
         len_hints = {}
         start_pos = pos
 
-        for name, tp, _, decode_ in self._descriptor:
-            pos += self._get_padding_size(pos, tp._ALIGNMENT)
+        for item in self._descriptor:
+            pos += self._get_padding_size(pos, item.type._ALIGNMENT)
             try:
-                pos += decode_(self, name, tp, data, pos, endianness, len_hints)
+                pos += item.decode_fcn(self, item.name, item.type, data, pos, endianness, len_hints)
             except ProphyError as e:
                 raise ProphyError("{}: {}".format(self.__class__.__name__, e))
-            if tp._PARTIAL_ALIGNMENT:
-                pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
+            if item.type._PARTIAL_ALIGNMENT:
+                pos += self._get_padding_size(pos, item.type._PARTIAL_ALIGNMENT)
 
         pos += self._get_padding_size(pos, self._ALIGNMENT)
 
@@ -444,124 +306,247 @@ class struct(object):
         for name, rhs in other._fields.items():
             set_field(self, name, rhs)
 
+    @classmethod
+    def _bricks(cls):
+        for name, type_, _, _ in cls._descriptor:
+            for brick_type, brick_path in type_._bricks():
+                path_ = ".%s" % name
+                if brick_path is not None:
+                    path_ += brick_path
+                yield brick_type, path_
+
+    @classmethod
+    def wire_stamp(cls):
+        def collect():
+            for type_, path_ in cls._bricks():
+                type_size = getattr(type_, "_SIZE", "??")
+                yield "%s (%s) [%s];\n" % (path_, type_.__name__, type_size)
+
+        return "".join(collect())
+
 
 class struct_packed(struct):
     __slots__ = []
 
     @staticmethod
-    def _get_padding(offset, alignment):
-        return b''
-
-    @staticmethod
-    def _get_padding_size(offset, alignment):
+    def _get_padding_size(_, __):
         return 0
 
 
-class struct_generator(type):
+class composite_generator_base(type):
+    _slots = []
+    _descriptor_item_type = None
+
     def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = ["_fields"]
-        return super(struct_generator, cls).__new__(cls, name, bases, attrs)
+        attrs["__slots__"] = cls._slots
+        return super(composite_generator_base, cls).__new__(cls, name, bases, attrs)
 
-    def __init__(cls, name, bases, attrs):
-        if not hasattr(cls, "_generated"):
-            cls._generated = True
-            descriptor = cls._descriptor
-            validate(descriptor)
-            add_attributes(cls, descriptor)
-            if not issubclass(cls, struct_packed):
-                add_padding(cls, descriptor)
-            add_properties(cls, descriptor)
-            extend_descriptor(cls, descriptor)
-        super(struct_generator, cls).__init__(name, bases, attrs)
+    def __init__(self, name, bases, attrs):
+        if not hasattr(self, "_generated"):
+            self._generated = True
+            self._descriptor = [self._descriptor_item_type(*item) for item in self._descriptor]
+            self.validate()
+            self.add_attributes()
+            self.extend_descriptor()
+            self.add_properties()
+            self.add_sizers()
+        super(composite_generator_base, self).__init__(name, bases, attrs)
 
+    def _types(self):
+        for item in self._descriptor:
+            yield item.type
 
-def validate_union(descriptor):
-    if any(type_._DYNAMIC for _, type_, _ in descriptor):
-        raise ProphyError("dynamic types not allowed in union")
-    if any(type_._BOUND for _, type_, _ in descriptor):
-        raise ProphyError("bound array/bytes not allowed in union")
-    if any(issubclass(type_, base_array) for _, type_, _ in descriptor):
-        raise ProphyError("static array not implemented in union")
-    if any(type_._OPTIONAL for _, type_, _ in descriptor):
-        raise ProphyError("union with optional field disallowed")
+    def add_sizers(self):
+        pass
 
-
-def add_union_attributes(cls, descriptor):
-    def pad(value, alignment):
-        remainder = value % alignment
-        return remainder and (value + (alignment - remainder)) or value
-    cls._discriminator_type = scalar.u32
-    cls._DYNAMIC = False
-    cls._UNLIMITED = False
-    cls._OPTIONAL = False
-    cls._ALIGNMENT = max(scalar.u32._ALIGNMENT, max(type_._ALIGNMENT for _, type_, _ in descriptor))
-    cls._SIZE = pad(cls._ALIGNMENT + max(type_._SIZE for _, type_, _ in descriptor), cls._ALIGNMENT)
-    cls._BOUND = None
-    cls._PARTIAL_ALIGNMENT = None
+    def extend_descriptor(self):
+        for i, raw_item in enumerate(self._descriptor):
+            self._descriptor[i] = raw_item._add_codecs()
 
 
-def add_union_properties(cls, descriptor):
-    add_union_discriminator(cls)
-    for field in descriptor:
-        name, type_, disc, _, _ = field
-        if issubclass(type_, (struct, union)):
-            add_union_composite(cls, name, type_, disc, field)
+class struct_generator(composite_generator_base):
+    _slots = ["_fields"]
+    _descriptor_item_type = RawStructItem
+
+    def validate(self):
+        for type_ in list(self._types())[:-1]:
+            if type_._UNLIMITED:
+                raise ProphyError("unlimited field is not the last one")
+
+    def add_attributes(self):
+        self._BOUND = None
+        self._DYNAMIC = any(type_._DYNAMIC for type_ in self._types())
+        self._OPTIONAL = False
+        self._PARTIAL_ALIGNMENT = None
+        self._SIZE = sum((type_._OPTIONAL_SIZE if type_._OPTIONAL else type_._SIZE) for type_ in self._types())
+        self._UNLIMITED = any(type_._UNLIMITED for type_ in self._types())
+        if not self._descriptor:
+            self._ALIGNMENT = 1
         else:
-            add_union_scalar(cls, name, type_, disc, field)
+            self._ALIGNMENT = max((t._OPTIONAL_ALIGNMENT if t._OPTIONAL else t._ALIGNMENT) for t in self._types())
 
+        alignment = 1
+        for type_ in reversed(list(self._types())):
+            if issubclass(type_, (base_array, bytes)) and type_._DYNAMIC:
+                type_._PARTIAL_ALIGNMENT = alignment
+                alignment = 1
+            alignment = max(type_._ALIGNMENT, alignment)
+        if not issubclass(self, struct_packed) and self._descriptor:
+            self._SIZE += sum(self.get_padded_sizes())
 
-def add_union_discriminator(cls):
-    def getter(self):
-        return self._discriminated[2]
+    def get_padded_sizes(self):
+        types = list(self._types())
+        sizes = [tp._SIZE for tp in types]
+        alignments = [tp._ALIGNMENT for tp in types[1:]] + [self._ALIGNMENT]
+        offset = 0
 
-    def setter(self, new_value):
-        field = next((x for x in self._descriptor if new_value in (x[0], x[2])), None)
-        if field:
-            if field != self._discriminated:
-                self._discriminated = field
-                self._fields = {}
+        for size, alignment in zip(sizes, alignments):
+            offset += size
+            padding = distance_to_next_multiply(offset, alignment)
+            offset += padding
+            yield padding
+
+    def add_properties(self):
+        for item in self._descriptor:
+            if issubclass(item.type, base_array):
+                self.add_repeated(item)
+            elif issubclass(item.type, (struct, union)):
+                self.add_composite(item)
+            else:
+                self.add_scalar(item)
+
+    def add_sizers(self):
+        for item in self._descriptor:
+            if issubclass(item.type, base_array) or not issubclass(item.type, (struct, union)):
+                if item.type._BOUND:
+                    self.substitute_len_field(item)
+
+    def add_repeated(self, descriptor_item):
+        def getter(self_):
+            value = self_._fields.get(descriptor_item.name)
+            if value is None:
+                value = descriptor_item.type()
+                self_._fields[descriptor_item.name] = value
+            return value
+
+        def setter(self_, new_value):
+            raise ProphyError("assignment to array field not allowed")
+
+        setattr(self, descriptor_item.name, property(getter, setter))
+
+#         if descriptor_item.type._BOUND:
+#             self.substitute_len_field(descriptor_item)
+
+    def add_scalar(self, descriptor_item):
+        if descriptor_item.type._OPTIONAL:
+            def getter(self_):
+                return self_._fields.get(descriptor_item.name)
+
+            def setter(self_, new_value):
+                if new_value is None:
+                    self_._fields[descriptor_item.name] = None
+                else:
+                    self_._fields[descriptor_item.name] = descriptor_item.type._check(new_value)
         else:
-            raise ProphyError("unknown discriminator")
-    setattr(cls, "discriminator", property(getter, setter))
+            def getter(self_):
+                return self_._fields.get(descriptor_item.name, descriptor_item.type._DEFAULT)
 
+            def setter(self_, new_value):
+                self_._fields[descriptor_item.name] = descriptor_item.type._check(new_value)
+        setattr(self, descriptor_item.name, property(getter, setter))
+#         if descriptor_item.type._BOUND:
+#             self.substitute_len_field(descriptor_item)
 
-def add_union_scalar(cls, name, type_, disc, field):
-    def getter(self):
-        if self._discriminated is not field:
-            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
-        return self._fields.get(name, type_._DEFAULT)
+    def add_composite(self, descriptor_item):
+        if descriptor_item.type._OPTIONAL:
+            def getter(self_):
+                return self_._fields.get(descriptor_item.name)
 
-    def setter(self, new_value):
-        if self._discriminated is not field:
-            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
-        new_value = type_._check(new_value)
-        self._fields[name] = new_value
-    setattr(cls, name, property(getter, setter))
+            def setter(self_, new_value):
+                if new_value is True:
+                    self_._fields[descriptor_item.name] = descriptor_item.type()
+                elif new_value is None:
+                    self_._fields.pop(descriptor_item.name, None)
+                else:
+                    raise ProphyError("assignment to composite field not allowed")
+        else:
+            def getter(self_):
+                value = self_._fields.get(descriptor_item.name)
+                if value:
+                    return value
+                else:
+                    return self_._fields.setdefault(descriptor_item.name, descriptor_item.type())
 
+            def setter(self_, new_value):
+                raise ProphyError("assignment to composite field not allowed")
+        setattr(self, descriptor_item.name, property(getter, setter))
 
-def add_union_composite(cls, name, type_, disc, field):
-    def getter(self):
-        if self._discriminated is not field:
-            raise ProphyError("currently field %s is discriminated" % self._discriminated[2])
-        value = self._fields.get(name)
-        if value is None:
-            value = type_()
-            value = self._fields.setdefault(name, value)
-        return value
+    def substitute_len_field(self, container_item):
+        sizer_name = self.validate_and_fix_sizer_name(container_item)
+        index, sizer_item = next((index, f) for index, f in enumerate(self._descriptor) if f.name == sizer_name)
+        bound_shift = container_item.type._BOUND_SHIFT
+        self.validate_sizer_type(sizer_item, container_item)
 
-    def setter(self, new_value):
-        raise ProphyError("assignment to composite field not allowed")
-    setattr(cls, name, property(getter, setter))
+        if sizer_item.type.__name__ == "container_len":
+            " sizer already created for other container "
+            sizer_item.type.add_bounded_container(container_item.name)
+            self.validate_bound_shift(sizer_item.type, container_item.name, bound_shift)
 
+        else:
+            container_len_class = build_container_length_field(sizer_item.type, container_item.name, bound_shift)
+            raw_item = RawStructItem(sizer_item.name, container_len_class)
+            self._descriptor[index] = raw_item._add_codecs()
+            delattr(self, sizer_item.name)
 
-def extend_union_descriptor(cls, descriptor):
-    for i, (name, type_, disc) in enumerate(descriptor):
-        descriptor[i] = (name, type_, disc, get_encode_function(type_), get_decode_function(type_))
+    def validate_and_fix_sizer_name(self, container_item):
+        sizer_name = container_item.type._BOUND
+        all_names = [item.name for item in self._descriptor]
+
+        if sizer_name not in all_names:
+            msg = "Sizing member '{}' of container '{}' not found in the object '{}'."
+            msg = msg.format(sizer_name, container_item.name, self.__name__)
+
+            """ Try to be lenient. """
+            if (sizer_name + 's') in all_names:
+                sizer_name += 's'
+
+            elif sizer_name.endswith('s') and sizer_name[:-1] in all_names:
+                sizer_name = sizer_name[:-1]
+
+            elif len([n for n in all_names if n.startswith("numOf")]) == 1:
+                if len([f for f in self._descriptor if f.type._BOUND]) == 1:
+                    """ If there is one sizer and only one array. """
+                    sizer_name = next(f for f in self._descriptor if f.name.startswith("numOf")).name
+            else:
+                raise ProphyError(msg)
+
+            container_item.type._BOUND = sizer_name
+            msg = "Warning: {}\n Picking '{}' as the missing sizer instead.\n".format(msg, sizer_name)
+            print(msg)
+
+        return sizer_name
+
+    def validate_sizer_type(self, sizer_item, container_item):
+        if sizer_item.type._OPTIONAL:
+            msg = "array {}.{} must not be bound to optional field"
+            raise ProphyError(msg.format(self.__name__, container_item.name))
+        if not issubclass(sizer_item.type, (int, long)):
+            msg = "array {}.{} must be bound to an unsigned integer"
+            raise ProphyError(msg.format(self.__name__, container_item.name))
+
+    def validate_bound_shift(self, sizer_item_type, container_name, expected_bound_shift):
+        msg = "Different bound shifts are unsupported in externally sized arrays ({}.{})"
+        for item in self._descriptor:
+            if item.name in sizer_item_type._BOUND:
+                if not item.type._BOUND_SHIFT == expected_bound_shift:
+                    raise ProphyError(msg.format(self.__name__, container_name))
 
 
 def get_discriminated_field(cls, discriminator):
-    field = next((x for x in cls._descriptor if x[2] == discriminator), None)
-    return field
+    for item in cls._descriptor:
+        if item.discriminator == discriminator:
+            return item
+    raise ProphyError("unknown discriminator: {!r}".format(discriminator))
 
 
 class union(object):
@@ -572,21 +557,17 @@ class union(object):
         self._discriminated = self._descriptor[0]
 
     def __str__(self):
-        name, tp, _, _, _ = self._discriminated
+        name = self._discriminated.name
         value = getattr(self, name)
-        return field_to_string(name, tp, value)
+        return field_to_string(name, self._discriminated.type, value)
 
     def get_discriminated(self):
-        name, tp, _, _, _ = self._discriminated
+        name, tp = self._discriminated[:2]
         return FieldDescriptor(name, tp, get_kind(tp))
 
     @classmethod
     def get_descriptor(cls):
-        descriptor = []
-        for name, tp, _, _, _ in cls._descriptor:
-            elem = FieldDescriptor(name, tp, get_kind(tp))
-            descriptor.append(elem)
-        return descriptor
+        return [FieldDescriptor(item.name, item.type, get_kind(item.type)) for item in cls._descriptor]
 
     def encode(self, endianness, terminal=True):
         name, tp, disc, encode_, _ = self._discriminated
@@ -601,12 +582,10 @@ class union(object):
 
     def _decode_impl(self, data, pos, endianness, terminal):
         disc, _ = self._discriminator_type._decode(data, pos, endianness)
-        field = get_discriminated_field(self, disc)
-        if not field:
-            raise ProphyError("unknown discriminator")
-        name, type_, _, _, decode_ = field
-        self._discriminated = field
-        decode_(self, name, type_, data, pos + self._ALIGNMENT, endianness, {})
+        item = get_discriminated_field(self, disc)
+
+        self._discriminated = item
+        item.decode_fcn(self, item.name, item.type, data, pos + self._ALIGNMENT, endianness, {})
         if (len(data) - pos) < self._SIZE:
             raise ProphyError("not enough bytes")
         if terminal and (len(data) - pos) > self._SIZE:
@@ -620,29 +599,89 @@ class union(object):
 
         self._fields.clear()
         self._discriminated = other._discriminated
-        name, type_, _, _, _ = self._discriminated
-        rhs = getattr(other, name)
-        if issubclass(type_, (struct, union)):
-            lhs = getattr(self, name)
+        rhs = getattr(other, self._discriminated.name)
+        if issubclass(self._discriminated.type, (struct, union)):
+            lhs = getattr(self, self._discriminated.name)
             lhs.copy_from(rhs)
         else:
-            setattr(self, name, rhs)
+            setattr(self, self._discriminated.name, rhs)
 
 
-class union_generator(type):
-    def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = ["_fields", "_discriminated"]
-        return super(union_generator, cls).__new__(cls, name, bases, attrs)
+class union_generator(composite_generator_base):
+    _slots = ["_fields", "_discriminated"]
+    _descriptor_item_type = RawUnionItem
 
-    def __init__(cls, name, bases, attrs):
-        if not hasattr(cls, "_generated"):
-            cls._generated = True
-            descriptor = cls._descriptor
-            validate_union(descriptor)
-            add_union_attributes(cls, descriptor)
-            extend_union_descriptor(cls, descriptor)
-            add_union_properties(cls, descriptor)
-        super(union_generator, cls).__init__(name, bases, attrs)
+    def validate(self):
+        for type_ in self._types():
+            if type_._DYNAMIC:
+                raise ProphyError("dynamic types not allowed in union")
+            if type_._BOUND:
+                raise ProphyError("bound array/bytes not allowed in union")
+            if issubclass(type_, base_array):
+                raise ProphyError("static array not implemented in union")
+            if type_._OPTIONAL:
+                raise ProphyError("union with optional field disallowed")
+
+    def add_attributes(self):
+        self._ALIGNMENT = max(scalar.u32._ALIGNMENT, max(type_._ALIGNMENT for type_ in self._types()))
+        self._BOUND = None
+        self._DYNAMIC = False
+        self._OPTIONAL = False
+        self._PARTIAL_ALIGNMENT = None
+        unaligned_size = self._ALIGNMENT + max(type_._SIZE for type_ in self._types())
+        self._SIZE = unaligned_size + distance_to_next_multiply(unaligned_size, self._ALIGNMENT)
+        self._UNLIMITED = False
+        self._discriminator_type = scalar.u32
+
+    def add_properties(self):
+        self.add_union_discriminator()
+        for item in self._descriptor:
+            if issubclass(item.type, (struct, union)):
+                self.add_union_composite(item)
+            else:
+                self.add_union_scalar(item)
+
+    def add_union_discriminator(self):
+        def getter(self_):
+            return self_._discriminated[2]
+
+        def setter(self_, discriminator_name_or_value):
+            for item in self_._descriptor:
+                if discriminator_name_or_value in (item.name, item.discriminator):
+                    if item != self_._discriminated:
+                        self_._discriminated = item
+                        self_._fields = {}
+                    return
+            raise ProphyError("unknown discriminator: {!r}".format(discriminator_name_or_value))
+
+        setattr(self, "discriminator", property(getter, setter))
+
+    def add_union_composite(self, item):
+        def getter(self_):
+            if self_._discriminated is not item:
+                raise ProphyError("currently field %s is discriminated" % self_._discriminated[2])
+            value = self_._fields.get(item.name)
+            if value is None:
+                value = item.type()
+                value = self_._fields.setdefault(item.name, value)
+            return value
+
+        def setter(self_, new_value):
+            raise ProphyError("assignment to composite field not allowed")
+        setattr(self, item.name, property(getter, setter))
+
+    def add_union_scalar(self, item):
+        def getter(self_):
+            if self_._discriminated is not item:
+                raise ProphyError("currently field %s is discriminated" % self_._discriminated[2])
+            return self_._fields.get(item.name, item.type._DEFAULT)
+
+        def setter(self_, new_value):
+            if self_._discriminated is not item:
+                raise ProphyError("currently field %s is discriminated" % self_._discriminated[2])
+            new_value = item.type._check(new_value)
+            self_._fields[item.name] = new_value
+        setattr(self, item.name, property(getter, setter))
 
 
 class FieldDescriptor(object):

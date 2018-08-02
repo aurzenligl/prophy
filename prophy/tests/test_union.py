@@ -251,11 +251,11 @@ def test_union_discriminator_exceptions(VariableLengthFieldsUnion):
 
     with pytest.raises(Exception) as e:
         x.discriminator = "xxx"
-    assert "unknown discriminator" == str(e.value)
+    assert "unknown discriminator: 'xxx'" == str(e.value)
 
     with pytest.raises(Exception) as e:
         x.discriminator = 666
-    assert "unknown discriminator" == str(e.value)
+    assert "unknown discriminator: 666" == str(e.value)
 
     assert 1 == x.discriminator
     assert 42 == x.b
@@ -266,7 +266,7 @@ def test_union_decode_exceptions(VariableLengthFieldsUnion):
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x00\x00\x00\xff", ">")
-    assert "unknown discriminator" == str(e.value)
+    assert "unknown discriminator: 255" == str(e.value)
 
     with pytest.raises(Exception) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x00" b"\x12\x34\x56\x78\x00\x00\x00\x00\x00", ">")
