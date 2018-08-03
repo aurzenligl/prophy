@@ -1,8 +1,13 @@
+from collections import namedtuple
+
 from . import scalar
 from .base_array import base_array
 from .exception import ProphyError
 from .kind import kind
 from .six import long, repr_bytes
+
+FieldDescriptor = namedtuple("FieldDescriptor", "name, type, kind")
+FieldDescriptor.__repr__ = lambda self: "<{}, {!r}, {!r}>".format(*self)
 
 
 class codec_kind(object):
@@ -43,7 +48,7 @@ def build_container_length_field(sizer_item_type, container_name, bound_shift):
             cls._BOUND.append(cont_name)
 
         @classmethod
-        def evaluate(cls, parent):
+        def evaluate_size(cls, parent):
             sizes = set(len(getattr(parent, c_name)) for c_name in cls._BOUND)
             if len(sizes) != 1:
                 msg = "Size mismatch of arrays in {}: {}"
@@ -103,6 +108,25 @@ class descriptor_item_type(object):
             self.type._decode = staticmethod(opt_decode)
 
     @property
+    def kind(self):
+        if issubclass(self.type, base_array):
+            return kind.ARRAY
+        elif issubclass(self.type, struct):
+            return kind.STRUCT
+        elif issubclass(self.type, union):
+            return kind.UNION
+        elif issubclass(self.type, bytes):
+            return kind.BYTES
+        elif issubclass(self.type, scalar.enum):
+            return kind.ENUM
+        else:
+            return kind.INT
+
+    @property
+    def descriptor_info(self):
+        return FieldDescriptor(self.name, self.type, self.kind)
+
+    @property
     def is_union_descriptor(self):
         return self.discriminator is not None
 
@@ -132,39 +156,40 @@ def encode_optional(parent, type_, value, endianness):
                 type_._encode(parent, type_.__bases__[0], value, endianness))
 
 
-def encode_array_delimiter(parent, type_, value, endianness):
-    return type_._encode(type_.evaluate(parent), endianness)
+def encode_array_delimiter(parent, type_, _, endianness):
+    return type_._encode(type_.evaluate_size(parent), endianness)
 
 
-def encode_array(parent, type_, value, endianness):
+def encode_array(_, __, value, endianness):
     return value._encode_impl(endianness)
 
 
-def encode_composite(parent, type_, value, endianness):
-    return value.encode(endianness, terminal=False)
+def encode_composite(_, __, value, endianness):
+    return value.encode(endianness)
 
 
-def encode_bytes(parent, type_, value, endianness):
+def encode_bytes(_, type_, value, __):
     return type_._encode(value)
 
 
-def encode_scalar(parent, type_, value, endianness):
+def encode_scalar(_, type_, value, endianness):
     return type_._encode(value, endianness)
 
 
 def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
     value, _ = type_._optional_type._decode(data, pos, endianness)
+    opt_alignment = type_._OPTIONAL_ALIGNMENT
     if value:
         setattr(parent, name, True)
-        return type_._OPTIONAL_ALIGNMENT + type_._decode(parent, name, type_.__bases__[0],
-                                                         data, pos + type_._OPTIONAL_ALIGNMENT, endianness,
-                                                         len_hints)
+        sub_type = type_.__bases__[0]
+        pos += opt_alignment
+        return opt_alignment + type_._decode(parent, name, sub_type, data, pos, endianness, len_hints)
     else:
         setattr(parent, name, None)
-        return type_._OPTIONAL_ALIGNMENT + type_._SIZE
+        return opt_alignment + type_._SIZE
 
 
-def decode_array_delimiter(parent, name, type_, data, pos, endianness, len_hints):
+def decode_array_delimiter(_, __, type_, data, pos, endianness, len_hints):
     value, size = type_._decode(data, pos, endianness)
     if value < 0:
         raise ProphyError("Array delimiter must have positive value")
@@ -193,15 +218,16 @@ def decode_scalar(parent, name, type_, data, pos, endianness, _):
     return size
 
 
-def indent(text, spaces):
-    return '\n'.join(x and spaces * ' ' + x or '' for x in text.split('\n'))
-
-
 def field_to_string(name, type_, value):
+    single_indent_level = " " * 2
+
+    def indent(text):
+        return '\n'.join(x and single_indent_level + x or '' for x in text.split('\n'))
+
     if issubclass(type_, base_array):
         return "".join(field_to_string(name, type_._TYPE, elem) for elem in value)
     elif issubclass(type_, (struct, union)):
-        return "%s {\n%s}\n" % (name, indent(str(value), spaces=2))
+        return "%s {\n%s}\n" % (name, indent(str(value)))
     elif issubclass(type_, bytes):
         return "%s: %s\n" % (name, repr_bytes(value))
     elif issubclass(type_, scalar.enum):
@@ -210,42 +236,9 @@ def field_to_string(name, type_, value):
         return "%s: %s\n" % (name, value)
 
 
-def get_kind(type_):
-    if issubclass(type_, base_array):
-        return kind.ARRAY
-    elif issubclass(type_, struct):
-        return kind.STRUCT
-    elif issubclass(type_, union):
-        return kind.UNION
-    elif issubclass(type_, bytes):
-        return kind.BYTES
-    elif issubclass(type_, scalar.enum):
-        return kind.ENUM
-    else:
-        return kind.INT
-
-
 def validate_copy_from(lhs, rhs):
     if not isinstance(rhs, lhs.__class__):
         raise TypeError("Parameter to copy_from must be instance of same class.")
-
-
-def set_field(parent, name, rhs):
-    lhs = getattr(parent, name)
-    if isinstance(rhs, base_array):
-        if issubclass(rhs._TYPE, (struct, union)):
-            if rhs._DYNAMIC:
-                del lhs[:]
-                lhs.extend(rhs[:])
-            else:
-                for lhs_elem, rhs_elem in zip(lhs, rhs):
-                    lhs_elem.copy_from(rhs_elem)
-        else:
-            lhs[:] = rhs[:]
-    elif isinstance(rhs, (struct, union)):
-        lhs.copy_from(rhs)
-    else:
-        parent._fields[name] = rhs
 
 
 class struct(object):
@@ -255,14 +248,20 @@ class struct(object):
         self._fields = {}
 
     def __str__(self):
-        def to_str(item):
-            value = getattr(self, item.name, None)
-            return field_to_string(item.name, item.type, value) if value is not None else ""
-        return "".join(to_str(i) for i in self._descriptor)
+        def to_str():
+            for item in self._descriptor:
+                value = getattr(self, item.name, None)
+                if value is not None:
+                    yield field_to_string(item.name, item.type, value)
+
+        return "".join(to_str())
 
     @classmethod
     def get_descriptor(cls):
-        return [FieldDescriptor(item.name, item.type, get_kind(item.type)) for item in cls._descriptor]
+        """
+            FIXME: I'm afraid it rapes YAGNI rule
+        """
+        return [item.descriptor_info for item in cls._descriptor]
 
     @classmethod
     def _get_padding(cls, offset, alignment):
@@ -272,7 +271,7 @@ class struct(object):
     def _get_padding_size(offset, alignment):
         return distance_to_next_multiply(offset, alignment)
 
-    def encode(self, endianness, terminal=True):
+    def encode(self, endianness):
         data = b""
 
         for item in self._descriptor:
@@ -316,7 +315,24 @@ class struct(object):
 
         self._fields.clear()
         for name, rhs in other._fields.items():
-            set_field(self, name, rhs)
+            self.set_field(name, rhs)
+
+    def set_field(self, name, rhs):
+        lhs = getattr(self, name)
+        if isinstance(rhs, base_array):
+            if issubclass(rhs._TYPE, (struct, union)):
+                if rhs._DYNAMIC:
+                    del lhs[:]
+                    lhs.extend(rhs[:])
+                else:
+                    for lhs_elem, rhs_elem in zip(lhs, rhs):
+                        lhs_elem.copy_from(rhs_elem)
+            else:
+                lhs[:] = rhs[:]
+        elif isinstance(rhs, (struct, union)):
+            lhs.copy_from(rhs)
+        else:
+            self._fields[name] = rhs
 
     @classmethod
     def _bricks(cls):
@@ -551,13 +567,6 @@ class struct_generator(composite_generator_base):
                     raise ProphyError(msg.format(self.__name__, container_name))
 
 
-def get_discriminated_field(cls, discriminator):
-    for item in cls._descriptor:
-        if item.discriminator == discriminator:
-            return item
-    raise ProphyError("unknown discriminator: {!r}".format(discriminator))
-
-
 class union(object):
     __slots__ = []
 
@@ -571,35 +580,47 @@ class union(object):
         return field_to_string(name, self._discriminated.type, value)
 
     def get_discriminated(self):
-        name, tp = self._discriminated.name, self._discriminated.type
-        return FieldDescriptor(name, tp, get_kind(tp))
+        """
+            FIXME: I'm afraid it rapes YAGNI rule
+        """
+        return self._discriminated.descriptor_info
 
     @classmethod
     def get_descriptor(cls):
-        return [FieldDescriptor(item.name, item.type, get_kind(item.type)) for item in cls._descriptor]
+        """
+            FIXME: I'm afraid it rapes YAGNI rule
+        """
+        return [item.descriptor_info for item in cls._descriptor]
 
-    def encode(self, endianness, terminal=True):
+    def encode(self, endianness, **_):
         name, tp, disc, encode_, _ = self._discriminated
         value = getattr(self, name)
-        return (
-            self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, b'\x00') +
-            encode_(self, tp, value, endianness)
-        ).ljust(self._SIZE, b'\x00')
+        discriminator_bytes = self._discriminator_type._encode(disc, endianness).ljust(self._ALIGNMENT, b'\x00')
+        body_bytes = encode_(self, tp, value, endianness)
+        return (discriminator_bytes + body_bytes).ljust(self._SIZE, b'\x00')
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal=True)
 
     def _decode_impl(self, data, pos, endianness, terminal):
         disc, _ = self._discriminator_type._decode(data, pos, endianness)
-        item = get_discriminated_field(self, disc)
+        item = self._get_discriminated_field(disc)
 
         self._discriminated = item
         item.decode_fcn(self, item.name, item.type, data, pos + self._ALIGNMENT, endianness, {})
-        if (len(data) - pos) < self._SIZE:
+
+        bytes_read = len(data) - pos
+        if bytes_read < self._SIZE:
             raise ProphyError("not enough bytes")
-        if terminal and (len(data) - pos) > self._SIZE:
+        if terminal and bytes_read > self._SIZE:
             raise ProphyError("not all bytes of {} read".format(self.__class__.__name__))
         return self._SIZE
+
+    def _get_discriminated_field(self, discriminator):
+        for item in self._descriptor:
+            if item.discriminator == discriminator:
+                return item
+        raise ProphyError("unknown discriminator: {!r}".format(discriminator))
 
     def copy_from(self, other):
         validate_copy_from(self, other)
@@ -690,13 +711,3 @@ class union_generator(composite_generator_base):
             new_value = item.type._check(new_value)
             self_._fields[item.name] = new_value
         setattr(self, item.name, property(getter, setter))
-
-
-class FieldDescriptor(object):
-    def __init__(self, name, type_, kind):
-        self.name = name
-        self.type = type_
-        self.kind = kind
-
-    def __repr__(self):
-        return ("<{}, {!r}, {!r}>".format(self.name, self.type, self.kind))

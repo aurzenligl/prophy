@@ -137,7 +137,7 @@ class fixed_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return b"".join(value.encode(endianness, terminal=False) for value in self)
+        return b"".join(value.encode(endianness) for value in self)
 
     def _decode_impl(self, data, pos, endianness, _):
         cursor = 0
@@ -186,7 +186,7 @@ class bound_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return b"".join(value.encode(endianness, terminal=False) for value in self).ljust(self._SIZE, b"\x00")
+        return b"".join(value.encode(endianness) for value in self).ljust(self._SIZE, b"\x00")
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
