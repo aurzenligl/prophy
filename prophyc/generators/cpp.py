@@ -1,5 +1,5 @@
 from prophyc import model
-from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
+from prophyc.generators.base import GenerateError, GeneratorBase, BlockTranslatorBase
 
 
 primitive_types = {
@@ -49,9 +49,9 @@ class _Padder(object):
         return ''.join(self._gen_padding_var(type_) for val, type_ in self.PADDINGS if padding & val)
 
 
-class _HppIncludesTranslator(TranslatorBase):
+class _HppIncludesTranslator(BlockTranslatorBase):
 
-    def _translate_include(self, include):
+    def translate_include(self, include):
         return '#include "{}.pp.hpp"'.format(include.name)
 
 
@@ -83,23 +83,23 @@ enum _discriminator
 """
 
 
-class _HppDefinitionsTranslator(TranslatorBase):
+class _HppDefinitionsTranslator(BlockTranslatorBase):
     def block_post_process(self, content, _, __):
         return content + '\n'
 
-    def _translate_constant(self, constant):
+    def translate_constant(self, constant):
         return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
 
-    def _translate_typedef(self, typedef):
+    def translate_typedef(self, typedef):
         tp = primitive_types.get(typedef.type_, typedef.type_)
         return 'typedef {} {};'.format(tp, typedef.name)
 
-    def _translate_enum(self, enum):
+    def translate_enum(self, enum):
         members = ',\n'.join('{} = {}'.format(member.name, _to_literal(member.value))
                              for member in enum.members)
         return 'enum {}\n{{\n{}\n}};'.format(enum.name, _indent(members, 4))
 
-    def _translate_struct(self, struct):
+    def translate_struct(self, struct):
         def gen_member(member, padder):
             def build_annotation(member):
                 if member.size:
@@ -152,7 +152,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
 
         return STRUCT_DEF_TEMPLATE.format(align=struct.alignment, name=struct.name, blocks=blocks)
 
-    def _translate_union(self, union):
+    def translate_union(self, union):
         def gen_disc(member):
             return 'discriminator_{0} = {1}'.format(member.name, member.discriminator)
 
@@ -183,20 +183,20 @@ namespace prophy
 """
 
 
-class _HppSwapDeclarations(TranslatorBase):
+class _HppSwapDeclarations(BlockTranslatorBase):
     def block_post_process(self, content, _, __):
         return HPP_SWAPS_BLOCK_TEMPLATE.format(content)
 
     def prepend_newline(self, _, __):
         return False
 
-    def _translate_enum(self, enum):
+    def translate_enum(self, enum):
         return ENUM_SWAP_TEMPLATE.format(enum.name)
 
-    def _translate_struct(self, struct):
+    def translate_struct(self, struct):
         return STRUCT_SWAP_TEMPLATE.format(struct.name)
 
-    def _translate_union(self, union):
+    def translate_union(self, union):
         return STRUCT_SWAP_TEMPLATE.format(union.name)
 
 
@@ -250,13 +250,13 @@ template <>
 {members}}}"""
 
 
-class _CppSwapTranslator(TranslatorBase):
+class _CppSwapTranslator(BlockTranslatorBase):
     block_template = SOURCE_TEMPLATE
 
     def block_post_process(self, content, base_name, _):
         return SOURCE_TEMPLATE.format(base_name=base_name, content=content)
 
-    def _translate_struct(self, struct):
+    def translate_struct(self, struct):
         def gen_member(member, delimiters=[]):
             if member.array:
                 is_dynamic = member.kind == model.Kind.DYNAMIC
@@ -334,7 +334,7 @@ class _CppSwapTranslator(TranslatorBase):
         return '\n'.join([gen_part(i + 2, part) for i, part in enumerate(parts)] +
                          [gen_main(main, parts)])
 
-    def _translate_union(self, union):
+    def translate_union(self, union):
         def make_members_case():
             for member in union.members:
                 access = _member_access_statement(member)
@@ -354,9 +354,9 @@ HEADER_TEMPLATE = """\
 """
 
 
-class _HppTranslator(TranslatorBase):
+class _HppTranslator(BlockTranslatorBase):
     block_template = HEADER_TEMPLATE
-    block_translators = [
+    prerequisite_translators = [
         _HppIncludesTranslator,
         _HppDefinitionsTranslator,
         _HppSwapDeclarations
@@ -364,7 +364,7 @@ class _HppTranslator(TranslatorBase):
 
 
 class CppGenerator(GeneratorBase):
-    file_translators = {
+    top_level_translators = {
         ".pp.hpp": _HppTranslator,
         ".pp.cpp": _CppSwapTranslator
     }
