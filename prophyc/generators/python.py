@@ -1,5 +1,5 @@
 
-from prophyc.generators.base import GeneratorBase, TranslatorBase
+from prophyc.generators.base import GeneratorBase, BlockTranslatorBase
 
 
 libname = "prophy"
@@ -66,7 +66,7 @@ class {union_name}({libname}.with_metaclass({libname}.union_generator, {libname}
     _descriptor = {members_list}"""
 
 
-class _PythonTranslator(TranslatorBase):
+class _PythonTranslator(BlockTranslatorBase):
 
     def block_post_process(self, content, _, __):
         header = "import {0}\n".format(libname)
@@ -75,13 +75,13 @@ class _PythonTranslator(TranslatorBase):
         else:
             return header
 
-    def _translate_include(self, include):
+    def translate_include(self, include):
         return "from %s import *" % include.name.split("/")[-1]
 
-    def _translate_constant(self, constant):
+    def translate_constant(self, constant):
         return "%s = %s" % constant
 
-    def _translate_typedef(self, typedef):
+    def translate_typedef(self, typedef):
         if typedef.type_ in primitive_types:
             value = "{0}.{1}".format(libname, typedef.type_)
         else:
@@ -89,22 +89,22 @@ class _PythonTranslator(TranslatorBase):
 
         return "%s = %s" % (typedef.name, value)
 
-    def _translate_enum(self, enum):
+    def translate_enum(self, enum):
         members_list = _make_list(_form_enum_member, enum.members)
         constants_list = _generate_enum_constants(enum.members)
         return ENUM_TEMPLATE.format(libname=libname, enum_name=enum.name, members_list=members_list,
                                     constants=constants_list)
 
-    def _translate_struct(self, struct):
+    def translate_struct(self, struct):
         members_list = _make_list(_form_struct_member, struct.members)
         return STRUCT_TEMPLATE.format(libname=libname, struct_name=struct.name, members_list=members_list)
 
-    def _translate_union(self, union):
+    def translate_union(self, union):
         members_list = _make_list(_form_union_member, union.members)
         return UNION_TEMPLATE.format(libname=libname, union_name=union.name, members_list=members_list)
 
 
 class PythonGenerator(GeneratorBase):
-    file_translators = {
+    top_level_translators = {
         ".py": _PythonTranslator
     }

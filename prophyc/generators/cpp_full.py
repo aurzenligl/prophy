@@ -1,6 +1,6 @@
 from prophyc import model
 from prophyc.model import DISC_SIZE, BUILTIN_SIZES
-from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
+from prophyc.generators.base import GenerateError, GeneratorBase, BlockTranslatorBase
 
 
 BUILTIN2C = {
@@ -71,10 +71,10 @@ def _to_literal(value):
         return value
 
 
-class _HppIncludesTranslator(TranslatorBase):
+class _HppIncludesTranslator(BlockTranslatorBase):
     block_template = "{content}\n"
 
-    def _translate_include(self, include):
+    def translate_include(self, include):
         return '#include "{}.ppf.hpp"'.format(include.name)
 
 
@@ -90,20 +90,20 @@ namespace generated
 """
 
 
-class _HppDefinitionsTranslator(TranslatorBase):
+class _HppDefinitionsTranslator(BlockTranslatorBase):
     block_template = HPP_DEFS_TEMPLATE
 
-    def _translate_constant(self, constant):
+    def translate_constant(self, constant):
         return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
 
-    def _translate_enum(self, enum):
+    def translate_enum(self, enum):
         body = ',\n'.join('    {0} = {1}'.format(m.name, _to_literal(m.value)) for m in enum.members) + '\n'
         return 'enum {0}\n'.format(enum.name) + '{\n' + body + '};'
 
-    def _translate_typedef(self, node):
+    def translate_typedef(self, node):
         return 'typedef {0} {1};'.format(BUILTIN2C.get(node.type_, node.type_), node.name)
 
-    def _translate_struct(self, node):
+    def translate_struct(self, node):
         return (
             'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
             '{\n' +
@@ -121,7 +121,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
             '};'
         )
 
-    def _translate_union(self, node):
+    def translate_union(self, node):
         return (
             'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
             '{\n' +
@@ -160,9 +160,9 @@ HPP_HEADER_TEMPLATE = """\
 """
 
 
-class _HppTranslator(TranslatorBase):
+class _HppTranslator(BlockTranslatorBase):
     block_template = HPP_HEADER_TEMPLATE
-    block_translators = [
+    prerequisite_translators = [
         _HppIncludesTranslator,
         _HppDefinitionsTranslator
     ]
@@ -189,12 +189,12 @@ namespace detail
 """
 
 
-class _CppTranslator(TranslatorBase):
+class _CppTranslator(BlockTranslatorBase):
 
     def block_post_process(self, content, base_name, _):
         return CPP_SOURCE_TEMPLATE.format(base_name, content)
 
-    def _translate_enum(self, node):
+    def translate_enum(self, node):
         return (
             'template <>\n' +
             'const char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name) +
@@ -211,7 +211,7 @@ class _CppTranslator(TranslatorBase):
             '}'
         )
 
-    def _translate_struct(self, node):
+    def translate_struct(self, node):
         def encode_impl(node):
             return (
                 'template <>\n' +
@@ -265,7 +265,7 @@ class _CppTranslator(TranslatorBase):
             print_impl(node)
         )
 
-    def _translate_union(self, node):
+    def translate_union(self, node):
         def encode_impl(node):
             return (
                 'template <>\n' +
@@ -600,7 +600,7 @@ def generate_union_constructor(node):
 
 
 class CppFullGenerator(GeneratorBase):
-    file_translators = {
+    top_level_translators = {
         ".ppf.hpp": _HppTranslator,
         ".ppf.cpp": _CppTranslator
     }

@@ -183,7 +183,7 @@ class SupplementaryDefs(object):
                 yield "#define {} {}".format(node.name, node.value)
             elif isinstance(node, model.Enum):
                 cpp_translator = _HppDefinitionsTranslator()
-                for line in cpp_translator._translate_enum(node).split('\n'):
+                for line in cpp_translator.translate_enum(node).split('\n'):
                     # need to have all lines separated to know its count
                     yield line
             else:

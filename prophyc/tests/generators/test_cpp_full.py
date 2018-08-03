@@ -25,15 +25,15 @@ from prophyc.generators.cpp_full import (
 # flake8: noqa E501
 
 hpp_content_translator = _HppDefinitionsTranslator()
-generate_constant_definition = hpp_content_translator._translate_constant
-generate_enum_definition = hpp_content_translator._translate_enum
-generate_typedef_definition = hpp_content_translator._translate_typedef
-generate_struct_definition = hpp_content_translator._translate_struct
-generate_union_definition = hpp_content_translator._translate_union
+generate_constant_definition = hpp_content_translator.translate_constant
+generate_enum_definition = hpp_content_translator.translate_enum
+generate_typedef_definition = hpp_content_translator.translate_typedef
+generate_struct_definition = hpp_content_translator.translate_struct
+generate_union_definition = hpp_content_translator.translate_union
 
 cpp_translator = _CppTranslator()
-generate_struct_implementation = cpp_translator._translate_struct
-generate_union_implementation = cpp_translator._translate_union
+generate_struct_implementation = cpp_translator.translate_struct
+generate_union_implementation = cpp_translator.translate_union
 
 
 def generate_hpp_content(nodes):
@@ -203,7 +203,7 @@ struct X : public prophy::detail::message<X>
 
 
 def test_generate_enum_implementation(Enum):
-    assert cpp_translator._translate_enum(Enum[0]) == """\
+    assert cpp_translator.translate_enum(Enum[0]) == """\
 template <>
 const char* print_traits<Enum>::to_literal(Enum x)
 {
