@@ -1,6 +1,13 @@
 import struct
+
+from .base import prophy_data_object
 from .exception import ProphyError
 from .six import long
+
+
+@classmethod
+def _bricks_walk(cls, cursor):
+    yield cls, None
 
 
 def numeric_decorator(cls, size, id_):
@@ -17,6 +24,7 @@ def numeric_decorator(cls, size, id_):
 
     cls._encode = encode
     cls._decode = decode
+    cls._bricks_walk = _bricks_walk
 
     cls._SIZE = size
     cls._ALIGNMENT = size
@@ -68,52 +76,52 @@ def float_decorator(size, id_):
 
 
 @int_decorator(size=1, id_='b', min_=-(1 << 7), max_=(1 << 7) - 1)
-class i8(long):
+class i8(long, prophy_data_object):
     __slots__ = []
 
 
 @int_decorator(size=2, id_='h', min_=-(1 << 15), max_=(1 << 15) - 1)
-class i16(long):
+class i16(long, prophy_data_object):
     __slots__ = []
 
 
 @int_decorator(size=4, id_='i', min_=-(1 << 31), max_=(1 << 31) - 1)
-class i32(long):
+class i32(long, prophy_data_object):
     __slots__ = []
 
 
 @int_decorator(size=8, id_='q', min_=-(1 << 63), max_=(1 << 63) - 1)
-class i64(long):
+class i64(long, prophy_data_object):
     __slots__ = []
 
 
 @int_decorator(size=1, id_='B', min_=0, max_=(1 << 8) - 1)
-class u8(long):
+class u8(long, prophy_data_object):
     __slots__ = []
 
 
 @int_decorator(size=2, id_='H', min_=0, max_=(1 << 16) - 1)
-class u16(long):
+class u16(long, prophy_data_object):
     __slots__ = []
 
 
 @int_decorator(size=4, id_='I', min_=0, max_=(1 << 32) - 1)
-class u32(long):
+class u32(long, prophy_data_object):
     __slots__ = []
 
 
 @int_decorator(size=8, id_='Q', min_=0, max_=(1 << 64) - 1)
-class u64(long):
+class u64(long, prophy_data_object):
     __slots__ = []
 
 
 @float_decorator(size=4, id_='f')
-class r32(float):
+class r32(float, prophy_data_object):
     __slots__ = []
 
 
 @float_decorator(size=8, id_='d')
-class r64(float):
+class r64(float, prophy_data_object):
     __slots__ = []
 
 
@@ -156,7 +164,7 @@ class enum_generator(type):
         super(enum_generator, cls).__init__(name, bases, attrs)
 
 
-class enum(u32):
+class enum(u32, prophy_data_object):
     __slots__ = []
 
     @property
@@ -181,7 +189,7 @@ def bytes_(**kwargs):
     if kwargs:
         raise ProphyError("unknown arguments to bytes field")
 
-    class _bytes(bytes):
+    class _bytes(bytes, prophy_data_object):
         _SIZE = size
         _DYNAMIC = not size
         _UNLIMITED = not size and not bound
@@ -191,6 +199,7 @@ def bytes_(**kwargs):
         _BOUND = bound
         _BOUND_SHIFT = shift
         _PARTIAL_ALIGNMENT = None
+        _bricks_walk = _bricks_walk
 
         @staticmethod
         def _check(value):

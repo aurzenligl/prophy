@@ -1,3 +1,4 @@
+
 class kind(type):
     INT = ('INT', 0)
     ENUM = ('ENUM', 1)
@@ -5,3 +6,9 @@ class kind(type):
     ARRAY = ('ARRAY', 3)
     STRUCT = ('STRUCT', 4)
     UNION = ('UNION', 5)
+
+
+class prophy_data_object(object):
+    _is_prophy_object = True
+    __slots__ = []
+

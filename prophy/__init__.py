@@ -13,7 +13,7 @@ from .composite import (struct,
 
 from .exception import ProphyError
 from .six import with_metaclass
-from .kind import kind
+from .base import kind
 
 __all__ = [
     'i8', 'i16', 'i32', 'i64',
