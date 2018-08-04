@@ -1,430 +1,82 @@
-from collections import namedtuple
-
 from . import scalar
-from .base_array import base_array
+from .data_types import base_array, distance_to_next_multiply, struct_packed
+from .desc_item import descriptor_item_type, codec_kind
 from .exception import ProphyError
-from .six import long, repr_bytes, string_types
-from .base import kind, prophy_data_object
-
-
-FieldDescriptor = namedtuple("FieldDescriptor", "name, type, kind")
-FieldDescriptor.__repr__ = lambda self: "<{}, {!r}, {!r}>".format(*self)
-
-
-class codec_kind(object):
-    OPTIONAL = "OPTIONAL"
-    ARRAY_SIZER = "ARRAY_SIZER"
-    ARRAY = "ARRAY"
-    COMPOSITE = "COMPOSITE"
-    BYTES = "BYTES"
-    SCALAR = "SCALAR"
-
-    @classmethod
-    def classify(cls, type_):
-        if type_._OPTIONAL:
-            return cls.OPTIONAL
-        elif type_._BOUND and issubclass(type_, (int, long)):
-            return cls.ARRAY_SIZER
-        elif issubclass(type_, base_array):
-            return cls.ARRAY
-        elif issubclass(type_, (struct, union)):
-            return cls.COMPOSITE
-        elif issubclass(type_, bytes):
-            return cls.BYTES
-        else:
-            return cls.SCALAR
-
-
-class _cursor_class(object):
-    def __init__(self):
-        self.pos = 0
-
-    def distance_to_next(self, alignment):
-        remainer = self.pos % alignment
-        return (alignment - remainer) % alignment
-
-    def move_to_next(self, alignment):
-        self.pos += distance_to_next_multiply(self.pos, alignment)
-
-
-def distance_to_next_multiply(number, alignment):
-    remainer = number % alignment
-    return (alignment - remainer) % alignment
-
-
-def build_container_length_field(sizer_item_type, container_name, bound_shift):
-    class container_len(sizer_item_type):
-        _BOUND = [container_name]
-
-        @classmethod
-        def add_bounded_container(cls, cont_name):
-            cls._BOUND.append(cont_name)
-
-        @classmethod
-        def evaluate_size(cls, parent):
-            sizes = set(len(getattr(parent, c_name)) for c_name in cls._BOUND)
-            if len(sizes) != 1:
-                msg = "Size mismatch of arrays in {}: {}"
-                raise ProphyError(msg.format(parent.__class__.__name__, ", ".join(cls._BOUND)))
-            return sizes.pop()
-
-        @staticmethod
-        def _encode(value, endianness):
-            return sizer_item_type._encode(value + bound_shift, endianness)
-
-        @staticmethod
-        def _decode(data, pos, endianness):
-            value, size = sizer_item_type._decode(data, pos, endianness)
-            array_guard = 65536
-            if value > array_guard:
-                raise ProphyError("decoded array length over %s" % array_guard)
-            value -= bound_shift
-            if value < 0:
-                raise ProphyError("decoded array length smaller than shift")
-            return value, size
-
-        @classmethod
-        def _bricks_walk(cls, _):
-            yield sizer_item_type, " (sizer)"
-
-    return container_len
-
-
-class descriptor_item_type(object):
-    __slots__ = ["name", "type", "discriminator", "encode_fcn", "decode_fcn"]
-
-    def __init__(self, name, type_, discriminator=None):
-        self.name = name
-        self.type = type_
-        self.discriminator = discriminator
-        self.encode_fcn = None
-        self.decode_fcn = None
-
-    def __repr__(self):
-        is_union_descriptor = self.discriminator is not None
-        if is_union_descriptor:
-            return "{}({!r}, {!r}, {!r})".format(type(self).__name__, self.name, self.type, self.discriminator)
-        else:
-            return "{}({!r}, {!r})".format(type(self).__name__, self.name, self.type)
-
-    def evaluate_codecs(self):
-        all_codecs = {
-            codec_kind.OPTIONAL: (encode_optional, decode_optional),
-            codec_kind.ARRAY_SIZER: (encode_array_delimiter, decode_array_delimiter),
-            codec_kind.ARRAY: (encode_array, decode_array),
-            codec_kind.COMPOSITE: (encode_composite, decode_composite),
-            codec_kind.BYTES: (encode_bytes, decode_bytes),
-            codec_kind.SCALAR: (encode_scalar, decode_scalar)
-        }
-        kind = codec_kind.classify(self.type)
-        assert kind in all_codecs
-        self.encode_fcn, self.decode_fcn = all_codecs.get(kind)
-
-        if kind == codec_kind.OPTIONAL:
-            base_kind = codec_kind.classify(self.type.__bases__[0])
-            opt_encode, opt_decode = all_codecs.get(base_kind)
-
-            self.type._encode = staticmethod(opt_encode)
-            self.type._decode = staticmethod(opt_decode)
-
-    @property
-    def kind(self):
-        if issubclass(self.type, base_array):
-            return kind.ARRAY
-        elif issubclass(self.type, struct):
-            return kind.STRUCT
-        elif issubclass(self.type, union):
-            return kind.UNION
-        elif issubclass(self.type, bytes):
-            return kind.BYTES
-        elif issubclass(self.type, scalar.enum):
-            return kind.ENUM
-        else:
-            return kind.INT
-
-    @property
-    def descriptor_info(self):
-        return FieldDescriptor(self.name, self.type, self.kind)
-
-
-def encode_optional(parent, type_, value, endianness):
-    if value is None:
-        return b"\x00" * type_._OPTIONAL_SIZE
-    else:
-        return (type_._optional_type._encode(True, endianness).ljust(type_._OPTIONAL_ALIGNMENT, b'\x00') +
-                type_._encode(parent, type_.__bases__[0], value, endianness))
-
-
-def encode_array_delimiter(parent, type_, _, endianness):
-    return type_._encode(type_.evaluate_size(parent), endianness)
-
-
-def encode_array(_, __, value, endianness):
-    return value._encode_impl(endianness)
-
-
-def encode_composite(_, __, value, endianness):
-    return value.encode(endianness)
-
-
-def encode_bytes(_, type_, value, __):
-    return type_._encode(value)
-
-
-def encode_scalar(_, type_, value, endianness):
-    return type_._encode(value, endianness)
-
-
-def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
-    value, _ = type_._optional_type._decode(data, pos, endianness)
-    opt_alignment = type_._OPTIONAL_ALIGNMENT
-    if value:
-        setattr(parent, name, True)
-        sub_type = type_.__bases__[0]
-        pos += opt_alignment
-        return opt_alignment + type_._decode(parent, name, sub_type, data, pos, endianness, len_hints)
-    else:
-        setattr(parent, name, None)
-        return opt_alignment + type_._SIZE
-
-
-def decode_array_delimiter(_, __, type_, data, pos, endianness, len_hints):
-    value, size = type_._decode(data, pos, endianness)
-    if value < 0:
-        raise ProphyError("Array delimiter must have positive value")
-    for array_name in type_._BOUND:
-        len_hints[array_name] = value
-    return size
-
-
-def decode_array(parent, name, _, data, pos, endianness, len_hints):
-    return getattr(parent, name)._decode_impl(data, pos, endianness, len_hints.get(name))
-
-
-def decode_composite(parent, name, _, data, pos, endianness, __):
-    return getattr(parent, name)._decode_impl(data, pos, endianness, terminal=False)
-
-
-def decode_bytes(parent, name, type_, data, pos, _, len_hints):
-    value, size = type_._decode(data, pos, len_hints.get(name))
-    setattr(parent, name, value)
-    return size
-
-
-def decode_scalar(parent, name, type_, data, pos, endianness, _):
-    value, size = type_._decode(data, pos, endianness)
-    setattr(parent, name, value)
-    return size
-
-
-def make_padding(padding_size):
-    class PaddingMock(object):
-        _SIZE = padding_size
-
-        @staticmethod
-        def encode_mock():
-            return b'\x00' * padding_size
-
-        @staticmethod
-        def decode_mock(data, pos):
-            if (len(data) - pos) < padding_size:
-                raise ProphyError("too few bytes to decode padding")
-            return data[pos:(pos + padding_size)], padding_size
-    PaddingMock.__name__ = "<Pd{}>".format(padding_size)
-    return PaddingMock
-
-
-def field_to_string(name, type_, value):
-    single_indent_level = " " * 2
-
-    def indent(text):
-        return '\n'.join(x and single_indent_level + x or '' for x in text.split('\n'))
-
-    if issubclass(type_, base_array):
-        return "".join(field_to_string(name, type_._TYPE, elem) for elem in value)
-    elif issubclass(type_, (struct, union)):
-        return "%s {\n%s}\n" % (name, indent(str(value)))
-    elif issubclass(type_, bytes):
-        return "%s: %s\n" % (name, repr_bytes(value))
-    elif issubclass(type_, scalar.enum):
-        return "%s: %s\n" % (name, type_._int_to_name[value])
-    else:
-        return "%s: %s\n" % (name, value)
-
-
-def validate_copy_from(lhs, rhs):
-    if not isinstance(rhs, lhs.__class__):
-        raise TypeError("Parameter to copy_from must be instance of same class.")
-
-
-def eval_path(node_path, leaf_path):
-    return ".%s%s" % (node_path, leaf_path or "")
-
-
-class struct(prophy_data_object):
-    __slots__ = []
-
-    def __init__(self):
-        self._fields = {}
-
-    def __str__(self):
-        def to_str():
-            for item in self._descriptor:
-                value = getattr(self, item.name, None)
-                if value is not None:
-                    yield field_to_string(item.name, item.type, value)
-
-        return "".join(to_str())
-
-    @classmethod
-    def get_descriptor(cls):
-        """
-            FIXME: I'm afraid it rapes YAGNI rule
-        """
-        return [item.descriptor_info for item in cls._descriptor]
-
-    @classmethod
-    def _get_padding(cls, offset, alignment):
-        return b'\x00' * cls._get_padding_size(offset, alignment)
-
-    @staticmethod
-    def _get_padding_size(offset, alignment):
-        return distance_to_next_multiply(offset, alignment)
-
-    def encode(self, endianness):
-        data = b""
-
-        for item in self._descriptor:
-            data += (self._get_padding(len(data), item.type._ALIGNMENT))
-            data += item.encode_fcn(self, item.type, getattr(self, item.name, None), endianness)
-
-            if item.type._PARTIAL_ALIGNMENT:
-                data += self._get_padding(len(data), item.type._PARTIAL_ALIGNMENT)
-
-        data += self._get_padding(len(data), self._ALIGNMENT)
-
-        return data
-
-    def decode(self, data, endianness):
-        return self._decode_impl(data, 0, endianness, terminal=True)
-
-    def _decode_impl(self, data, pos, endianness, terminal):
-        len_hints = {}
-        start_pos = pos
-
-        for item in self._descriptor:
-            pos += self._get_padding_size(pos, item.type._ALIGNMENT)
-            try:
-                pos += item.decode_fcn(self, item.name, item.type, data, pos, endianness, len_hints)
-            except ProphyError as e:
-                raise ProphyError("{}: {}".format(self.__class__.__name__, e))
-            if item.type._PARTIAL_ALIGNMENT:
-                pos += self._get_padding_size(pos, item.type._PARTIAL_ALIGNMENT)
-
-        pos += self._get_padding_size(pos, self._ALIGNMENT)
-
-        if terminal and pos < len(data):
-            raise ProphyError("not all bytes of {} read".format(self.__class__.__name__))
-
-        return pos - start_pos
-
-    def copy_from(self, other):
-        """ TODO: method common to struct and union. """
-        validate_copy_from(self, other)
-        if other is self:
-            return
-
-        self._fields.clear()
-        self._copy_implementation(other)
-
-    def _copy_implementation(self, other):
-        for name, rhs in other._fields.items():
-            self.set_field(name, rhs)
-
-    def set_field(self, name, rhs):
-        lhs = getattr(self, name)
-        if isinstance(rhs, base_array):
-            if issubclass(rhs._TYPE, (struct, union)):
-                if rhs._DYNAMIC:
-                    del lhs[:]
-                    lhs.extend(rhs[:])
-                else:
-                    for lhs_elem, rhs_elem in zip(lhs, rhs):
-                        lhs_elem.copy_from(rhs_elem)
-            else:
-                lhs[:] = rhs[:]
-        elif isinstance(rhs, (struct, union)):
-            lhs.copy_from(rhs)
-        else:
-            self._fields[name] = rhs
-
-    @classmethod
-    def wire_pattern(cls):
-
-        cursor = _cursor_class()
-        for type_, path_ in cls._bricks_walk(cursor):
-            type_size = getattr(type_, "_SIZE", "??")
-            if type_size != "??":
-                cursor.pos += type_size
-            yield path_, type_.__name__, type_size
-
-
-
-
-class struct_packed(struct):
-    __slots__ = []
-
-    @staticmethod
-    def _get_padding_size(_, __):
-        return 0
-
-
-class composite_generator_base(type):
+from .six import long, string_types
+
+
+class _generator_base(type):
+    """
+        Base metaclass type intended to validate, supplement and create all
+        prophy_data_object classes.
+        All of this magic happen at the very moment of the created class' import.
+    """
     _slots = []
 
     def __new__(cls, name, bases, attrs):
         attrs["__slots__"] = cls._slots
-        return super(composite_generator_base, cls).__new__(cls, name, bases, attrs)
+        return super(_generator_base, cls).__new__(cls, name, bases, attrs)
 
     def __init__(self, name, bases, attrs):
         if not hasattr(self, "_generated"):
             self._generated = True
-            self._descriptor = [descriptor_item_type(*item) for item in self._descriptor]
-            self.validate()
-            self.add_attributes()
-            self.extend_descriptor()
-            self.add_properties()
-            self.add_sizers()
-        super(composite_generator_base, self).__init__(name, bases, attrs)
+            self._build_up_implementation()
+        super(_generator_base, self).__init__(name, bases, attrs)
+
+    def _build_up_implementation(self):
+        """
+            Implementation of type creation. To be overridden in derived metaclasses.
+        """
+
+
+class _composite_generator_base(_generator_base):
+
+    def _build_up_implementation(self):
+        self._descriptor = [descriptor_item_type(*item) for item in self._descriptor]
+        self.validate()
+        self.add_attributes()
+        self.extend_descriptor()
+        self.add_properties()
+        self.add_sizers()
 
     def _types(self):
         for item in self._descriptor:
             yield item.type
 
-    def add_sizers(self):
+    def add_attributes(self):
         pass
 
     def extend_descriptor(self):
         for raw_item in self._descriptor:
             raw_item.evaluate_codecs()
 
+    def add_properties(self):
+        pass
+
+    def add_sizers(self):
+        pass
+
     def _bricks_walk(self, cursor):
+        def eval_path(leaf_path):
+            return ".%s%s" % (item.name, leaf_path or "")
+
         for item in self._descriptor:
+
             padding_size = cursor.distance_to_next(item.type._ALIGNMENT)
             if padding_size:
-                yield make_padding(padding_size), eval_path(item.name, ".:pre_padding")
+                yield make_padding(padding_size), eval_path(".:pre_padding")
 
             for sub_brick_type, sub_brick_path in item.type._bricks_walk(cursor):
-                yield sub_brick_type, eval_path(item.name, sub_brick_path)
+                yield sub_brick_type, eval_path(sub_brick_path)
 
             if item.type._PARTIAL_ALIGNMENT:
                 padding_size = cursor.distance_to_next(item.type._PARTIAL_ALIGNMENT)
                 if padding_size:
-                    yield make_padding(padding_size), eval_path(item.name, ".:partial_padding")
+                    yield make_padding(padding_size), eval_path(".:partial_padding")
 
         padding_size = cursor.distance_to_next(self._ALIGNMENT)
         if padding_size:
-            yield make_padding(padding_size), eval_path(item.name, ".:final_padding")
+            yield make_padding(padding_size), eval_path(".:final_padding")
 
     def get_descriptor(self):
         """
@@ -432,8 +84,58 @@ class composite_generator_base(type):
         """
         return [item.descriptor_info for item in self._descriptor]
 
+    def wire_pattern(self):
+        cursor = _cursor_class()
+        for type_, path_ in self._bricks_walk(cursor):
+            type_size = getattr(type_, "_SIZE", "??")
+            if type_size != "??":
+                cursor.pos += type_size
+            yield path_, type_.__name__, type_size
 
-class struct_generator(composite_generator_base):
+
+class enum_generator(_generator_base):
+
+    def _build_up_implementation(self):
+        self.validate()
+        self.add_attributes()
+
+    def validate(self):
+        for name, number in self._enumerators:
+            if not isinstance(name, string_types):
+                raise ProphyError("enum member's first argument has to be string")
+
+            if not isinstance(number, (int, long)):
+                raise ProphyError("enum member's second argument has to be an integer")
+
+        names = set(name for name, _ in self._enumerators)
+        if len(names) < len(self._enumerators):
+            raise ProphyError("names overlap in '{}' enum".format(self.__name__))
+
+    def add_attributes(self):
+        @classmethod
+        def check(cls, value):
+            if isinstance(value, str):
+                value = name_to_int.get(value)
+                if value is None:
+                    raise ProphyError("unknown enumerator name in {}".format(cls.__name__))
+                return cls(value)
+            elif isinstance(value, (int, long)):
+                if value not in int_to_name:
+                    raise ProphyError("unknown enumerator {} value".format(cls.__name__))
+                return cls(value)
+            else:
+                raise ProphyError("neither string nor int")
+
+        name_to_int = {name: value for name, value in self._enumerators}
+        int_to_name = {value: name for name, value in self._enumerators}
+        list(map(self._check, (value for _, value in self._enumerators)))
+        self._DEFAULT = self(self._enumerators[0][1])
+        self._name_to_int = name_to_int
+        self._int_to_name = int_to_name
+        self._check = check
+
+
+class struct_generator(_composite_generator_base):
     _slots = ["_fields"]
 
     def validate(self):
@@ -483,16 +185,16 @@ class struct_generator(composite_generator_base):
 
     def add_properties(self):
         for item in self._descriptor:
-            if issubclass(item.type, base_array):
+            if codec_kind.is_array(item.type):
                 self.add_repeated_property(item)
-            elif issubclass(item.type, (struct, union)):
+            elif codec_kind.is_composite(item.type):
                 self.add_composite_property(item)
             else:
                 self.add_scalar_property(item)
 
     def add_sizers(self):
         for item in self._descriptor:
-            if issubclass(item.type, base_array) or not issubclass(item.type, (struct, union)):
+            if codec_kind.is_array(item.type) or not codec_kind.is_struct(item.type):
                 if item.type._BOUND:
                     self.substitute_len_field(item)
 
@@ -618,74 +320,7 @@ class struct_generator(composite_generator_base):
                     raise ProphyError(msg.format(self.__name__, container_name))
 
 
-class union(prophy_data_object):
-    __slots__ = []
-
-    def __init__(self):
-        self._fields = {}
-        self._discriminated = self._descriptor[0]
-
-    def __str__(self):
-        name = self._discriminated.name
-        value = getattr(self, name)
-        return field_to_string(name, self._discriminated.type, value)
-
-    def get_discriminated(self):
-        """
-            FIXME: I'm afraid it rapes YAGNI rule
-        """
-        return self._discriminated.descriptor_info
-
-    def encode(self, endianness, **_):
-        d = self._discriminated
-        value = getattr(self, d.name)
-        discriminator_bytes = self._discriminator_type._encode(d.discriminator, endianness).ljust(self._ALIGNMENT, b'\x00')
-        body_bytes = d.encode_fcn(self, d.type, value, endianness)
-        return (discriminator_bytes + body_bytes).ljust(self._SIZE, b'\x00')
-
-    def decode(self, data, endianness):
-        return self._decode_impl(data, 0, endianness, terminal=True)
-
-    def _decode_impl(self, data, pos, endianness, terminal):
-        disc, _ = self._discriminator_type._decode(data, pos, endianness)
-        item = self._get_discriminated_field(disc)
-
-        self._discriminated = item
-        item.decode_fcn(self, item.name, item.type, data, pos + self._ALIGNMENT, endianness, {})
-
-        bytes_read = len(data) - pos
-        if bytes_read < self._SIZE:
-            raise ProphyError("not enough bytes")
-        if terminal and bytes_read > self._SIZE:
-            raise ProphyError("not all bytes of {} read".format(self.__class__.__name__))
-        return self._SIZE
-
-    def _get_discriminated_field(self, discriminator):
-        for item in self._descriptor:
-            if item.discriminator == discriminator:
-                return item
-        raise ProphyError("unknown discriminator: {!r}".format(discriminator))
-
-    def copy_from(self, other):
-        """ TODO: method common to struct and union. """
-        validate_copy_from(self, other)
-        if other is self:
-            return
-
-        self._fields.clear()
-        self._copy_implementation(other)
-
-    def _copy_implementation(self, other):
-        self._discriminated = other._discriminated
-        rhs = getattr(other, self._discriminated.name)
-        if issubclass(self._discriminated.type, (struct, union)):
-            lhs = getattr(self, self._discriminated.name)
-            lhs.copy_from(rhs)
-        else:
-            setattr(self, self._discriminated.name, rhs)
-
-
-class union_generator(composite_generator_base):
+class union_generator(_composite_generator_base):
     _slots = ["_fields", "_discriminated"]
 
     def validate(self):
@@ -713,7 +348,7 @@ class union_generator(composite_generator_base):
     def add_properties(self):
         self.add_union_discriminator_property()
         for item in self._descriptor:
-            if issubclass(item.type, (struct, union)):
+            if codec_kind.is_composite(item.type):
                 self.add_union_composite_property(item)
             else:
                 self.add_union_scalar_property(item)
@@ -759,3 +394,72 @@ class union_generator(composite_generator_base):
             new_value = item.type._check(new_value)
             self_._fields[item.name] = new_value
         setattr(self, item.name, property(getter, setter))
+
+
+def build_container_length_field(sizer_item_type, container_name, bound_shift):
+    class container_len(sizer_item_type):
+        _BOUND = [container_name]
+
+        @classmethod
+        def add_bounded_container(cls, cont_name):
+            cls._BOUND.append(cont_name)
+
+        @classmethod
+        def evaluate_size(cls, parent):
+            sizes = set(len(getattr(parent, c_name)) for c_name in cls._BOUND)
+            if len(sizes) != 1:
+                msg = "Size mismatch of arrays in {}: {}"
+                raise ProphyError(msg.format(parent.__class__.__name__, ", ".join(cls._BOUND)))
+            return sizes.pop()
+
+        @staticmethod
+        def _encode(value, endianness):
+            return sizer_item_type._encode(value + bound_shift, endianness)
+
+        @staticmethod
+        def _decode(data, pos, endianness):
+            value, size = sizer_item_type._decode(data, pos, endianness)
+            array_guard = 65536
+            if value > array_guard:
+                raise ProphyError("decoded array length over %s" % array_guard)
+            value -= bound_shift
+            if value < 0:
+                raise ProphyError("decoded array length smaller than shift")
+            return value, size
+
+        @classmethod
+        def _bricks_walk(cls, _):
+            yield sizer_item_type, " (sizer)"
+
+    return container_len
+
+
+class _cursor_class(object):
+    """
+        A helper for breaking variables scope while passing the "self.pos" between _bricks_walk iterators call.
+        TODO: It will be probably not needed.
+    """
+
+    def __init__(self):
+        self.pos = 0
+
+    def distance_to_next(self, alignment):
+        remainer = self.pos % alignment
+        return (alignment - remainer) % alignment
+
+
+def make_padding(padding_size):
+    class PaddingMock(object):
+        _SIZE = padding_size
+
+        @staticmethod
+        def encode_mock():
+            return b'\x00' * padding_size
+
+        @staticmethod
+        def decode_mock(data, pos):
+            if (len(data) - pos) < padding_size:
+                raise ProphyError("too few bytes to decode padding")
+            return data[pos:(pos + padding_size)], padding_size
+    PaddingMock.__name__ = "<Pd{}>".format(padding_size)
+    return PaddingMock

@@ -1,6 +1,5 @@
-from . import composite
+from .data_types import base_array, struct, union
 from .exception import ProphyError
-from .base_array import base_array
 from .six import xrange
 
 
@@ -223,7 +222,7 @@ def array(type_, **kwargs):
         raise ProphyError("array of optional type not allowed")
 
     is_static = size and not bound
-    is_composite = issubclass(type_, (composite.struct, composite.union))
+    is_composite = issubclass(type_, (struct, union))
 
     if is_composite:
         base = fixed_composite_array if is_static else bound_composite_array
