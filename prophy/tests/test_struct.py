@@ -35,9 +35,9 @@ def test_struct_assignment(Struct):
     x.x = 3
     x.y = 5
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="'Struct' object has no attribute 'nonexistent'"):
         x.nonexistent
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="'Struct' object has no attribute 'nonexistent'"):
         x.nonexistent = 10
 
     y = Struct()
@@ -47,9 +47,9 @@ def test_struct_assignment(Struct):
     assert y.x == 3
     assert y.y == 5
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match='Parameter to copy_from must be instance of same class.'):
         y.copy_from("123")
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match='Parameter to copy_from must be instance of same class.'):
         y.copy_from(123)
 
 
@@ -172,7 +172,7 @@ def test_deeply_nested_struct_assignment(DeeplyNestedStruct):
     assert x.n.y == 6
     assert x.o == 7
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match='assignment to composite field not allowed'):
         x.m = 10
 
     y = DeeplyNestedStruct()
@@ -409,7 +409,7 @@ def test_struct_with_many_arrays_fixed_tail():
 
 
 def test_struct_exception_with_access_to_nonexistent_field():
-    with pytest.raises(AttributeError):
+    with pytest.raises(AttributeError, match="'X' object has no attribute 'im_not_there'"):
         class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
             _descriptor = [("a", prophy.u32)]
         X().im_not_there

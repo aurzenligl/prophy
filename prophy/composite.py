@@ -360,15 +360,15 @@ class struct(prophy_data_object):
 
     @classmethod
     def wire_pattern(cls):
-        def collect():
-            cursor = _cursor_class()
-            for type_, path_ in cls._bricks_walk(cursor):
-                type_size = getattr(type_, "_SIZE", "??")
-                if type_size != "??":
-                    cursor.pos += type_size
-                yield "%s (%s) [%s];\n" % (path_, type_.__name__, type_size)
 
-        return "".join(collect())
+        cursor = _cursor_class()
+        for type_, path_ in cls._bricks_walk(cursor):
+            type_size = getattr(type_, "_SIZE", "??")
+            if type_size != "??":
+                cursor.pos += type_size
+            yield path_, type_.__name__, type_size
+
+
 
 
 class struct_packed(struct):

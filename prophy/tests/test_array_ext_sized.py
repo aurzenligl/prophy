@@ -46,23 +46,23 @@ def test_ext_sized_can_be_lenient(sizer_name, expected_sizer_name, read_stdout_s
 
 
 def test_ext_sized_will_not_forgive_mistakes_with_many_arrays():
-    with pytest.raises(prophy.ProphyError) as e:
+    msg = "Sizing member 'numOfField2_incorrect' of container 'field2' not found in the object 'K'"
+    with pytest.raises(prophy.ProphyError, match=msg):
         class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [
                 ('numOfField', prophy.u8),
                 ("field", prophy.array(prophy.u8, bound="numOfField")),
                 ('numOfField2', prophy.u8),
                 ("field2", prophy.array(prophy.u8, bound="numOfField2_incorrect"))]
-    assert "Sizing member 'numOfField2_incorrect' of container 'field2' not found in the object 'K'" in str(e.value)
 
 
 def test_ext_sized_wrong_sizer_type():
-    with pytest.raises(prophy.ProphyError) as e:
+    msg = "array K.field must be bound to an unsigned integer"
+    with pytest.raises(prophy.ProphyError, match=msg):
         class K(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [
                 ('numOfField', prophy.r32),
                 ("field", prophy.array(prophy.u8, bound="numOfField"))]
-    assert "array K.field must be bound to an unsigned integer" == str(e.value)
 
 
 def test_ext_sized_scalar_array_assignment(ExtSizedArr):

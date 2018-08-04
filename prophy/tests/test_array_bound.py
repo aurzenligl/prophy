@@ -44,17 +44,17 @@ def test_bound_scalar_array_assignment(BoundScalarArray):
     del x.value[:]
     assert x.value == []
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="'_array' object has no attribute 'len'"):
         x.value.len
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="'_array' object has no attribute 'len'"):
         x.value.len = 10
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="assignment to array field not allowed"):
         x.value = 10
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="not an int"):
         x.value[0] = "will fail type check"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="out of bounds"):
         x.value[0] = -1
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="not an int"):
         x.value[:] = [1, 2, "abc"]
 
 
@@ -80,24 +80,34 @@ def test_bound_scalar_array_encoding(BoundScalarArray):
     x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02", ">")
     assert x.value[:] == [1, 2]
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match='too few bytes to decode integer'):
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00", ">")
-    assert 'too few bytes to decode integer' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match='not all bytes of BoundScalarArray read'):
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
-    assert 'not all bytes of BoundScalarArray read' in str(e.value)
 
 
-def test_bound_scalar_array_exceptions():
-    with pytest.raises(Exception):
+def test_bound_scalar_array_missed_sizer():
+    msg = "Sizing member 'nonexistent' of container 'a' not found in the object 'LengthFieldNonexistent'"
+    with pytest.raises(Exception, match=msg):
         class LengthFieldNonexistent(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("a", prophy.array(prophy.i32, bound="nonexistent"))]
-    with pytest.raises(Exception):
+
+
+def test_bound_scalar_array_sizer_after():
+    msg = "Sizing member 'after' in 'LengthFieldAfter' must be placed before 'array_a' container."
+    with pytest.raises(Exception, match=msg):
         class LengthFieldAfter(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
-            _descriptor = [("a", prophy.array(prophy.i32, bound="after")),
+            _descriptor = [("array_a", prophy.array(prophy.i32, bound="after")),
+                           ("before", prophy.i32),
+                           ("s2", prophy.array(prophy.i32, bound="before")),
+                           ("array_b", prophy.array(prophy.i32, bound="after")),
                            ("after", prophy.i32)]
-    with pytest.raises(Exception):
+
+
+def test_bound_scalar_array_bad_sizer_type():
+    msg = "member type must be a prophy object, is: 'not_an_int'"
+    with pytest.raises(Exception, match=msg):
         class LengthFieldIsNotAnInteger(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("not_an_int", "not_an_int"),
                            ("a", prophy.array(prophy.i32, bound="not_an_int"))]
