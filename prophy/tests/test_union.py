@@ -71,6 +71,12 @@ def test_union_copy_from(SimpleUnion):
     assert 1 == y.discriminator
     assert 3 == y.b
 
+    with pytest.raises(TypeError, match="Parameter to copy_from must be instance of same class."):
+        y.copy_from(object())
+
+    with pytest.raises(TypeError, match="Parameter to copy_from must be instance of same class."):
+        y.copy_from(SimpleUnion)
+
 
 def test_simple_union_discriminator_does_not_clear_fields_if_set_to_same_value(SimpleUnion):
     x = SimpleUnion()

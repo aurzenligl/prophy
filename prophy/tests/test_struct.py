@@ -49,6 +49,7 @@ def test_struct_assignment(Struct):
 
     with pytest.raises(Exception, match='Parameter to copy_from must be instance of same class.'):
         y.copy_from("123")
+
     with pytest.raises(Exception, match='Parameter to copy_from must be instance of same class.'):
         y.copy_from(123)
 

@@ -82,28 +82,37 @@ def test_enum_encoding(Enum):
     x.decode(b"\x00\x00\x00\x03", ">")
     assert x.value == 3
 
-    with pytest.raises(prophy.ProphyError) as e:
+
+def test_enum_decode_exception(Enum):
+    x = Enum()
+    with pytest.raises(prophy.ProphyError, match='unknown enumerator Enumeration value'):
         x.decode(b"\x00\x00\x00\x09", ">")
-    assert 'unknown enumerator Enumeration value' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match='too few bytes to decode integer'):
         x.decode(b"\x00\x00\x01", ">")
-    assert 'too few bytes to decode integer' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match='not all bytes of Enum read'):
         x.decode(b"\x00\x00\x00\x01\x01", ">")
-    assert 'not all bytes of Enum read' in str(e.value)
 
 
-def test_enum_exceptions():
-    with pytest.raises(Exception):
+def test_enum_bad_definition():
+    msg = "type object 'NoEnumerators' has no attribute '_enumerators'"
+    with pytest.raises(Exception, match=msg):
         class NoEnumerators(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             pass
-    with pytest.raises(Exception):
+
+
+def test_enum_names_overlap():
+    msg = "names overlap in 'NamesOverlapping' enum"
+    with pytest.raises(Exception, match=msg):
         class NamesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("NamesOverlapping_Overlap", 1),
                             ("NamesOverlapping_Overlap", 2)]
-    with pytest.raises(Exception):
+
+
+def test_enum_value_out_of_bounds():
+    msg = "out of bounds"
+    with pytest.raises(Exception, match=msg):
         class ValueOutOfBounds(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("OutOfBounds", 0xFFFFFFFF + 1)]
 
