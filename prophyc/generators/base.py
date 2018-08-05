@@ -27,8 +27,8 @@ class GeneratorAbc(object):
 
     def check_nodes(self, nodes):
         """
-            Before a model is translated to given language it need to be checked if it conforms given
-            language requirements. It's a place to raise what's needed.
+            Before a model is translated to given language it needs to be checked if it conforms to given
+            language requirements. It's a place to raise exceptions if needed.
         """
 
 
@@ -58,7 +58,7 @@ class BlockTranslatorBase(object):
         To enable translation of given node type just implement a corresponding method from
         translation_methods_map. The method has to take a single node and return a string with translation result.
 
-        Dispatcher will skip translation of nodes of types that have no tranlation implemented.
+        Dispatcher will skip translation of nodes of types that have no translation implemented.
     """
     translation_methods_map = {
         model.Constant: "translate_constant",
