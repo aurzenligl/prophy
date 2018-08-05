@@ -94,6 +94,76 @@ class _composite_base(prophy_data_object):
     def _copy_implementation(self, other):
         " To be overrided in derived class "
 
+    @classmethod
+    def get_descriptor(cls):
+        """
+            FIXME: I'm afraid it rapes YAGNI rule
+        """
+        return [item.descriptor_info for item in cls._descriptor]
+
+    @classmethod
+    def _bricks_walk(cls, cursor):
+        def eval_path(leaf_path):
+            return ".%s%s" % (item.name, leaf_path or "")
+
+        for item in cls._descriptor:
+
+            padding_size = cursor.distance_to_next(item.type._ALIGNMENT)
+            if padding_size:
+                yield make_padding(padding_size), eval_path(".:pre_padding")
+
+            for sub_brick_type, sub_brick_path in item.type._bricks_walk(cursor):
+                yield sub_brick_type, eval_path(sub_brick_path)
+
+            if item.type._PARTIAL_ALIGNMENT:
+                padding_size = cursor.distance_to_next(item.type._PARTIAL_ALIGNMENT)
+                if padding_size:
+                    yield make_padding(padding_size), eval_path(".:partial_padding")
+
+        padding_size = cursor.distance_to_next(cls._ALIGNMENT)
+        if padding_size:
+            yield make_padding(padding_size), eval_path(".:final_padding")
+
+    @classmethod
+    def wire_pattern(cls):
+        cursor = _cursor_class()
+        for type_, path_ in cls._bricks_walk(cursor):
+            type_size = getattr(type_, "_SIZE", "??")
+            if type_size != "??":
+                cursor.pos += type_size
+            yield path_, type_.__name__, type_size
+
+
+class _cursor_class(object):
+    """
+        A helper for breaking variables scope while passing the "self.pos" between _bricks_walk iterators call.
+        TODO: It will be probably not needed.
+    """
+
+    def __init__(self):
+        self.pos = 0
+
+    def distance_to_next(self, alignment):
+        remainer = self.pos % alignment
+        return (alignment - remainer) % alignment
+
+
+def make_padding(padding_size):
+    class PaddingMock(object):
+        _SIZE = padding_size
+
+        @staticmethod
+        def encode_mock():
+            return b'\x00' * padding_size
+
+        @staticmethod
+        def decode_mock(data, pos):
+            if (len(data) - pos) < padding_size:
+                raise ProphyError("too few bytes to decode padding")
+            return data[pos:(pos + padding_size)], padding_size
+    PaddingMock.__name__ = "<Pd{}>".format(padding_size)
+    return PaddingMock
+
 
 class struct(_composite_base):
     _default_padding_value = b'\x00'
@@ -140,17 +210,15 @@ class struct(_composite_base):
 
         return data
 
-    def encode_prototype(self, endianness):
-        data = b""
-        cursor = "_cursor_class()"
-
-        # item, parent, path_, name
-        for item, parent, path_ in self._bricks_walk(cursor):
-            value = getattr(parent, item.name, None)
-            data += item.encode_fcn(self, item.type, value, endianness)
-            cursor.pos = len(data)
-
-        return data
+    # def encode_prototype(self, endianness):
+    #     data = b""
+    #     cursor = "_cursor_class()"
+    #     # item, parent, path_, name
+    #     for item, parent, path_ in self._bricks_walk(cursor):
+    #         value = getattr(parent, item.name, None)
+    #         data += item.encode_fcn(self, item.type, value, endianness)
+    #         cursor.pos = len(data)
+    #     return data
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal=True)
@@ -203,6 +271,44 @@ class struct_packed(struct):
     @staticmethod
     def _get_padding_size(_, __):
         return 0
+
+
+def build_container_length_field(sizer_item_type, container_name, bound_shift):
+    class container_len(sizer_item_type):
+        _BOUND = [container_name]
+
+        @classmethod
+        def add_bounded_container(cls, cont_name):
+            cls._BOUND.append(cont_name)
+
+        @classmethod
+        def evaluate_size(cls, parent):
+            sizes = set(len(getattr(parent, c_name)) for c_name in cls._BOUND)
+            if len(sizes) != 1:
+                msg = "Size mismatch of arrays in {}: {}"
+                raise ProphyError(msg.format(parent.__class__.__name__, ", ".join(cls._BOUND)))
+            return sizes.pop()
+
+        @staticmethod
+        def _encode(value, endianness):
+            return sizer_item_type._encode(value + bound_shift, endianness)
+
+        @staticmethod
+        def _decode(data, pos, endianness):
+            value, size = sizer_item_type._decode(data, pos, endianness)
+            array_guard = 65536
+            if value > array_guard:
+                raise ProphyError("decoded array length over %s" % array_guard)
+            value -= bound_shift
+            if value < 0:
+                raise ProphyError("decoded array length smaller than shift")
+            return value, size
+
+        @classmethod
+        def _bricks_walk(cls, _):
+            yield sizer_item_type, " (sizer)"
+
+    return container_len
 
 
 class union(_composite_base):
