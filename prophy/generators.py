@@ -1,4 +1,4 @@
-from . import scalar
+from .scalar import u32
 from .data_types import base_array, build_container_length_field, distance_to_next_multiply, struct_packed
 from .desc_item import descriptor_item_type, codec_kind
 from .exception import ProphyError
@@ -300,7 +300,7 @@ class union_generator(_composite_generator_base):
                 raise ProphyError("union with optional field disallowed")
 
     def add_attributes(self):
-        self._ALIGNMENT = max(scalar.u32._ALIGNMENT, max(type_._ALIGNMENT for type_ in self._types()))
+        self._ALIGNMENT = max(u32._ALIGNMENT, max(type_._ALIGNMENT for type_ in self._types()))
         self._BOUND = None
         self._DYNAMIC = False
         self._OPTIONAL = False
@@ -308,7 +308,7 @@ class union_generator(_composite_generator_base):
         natural_size = self._ALIGNMENT + max(type_._SIZE for type_ in self._types())
         self._SIZE = natural_size + distance_to_next_multiply(natural_size, self._ALIGNMENT)
         self._UNLIMITED = False
-        self._discriminator_type = scalar.u32
+        self._discriminator_type = u32
 
     def add_properties(self):
         self.add_union_discriminator_property()

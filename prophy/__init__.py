@@ -1,4 +1,4 @@
-from .composite import (
+from .generators import (
     enum_generator,
     struct_generator,
     union_generator
