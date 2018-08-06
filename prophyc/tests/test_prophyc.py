@@ -5,6 +5,7 @@ main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__fi
 
 empty_python_output = """\
 import prophy
+
 """
 
 
@@ -66,7 +67,7 @@ def test_isar_compiles_single_empty_xml(call_prophyc, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert empty_python_output == tmpdir_cwd.join("input.py").read()
+    assert tmpdir_cwd.join("input.py").read() == empty_python_output
 
 
 def test_isar_compiles_multiple_empty_xmls(call_prophyc, tmpdir_cwd):
@@ -82,9 +83,9 @@ def test_isar_compiles_multiple_empty_xmls(call_prophyc, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert empty_python_output == tmpdir_cwd.join("input1.py").read()
-    assert empty_python_output == tmpdir_cwd.join("input2.py").read()
-    assert empty_python_output == tmpdir_cwd.join("input3.py").read()
+    assert tmpdir_cwd.join("input1.py").read() == empty_python_output
+    assert tmpdir_cwd.join("input2.py").read() == empty_python_output
+    assert tmpdir_cwd.join("input3.py").read() == empty_python_output
 
 
 def test_outputs_to_correct_directory(call_prophyc, tmpdir_cwd):
@@ -96,7 +97,7 @@ def test_outputs_to_correct_directory(call_prophyc, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert empty_python_output == tmpdir_cwd.join(os.path.join("output", "input.py")).read()
+    assert tmpdir_cwd.join(os.path.join("output", "input.py")).read() == empty_python_output
 
 
 def test_isar_patch(call_prophyc, tmpdir_cwd):
@@ -123,8 +124,7 @@ B dynamic b a
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert empty_python_output + """\
-
+    assert tmpdir_cwd.join("input.py").read() == empty_python_output + """\
 class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('a', prophy.u8)
@@ -135,7 +135,7 @@ class B(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         ('a', prophy.u8),
         ('b', prophy.array(A, bound = 'a'))
     ]
-""" == tmpdir_cwd.join("input.py").read()
+"""
 
 
 def test_isar_cpp(call_prophyc, tmpdir_cwd):
@@ -261,7 +261,7 @@ def test_sack_compiles_single_empty_hpp(call_prophyc, tmpdir_cwd):
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert empty_python_output == tmpdir_cwd.join("input.py").read()
+    assert tmpdir_cwd.join("input.py").read() == empty_python_output
 
 
 @pytest.clang_installed
@@ -282,13 +282,12 @@ X type x r64
     assert ret == 0
     assert out == ""
     assert err == ""
-    assert empty_python_output + """\
-
+    assert tmpdir_cwd.join("input.py").read() == empty_python_output + """\
 class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('x', prophy.r64)
     ]
-""" == tmpdir_cwd.join("input.py").read()
+"""
 
 
 @pytest.clang_installed
@@ -560,7 +559,6 @@ struct X {
 #include <prophy/detail/message.hpp>
 #include <prophy/detail/mpl.hpp>
 
-
 namespace prophy
 {
 namespace generated
@@ -588,6 +586,7 @@ struct X : public prophy::detail::message<X>
 
 } // namespace generated
 } // namespace prophy
+
 
 #endif  /* _PROPHY_GENERATED_FULL_input_HPP */
 """

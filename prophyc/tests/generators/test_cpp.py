@@ -17,7 +17,7 @@ def process(nodes):
 
 def generate_definitions(nodes):
     defs_translator = _HppDefinitionsTranslator()
-    return defs_translator.process_nodes(nodes, "")
+    return defs_translator._process_nodes(nodes, "")
 
 
 def generate_swap_declarations(nodes):
@@ -26,7 +26,7 @@ def generate_swap_declarations(nodes):
 
 
 def generate_swap(nodes):
-    return cpp_translator.process_nodes(nodes, "")
+    return cpp_translator._process_nodes(nodes, "")
 
 
 def generate_hpp(nodes, basename):
@@ -1083,7 +1083,6 @@ def test_generate_empty_file():
 #define _PROPHY_GENERATED_TestEmpty_HPP
 
 #include <prophy/prophy.hpp>
-
 
 namespace prophy
 {

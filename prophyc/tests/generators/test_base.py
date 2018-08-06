@@ -16,14 +16,14 @@ def make_dummy_translation_method(name):
 @pytest.fixture
 def straigth_generator():
 
-    class EmptyTranslator(base.BlockTranslatorBase):
+    class EmptyTranslator(base.TranslatorBase):
         pass
 
-    class StraightTranslator(base.BlockTranslatorBase):
+    class StraightTranslator(base.TranslatorBase):
         block_template = '''scope {base_name} {{\n{content}\n}} // endscope {base_name}\n'''
 
         def __init__(self):
-            for model_type, translator_name in base.BlockTranslatorBase.translation_methods_map.items():
+            for model_type, translator_name in base.TranslatorBase._translation_methods_map.items():
                 method = make_dummy_translation_method(model_type.__name__)
                 setattr(self, translator_name, method)
 

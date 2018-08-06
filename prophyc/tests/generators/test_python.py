@@ -4,7 +4,7 @@ from prophyc.generators.python import _PythonTranslator
 
 def serialize(nodes):
     python_translator = _PythonTranslator()
-    return python_translator.process_nodes(nodes, "")
+    return python_translator._process_nodes(nodes, "")
 
 
 def test_includes_rendering():

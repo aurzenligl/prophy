@@ -1,5 +1,5 @@
 
-from prophyc.generators.base import GeneratorBase, BlockTranslatorBase
+from prophyc.generators.base import GeneratorBase, TranslatorBase
 
 
 libname = "prophy"
@@ -65,15 +65,14 @@ UNION_TEMPLATE = """\
 class {union_name}({libname}.with_metaclass({libname}.union_generator, {libname}.union)):
     _descriptor = {members_list}"""
 
+PYTHON_FILE_TEMPLATE = """\
+import {0}
 
-class _PythonTranslator(BlockTranslatorBase):
+{{content}}""".format(libname)
 
-    def block_post_process(self, content, _, __):
-        header = "import {0}\n".format(libname)
-        if content:
-            return header + "\n" + content
-        else:
-            return header
+
+class _PythonTranslator(TranslatorBase):
+    block_template = PYTHON_FILE_TEMPLATE
 
     def translate_include(self, include):
         return "from %s import *" % include.name.split("/")[-1]

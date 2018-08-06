@@ -68,7 +68,7 @@ def sys_capture(capsys):
     return Capture
 
 
-@pytest.fixture(params=["subprocess", "py_code"])
+@pytest.fixture(params=["py_code"])
 def call_prophyc(request, sys_capture):
     if request.param == "subprocess":
 
