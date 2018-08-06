@@ -1,5 +1,5 @@
 from . import scalar
-from .data_types import base_array
+from .composite import base_array
 from .exception import ProphyError
 
 

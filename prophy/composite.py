@@ -1,5 +1,5 @@
 from .exception import ProphyError
-from .scalar import u32, u8, scalar_bricks_walk, prophy_data_object
+from .scalar import enum, prophy_data_object, scalar_bricks_walk
 from .six import repr_bytes, long
 
 
@@ -99,24 +99,24 @@ class _composite_base(prophy_data_object):
         """
             FIXME: I'm afraid it rapes YAGNI rule
         """
-        return [item.descriptor_info for item in cls._descriptor]
+        return [field.descriptor_info for field in cls._descriptor]
 
     @classmethod
     def _bricks_walk(cls, cursor):
         def eval_path(leaf_path):
-            return ".%s%s" % (item.name, leaf_path or "")
+            return ".%s%s" % (field.name, leaf_path or "")
 
-        for item in cls._descriptor:
+        for field in cls._descriptor:
 
-            padding_size = cursor.distance_to_next(item.type._ALIGNMENT)
+            padding_size = cursor.distance_to_next(field.type._ALIGNMENT)
             if padding_size:
                 yield make_padding(padding_size), eval_path(".:pre_padding")
 
-            for sub_brick_type, sub_brick_path in item.type._bricks_walk(cursor):
+            for sub_brick_type, sub_brick_path in field.type._bricks_walk(cursor):
                 yield sub_brick_type, eval_path(sub_brick_path)
 
-            if item.type._PARTIAL_ALIGNMENT:
-                padding_size = cursor.distance_to_next(item.type._PARTIAL_ALIGNMENT)
+            if field.type._PARTIAL_ALIGNMENT:
+                padding_size = cursor.distance_to_next(field.type._PARTIAL_ALIGNMENT)
                 if padding_size:
                     yield make_padding(padding_size), eval_path(".:partial_padding")
 
@@ -174,10 +174,10 @@ class struct(_composite_base):
 
     def __str__(self):
         def to_str():
-            for item in self._descriptor:
-                value = getattr(self, item.name, None)
+            for field in self._descriptor:
+                value = getattr(self, field.name, None)
                 if value is not None:
-                    yield field_to_string(item.name, item.type, value)
+                    yield field_to_string(field.name, field.type, value)
 
         return "".join(to_str())
 
@@ -186,7 +186,7 @@ class struct(_composite_base):
         """
             FIXME: I'm afraid it rapes YAGNI rule
         """
-        return [item.descriptor_info for item in cls._descriptor]
+        return [field.descriptor_info for field in cls._descriptor]
 
     @classmethod
     def _get_padding(cls, offset, alignment):
@@ -199,26 +199,16 @@ class struct(_composite_base):
     def encode(self, endianness):
         data = b""
 
-        for item in self._descriptor:
-            data += (self._get_padding(len(data), item.type._ALIGNMENT))
-            data += item.encode_fcn(self, item.type, getattr(self, item.name, None), endianness)
+        for field in self._descriptor:
+            data += (self._get_padding(len(data), field.type._ALIGNMENT))
+            data += field.encode_fcn(self, field.type, getattr(self, field.name, None), endianness)
 
-            if item.type._PARTIAL_ALIGNMENT:
-                data += self._get_padding(len(data), item.type._PARTIAL_ALIGNMENT)
+            if field.type._PARTIAL_ALIGNMENT:
+                data += self._get_padding(len(data), field.type._PARTIAL_ALIGNMENT)
 
         data += self._get_padding(len(data), self._ALIGNMENT)
 
         return data
-
-    # def encode_prototype(self, endianness):
-    #     data = b""
-    #     cursor = "_cursor_class()"
-    #     # item, parent, path_, name
-    #     for item, parent, path_ in self._bricks_walk(cursor):
-    #         value = getattr(parent, item.name, None)
-    #         data += item.encode_fcn(self, item.type, value, endianness)
-    #         cursor.pos = len(data)
-    #     return data
 
     def decode(self, data, endianness):
         return self._decode_impl(data, 0, endianness, terminal=True)
@@ -227,14 +217,14 @@ class struct(_composite_base):
         len_hints = {}
         start_pos = pos
 
-        for item in self._descriptor:
-            pos += self._get_padding_size(pos, item.type._ALIGNMENT)
+        for field in self._descriptor:
+            pos += self._get_padding_size(pos, field.type._ALIGNMENT)
             try:
-                pos += item.decode_fcn(self, item.name, item.type, data, pos, endianness, len_hints)
+                pos += field.decode_fcn(self, field.name, field.type, data, pos, endianness, len_hints)
             except ProphyError as e:
                 raise ProphyError("{}: {}".format(self.__class__.__name__, e))
-            if item.type._PARTIAL_ALIGNMENT:
-                pos += self._get_padding_size(pos, item.type._PARTIAL_ALIGNMENT)
+            if field.type._PARTIAL_ALIGNMENT:
+                pos += self._get_padding_size(pos, field.type._PARTIAL_ALIGNMENT)
 
         pos += self._get_padding_size(pos, self._ALIGNMENT)
 
@@ -342,10 +332,10 @@ class union(_composite_base):
 
     def _decode_impl(self, data, pos, endianness, terminal):
         disc, _ = self._discriminator_type._decode(data, pos, endianness)
-        item = self._get_discriminated_field(disc)
+        field = self._get_discriminated_field(disc)
 
-        self._discriminated = item
-        item.decode_fcn(self, item.name, item.type, data, pos + self._ALIGNMENT, endianness, {})
+        self._discriminated = field
+        field.decode_fcn(self, field.name, field.type, data, pos + self._ALIGNMENT, endianness, {})
 
         bytes_read = len(data) - pos
         if bytes_read < self._SIZE:
@@ -355,9 +345,9 @@ class union(_composite_base):
         return self._SIZE
 
     def _get_discriminated_field(self, discriminator):
-        for item in self._descriptor:
-            if item.discriminator == discriminator:
-                return item
+        for field in self._descriptor:
+            if field.discriminator == discriminator:
+                return field
         raise ProphyError("unknown discriminator: {!r}".format(discriminator))
 
     def _copy_implementation(self, other):
@@ -368,22 +358,6 @@ class union(_composite_base):
             lhs.copy_from(rhs)
         else:
             setattr(self, self._discriminated.name, rhs)
-
-
-class enum(u32):
-    __slots__ = []
-
-    @property
-    def name(self):
-        return self._int_to_name[self]
-
-    @property
-    def number(self):
-        return int(self)
-
-
-class enum8(u8, enum):
-    __slots__ = []
 
 
 def bytes_(**kwargs):
@@ -438,18 +412,6 @@ def bytes_(**kwargs):
                 return data[pos:], (len(data) - pos)
 
     return _bytes
-
-
-class kind(type):
-    """
-        FIXME: I hope nobody needs that. I'm about to remove that.
-    """
-    INT = ('INT', 0)
-    ENUM = ('ENUM', 1)
-    BYTES = ('BYTES', 2)
-    ARRAY = ('ARRAY', 3)
-    STRUCT = ('STRUCT', 4)
-    UNION = ('UNION', 5)
 
 
 class codec_kind(object):

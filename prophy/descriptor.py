@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from .data_types import codec_kind, kind
+from .composite import codec_kind
 from .exception import ProphyError
 
 
@@ -9,7 +9,7 @@ FieldDescriptor = namedtuple("FieldDescriptor", "name, type, kind")
 FieldDescriptor.__repr__ = lambda self: "<{}, {!r}, {!r}>".format(*self)
 
 
-class descriptor_item_type(object):
+class _field_type(object):
     __slots__ = ["name", "type", "discriminator", "encode_fcn", "decode_fcn"]
 
     def __init__(self, name, type_, discriminator=None):
@@ -134,3 +134,15 @@ def decode_scalar(parent, name, type_, data, pos, endianness, _):
     value, size = type_._decode(data, pos, endianness)
     setattr(parent, name, value)
     return size
+
+
+class kind(type):
+    """
+        FIXME: I hope nobody needs that. I'm about to remove that.
+    """
+    INT = ('INT', 0)
+    ENUM = ('ENUM', 1)
+    BYTES = ('BYTES', 2)
+    ARRAY = ('ARRAY', 3)
+    STRUCT = ('STRUCT', 4)
+    UNION = ('UNION', 5)

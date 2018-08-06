@@ -4,18 +4,16 @@ from .generators import (
     union_generator
 )
 from .container import array
-from .data_types import (
+from .composite import (
     bytes_ as bytes,
-    enum,
-    enum8,
-    kind,
     struct,
     struct_packed,
     union,
 )
+from .descriptor import kind
 from .exception import ProphyError
 from .optional import optional
-from .scalar import i8, i16, i32, i64, u8, u16, u32, u64, r32, r64
+from .scalar import i8, i16, i32, i64, u8, u16, u32, u64, r32, r64, enum, enum8
 from .six import with_metaclass
 
 

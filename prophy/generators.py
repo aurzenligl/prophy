@@ -1,6 +1,6 @@
 from .scalar import u32
-from .data_types import base_array, build_container_length_field, distance_to_next_multiply, struct_packed
-from .desc_item import descriptor_item_type, codec_kind
+from .composite import base_array, build_container_length_field, codec_kind, distance_to_next_multiply, struct_packed
+from .descriptor import _field_type
 from .exception import ProphyError
 from .six import long, string_types
 
@@ -32,7 +32,7 @@ class _generator_base(type):
 class _composite_generator_base(_generator_base):
 
     def _build_up_implementation(self):
-        self._descriptor = [descriptor_item_type(*item) for item in self._descriptor]
+        self._descriptor = [_field_type(*field) for field in self._descriptor]
         self.validate()
         self.add_attributes()
         self.extend_descriptor()
@@ -40,8 +40,8 @@ class _composite_generator_base(_generator_base):
         self.add_sizers()
 
     def _types(self):
-        for item in self._descriptor:
-            yield item.type
+        for field in self._descriptor:
+            yield field.type
 
     def add_attributes(self):
         pass
@@ -103,11 +103,11 @@ class struct_generator(_composite_generator_base):
     _slots = ["_fields"]
 
     def validate(self):
-        for item in self._descriptor:
-            if not isinstance(item.name, string_types):
+        for field in self._descriptor:
+            if not isinstance(field.name, string_types):
                 raise ProphyError("member name must be a string type")
-            if not hasattr(item.type, "_is_prophy_object"):
-                raise ProphyError("member type must be a prophy object, is: {!r}".format(item.type))
+            if not hasattr(field.type, "_is_prophy_object"):
+                raise ProphyError("member type must be a prophy object, is: {!r}".format(field.type))
 
         types = list(self._types())
         for type_ in types[:-1]:
@@ -149,19 +149,19 @@ class struct_generator(_composite_generator_base):
             self._SIZE += sum(get_padded_sizes())
 
     def add_properties(self):
-        for item in self._descriptor:
-            if codec_kind.is_array(item.type):
-                self.add_repeated_property(item)
-            elif codec_kind.is_composite(item.type):
-                self.add_composite_property(item)
+        for field in self._descriptor:
+            if codec_kind.is_array(field.type):
+                self.add_repeated_property(field)
+            elif codec_kind.is_composite(field.type):
+                self.add_composite_property(field)
             else:
-                self.add_scalar_property(item)
+                self.add_scalar_property(field)
 
     def add_sizers(self):
-        for item in self._descriptor:
-            if codec_kind.is_array(item.type) or not codec_kind.is_struct(item.type):
-                if item.type._BOUND:
-                    self.substitute_len_field(item)
+        for field in self._descriptor:
+            if codec_kind.is_array(field.type) or not codec_kind.is_struct(field.type):
+                if field.type._BOUND:
+                    self.substitute_len_field(field)
 
     def add_repeated_property(self, descriptor_item):
         def getter(self_):
@@ -220,7 +220,7 @@ class struct_generator(_composite_generator_base):
 
     def substitute_len_field(self, container_item):
         sizer_name = self.validate_and_fix_sizer_name(container_item)
-        sizer_item = next(item for item in self._descriptor if item.name == sizer_name)
+        sizer_item = next(field for field in self._descriptor if field.name == sizer_name)
         bound_shift = container_item.type._BOUND_SHIFT
         self.validate_sizer_type(sizer_item, container_item)
 
@@ -236,8 +236,8 @@ class struct_generator(_composite_generator_base):
     def validate_and_fix_sizer_name(self, container_item):
         sizer_name = container_item.type._BOUND
         items_before_sizer = self._descriptor[:self._descriptor.index(container_item)]
-        all_names = [item.name for item in self._descriptor]
-        names_before = [item.name for item in items_before_sizer]
+        all_names = [field.name for field in self._descriptor]
+        names_before = [field.name for field in items_before_sizer]
 
         if sizer_name not in names_before:
             if sizer_name in all_names:
@@ -279,9 +279,9 @@ class struct_generator(_composite_generator_base):
 
     def validate_bound_shift(self, sizer_item_type, container_name, expected_bound_shift):
         msg = "Different bound shifts are unsupported in externally sized arrays ({}.{})"
-        for item in self._descriptor:
-            if item.name in sizer_item_type._BOUND:
-                if not item.type._BOUND_SHIFT == expected_bound_shift:
+        for field in self._descriptor:
+            if field.name in sizer_item_type._BOUND:
+                if not field.type._BOUND_SHIFT == expected_bound_shift:
                     raise ProphyError(msg.format(self.__name__, container_name))
 
 
@@ -312,50 +312,50 @@ class union_generator(_composite_generator_base):
 
     def add_properties(self):
         self.add_union_discriminator_property()
-        for item in self._descriptor:
-            if codec_kind.is_composite(item.type):
-                self.add_union_composite_property(item)
+        for field in self._descriptor:
+            if codec_kind.is_composite(field.type):
+                self.add_union_composite_property(field)
             else:
-                self.add_union_scalar_property(item)
+                self.add_union_scalar_property(field)
 
     def add_union_discriminator_property(self):
         def getter(self_):
             return self_._discriminated.discriminator
 
         def setter(self_, discriminator_name_or_value):
-            for item in self_._descriptor:
-                if discriminator_name_or_value in (item.name, item.discriminator):
-                    if item != self_._discriminated:
-                        self_._discriminated = item
+            for field in self_._descriptor:
+                if discriminator_name_or_value in (field.name, field.discriminator):
+                    if field != self_._discriminated:
+                        self_._discriminated = field
                         self_._fields = {}
                     return
             raise ProphyError("unknown discriminator: {!r}".format(discriminator_name_or_value))
 
         setattr(self, "discriminator", property(getter, setter))
 
-    def add_union_composite_property(self, item):
+    def add_union_composite_property(self, field):
         def getter(self_):
-            if self_._discriminated is not item:
+            if self_._discriminated is not field:
                 raise ProphyError("currently field %s is discriminated" % self_._discriminated.discriminator)
-            value = self_._fields.get(item.name)
+            value = self_._fields.get(field.name)
             if value is None:
-                value = item.type()
-                value = self_._fields.setdefault(item.name, value)
+                value = field.type()
+                value = self_._fields.setdefault(field.name, value)
             return value
 
         def setter(self_, new_value):
             raise ProphyError("assignment to composite field not allowed")
-        setattr(self, item.name, property(getter, setter))
+        setattr(self, field.name, property(getter, setter))
 
-    def add_union_scalar_property(self, item):
+    def add_union_scalar_property(self, field):
         def getter(self_):
-            if self_._discriminated is not item:
+            if self_._discriminated is not field:
                 raise ProphyError("currently field %s is discriminated" % self_._discriminated.discriminator)
-            return self_._fields.get(item.name, item.type._DEFAULT)
+            return self_._fields.get(field.name, field.type._DEFAULT)
 
         def setter(self_, new_value):
-            if self_._discriminated is not item:
+            if self_._discriminated is not field:
                 raise ProphyError("currently field %s is discriminated" % self_._discriminated.discriminator)
-            new_value = item.type._check(new_value)
-            self_._fields[item.name] = new_value
-        setattr(self, item.name, property(getter, setter))
+            new_value = field.type._check(new_value)
+            self_._fields[field.name] = new_value
+        setattr(self, field.name, property(getter, setter))

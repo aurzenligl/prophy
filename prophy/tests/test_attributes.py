@@ -403,7 +403,7 @@ def test_struct_partially_padded():
                        ("z", prophy.u64)]
 
     assert X._ALIGNMENT == 8
-    assert [item.type._PARTIAL_ALIGNMENT for item in X._descriptor] == [None, 8, None, None]
+    assert [field.type._PARTIAL_ALIGNMENT for field in X._descriptor] == [None, 8, None, None]
 
     class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u8),
@@ -413,7 +413,7 @@ def test_struct_partially_padded():
                        ("z", prophy.u64)]
 
     assert Y._ALIGNMENT == 8
-    assert [item.type._PARTIAL_ALIGNMENT for item in Y._descriptor] == [None, 4, None, 8, None]
+    assert [field.type._PARTIAL_ALIGNMENT for field in Y._descriptor] == [None, 4, None, 8, None]
 
 
 def test_bytes_partially_padded():
@@ -425,7 +425,7 @@ def test_bytes_partially_padded():
                        ("z", prophy.u64)]
 
     assert Y._ALIGNMENT == 8
-    assert [item.type._PARTIAL_ALIGNMENT for item in Y._descriptor] == [None, 4, None, 8, None]
+    assert [field.type._PARTIAL_ALIGNMENT for field in Y._descriptor] == [None, 4, None, 8, None]
 
 
 def test_empty_struct():

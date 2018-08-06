@@ -131,3 +131,19 @@ class r32(float):
 @float_decorator(size=8, id_='d')
 class r64(float):
     __slots__ = []
+
+
+class enum(u32):
+    __slots__ = []
+
+    @property
+    def name(self):
+        return self._int_to_name[self]
+
+    @property
+    def number(self):
+        return int(self)
+
+
+class enum8(u8, enum):
+    __slots__ = []
