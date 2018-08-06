@@ -1,6 +1,6 @@
 from prophyc import model
 from prophyc.model import DISC_SIZE, BUILTIN_SIZES
-from prophyc.generators.base import GenerateError, GeneratorBase, BlockTranslatorBase
+from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
 
 
 BUILTIN2C = {
@@ -71,8 +71,8 @@ def _to_literal(value):
         return value
 
 
-class _HppIncludesTranslator(BlockTranslatorBase):
-    block_template = "{content}\n"
+class _HppIncludesTranslator(TranslatorBase):
+    block_template = "{content}"
 
     def translate_include(self, include):
         return '#include "{}.ppf.hpp"'.format(include.name)
@@ -90,7 +90,7 @@ namespace generated
 """
 
 
-class _HppDefinitionsTranslator(BlockTranslatorBase):
+class _HppDefinitionsTranslator(TranslatorBase):
     block_template = HPP_DEFS_TEMPLATE
 
     def translate_constant(self, constant):
@@ -160,7 +160,7 @@ HPP_HEADER_TEMPLATE = """\
 """
 
 
-class _HppTranslator(BlockTranslatorBase):
+class _HppTranslator(TranslatorBase):
     block_template = HPP_HEADER_TEMPLATE
     prerequisite_translators = [
         _HppIncludesTranslator,
@@ -169,7 +169,7 @@ class _HppTranslator(BlockTranslatorBase):
 
 
 CPP_SOURCE_TEMPLATE = """\
-#include "{0}.ppf.hpp"
+#include "{base_name}.ppf.hpp"
 #include <algorithm>
 #include <prophy/detail/encoder.hpp>
 #include <prophy/detail/decoder.hpp>
@@ -183,16 +183,14 @@ namespace prophy
 namespace detail
 {{
 
-{1}
+{content}
 }} // namespace detail
 }} // namespace prophy
 """
 
 
-class _CppTranslator(BlockTranslatorBase):
-
-    def block_post_process(self, content, base_name, _):
-        return CPP_SOURCE_TEMPLATE.format(base_name, content)
+class _CppTranslator(TranslatorBase):
+    block_template = CPP_SOURCE_TEMPLATE
 
     def translate_enum(self, node):
         return (

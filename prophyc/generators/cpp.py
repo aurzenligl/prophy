@@ -1,5 +1,5 @@
 from prophyc import model
-from prophyc.generators.base import GenerateError, GeneratorBase, BlockTranslatorBase
+from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
 
 
 primitive_types = {
@@ -49,7 +49,7 @@ class _Padder(object):
         return ''.join(self._gen_padding_var(type_) for val, type_ in self.PADDINGS if padding & val)
 
 
-class _HppIncludesTranslator(BlockTranslatorBase):
+class _HppIncludesTranslator(TranslatorBase):
 
     def translate_include(self, include):
         return '#include "{}.pp.hpp"'.format(include.name)
@@ -83,10 +83,7 @@ enum _discriminator
 """
 
 
-class _HppDefinitionsTranslator(BlockTranslatorBase):
-    def block_post_process(self, content, _, __):
-        return content + '\n'
-
+class _HppDefinitionsTranslator(TranslatorBase):
     def translate_constant(self, constant):
         return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
 
@@ -178,16 +175,15 @@ HPP_SWAPS_BLOCK_TEMPLATE = """\
 namespace prophy
 {{
 
-{0}
+{content}
 }} // namespace prophy
 """
 
 
-class _HppSwapDeclarations(BlockTranslatorBase):
-    def block_post_process(self, content, _, __):
-        return HPP_SWAPS_BLOCK_TEMPLATE.format(content)
+class _HppSwapDeclarations(TranslatorBase):
+    block_template = HPP_SWAPS_BLOCK_TEMPLATE
 
-    def prepend_newline(self, _, __):
+    def _prepend_newline(self, _, __):
         return False
 
     def translate_enum(self, enum):
@@ -250,11 +246,8 @@ template <>
 {members}}}"""
 
 
-class _CppSwapTranslator(BlockTranslatorBase):
+class _CppSwapTranslator(TranslatorBase):
     block_template = SOURCE_TEMPLATE
-
-    def block_post_process(self, content, base_name, _):
-        return SOURCE_TEMPLATE.format(base_name=base_name, content=content)
 
     def translate_struct(self, struct):
         def gen_member(member, delimiters=[]):
@@ -349,12 +342,11 @@ HEADER_TEMPLATE = """\
 
 #include <prophy/prophy.hpp>
 
-{content}
-#endif  /* _PROPHY_GENERATED_{base_name}_HPP */
+{content}#endif  /* _PROPHY_GENERATED_{base_name}_HPP */
 """
 
 
-class _HppTranslator(BlockTranslatorBase):
+class _HppTranslator(TranslatorBase):
     block_template = HEADER_TEMPLATE
     prerequisite_translators = [
         _HppIncludesTranslator,

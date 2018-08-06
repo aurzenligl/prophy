@@ -37,7 +37,7 @@ generate_union_implementation = cpp_translator.translate_union
 
 
 def generate_hpp_content(nodes):
-    return hpp_content_translator.process_nodes(nodes, "")
+    return hpp_content_translator._process_nodes(nodes, "")
 
 
 def generate_hpp(nodes, base_name):
@@ -114,7 +114,6 @@ def test_generate_include_definition(Include):
     includes_translator = _HppIncludesTranslator()
     assert includes_translator(Include[0:1], "") == """\
 #include "Arrays.ppf.hpp"
-
 """
 
 
@@ -2377,7 +2376,6 @@ def test_generate_hpp(Union):
 #include <prophy/detail/message.hpp>
 #include <prophy/detail/mpl.hpp>
 
-
 namespace prophy
 {
 namespace generated
@@ -2407,6 +2405,7 @@ struct X : public prophy::detail::message<X>
 
 } // namespace generated
 } // namespace prophy
+
 
 #endif  /* _PROPHY_GENERATED_FULL_MyFile_HPP */
 """
@@ -2559,6 +2558,7 @@ struct Y : public prophy::detail::message<Y>
 
 } // namespace generated
 } // namespace prophy
+
 
 #endif  /* _PROPHY_GENERATED_FULL_MyFile_HPP */
 """
