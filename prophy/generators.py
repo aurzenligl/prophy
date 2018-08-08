@@ -1,8 +1,8 @@
-from .scalar import u32
 from .composite import base_array, build_container_length_field, codec_kind, distance_to_next_multiply, struct_packed
 from .descriptor import _field_type
 from .exception import ProphyError
-from .six import long, string_types
+from .scalar import u32
+from .six import long
 
 
 class _generator_base(type):
@@ -65,7 +65,7 @@ class enum_generator(_generator_base):
 
     def validate(self):
         for name, number in self._enumerators:
-            if not isinstance(name, string_types):
+            if not isinstance(name, str):
                 raise ProphyError("enum member's first argument has to be string")
 
             if not isinstance(number, (int, long)):
@@ -104,7 +104,7 @@ class struct_generator(_composite_generator_base):
 
     def validate(self):
         for field in self._descriptor:
-            if not isinstance(field.name, string_types):
+            if not isinstance(field.name, str):
                 raise ProphyError("member name must be a string type")
             if not hasattr(field.type, "_is_prophy_object"):
                 raise ProphyError("member type must be a prophy object, is: {!r}".format(field.type))
