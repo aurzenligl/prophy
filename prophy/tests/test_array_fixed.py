@@ -196,9 +196,10 @@ def test_fixed_array_decode_exception():
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(prophy.u8, bound="a_len", size=3))]
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         A().decode(b"\x00", ">")
     assert "A: too few bytes to decode array" == str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
 
 def test_fixed_array_decode_size_over_255():

@@ -11,7 +11,7 @@ from .composite import (struct,
                         union,
                         union_generator)
 
-from .exception import ProphyError
+from .exception import CONSTRAINT_VIOLATION, DecodeError, NOT_ENOUGH_BYTES, ProphyError, TOO_MANY_BYTES
 from .six import with_metaclass
 from .kind import kind
 
@@ -28,7 +28,7 @@ __all__ = [
     'struct_generator',
     'union',
     'union_generator',
-    'ProphyError',
+    'CONSTRAINT_VIOLATION', 'DecodeError', 'NOT_ENOUGH_BYTES', 'ProphyError', 'TOO_MANY_BYTES',
     'with_metaclass',
     'kind',
 ]

@@ -1,7 +1,7 @@
 from .six import long, repr_bytes
 
 from . import scalar
-from .exception import ProphyError
+from .exception import CONSTRAINT_VIOLATION, DecodeError, NOT_ENOUGH_BYTES, ProphyError, TOO_MANY_BYTES
 from .base_array import base_array
 from .kind import kind
 
@@ -193,10 +193,10 @@ def substitute_len_field(cls, descriptor, container_name, container_tp):
                 value, size = tp._decode(data, pos, endianness)
                 array_guard = 65536
                 if value > array_guard:
-                    raise ProphyError("decoded array length over %s" % array_guard)
+                    raise DecodeError("decoded array length over %s" % array_guard, CONSTRAINT_VIOLATION)
                 value -= bound_shift
                 if value < 0:
-                    raise ProphyError("decoded array length smaller than shift")
+                    raise DecodeError("decoded array length smaller than shift", CONSTRAINT_VIOLATION)
                 return value, size
 
         descriptor[index] = (name, container_len)
@@ -283,7 +283,7 @@ def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
 def decode_array_delimiter(parent, name, type_, data, pos, endianness, len_hints):
     value, size = type_._decode(data, pos, endianness)
     if value < 0:
-        raise ProphyError("Array delimiter must have positive value")
+        raise DecodeError("Array delimiter must have positive value", CONSTRAINT_VIOLATION)
     for array_name in type_._BOUND:
         len_hints[array_name] = value
     return size
@@ -423,15 +423,17 @@ class struct(object):
             pos += self._get_padding_size(pos, tp._ALIGNMENT)
             try:
                 pos += decode_(self, name, tp, data, pos, endianness, len_hints)
+            except DecodeError as e:
+                raise DecodeError("{}: {}".format(self.__class__.__name__, e), e.subtype)
             except ProphyError as e:
-                raise ProphyError("{}: {}".format(self.__class__.__name__, e))
+                raise DecodeError("{}: {}".format(self.__class__.__name__, e), CONSTRAINT_VIOLATION)
             if tp._PARTIAL_ALIGNMENT:
                 pos += self._get_padding_size(pos, tp._PARTIAL_ALIGNMENT)
 
         pos += self._get_padding_size(pos, self._ALIGNMENT)
 
         if terminal and pos < len(data):
-            raise ProphyError("not all bytes of {} read".format(self.__class__.__name__))
+            raise DecodeError("not all bytes of {} read".format(self.__class__.__name__), TOO_MANY_BYTES)
 
         return pos - start_pos
 
@@ -603,14 +605,14 @@ class union(object):
         disc, _ = self._discriminator_type._decode(data, pos, endianness)
         field = get_discriminated_field(self, disc)
         if not field:
-            raise ProphyError("unknown discriminator")
+            raise DecodeError("unknown discriminator", CONSTRAINT_VIOLATION)
         name, type_, _, _, decode_ = field
         self._discriminated = field
         decode_(self, name, type_, data, pos + self._ALIGNMENT, endianness, {})
         if (len(data) - pos) < self._SIZE:
-            raise ProphyError("not enough bytes")
+            raise DecodeError("not enough bytes", NOT_ENOUGH_BYTES)
         if terminal and (len(data) - pos) > self._SIZE:
-            raise ProphyError("not all bytes of {} read".format(self.__class__.__name__))
+            raise DecodeError("not all bytes of {} read".format(self.__class__.__name__), TOO_MANY_BYTES)
         return self._SIZE
 
     def copy_from(self, other):

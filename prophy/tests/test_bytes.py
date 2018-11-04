@@ -95,11 +95,13 @@ def test_fixed_bytes_encoding(FixedBytes):
     x.decode(b"abc\x00\x00", ">")
     assert x.value == b"abc\x00\x00"
 
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x01\x00\x00\x00\x00\x00", ">")
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x01\x00\x00\x00", ">")
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
 
 def test_fixed_bytes_twice_in_struct():
@@ -211,17 +213,20 @@ def test_shift_bound_bytes_encoding(ShiftBoundBytes):
 def test_shift_bound_bytes_encoding_exceptions(ShiftBoundBytes):
     x = ShiftBoundBytes()
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x01", ">")
     assert str(e.value) == "ShiftBoundBytes: decoded array length smaller than shift"
+    assert e.value.subtype == prophy.CONSTRAINT_VIOLATION
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x05", ">")
     assert str(e.value) == "ShiftBoundBytes: too few bytes to decode string"
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x02\x00", ">")
     assert str(e.value) == "not all bytes of ShiftBoundBytes read"
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
 
 @pytest.mark.parametrize('bytes_type', [

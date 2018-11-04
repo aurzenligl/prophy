@@ -125,13 +125,15 @@ def test_ext_sized_scalar_array_with_shift_exceptions():
 
 def test_ext_sized_scalar_array_decoding_exceptions(ExtSizedArr):
     x = ExtSizedArr()
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x10\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00", ">")
     assert 'too few bytes to decode integer' in str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x01\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
     assert 'not all bytes of ExtSizedArr read' in str(e.value)
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
 
 def test_multiple_arrays_size_mismatch_during_encoding(ExtSizedArr):

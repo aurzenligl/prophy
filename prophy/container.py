@@ -1,5 +1,5 @@
 from . import composite
-from .exception import ProphyError
+from .exception import DecodeError, NOT_ENOUGH_BYTES, ProphyError
 from .base_array import base_array
 from .six import xrange
 
@@ -120,7 +120,7 @@ class bound_scalar_array(base_array):
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
-            raise ProphyError("too few bytes to decode array")
+            raise DecodeError("too few bytes to decode array", NOT_ENOUGH_BYTES)
         self[:], size = decode_scalar_array(self._TYPE, data, pos, endianness, len_hint)
         return max(size, self._SIZE)
 
@@ -190,7 +190,7 @@ class bound_composite_array(base_array):
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
-            raise ProphyError("too few bytes to decode array")
+            raise DecodeError("too few bytes to decode array", NOT_ENOUGH_BYTES)
         del self[:]
         cursor = 0
         if not self._SIZE and not self._BOUND:

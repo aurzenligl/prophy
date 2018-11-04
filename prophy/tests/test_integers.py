@@ -101,10 +101,12 @@ def test_integer_codec(IntType, a, encoded_a, b, encoded_b, too_short, too_long)
     x.decode(encoded_b, ">")
     assert x.value == b
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(too_short, ">")
     assert "too few bytes to decode integer" in str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(too_long, ">")
     assert "not all bytes of {} read".format(X.__name__) in str(e.value)
+    assert e.value.subtype == prophy.TOO_MANY_BYTES

@@ -80,13 +80,15 @@ def test_bound_scalar_array_encoding(BoundScalarArray):
     x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02", ">")
     assert x.value[:] == [1, 2]
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00", ">")
     assert 'too few bytes to decode integer' in str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x02\x00", ">")
     assert 'not all bytes of BoundScalarArray read' in str(e.value)
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
 
 def test_bound_scalar_array_exceptions():
@@ -134,17 +136,20 @@ def test_bound_scalar_array_with_shift():
     x.decode(b"\x06\x01\x02\x03\x04", ">")
     assert x.value[:] == [1, 2, 3, 4]
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x01", ">")
     assert str(e.value) == "XS: decoded array length smaller than shift"
+    assert e.value.subtype == prophy.CONSTRAINT_VIOLATION
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x05", ">")
     assert str(e.value) == "XS: too few bytes to decode integer"
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x02\x00", ">")
     assert str(e.value) == "not all bytes of XS read"
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
 
 @pytest.mark.parametrize('array_type', [
@@ -272,12 +277,17 @@ value {
     x.decode(b"\x00\x00\x00\x00", ">")
     assert len(x.value) == 0
 
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x02\x00\x00\x00", ">")
-    with pytest.raises(Exception):
+    assert e.value.subtype == prophy.CONSTRAINT_VIOLATION
+
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00", ">")
-    with pytest.raises(Exception):
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
+
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\x00\x00", ">")
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
 
 def test_bound_composite_array_decode_multiple():

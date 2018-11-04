@@ -82,17 +82,20 @@ def test_enum_encoding(Enum):
     x.decode(b"\x00\x00\x00\x03", ">")
     assert x.value == 3
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\x09", ">")
     assert 'unknown enumerator Enumeration value' in str(e.value)
+    assert e.value.subtype == prophy.CONSTRAINT_VIOLATION
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x01", ">")
     assert 'too few bytes to decode integer' in str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\x01\x01", ">")
     assert 'not all bytes of Enum read' in str(e.value)
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
 
 def test_enum_exceptions():
@@ -119,17 +122,20 @@ def test_enum8_encoding(Enum8):
     x.decode(b"\x02", ">")
     assert x.value == 2
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x09", ">")
     assert 'unknown enumerator Enumeration8 value' in str(e.value)
+    assert e.value.subtype == prophy.CONSTRAINT_VIOLATION
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"", ">")
     assert 'too few bytes to decode integer' in str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x01\x01", ">")
     assert 'not all bytes of Enum8 read' in str(e.value)
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
 
 def test_enum_with_overlapping_values():

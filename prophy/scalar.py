@@ -1,5 +1,6 @@
 import struct
-from .exception import ProphyError
+
+from .exception import DecodeError, NOT_ENOUGH_BYTES, ProphyError
 from .six import long
 
 
@@ -11,7 +12,7 @@ def numeric_decorator(cls, size, id_):
     @staticmethod
     def decode(data, pos, endianness):
         if (len(data) - pos) < size:
-            raise ProphyError("too few bytes to decode integer")
+            raise DecodeError("too few bytes to decode integer", NOT_ENOUGH_BYTES)
         value, = struct.unpack(endianness + id_, data[pos:(pos + size)])
         return value, size
 
@@ -209,14 +210,14 @@ def bytes_(**kwargs):
         @staticmethod
         def _decode(data, pos, len_hint):
             if (len(data) - pos) < size:
-                raise ProphyError("too few bytes to decode string")
+                raise DecodeError("too few bytes to decode string", NOT_ENOUGH_BYTES)
             if size and not bound:
                 return data[pos:(pos + size)], size
             elif size and bound:
                 return data[pos:(pos + len_hint)], size
             elif bound:
                 if (len(data) - pos) < len_hint:
-                    raise ProphyError("too few bytes to decode string")
+                    raise DecodeError("too few bytes to decode string", NOT_ENOUGH_BYTES)
                 return data[pos:(pos + len_hint)], len_hint
             else:  # greedy
                 return data[pos:], (len(data) - pos)

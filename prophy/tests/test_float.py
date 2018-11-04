@@ -62,10 +62,12 @@ def test_float_codec(FloatTypeFactory, one, minus_one, too_long, too_short):
     x.value = -1.0
     assert x.encode(">") == minus_one
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(too_long, ">")
     assert "not all bytes of {} read".format(FloatTypeFactory.__name__) in str(e.value)
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(too_short, ">")
     assert "too few bytes to decode integer" in str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES

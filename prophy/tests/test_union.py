@@ -264,17 +264,20 @@ def test_union_discriminator_exceptions(VariableLengthFieldsUnion):
 def test_union_decode_exceptions(VariableLengthFieldsUnion):
     x = VariableLengthFieldsUnion()
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\xff", ">")
     assert "unknown discriminator" == str(e.value)
+    assert e.value.subtype == prophy.CONSTRAINT_VIOLATION
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x00" b"\x12\x34\x56\x78\x00\x00\x00\x00\x00", ">")
     assert "not all bytes of VariableLengthFieldsUnion read" == str(e.value)
+    assert e.value.subtype == prophy.TOO_MANY_BYTES
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(prophy.DecodeError) as e:
         x.decode(b"\x00\x00\x00\x02\x00\x00\x00\x00" b"\x12\x34\x56\x78\x00\x00\x00", ">")
     assert "not enough bytes" == str(e.value)
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
 
 def test_struct_with_union():

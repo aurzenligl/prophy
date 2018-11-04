@@ -75,8 +75,9 @@ def test_greedy_scalar_array_decode(GreedyScalarArray):
     a.decode(b"\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04", ">")
     assert a.x[:] == [1, 2, 3, 4]
 
-    with pytest.raises(prophy.ProphyError):
+    with pytest.raises(prophy.DecodeError) as e:
         a.decode(b"\x00\x00\x00\x0a\x00\x00\x00\x04\x00", ">")
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
 
 def test_greedy_composite_array_assignment(GreedyCompositeArray, Composite):
@@ -162,8 +163,9 @@ def test_greedy_composite_array_decode(GreedyCompositeArray):
     assert a.x[2].x == 1
     assert a.x[2].y == -1
 
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.DecodeError) as e:
         a.decode(b"\x00\x0a\x00\x14\x00\x0a\x00\x14\x00\x01\xff\xff\x00", ">")
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
 
 def test_greedy_complex_composite_array_assignment(GreedyComplexCompositeArray):
@@ -296,9 +298,10 @@ def test_greedy_complex_composite_array_decode(GreedyComplexCompositeArray):
     assert a.x[1].x.x == 7
     assert a.x[1].x.y == 8
 
-    with pytest.raises(Exception):
+    with pytest.raises(prophy.DecodeError) as e:
         a.decode(b"\x00\x00\x00\x02\x00\x01\x00\x02\x00\x03\x00\x04"
                  b"\x00\x05\x00\x06\x00\x00\x00\x00\x00\x07\x00\x08\x00", ">")
+    assert e.value.subtype == prophy.NOT_ENOUGH_BYTES
 
 
 def test_greedy_array_exceptions():
