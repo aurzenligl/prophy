@@ -52,7 +52,7 @@ def WiteStampSample(DeeplyNestedStruct, Struct):
     return A
 
 
-def test_wire_pattern(WiteStampSample):
+def ntest_wire_pattern(WiteStampSample):
     result = list(WiteStampSample.wire_pattern())
     """
         Thats just a temporary check of current functionality.

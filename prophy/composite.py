@@ -1,55 +1,8 @@
+from .base_array import base_array
+from .composite_base import _composite_base
 from .exception import ProphyError
-from .scalar import enum, prophy_data_object, scalar_bricks_walk
+from .scalar import enum, scalar_bricks_walk
 from .six import repr_bytes, long
-
-
-class base_array(prophy_data_object):
-    __slots__ = ['_values']
-
-    def __init__(self):
-        self._values = []
-
-    def __getitem__(self, idx):
-        return self._values[idx]
-
-    def __getslice__(self, start, stop):
-        return self._values[start:stop]
-
-    def __len__(self):
-        return len(self._values)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        raise TypeError('unhashable object')
-
-    def __repr__(self):
-        return repr(self._values)
-
-    def sort(self, key_function=lambda x: x):
-        self._values.sort(key=key_function)
-
-    @classmethod
-    def _bricks_walk(cls, cursor):
-
-        if cls._max_len:
-            indexes = range(cls._max_len)
-        else:
-            if not cls._UNLIMITED:
-
-                size_info = "@%s" % cls._BOUND
-                if cls._max_len:
-                    size_info += " %s" % cls._max_len
-            else:
-                size_info = "..."
-
-            indexes = [size_info]
-
-        for index in indexes:
-            for brick_type, brick_path in cls._TYPE._bricks_walk(cursor):
-                path_ = "[%s]%s" % (index, brick_path or "")
-                yield brick_type, path_
 
 
 def distance_to_next_multiply(number, alignment):
@@ -75,98 +28,8 @@ def field_to_string(name, type_, value):
         return "%s: %s\n" % (name, value)
 
 
-class _composite_base(prophy_data_object):
-    __slots__ = []
-
-    def copy_from(self, other):
-        self.validate_copy_from(other)
-        if other is self:
-            return
-
-        self._fields.clear()
-        self._copy_implementation(other)
-
-    @classmethod
-    def validate_copy_from(cls, rhs):
-        if not isinstance(rhs, cls):
-            raise TypeError("Parameter to copy_from must be instance of same class.")
-
-    def _copy_implementation(self, other):
-        " To be overrided in derived class "
-
-    @classmethod
-    def get_descriptor(cls):
-        """
-            FIXME: I'm afraid it rapes YAGNI rule
-        """
-        return [field.descriptor_info for field in cls._descriptor]
-
-    @classmethod
-    def _bricks_walk(cls, cursor):
-        def eval_path(leaf_path):
-            return ".%s%s" % (field.name, leaf_path or "")
-
-        for field in cls._descriptor:
-
-            padding_size = cursor.distance_to_next(field.type._ALIGNMENT)
-            if padding_size:
-                yield make_padding(padding_size), eval_path(".:pre_padding")
-
-            for sub_brick_type, sub_brick_path in field.type._bricks_walk(cursor):
-                yield sub_brick_type, eval_path(sub_brick_path)
-
-            if field.type._PARTIAL_ALIGNMENT:
-                padding_size = cursor.distance_to_next(field.type._PARTIAL_ALIGNMENT)
-                if padding_size:
-                    yield make_padding(padding_size), eval_path(".:partial_padding")
-
-        padding_size = cursor.distance_to_next(cls._ALIGNMENT)
-        if padding_size:
-            yield make_padding(padding_size), eval_path(".:final_padding")
-
-    @classmethod
-    def wire_pattern(cls):
-        cursor = _cursor_class()
-        for type_, path_ in cls._bricks_walk(cursor):
-            type_size = getattr(type_, "_SIZE", "??")
-            if type_size != "??":
-                cursor.pos += type_size
-            yield path_, type_.__name__, type_size
-
-
-class _cursor_class(object):
-    """
-        A helper for breaking variables scope while passing the "self.pos" between _bricks_walk iterators call.
-        TODO: It will be probably not needed.
-    """
-
-    def __init__(self):
-        self.pos = 0
-
-    def distance_to_next(self, alignment):
-        remainer = self.pos % alignment
-        return (alignment - remainer) % alignment
-
-
-def make_padding(padding_size):
-    class PaddingMock(object):
-        _SIZE = padding_size
-
-        @staticmethod
-        def encode_mock():
-            return b'\x00' * padding_size
-
-        @staticmethod
-        def decode_mock(data, pos):
-            if (len(data) - pos) < padding_size:
-                raise ProphyError("too few bytes to decode padding")
-            return data[pos:(pos + padding_size)], padding_size
-    PaddingMock.__name__ = "<Pd{}>".format(padding_size)
-    return PaddingMock
-
-
 class struct(_composite_base):
-    _default_padding_value = b'\x00'
+    _padding_byte = b'\x00'
     __slots__ = []
 
     def __init__(self):
@@ -183,14 +46,29 @@ class struct(_composite_base):
 
     @classmethod
     def get_descriptor(cls):
-        """
-            FIXME: I'm afraid it rapes YAGNI rule
-        """
         return [field.descriptor_info for field in cls._descriptor]
 
     @classmethod
+    def get_descriptor2(cls, cursor=None):
+        for field in cls._descriptor:
+            if cursor:
+                yield cls._get_padding_field(cursor, field.type._ALIGNMENT)
+
+            yield field
+
+            if cursor and field.type._PARTIAL_ALIGNMENT:
+                yield cls._get_padding_field(cursor, field.type._PARTIAL_ALIGNMENT)
+
+        if cursor:
+            yield cls._get_padding_field(cursor, cls._ALIGNMENT)
+
+    @classmethod
+    def _get_padding_field(cls, cursor, alignment, name):
+        return cls._padding_byte * cls._get_padding_size(cursor.offset, alignment)
+
+    @classmethod
     def _get_padding(cls, offset, alignment):
-        return cls._default_padding_value * cls._get_padding_size(offset, alignment)
+        return cls._padding_byte * cls._get_padding_size(offset, alignment)
 
     @staticmethod
     def _get_padding_size(offset, alignment):
@@ -261,44 +139,6 @@ class struct_packed(struct):
     @staticmethod
     def _get_padding_size(_, __):
         return 0
-
-
-def build_container_length_field(sizer_item_type, container_name, bound_shift):
-    class container_len(sizer_item_type):
-        _BOUND = [container_name]
-
-        @classmethod
-        def add_bounded_container(cls, cont_name):
-            cls._BOUND.append(cont_name)
-
-        @classmethod
-        def evaluate_size(cls, parent):
-            sizes = set(len(getattr(parent, c_name)) for c_name in cls._BOUND)
-            if len(sizes) != 1:
-                msg = "Size mismatch of arrays in {}: {}"
-                raise ProphyError(msg.format(parent.__class__.__name__, ", ".join(cls._BOUND)))
-            return sizes.pop()
-
-        @staticmethod
-        def _encode(value, endianness):
-            return sizer_item_type._encode(value + bound_shift, endianness)
-
-        @staticmethod
-        def _decode(data, pos, endianness):
-            value, size = sizer_item_type._decode(data, pos, endianness)
-            array_guard = 65536
-            if value > array_guard:
-                raise ProphyError("decoded array length over %s" % array_guard)
-            value -= bound_shift
-            if value < 0:
-                raise ProphyError("decoded array length smaller than shift")
-            return value, size
-
-        @classmethod
-        def _bricks_walk(cls, _):
-            yield sizer_item_type, " (sizer)"
-
-    return container_len
 
 
 class union(_composite_base):

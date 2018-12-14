@@ -1,4 +1,5 @@
-from .composite import base_array, struct, union
+from .base_array import base_array
+from .composite import struct, union
 from .exception import ProphyError
 from .six import xrange
 

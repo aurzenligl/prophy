@@ -1,5 +1,6 @@
-from .composite import base_array, build_container_length_field, codec_kind, distance_to_next_multiply, struct_packed
-from .descriptor import _field_type
+from .base_array import base_array
+from .composite import codec_kind, distance_to_next_multiply, struct_packed
+from .descriptor import DescriptorField
 from .exception import ProphyError
 from .scalar import u32
 from .six import long
@@ -32,7 +33,7 @@ class _generator_base(type):
 class _composite_generator_base(_generator_base):
 
     def _build_up_implementation(self):
-        self._descriptor = [_field_type(*field) for field in self._descriptor]
+        self._descriptor = [DescriptorField(*field) for field in self._descriptor]
         self.validate()
         self.add_attributes()
         self.extend_descriptor()
@@ -283,6 +284,44 @@ class struct_generator(_composite_generator_base):
             if field.name in sizer_item_type._BOUND:
                 if not field.type._BOUND_SHIFT == expected_bound_shift:
                     raise ProphyError(msg.format(self.__name__, container_name))
+
+
+def build_container_length_field(sizer_item_type, container_name, bound_shift):
+    class container_len(sizer_item_type):
+        _BOUND = [container_name]
+
+        @classmethod
+        def add_bounded_container(cls, cont_name):
+            cls._BOUND.append(cont_name)
+
+        @classmethod
+        def evaluate_size(cls, parent):
+            sizes = set(len(getattr(parent, c_name)) for c_name in cls._BOUND)
+            if len(sizes) != 1:
+                msg = "Size mismatch of arrays in {}: {}"
+                raise ProphyError(msg.format(parent.__class__.__name__, ", ".join(cls._BOUND)))
+            return sizes.pop()
+
+        @staticmethod
+        def _encode(value, endianness):
+            return sizer_item_type._encode(value + bound_shift, endianness)
+
+        @staticmethod
+        def _decode(data, pos, endianness):
+            value, size = sizer_item_type._decode(data, pos, endianness)
+            array_guard = 65536
+            if value > array_guard:
+                raise ProphyError("decoded array length over %s" % array_guard)
+            value -= bound_shift
+            if value < 0:
+                raise ProphyError("decoded array length smaller than shift")
+            return value, size
+
+        @classmethod
+        def _bricks_walk(cls, _):
+            yield sizer_item_type, " (sizer)"
+
+    return container_len
 
 
 class union_generator(_composite_generator_base):

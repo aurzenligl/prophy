@@ -9,7 +9,7 @@ FieldDescriptor = namedtuple("FieldDescriptor", "name, type, kind")
 FieldDescriptor.__repr__ = lambda self: "<{}, {!r}, {!r}>".format(*self)
 
 
-class _field_type(object):
+class DescriptorField(object):
     __slots__ = ["name", "type", "discriminator", "encode_fcn", "decode_fcn"]
 
     def __init__(self, name, type_, discriminator=None):
