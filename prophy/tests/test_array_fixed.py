@@ -61,7 +61,7 @@ def test_fixed_scalar_array_assignment(FixedScalarArray):
         x.value.no_such_attribute = 10
     with pytest.raises(Exception, match="assignment to array field not allowed"):
         x.value = 10
-    with pytest.raises(Exception, match="(:?object of type |)'int' has no (:?len\(\)|length)"):
+    with pytest.raises(Exception, match=r"(:?object of type |)'int' has no (:?len\(\)|length)"):
         x.value[:] = 10
     with pytest.raises(Exception, match="setting slice with different length collection"):
         x.value[:] = (10,)
