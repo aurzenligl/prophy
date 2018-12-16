@@ -1,13 +1,31 @@
 import os
-import pytest
 import subprocess
 import sys
 
-import prophyc
+import pytest
 
+import prophyc
+from prophyc.six import string_types
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.insert(0, main_dir)
+
+
+def pytest_assertrepr_compare(op, left, right):
+    """
+    It's quite common that we compare string representation of documents.
+    Native pytest's comparison failure representation is at least unreadable for this purpose.
+    This prints compared strings only in case of test's failure.
+    """
+    if op == "==" and isinstance(left, string_types) and isinstance(right, string_types):
+        if len(left) > 60 or len(right) > 60:
+            print("---")
+            print(left)
+            print("---")
+            print("supposed to be:")
+            print("---")
+            print(right)
+            print("---")
 
 
 def check_libclang():
@@ -36,6 +54,7 @@ def tmpdir_cwd(tmpdir):
 def tmpfiles_cwd(tmpdir_cwd):
     def create_tmp_files(*files_to_create):
         return map(tmpdir_cwd.join, files_to_create)
+
     yield create_tmp_files
 
 
@@ -48,7 +67,6 @@ def dummy_file(tmpdir_cwd):
 
 @pytest.fixture
 def sys_capture(capsys):
-
     class Capture(object):
         def __enter__(self):
             capsys.readouterr()
@@ -65,6 +83,7 @@ def sys_capture(capsys):
 
         def get(self):
             return self.code, self.out, self.err
+
     return Capture
 
 

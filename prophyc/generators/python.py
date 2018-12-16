@@ -31,7 +31,7 @@ def _form_struct_member(member):
     prefixed_type = primitive_types.get(member.type_, member.type_)
     if member.optional:
         prefixed_type = "%s.optional(%s)" % (libname, prefixed_type)
-    if member.array:
+    if member.is_array:
         elem_strs = []
         if member.bound:
             elem_strs.append("bound = '%s'" % member.bound)
@@ -76,7 +76,11 @@ class _PythonTranslator(TranslatorBase):
         return "from %s import *" % include.name.split("/")[-1]
 
     def translate_constant(self, constant):
-        return "%s = %s" % (constant.name, constant.value)
+        line = "%s = %s" % (constant.name, constant.value)
+        doc = constant.doc_str
+        if doc:
+            line += "  # {}".format(doc)
+        return line
 
     def translate_typedef(self, typedef):
         if typedef.type_ in primitive_types:

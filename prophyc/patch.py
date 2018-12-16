@@ -1,4 +1,6 @@
+import codecs
 from collections import namedtuple
+
 from . import model
 
 Action = namedtuple("Action", ["action", "params"])
@@ -10,8 +12,9 @@ def parse(filename):
         name, action = words[:2]
         params = words[2:]
         return name, Action(action, params)
+
     patches = {}
-    for name, action in (make_item(line) for line in open(filename) if line.strip()):
+    for name, action in (make_item(line) for line in codecs.open(filename, "r") if line.strip()):
         patches.setdefault(name, []).append(action)
     return patches
 
@@ -94,7 +97,7 @@ def _dynamic(node, patch):
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
     mem = node.members[i]
-    mem.array = True
+    mem.is_array = True
     mem.bound = len_name
     mem.size = None
     mem.optional = False
@@ -114,7 +117,7 @@ def _greedy(node, patch):
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
     mem = node.members[i]
-    mem.array = True
+    mem.is_array = True
     mem.bound = None
     mem.size = None
     mem.optional = False
@@ -137,7 +140,7 @@ def _static(node, patch):
     node.members[i].size = None
 
     mem = node.members[i]
-    mem.array = True
+    mem.is_array = True
     mem.bound = None
     mem.size = size
     mem.optional = False
@@ -152,16 +155,16 @@ def _limited(node, patch):
         raise Exception("Change field must have 2 params: %s %s" % (node.name, patch))
     name, len_array = patch.params
 
-    sizer_found = len(tuple(x for x in node.members if x.name == len_array))
-    if not sizer_found:
-        raise Exception("Array len member not found: %s %s" % (node.name, patch))
-
     i, member = next((x for x in enumerate(node.members) if x[1].name == name), (None, None))
     if not member:
         raise Exception("Member not found: %s %s" % (node.name, patch))
 
+    sizer_found = len(tuple(x for x in node.members[:i] if x.name == len_array))
+    if not sizer_found:
+        raise Exception("Array len member not found: %s %s" % (node.name, patch))
+
     mem = node.members[i]
-    mem.array = True
+    mem.is_array = True
     mem.bound = len_array
     mem.optional = False
     return node
@@ -175,7 +178,7 @@ def _struct(node, patch):
         raise Exception("Change union to struct takes no params: %s" % (node.name))
 
     def to_struct_member(member):
-        return model.StructMember(name=member.name, type_=member.type_, definition=member.definition)
+        return model.StructMember(name=member.name, type_name=member.type_, definition=member.definition)
 
     return model.Struct(node.name, [to_struct_member(mem) for mem in node.members])
 

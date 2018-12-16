@@ -23,12 +23,12 @@ from nowiejsze_powidlo import *
 
 
 def test_constants_rendering():
-    nodes = [model.Constant("CONST_A", "0"),
-             model.Constant("CONST_B", "31")]
+    nodes = [model.Constant("CONST_A", "0", "first constant"),
+             model.Constant("CONST_B", "31", "second constant")]
 
     ref = """\
-CONST_A = 0
-CONST_B = 31
+CONST_A = 0  # first constant
+CONST_B = 31  # second constant
 """
     assert ref == serialize(nodes)
 

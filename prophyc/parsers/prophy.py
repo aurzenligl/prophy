@@ -250,10 +250,12 @@ class ProphyParser(object):
         '''struct_def : STRUCT unique_id struct_body SEMI'''
 
         self._validate_struct_members(t[3])
-
-        node = model.Struct(t[2], [x for x, _, _ in t[3]])
-        self.typedecls[t[2]] = node
-        self.nodes.append(node)
+        try:
+            node = model.Struct(t[2], [x for x, _, _ in t[3]])
+            self.typedecls[t[2]] = node
+            self.nodes.append(node)
+        except model.ModelError as e:  # actual raise is postponed till end of parsing
+            self._parser_error(str(e), t.lexer.lineno, 0)
 
     def p_struct_body(self, t):
         '''struct_body : LBRACE struct_member_list RBRACE'''
