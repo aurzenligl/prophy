@@ -71,9 +71,7 @@ def test_straigth_translation_b(serialize):
         'fake_out/mainer.em': '',
         'fake_out/mainer.st': """\
 scope mainer {
-<Include> [include a {
-    typedef b a;;
-};
+<Include> [#include a;
 ]
 
 <Constant> [const CONST_A = '0';]

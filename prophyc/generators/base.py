@@ -1,4 +1,6 @@
+import codecs
 import os
+
 from prophyc import model
 
 
@@ -7,7 +9,7 @@ class GenerateError(Exception):
 
 
 def _write_file(file_path, string):
-    with open(file_path, "w") as f:
+    with codecs.open(file_path, "w", encoding="utf-8") as f:
         f.write(string)
 
 
@@ -65,11 +67,12 @@ class TranslatorAbc(object):
 
 class TranslatorBase(TranslatorAbc):
     _translation_methods_map = {
+        model.ModelNode: "translation_fallback",
         model.Constant: "translate_constant",
+        model.Typedef: "translate_typedef",
         model.Enum: "translate_enum",
         model.Include: "translate_include",
         model.Struct: "translate_struct",
-        model.Typedef: "translate_typedef",
         model.Union: "translate_union",
     }
 
@@ -82,7 +85,7 @@ class TranslatorBase(TranslatorAbc):
             previous_node = None
             for node, translated_node in self._nodes_dispatcher(nodes, base_name):
                 if self._prepend_newline(previous_node, node):
-                    yield '\n'
+                    yield "\n"
                 yield translated_node + "\n"
                 previous_node = node
 

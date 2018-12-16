@@ -113,7 +113,6 @@ class Builder(object):
         def array_length(tp):
             if tp.kind is cindex.TypeKind.CONSTANTARRAY:
                 return tp.element_count
-            return None
 
         def struct_member(cursor_):
             name = cursor_.spelling.decode()
@@ -164,7 +163,7 @@ class SupplementaryDefs(object):
     def flatten_nodes(nodes_list):
         for node in nodes_list:
             if isinstance(node, model.Include):
-                for node in SupplementaryDefs.flatten_nodes(node.nodes):
+                for node in SupplementaryDefs.flatten_nodes(node.members):
                     yield node
             else:
                 yield node

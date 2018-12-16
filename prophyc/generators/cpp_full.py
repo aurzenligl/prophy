@@ -392,7 +392,7 @@ def generate_struct_print(node):
     text = ''
     bound = {m.bound: m for m in node.members if m.bound}
     for m in node.members:
-        if m.array:
+        if m.is_array:
             if m.fixed:
                 inner = 'x.{0}.data(), size_t({1})'.format(m.name, m.size)
             elif m.dynamic:

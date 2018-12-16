@@ -105,6 +105,9 @@ def get_serializers(opts):
     if opts.cpp_full_out:
         from prophyc.generators.cpp_full import CppFullGenerator
         serializers.append(CppFullGenerator(opts.cpp_full_out))
+    if opts.schema_out:
+        from prophyc.generators.schema import SchemaGenerator
+        serializers.append(SchemaGenerator(opts.schema_out))
     return serializers
 
 
@@ -123,8 +126,8 @@ def flatten_included_defs(supple_nodes):
     def get_nodes_and_names(nodes_list):
         for elem in nodes_list:
             if isinstance(elem, model.Include):
-                yield elem.name, elem.nodes
-                for sub_elem in get_nodes_and_names(elem.nodes):
+                yield elem.name, elem.members
+                for sub_elem in get_nodes_and_names(elem.members):
                     yield sub_elem
 
     """ pass trough a dictionary to avoid duplicates """

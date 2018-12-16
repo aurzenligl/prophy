@@ -72,8 +72,8 @@ typedef x y;
 """
 
     assert parse(content) == [
-        model.Typedef("x", "u32", None),
-        model.Typedef("y", "x", model.Typedef('x', 'u32', None))
+        model.Typedef("x", "u32"),
+        model.Typedef("y", "x", model.Typedef('x', 'u32'))
     ]
 
 
@@ -555,8 +555,9 @@ def test_error_union_empty():
 
 
 def test_error_union_repeated_arm_name():
-    with pytest.raises(ParseError) as e:
-        parse('union test { 1: u32 x; 2: u32 x; };')
+    with pytest.raises(model.ModelError, match="Duplicated 'x' identifier in union test."):
+        with pytest.raises(ParseError) as e:
+            parse('union test { 1: u32 x; 2: u32 x; };')
     assert ":1:31", "field 'x' redefined" == e.value.errors[0]
 
 
@@ -587,6 +588,7 @@ const Z 2;
 """)
     assert e.value.errors == [
         ("test.prophy:1:23", "field 'x' redefined"),
+        ('test.prophy:2:1', "Duplicated 'x' identifier in struct X."),
         ("test.prophy:2:11", "constant 'unknown' was not declared"),
         ("test.prophy:3:9", "syntax error at '2'")
     ]

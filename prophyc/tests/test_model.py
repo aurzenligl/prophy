@@ -1,84 +1,75 @@
-from __future__ import print_function
-from __future__ import print_function
-
+# -*- coding: utf-8 -*-
 import sys
-from sys import getsizeof
 
 import pytest
 
 from prophyc import model
+from prophyc.model import Include, Constant, Typedef, Struct, StructMember, Union, UnionMember, Enum, EnumMember
+
+
+def assert_repr_works(object_):
+    """It works under assumption that __eq__ checks equality. """
+    assert eval(repr(object_)) == object_
 
 
 def test_typedef_str():
-    typedef = model.Typedef("my_typedef", "u8")
+    typedef = Typedef("my_typedef", "u8")
     assert str(typedef) == "typedef u8 my_typedef;"
 
 
 def test_typedef_repr():
-    typedef = model.Typedef('my_typedef', 'u8')
-    assert repr(typedef) == "Typedef('my_typedef', 'u8', None)"
-
-    typedef = model.Typedef('my_typedef', 'u8', docstring='comment')
-    assert repr(typedef) == "Typedef('my_typedef', 'u8', None, 'comment')"
+    assert_repr_works(Typedef('my_typedef', 'u8', docstring='comment'))
 
 
 def test_struct_repr():
-    struct = model.Struct("MyStruct", [
-        model.StructMember("sizer", "u8"),
-        model.StructMember("b", "UserDefinedType"),
-        model.StructMember("c", "u32", size=3, docstring="fixed array of length 3"),
-        model.StructMember("d", "u32", unlimited=True),
-        model.StructMember("e", "r64", bound='xlen', size=3),
-        model.StructMember("f", "i32", unlimited=True),
-        model.StructMember("g", "u8", bound='sizer'),
-        model.StructMember("h", "u32", bound='sizer'),
-    ])
-    assert repr(struct) == """\
-Struct('MyStruct', [StructMember('sizer', 'u8', None, '', bound=None, size=None, unlimited=False, optional=False), \
-StructMember('b', 'UserDefinedType', None, '', bound=None, size=None, unlimited=False, optional=False), \
-StructMember('c', 'u32', None, 'fixed array of length 3', bound=None, size=3, unlimited=False, optional=False), \
-StructMember('d', 'u32', None, '', bound=None, size=None, unlimited=True, optional=False), \
-StructMember('e', 'r64', None, '', bound=xlen, size=3, unlimited=False, optional=False), \
-StructMember('f', 'i32', None, '', bound=None, size=None, unlimited=True, optional=False), \
-StructMember('g', 'u8', None, '', bound=sizer, size=None, unlimited=False, optional=False), \
-StructMember('h', 'u32', None, '', bound=sizer, size=None, unlimited=False, optional=False)], '')"""
+    struct_a = Struct("MyStruct", [
+        StructMember("a", "u8"),
+        StructMember("b", "cint16_t"),
+        StructMember("c", "u32", size=3, docstring="no_docstring"),
+    ], docstring="no_docstring_")
 
-    assert str(struct) == """\
-struct MyStruct {
-    u8 sizer;
-    UserDefinedType b;
-    u32 c[3];
-    u32 d<...>;
-    r64 e<3>(xlen);
-    i32 f<...>;
-    u8 g<@sizer>;
-    u32 h<@sizer>;
-};
-"""
+    assert_repr_works(struct_a)
+    assert repr(struct_a) == """\
+Struct('MyStruct', [StructMember('a', 'u8', 'None', '', bound=None, size=None, unlimited=False, optional=False), \
+StructMember('b', 'cint16_t', 'None', '', bound=None, size=None, unlimited=False, optional=False), \
+StructMember('c', 'u32', 'None', 'no_docstring', bound=None, size=3, unlimited=False, optional=False)], \
+'no_docstring_')"""
+
+
+def test_struct_str():
+    struct_with_arrays = Struct("MyStruct", [
+        StructMember("sizer_field", "u8"),
+        StructMember("b", "UserDefinedType"),
+        StructMember("fixed_array", "u32", size=3, docstring="no_docstring"),
+        StructMember("dynamic_array", "u32", bound='num_of_dynamic_array', has_implicit_mate=True),
+        StructMember("limited_array", "r64", bound='num_of_limited_array', size=3, has_implicit_mate=True),
+        StructMember("ext_sized_1", "i32", bound="sizer_field"),
+        StructMember("ext_sized_2", "i16", bound="sizer_field"),
+        StructMember("greedy_array", "u8", unlimited=True),
+    ], docstring="no_docstring_")
+
     # todo: its against documentation
-    assert str(struct) != """\
+    assert str(struct_with_arrays) == """\
 struct MyStruct {
-    u8 sizer;
+    u8 sizer_field;
     UserDefinedType b;
-    u32 c[3]; // fixed array of length 3
-    u32 d<>; // dynamic array
-    r64 e<3>; // limited array of limit 3
-    i32 f<...>; // greedy array
-    u8 g<@sizer>; // External sized array 1, size in sizer
-    u32 h<@sizer>; // External sized array 2, size in sizer
+    u32 fixed_array[3];
+    u32 dynamic_array<>;
+    r64 limited_array<3>;
+    i32 ext_sized_1<@sizer_field>;
+    i16 ext_sized_2<@sizer_field>;
+    u8 greedy_array<...>;
 };
 """
 
 
 def test_union_repr():
-    union = model.Union("MyUnion", [
-        model.UnionMember("a", "u8", 1),
-        model.UnionMember("b", "u16", 2),
-        model.UnionMember("c", "u32", 3, docstring="deff")
+    union = Union("MyUnion", [
+        UnionMember("a", "u8", 1),
+        UnionMember("b", "u16", 2),
+        UnionMember("c", "u32", 3, docstring="deff")
     ])
-    assert repr(union) == "Union('MyUnion', [UnionMember('a', 'u8', 1, None), \
-UnionMember('b', 'u16', 2, None), UnionMember('c', 'u32', 3, None, 'deff')], '')"
-
+    assert_repr_works(union)
     assert str(union) == """\
 union MyUnion {
     1: u8 a;
@@ -88,7 +79,7 @@ union MyUnion {
 """
 
 
-MODEL_NODES = [
+MODEL_NODE_SIZES = [
     (model.ModelNode, 72),
     (model.Constant, 72),
     (model.EnumMember, 72),
@@ -99,17 +90,37 @@ MODEL_NODES = [
     (model.Union, 96),
 ]
 
+NODES_CTORS = [
+    (model.Constant, ("ño", "value")),
+    (model.EnumMember, ("ño", "value")),
+    (model.Typedef, ("ño", "value")),
+    (model.StructMember, ("ño", "value")),
+    (model.UnionMember, ("ño", "tp_", 2)),
+    (model.Include, ("ño", [])),
+    (model.Struct, ("ño", [],)),
+    (model.Union, ("ño", [])),
+    (model.Enum, ("ño", [])),
+]
 
-@pytest.mark.parametrize("cls, expected_size", MODEL_NODES)
+
+@pytest.mark.parametrize("k, args", NODES_CTORS)
+def test_unicode_handling(k, args):
+    a = k(*args, docstring="used weird letter from 'jalapeño' word")
+    b = k(*args, docstring="used weird letter from 'jalapeño' word")
+    assert a == b
+    assert a.doc_str == b.doc_str
+
+
+@pytest.mark.parametrize("cls, expected_size", MODEL_NODE_SIZES)
 def test_model_slots(cls, expected_size):
     if sys.version[0] == 2:
-        assert getsizeof(cls(1, 3)) == expected_size, "You missed slots in {} class".format(cls.__name__)
+        assert sys.getsizeof(cls(1, 3)) == expected_size, "You missed slots in {} class".format(cls.__name__)
 
 
 def test_model_slots_custom_ctor():
     if sys.version[0] == 2:
-        assert getsizeof(model.Struct("n", [])) == 96
-        assert getsizeof(model.UnionMember("n", 3, 2)) == 112
+        assert sys.getsizeof(Struct("n", [])) == 96
+        assert sys.getsizeof(UnionMember("n", 3, 2)) == 112
 
 
 def test_split_after():
@@ -118,9 +129,9 @@ def test_split_after():
 
 
 def test_model_sort_enums():
-    nodes = [model.Typedef("B", "A"),
-             model.Typedef("C", "A"),
-             model.Enum("A", [])]
+    nodes = [Typedef("B", "A"),
+             Typedef("C", "A"),
+             Enum("A", [])]
 
     model.topological_sort(nodes)
 
@@ -128,11 +139,11 @@ def test_model_sort_enums():
 
 
 def test_model_sort_typedefs():
-    nodes = [model.Typedef("A", "X"),
-             model.Typedef("C", "B"),
-             model.Typedef("B", "A"),
-             model.Typedef("E", "D"),
-             model.Typedef("D", "C")]
+    nodes = [Typedef("A", "X"),
+             Typedef("C", "B"),
+             Typedef("B", "A"),
+             Typedef("E", "D"),
+             Typedef("D", "C")]
 
     model.topological_sort(nodes)
 
@@ -140,15 +151,15 @@ def test_model_sort_typedefs():
 
 
 def test_model_sort_structs():
-    nodes = [model.Struct("C", [model.StructMember("a", "B"),
-                                model.StructMember("b", "A"),
-                                model.StructMember("c", "D")]),
-             model.Struct("B", [model.StructMember("a", "X"),
-                                model.StructMember("b", "A"),
-                                model.StructMember("c", "Y")]),
-             model.Struct("A", [model.StructMember("a", "X"),
-                                model.StructMember("b", "Y"),
-                                model.StructMember("c", "Z")])]
+    nodes = [Struct("C", [StructMember("a", "B"),
+                          StructMember("b", "A"),
+                          StructMember("c", "D")]),
+             Struct("B", [StructMember("a", "X"),
+                          StructMember("b", "A"),
+                          StructMember("c", "Y")]),
+             Struct("A", [StructMember("a", "X"),
+                          StructMember("b", "Y"),
+                          StructMember("c", "Z")])]
 
     model.topological_sort(nodes)
 
@@ -156,9 +167,9 @@ def test_model_sort_structs():
 
 
 def test_model_sort_struct_with_two_deps():
-    nodes = [model.Struct("C", [model.StructMember("a", "B")]),
-             model.Struct("B", [model.StructMember("a", "A")]),
-             model.Struct("A", [model.StructMember("a", "X")])]
+    nodes = [Struct("C", [StructMember("a", "B")]),
+             Struct("B", [StructMember("a", "A")]),
+             Struct("A", [StructMember("a", "X")])]
 
     model.topological_sort(nodes)
 
@@ -166,13 +177,13 @@ def test_model_sort_struct_with_two_deps():
 
 
 def test_model_sort_struct_with_multiple_dependencies():
-    nodes = [model.Struct("D", [model.StructMember("a", "A"),
-                                model.StructMember("b", "B"),
-                                model.StructMember("c", "C")]),
-             model.Struct("C", [model.StructMember("a", "A"),
-                                model.StructMember("b", "B")]),
-             model.Struct("B", [model.StructMember("a", "A")]),
-             model.Typedef("A", "TTypeX")]
+    nodes = [Struct("D", [StructMember("a", "A"),
+                          StructMember("b", "B"),
+                          StructMember("c", "C")]),
+             Struct("C", [StructMember("a", "A"),
+                          StructMember("b", "B")]),
+             Struct("B", [StructMember("a", "A")]),
+             Typedef("A", "TTypeX")]
 
     model.topological_sort(nodes)
 
@@ -180,10 +191,10 @@ def test_model_sort_struct_with_multiple_dependencies():
 
 
 def test_model_sort_union():
-    nodes = [model.Typedef("C", "B"),
-             model.Union("B", [model.UnionMember("a", "A", "0"),
-                               model.UnionMember("b", "A", "1")]),
-             model.Struct("A", [model.StructMember("a", "X")])]
+    nodes = [Typedef("C", "B"),
+             Union("B", [UnionMember("a", "A", "0"),
+                         UnionMember("b", "A", "1")]),
+             Struct("A", [StructMember("a", "X")])]
 
     model.topological_sort(nodes)
 
@@ -191,9 +202,9 @@ def test_model_sort_union():
 
 
 def test_model_sort_constants():
-    nodes = [model.Constant("C_C", "C_A + C_B"),
-             model.Constant("C_A", "1"),
-             model.Constant("C_B", "2")]
+    nodes = [Constant("C_C", "C_A + C_B"),
+             Constant("C_A", "1"),
+             Constant("C_B", "2")]
 
     model.topological_sort(nodes)
 
@@ -202,22 +213,22 @@ def test_model_sort_constants():
 
 def test_cross_reference_structs():
     nodes = [
-        model.Struct("A", [
-            model.StructMember("a", "u8")
+        Struct("A", [
+            StructMember("a", "u8")
         ]),
-        model.Struct("B", [
-            model.StructMember("a", "A"),
-            model.StructMember("b", "u8")
+        Struct("B", [
+            StructMember("a", "A"),
+            StructMember("b", "u8")
         ]),
-        model.Struct("C", [
-            model.StructMember("a", "A"),
-            model.StructMember("b", "B"),
-            model.StructMember("c", "NON_EXISTENT")
+        Struct("C", [
+            StructMember("a", "A"),
+            StructMember("b", "B"),
+            StructMember("c", "NON_EXISTENT")
         ]),
-        model.Struct("D", [
-            model.StructMember("a", "A"),
-            model.StructMember("b", "B"),
-            model.StructMember("c", "C")
+        Struct("D", [
+            StructMember("a", "A"),
+            StructMember("b", "B"),
+            StructMember("c", "C")
         ])
     ]
 
@@ -234,15 +245,15 @@ def test_cross_reference_structs():
 
 def test_cross_reference_typedef():
     nodes = [
-        model.Struct("A", [
-            model.StructMember("a", "u8")
+        Struct("A", [
+            StructMember("a", "u8")
         ]),
-        model.Typedef("B", "A"),
-        model.Struct("C", [
-            model.StructMember("a", "A"),
-            model.StructMember("b", "B")
+        Typedef("B", "A"),
+        Struct("C", [
+            StructMember("a", "A"),
+            StructMember("b", "B")
         ]),
-        model.Typedef("D", "B")
+        Typedef("D", "B")
     ]
 
     model.cross_reference(nodes)
@@ -255,17 +266,17 @@ def test_cross_reference_typedef():
 
 def test_cross_symbols_from_includes():
     nodes = [
-        model.Include('x', [
-            model.Include('y', [
-                model.Typedef('ala', 'u32')
+        Include('x', [
+            Include('y', [
+                Typedef('ala', 'u32')
             ]),
-            model.Struct('ola', [
-                model.StructMember('a', 'ala'),
+            Struct('ola', [
+                StructMember('a', 'ala'),
             ])
         ]),
-        model.Struct('ula', [
-            model.StructMember('a', 'ola'),
-            model.StructMember('b', 'ala'),
+        Struct('ula', [
+            StructMember('a', 'ola'),
+            StructMember('b', 'ala'),
         ])
     ]
 
@@ -274,25 +285,25 @@ def test_cross_symbols_from_includes():
     assert nodes[1].members[0].definition.name == 'ola'
     assert nodes[1].members[1].definition.name == 'ala'
     # cross-reference only needs to link definitions of first level of nodes
-    assert nodes[0].nodes[1].members[0].definition is None
+    assert nodes[0].members[1].members[0].definition is None
 
 
 def test_cross_reference_array_size_from_includes():
     nodes = [
-        model.Include('x', [
-            model.Include('y', [
-                model.Constant('NUM', '3'),
+        Include('x', [
+            Include('y', [
+                Constant('NUM', '3'),
             ]),
-            model.Enum('E', [
-                model.EnumMember('E1', '1'),
-                model.EnumMember('E3', 'NUM')
+            Enum('E', [
+                EnumMember('E1', '1'),
+                EnumMember('E3', 'NUM')
             ]),
         ]),
-        model.Struct('X', [
-            model.StructMember('x', 'u32', size='NUM'),
-            model.StructMember('y', 'u32', size='E1'),
-            model.StructMember('z', 'u32', size='UNKNOWN'),
-            model.StructMember('a', 'u32', size='E3')
+        Struct('X', [
+            StructMember('x', 'u32', size='NUM'),
+            StructMember('y', 'u32', size='E1'),
+            StructMember('z', 'u32', size='UNKNOWN'),
+            StructMember('a', 'u32', size='E3')
         ])
     ]
 
@@ -306,11 +317,11 @@ def test_cross_reference_array_size_from_includes():
 
 def test_cross_reference_numeric_size_of_expression():
     nodes = [
-        model.Constant('A', 12),
-        model.Constant('B', 15),
-        model.Constant('C', 'A*B'),
-        model.Struct('X', [
-            model.StructMember('x', 'u32', size='C'),
+        Constant('A', 12),
+        Constant('B', 15),
+        Constant('C', 'A*B'),
+        Struct('X', [
+            StructMember('x', 'u32', size='C'),
         ])
     ]
 
@@ -321,8 +332,8 @@ def test_cross_reference_numeric_size_of_expression():
 
 def test_cross_reference_expression_as_array_size():
     nodes = [
-        model.Struct('X', [
-            model.StructMember('x', 'u32', size='2 * 3'),
+        Struct('X', [
+            StructMember('x', 'u32', size='2 * 3'),
         ])
     ]
 
@@ -340,21 +351,21 @@ class WarnFake(object):
 
 
 def test_cross_reference_typedef_warnings():
-    nodes = [model.Typedef('X', 'Unknown')]
+    nodes = [Typedef('X', 'Unknown')]
     warn = WarnFake()
     model.cross_reference(nodes, warn)
     assert warn.msgs == ["type 'Unknown' not found"]
 
 
 def test_cross_reference_struct_warnings():
-    nodes = [model.Struct('X', [model.StructMember('x', 'TypeUnknown', size='12 + NumUnknown')])]
+    nodes = [Struct('X', [StructMember('x', 'TypeUnknown', size='12 + NumUnknown')])]
     warn = WarnFake()
     model.cross_reference(nodes, warn)
     assert warn.msgs == ["type 'TypeUnknown' not found", "numeric constant 'NumUnknown' not found"]
 
 
 def test_cross_reference_union_warnings():
-    nodes = [model.Union('X', [model.UnionMember('x', 'TypeUnknown', '42')])]
+    nodes = [Union('X', [UnionMember('x', 'TypeUnknown', '42')])]
     warn = WarnFake()
     model.cross_reference(nodes, warn)
     assert warn.msgs == ["type 'TypeUnknown' not found"]
@@ -362,17 +373,17 @@ def test_cross_reference_union_warnings():
 
 def test_cross_reference_no_warning_about_primitive_types():
     warn = WarnFake()
-    model.cross_reference([model.Typedef('X', 'u8')], warn)
-    model.cross_reference([model.Typedef('X', 'u16')], warn)
-    model.cross_reference([model.Typedef('X', 'u32')], warn)
-    model.cross_reference([model.Typedef('X', 'u64')], warn)
-    model.cross_reference([model.Typedef('X', 'i8')], warn)
-    model.cross_reference([model.Typedef('X', 'i16')], warn)
-    model.cross_reference([model.Typedef('X', 'i32')], warn)
-    model.cross_reference([model.Typedef('X', 'i64')], warn)
-    model.cross_reference([model.Typedef('X', 'r32')], warn)
-    model.cross_reference([model.Typedef('X', 'r64')], warn)
-    model.cross_reference([model.Typedef('X', 'byte')], warn)
+    model.cross_reference([Typedef('X', 'u8')], warn)
+    model.cross_reference([Typedef('X', 'u16')], warn)
+    model.cross_reference([Typedef('X', 'u32')], warn)
+    model.cross_reference([Typedef('X', 'u64')], warn)
+    model.cross_reference([Typedef('X', 'i8')], warn)
+    model.cross_reference([Typedef('X', 'i16')], warn)
+    model.cross_reference([Typedef('X', 'i32')], warn)
+    model.cross_reference([Typedef('X', 'i64')], warn)
+    model.cross_reference([Typedef('X', 'r32')], warn)
+    model.cross_reference([Typedef('X', 'r64')], warn)
+    model.cross_reference([Typedef('X', 'byte')], warn)
     assert warn.msgs == []
 
 
@@ -383,10 +394,10 @@ def test_cross_reference_quadratic_complexity_include_performance_bug():
     """
     FACTOR = 10
 
-    nodes = [model.Constant('X', 42), model.Typedef('Y', 'u8')] * FACTOR
+    nodes = [Constant('X', 42), Typedef('Y', 'u8')] * FACTOR
     for i in range(FACTOR):
-        nodes = [model.Include('inc%s' % i, nodes)] * FACTOR
-    nodes.append(model.Struct('Z', [model.StructMember('x', 'u8', size='X')]))
+        nodes = [Include('inc%s' % i, nodes)] * FACTOR
+    nodes.append(Struct('Z', [StructMember('x', 'u8', size='X')]))
 
     """This line will kill your cpu if cross-referencing algorithm is quadratic"""
     model.cross_reference(nodes)
@@ -396,15 +407,15 @@ def test_cross_reference_quadratic_complexity_include_performance_bug():
 
 def test_evaluate_kinds_arrays():
     nodes = [
-        model.Struct("A", [
-            model.StructMember("a", "u8"),
-            model.StructMember("b", "u8", optional=True),
-            model.StructMember("c", "u8", size="5"),
-            model.StructMember("d_len", "u8"),
-            model.StructMember("d", "u8", bound="d_len", size="5"),
-            model.StructMember("e_len", "u8"),
-            model.StructMember("e", "u8", bound="e_len"),
-            model.StructMember("f", "u8", unlimited=True)
+        Struct("A", [
+            StructMember("a", "u8"),
+            StructMember("b", "u8", optional=True),
+            StructMember("c", "u8", size="5"),
+            StructMember("d_len", "u8"),
+            StructMember("d", "u8", bound="d_len", size="5"),
+            StructMember("e_len", "u8"),
+            StructMember("e", "u8", bound="e_len"),
+            StructMember("f", "u8", unlimited=True)
         ])
     ]
 
@@ -425,18 +436,18 @@ def test_evaluate_kinds_arrays():
 
 def test_evaluate_kinds_struct_records():
     nodes = [
-        model.Struct("Fix", [
-            model.StructMember("a", "u8")
+        Struct("Fix", [
+            StructMember("a", "u8")
         ]),
-        model.Struct("Dyn", [
-            model.StructMember("a_len", "u8"),
-            model.StructMember("a", "u8", bound="a_len")
+        Struct("Dyn", [
+            StructMember("a_len", "u8"),
+            StructMember("a", "u8", bound="a_len")
         ]),
-        model.Struct("X", [
-            model.StructMember("a", "Dyn"),
-            model.StructMember("b_len", "u8"),
-            model.StructMember("b", "Fix", bound="b_len"),
-            model.StructMember("c", "Fix", unlimited=True)
+        Struct("X", [
+            StructMember("a", "Dyn"),
+            StructMember("b_len", "u8"),
+            StructMember("b", "Fix", bound="b_len"),
+            StructMember("c", "Fix", unlimited=True)
         ])
     ]
 
@@ -459,53 +470,53 @@ def test_evaluate_kinds_struct_records():
 
 def test_evaluate_kinds_with_typedefs():
     nodes = [
-        model.Struct("Empty", []),
-        model.Struct("Dynamic", [
-            model.StructMember("a_len", "u8"),
-            model.StructMember("a", "u8", bound="a_len")
+        Struct("Empty", []),
+        Struct("Dynamic", [
+            StructMember("a_len", "u8"),
+            StructMember("a", "u8", bound="a_len")
         ]),
-        model.Struct("Fixed", [
-            model.StructMember("a", "u8", size="10")
+        Struct("Fixed", [
+            StructMember("a", "u8", size="10")
         ]),
-        model.Struct("Limited", [
-            model.StructMember("a_len", "u8"),
-            model.StructMember("a", "u8", bound="a_len", size="10")
+        Struct("Limited", [
+            StructMember("a_len", "u8"),
+            StructMember("a", "u8", bound="a_len", size="10")
         ]),
-        model.Struct("Greedy", [
-            model.StructMember("a", "byte", unlimited=True)
+        Struct("Greedy", [
+            StructMember("a", "byte", unlimited=True)
         ]),
-        model.Struct("DynamicWrapper", [
-            model.StructMember("a", "Dynamic")
+        Struct("DynamicWrapper", [
+            StructMember("a", "Dynamic")
         ]),
-        model.Struct("GreedyWrapper", [
-            model.StructMember("a", "Greedy")
+        Struct("GreedyWrapper", [
+            StructMember("a", "Greedy")
         ]),
-        model.Struct("GreedyDynamic", [
-            model.StructMember("a", "Dynamic", unlimited=True)
+        Struct("GreedyDynamic", [
+            StructMember("a", "Dynamic", unlimited=True)
         ]),
-        model.Typedef("TU8", "u8"),
-        model.Typedef("TDynamic", "Dynamic"),
-        model.Typedef("TGreedy", "Greedy"),
-        model.Struct("TypedefedU8", [
-            model.StructMember("a", "TU8")
+        Typedef("TU8", "u8"),
+        Typedef("TDynamic", "Dynamic"),
+        Typedef("TGreedy", "Greedy"),
+        Struct("TypedefedU8", [
+            StructMember("a", "TU8")
         ]),
-        model.Struct("TypedefedDynamic", [
-            model.StructMember("a", "TDynamic")
+        Struct("TypedefedDynamic", [
+            StructMember("a", "TDynamic")
         ]),
-        model.Struct("TypedefedGreedy", [
-            model.StructMember("a", "TGreedy")
+        Struct("TypedefedGreedy", [
+            StructMember("a", "TGreedy")
         ]),
-        model.Typedef("TTDynamic", "TDynamic"),
-        model.Typedef("TTTDynamic", "TTDynamic"),
-        model.Struct("DeeplyTypedefed", [
-            model.StructMember("a", "TTTDynamic")
+        Typedef("TTDynamic", "TDynamic"),
+        Typedef("TTTDynamic", "TTDynamic"),
+        Struct("DeeplyTypedefed", [
+            StructMember("a", "TTTDynamic")
         ]),
     ]
 
     model.cross_reference(nodes)
     model.evaluate_stiffness_kinds(nodes)
 
-    assert [x.kind for x in nodes if isinstance(x, model.Struct)] == [
+    assert [x.kind for x in nodes if isinstance(x, Struct)] == [
         model.Kind.FIXED,
         model.Kind.DYNAMIC,
         model.Kind.FIXED,
@@ -523,10 +534,10 @@ def test_evaluate_kinds_with_typedefs():
 
 def test_partition_fixed():
     nodes = [
-        model.Struct("Fixed", [
-            model.StructMember("a", "u8"),
-            model.StructMember("b", "u8"),
-            model.StructMember("c", "u8")
+        Struct("Fixed", [
+            StructMember("a", "u8"),
+            StructMember("b", "u8"),
+            StructMember("c", "u8")
         ])
     ]
 
@@ -540,13 +551,13 @@ def test_partition_fixed():
 
 def test_partition_many_arrays():
     nodes = [
-        model.Struct("ManyArrays", [
-            model.StructMember("num_of_a", "u8"),
-            model.StructMember("a", "u8", bound="num_of_a"),
-            model.StructMember("num_of_b", "u8"),
-            model.StructMember("b", "u8", bound="num_of_b"),
-            model.StructMember("num_of_c", "u8"),
-            model.StructMember("c", "u8", bound="num_of_c")
+        Struct("ManyArrays", [
+            StructMember("num_of_a", "u8"),
+            StructMember("a", "u8", bound="num_of_a"),
+            StructMember("num_of_b", "u8"),
+            StructMember("b", "u8", bound="num_of_b"),
+            StructMember("num_of_c", "u8"),
+            StructMember("c", "u8", bound="num_of_c")
         ]),
     ]
 
@@ -560,11 +571,11 @@ def test_partition_many_arrays():
 
 def test_partition_many_arrays_mixed():
     nodes = [
-        model.Struct("ManyArraysMixed", [
-            model.StructMember("num_of_a", "u8"),
-            model.StructMember("num_of_b", "u8"),
-            model.StructMember("a", "u8", bound="num_of_a"),
-            model.StructMember("b", "u8", bound="num_of_b")
+        Struct("ManyArraysMixed", [
+            StructMember("num_of_a", "u8"),
+            StructMember("num_of_b", "u8"),
+            StructMember("a", "u8", bound="num_of_a"),
+            StructMember("b", "u8", bound="num_of_b")
         ]),
     ]
 
@@ -578,14 +589,14 @@ def test_partition_many_arrays_mixed():
 
 def test_partition_dynamic_struct():
     nodes = [
-        model.Struct("Dynamic", [
-            model.StructMember("num_of_a", "u8"),
-            model.StructMember("a", "u8", bound="num_of_a")
+        Struct("Dynamic", [
+            StructMember("num_of_a", "u8"),
+            StructMember("a", "u8", bound="num_of_a")
         ]),
-        model.Struct("X", [
-            model.StructMember("a", "u8"),
-            model.StructMember("b", "Dynamic"),
-            model.StructMember("c", "u8")
+        Struct("X", [
+            StructMember("a", "u8"),
+            StructMember("b", "Dynamic"),
+            StructMember("c", "u8")
         ])
     ]
 
@@ -599,14 +610,14 @@ def test_partition_dynamic_struct():
 
 def test_partition_many_dynamic_structs():
     nodes = [
-        model.Struct("Dynamic", [
-            model.StructMember("num_of_a", "u8"),
-            model.StructMember("a", "u8", bound="num_of_a")
+        Struct("Dynamic", [
+            StructMember("num_of_a", "u8"),
+            StructMember("a", "u8", bound="num_of_a")
         ]),
-        model.Struct("X", [
-            model.StructMember("a", "Dynamic"),
-            model.StructMember("b", "Dynamic"),
-            model.StructMember("c", "Dynamic")
+        Struct("X", [
+            StructMember("a", "Dynamic"),
+            StructMember("b", "Dynamic"),
+            StructMember("c", "Dynamic")
         ])
     ]
 
@@ -633,7 +644,7 @@ def process_with_warnings(nodes):
 
 def get_size_alignment_padding(node):
     return (
-            isinstance(node, model.StructMember) and
+            isinstance(node, StructMember) and
             (node.byte_size, node.alignment, node.padding) or
             (node.byte_size, node.alignment)
     )
@@ -645,9 +656,9 @@ def get_members_and_node(node):
 
 def test_evaluate_sizes_struct():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('x', 'u16'),
-            model.StructMember('y', 'u8')
+        Struct('X', [
+            StructMember('x', 'u16'),
+            StructMember('y', 'u8')
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -659,12 +670,12 @@ def test_evaluate_sizes_struct():
 
 def test_evaluate_sizes_nested_struct():
     nodes = process([
-        model.Struct('U16', [
-            model.StructMember('x', 'u16'),
+        Struct('U16', [
+            StructMember('x', 'u16'),
         ]),
-        model.Struct('X', [
-            model.StructMember('x', 'u8'),
-            model.StructMember('y', 'U16'),
+        Struct('X', [
+            StructMember('x', 'u8'),
+            StructMember('y', 'U16'),
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
@@ -676,9 +687,9 @@ def test_evaluate_sizes_nested_struct():
 
 def test_evaluate_sizes_fixed_array():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('x', 'u32'),
-            model.StructMember('y', 'u8', size='3')
+        Struct('X', [
+            StructMember('x', 'u32'),
+            StructMember('y', 'u8', size='3')
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -690,18 +701,18 @@ def test_evaluate_sizes_fixed_array():
 
 def test_evaluate_sizes_dynamic_array():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound='num_of_x'),
+        Struct('X', [
+            StructMember('num_of_x', 'u32'),
+            StructMember('x', 'u8', bound='num_of_x'),
         ]),
-        model.Struct('Y', [
-            model.StructMember('x', 'u8'),
-            model.StructMember('y', 'X'),
-            model.StructMember('z', 'u8')
+        Struct('Y', [
+            StructMember('x', 'u8'),
+            StructMember('y', 'X'),
+            StructMember('z', 'u8')
         ]),
-        model.Struct('Z', [
-            model.StructMember('x', 'X'),
-            model.StructMember('y', 'u64')
+        Struct('Z', [
+            StructMember('x', 'X'),
+            StructMember('y', 'u64')
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -724,9 +735,9 @@ def test_evaluate_sizes_dynamic_array():
 
 def test_evaluate_sizes_limited_array():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound='num_of_x', size='2'),
+        Struct('X', [
+            StructMember('num_of_x', 'u32'),
+            StructMember('x', 'u8', bound='num_of_x', size='2'),
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -738,9 +749,9 @@ def test_evaluate_sizes_limited_array():
 
 def test_evaluate_sizes_greedy_array():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', unlimited=True),
+        Struct('X', [
+            StructMember('num_of_x', 'u32'),
+            StructMember('x', 'u8', unlimited=True),
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -752,37 +763,37 @@ def test_evaluate_sizes_greedy_array():
 
 def test_evaluate_sizes_partial_padding():
     nodes = process([
-        model.Struct('D', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u32', bound='num_of_x')
+        Struct('D', [
+            StructMember('num_of_x', 'u32'),
+            StructMember('x', 'u32', bound='num_of_x')
         ]),
-        model.Struct('X', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound='num_of_x'),
-            model.StructMember('y', 'u8'),
-            model.StructMember('z', 'u64'),
+        Struct('X', [
+            StructMember('num_of_x', 'u32'),
+            StructMember('x', 'u8', bound='num_of_x'),
+            StructMember('y', 'u8'),
+            StructMember('z', 'u64'),
         ]),
-        model.Struct('Y', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', bound='num_of_x'),
-            model.StructMember('num_of_y', 'u32'),
-            model.StructMember('y', 'u64', bound='num_of_y'),
+        Struct('Y', [
+            StructMember('num_of_x', 'u32'),
+            StructMember('x', 'u8', bound='num_of_x'),
+            StructMember('num_of_y', 'u32'),
+            StructMember('y', 'u64', bound='num_of_y'),
         ]),
-        model.Struct('Z', [
-            model.StructMember('d1', 'D'),
-            model.StructMember('x', 'u8'),
-            model.StructMember('d2', 'D'),
-            model.StructMember('y1', 'u8'),
-            model.StructMember('y2', 'u64'),
-            model.StructMember('d3', 'D'),
-            model.StructMember('z1', 'u8'),
-            model.StructMember('z2', 'u8'),
-            model.StructMember('z3', 'u16'),
+        Struct('Z', [
+            StructMember('d1', 'D'),
+            StructMember('x', 'u8'),
+            StructMember('d2', 'D'),
+            StructMember('y1', 'u8'),
+            StructMember('y2', 'u64'),
+            StructMember('d3', 'D'),
+            StructMember('z1', 'u8'),
+            StructMember('z2', 'u8'),
+            StructMember('z3', 'u16'),
         ]),
-        model.Struct('ZZZ', [
-            model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u16', bound='num_of_x'),
-            model.StructMember('y', 'u16'),
+        Struct('ZZZ', [
+            StructMember('num_of_x', 'u32'),
+            StructMember('x', 'u16', bound='num_of_x'),
+            StructMember('y', 'u16'),
         ]),
     ])
 
@@ -822,13 +833,13 @@ def test_evaluate_sizes_partial_padding():
 
 def test_evaluate_sizes_typedef():
     nodes = process([
-        model.Typedef('T1', 'u32'),
-        model.Struct('X', [
-            model.StructMember('x', 'T1'),
+        Typedef('T1', 'u32'),
+        Struct('X', [
+            StructMember('x', 'T1'),
         ]),
-        model.Typedef('T2', 'T1'),
-        model.Struct('Y', [
-            model.StructMember('x', 'T2'),
+        Typedef('T2', 'T1'),
+        Struct('Y', [
+            StructMember('x', 'T2'),
         ]),
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
@@ -843,12 +854,12 @@ def test_evaluate_sizes_typedef():
 
 def test_evaluate_sizes_enum():
     nodes = process([
-        model.Enum('E', [
-            model.EnumMember('E1', '1')
+        Enum('E', [
+            EnumMember('E1', '1')
         ]),
-        model.Struct('X', [
-            model.StructMember('x', 'E'),
-            model.StructMember('y', 'i8'),
+        Struct('X', [
+            StructMember('x', 'E'),
+            StructMember('y', 'i8'),
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
@@ -860,9 +871,9 @@ def test_evaluate_sizes_enum():
 
 def test_evaluate_sizes_floats():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('x', 'r32'),
-            model.StructMember('y', 'r64'),
+        Struct('X', [
+            StructMember('x', 'r32'),
+            StructMember('y', 'r64'),
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -874,11 +885,11 @@ def test_evaluate_sizes_floats():
 
 def test_evaluate_sizes_bytes():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('x', 'byte'),
-            model.StructMember('y', 'byte', size=3),
-            model.StructMember('num_of_z', 'u32'),
-            model.StructMember('z', 'byte', bound='num_of_z')
+        Struct('X', [
+            StructMember('x', 'byte'),
+            StructMember('y', 'byte', size=3),
+            StructMember('num_of_z', 'u32'),
+            StructMember('z', 'byte', bound='num_of_z')
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -892,17 +903,17 @@ def test_evaluate_sizes_bytes():
 
 def test_evaluate_sizes_optional():
     nodes = process([
-        model.Struct('X', [
-            model.StructMember('x', 'u32')
+        Struct('X', [
+            StructMember('x', 'u32')
         ]),
-        model.Struct('O1', [
-            model.StructMember('x', 'u8', optional=True),
-            model.StructMember('y', 'u16', optional=True),
-            model.StructMember('z', 'u32', optional=True),
-            model.StructMember('a', 'u64', optional=True)
+        Struct('O1', [
+            StructMember('x', 'u8', optional=True),
+            StructMember('y', 'u16', optional=True),
+            StructMember('z', 'u32', optional=True),
+            StructMember('a', 'u64', optional=True)
         ]),
-        model.Struct('O2', [
-            model.StructMember('x', 'X', optional=True)
+        Struct('O2', [
+            StructMember('x', 'X', optional=True)
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
@@ -920,17 +931,17 @@ def test_evaluate_sizes_optional():
 
 def test_evaluate_sizes_union():
     nodes = process([
-        model.Union('X', [
-            model.UnionMember('x', 'u32', '1'),
-            model.UnionMember('y', 'u32', '2'),
-            model.UnionMember('z', 'u32', '3')
+        Union('X', [
+            UnionMember('x', 'u32', '1'),
+            UnionMember('y', 'u32', '2'),
+            UnionMember('z', 'u32', '3')
         ]),
-        model.Union('Y', [
-            model.UnionMember('x', 'u64', '1')
+        Union('Y', [
+            UnionMember('x', 'u64', '1')
         ]),
-        model.Union('Z', [
-            model.UnionMember('x', 'X', '1'),
-            model.UnionMember('y', 'Y', '2')
+        Union('Z', [
+            UnionMember('x', 'X', '1'),
+            UnionMember('y', 'Y', '2')
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -952,12 +963,12 @@ def test_evaluate_sizes_union():
 
 def test_evaluate_sizes_union_with_padding():
     nodes = process([
-        model.Union('X', [
-            model.UnionMember('x', 'u8', '1')
+        Union('X', [
+            UnionMember('x', 'u8', '1')
         ]),
-        model.Union('Y', [
-            model.UnionMember('x', 'u8', '1'),
-            model.UnionMember('y', 'u64', '2')
+        Union('Y', [
+            UnionMember('x', 'u8', '1'),
+            UnionMember('y', 'u64', '2')
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -973,8 +984,8 @@ def test_evaluate_sizes_union_with_padding():
 
 def test_evaluate_sizes_empty():
     nodes = process([
-        model.Struct('X', []),
-        model.Union('X', []),
+        Struct('X', []),
+        Union('X', []),
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
         (0, 1)
@@ -986,20 +997,20 @@ def test_evaluate_sizes_empty():
 
 def test_evaluate_sizes_unknown():
     nodes, warnings = process_with_warnings([
-        model.Struct('X', [
-            model.StructMember('x', 'u8'),
-            model.StructMember('y', 'U'),
-            model.StructMember('z', 'u32'),
+        Struct('X', [
+            StructMember('x', 'u8'),
+            StructMember('y', 'U'),
+            StructMember('z', 'u32'),
         ]),
-        model.Union('Y', [
-            model.UnionMember('x', 'u32', '1'),
-            model.UnionMember('y', 'U', '2'),
-            model.UnionMember('z', 'u32', '3')
+        Union('Y', [
+            UnionMember('x', 'u32', '1'),
+            UnionMember('y', 'U', '2'),
+            UnionMember('z', 'u32', '3')
         ]),
-        model.Typedef('U16', 'U'),
-        model.Struct('Z', [
-            model.StructMember('x', 'U16'),
-            model.StructMember('y', 'Unknown'),
+        Typedef('U16', 'U'),
+        Struct('Z', [
+            StructMember('x', 'U16'),
+            StructMember('y', 'Unknown'),
         ]),
     ])
 
@@ -1031,19 +1042,19 @@ def test_evaluate_sizes_unknown():
 
 def test_evaluate_sizes_array_with_named_size():
     nodes = process([
-        model.Constant('NUM', '3'),
-        model.Enum('E', [
-            model.EnumMember('E1', '1'),
-            model.EnumMember('E3', 'NUM')
+        Constant('NUM', '3'),
+        Enum('E', [
+            EnumMember('E1', '1'),
+            EnumMember('E3', 'NUM')
         ]),
-        model.Struct('X', [
-            model.StructMember('x', 'u32', size='NUM'),
-            model.StructMember('y', 'u32', size='E1'),
-            model.StructMember('z', 'u32', size='E3')
+        Struct('X', [
+            StructMember('x', 'u32', size='NUM'),
+            StructMember('y', 'u32', size='E1'),
+            StructMember('z', 'u32', size='E3')
         ]),
-        model.Struct('Y', [
-            model.StructMember('x', 'u32', size='UNKNOWN'),
-            model.StructMember('y', 'u32')
+        Struct('Y', [
+            StructMember('x', 'u32', size='UNKNOWN'),
+            StructMember('y', 'u32')
         ])
 
     ])
@@ -1063,14 +1074,14 @@ def test_evaluate_sizes_array_with_named_size():
 
 def test_evaluate_sizes_with_include():
     nodes = process([
-        model.Include('input', [
-            model.Enum('E', [
-                model.EnumMember('E1', '1')
+        Include('input', [
+            Enum('E', [
+                EnumMember('E1', '1')
             ])
         ]),
-        model.Struct('X', [
-            model.StructMember('x', 'E'),
-            model.StructMember('y', 'i8'),
+        Struct('X', [
+            StructMember('x', 'E'),
+            StructMember('y', 'i8'),
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[1]))) == [
@@ -1080,11 +1091,11 @@ def test_evaluate_sizes_with_include():
     ]
 
 
-def test_enum_repr():
-    E = model.Enum('TheEnum', [
-        model.EnumMember('E1', 1),
-        model.EnumMember('E2', '2'),
-        model.EnumMember('E3', '3')
+def test_enum_str_and_repr():
+    E = Enum('TheEnum', [
+        EnumMember('E1', 1),
+        EnumMember('E2', '2'),
+        EnumMember('E3', '3')
     ])
     assert str(E) == """\
 enum TheEnum {
@@ -1093,5 +1104,62 @@ enum TheEnum {
     E3 = '3';
 };
 """
-    expected = "Enum('TheEnum', [EnumMember('E1', 1, ''), EnumMember('E2', '2', ''), EnumMember('E3', '3', '')], '')"
-    assert repr(E) == expected
+    assert_repr_works(E)
+
+
+def test_wrong_struct_members_type_definition():
+    expected_msg = "struct 'A' members must be a list, got str instead."
+    with pytest.raises(model.ModelError, match=expected_msg):
+        Struct("A", "string")
+
+
+def test_wrong_struct_members_type_assignment():
+    expected_msg = "struct 'A' members must be a list, got str instead."
+    a = Struct("A", [])
+    with pytest.raises(model.ModelError, match=expected_msg):
+        a.members = "string"
+
+
+def test_wrong_struct_member_type():
+    expected_msg = "Each member of struct 'A' has to be a StructMember instance. Got str at index 1."
+    with pytest.raises(model.ModelError, match=expected_msg):
+        Struct("A", [
+            StructMember('field_name', 'u32'),
+            "string",
+        ])
+    expected_msg = "Each member of struct 'A' has to be a StructMember instance. Got UnionMember at index 0."
+    with pytest.raises(model.ModelError, match=expected_msg):
+        Struct("A", [
+            UnionMember('field_name', 'u32', 2),
+        ])
+
+
+def test_wrong_union_member_type():
+    expected_msg = "Each member of union 'U' has to be a UnionMember instance. Got str at index 1."
+    with pytest.raises(model.ModelError, match=expected_msg):
+        Union("U", [
+            UnionMember('field_name', 'u32', 0),
+            "string",
+        ])
+
+    expected_msg = "Each member of union 'U' has to be a UnionMember instance. Got StructMember at index 0."
+    with pytest.raises(model.ModelError, match=expected_msg):
+        Union("U", [
+            StructMember('field_name', 'u32'),
+        ])
+
+
+def test_duplicated_identifiers_struct():
+    with pytest.raises(model.ModelError, match="Duplicated 'field_name' identifier in struct A"):
+        Struct("A", [
+            StructMember('field_name', 'u32'),
+            StructMember('field_name', 'u16'),
+        ])
+
+
+def test_duplicated_identifiers_union():
+    with pytest.raises(model.ModelError, match="Duplicated 'field_name' identifier in union U"):
+        Union("U", [
+            UnionMember('field_name', 'u32', 0),
+            UnionMember('field_name', 'u16', 1),
+        ])

@@ -112,7 +112,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
                 return annotation
 
             typename = primitive_types.get(member.type_, member.type_)
-            if member.array:
+            if member.is_array:
                 annotation = build_annotation(member)
                 size = member.size or 1
                 if annotation:
@@ -198,7 +198,7 @@ class _HppSwapDeclarations(TranslatorBase):
 
 def _member_access_statement(member):
     out = '&payload->%s' % member.name
-    if isinstance(member, model.StructMember) and member.array:
+    if isinstance(member, model.StructMember) and member.is_array:
         out = out[1:]
     return out
 
@@ -251,7 +251,7 @@ class _CppSwapTranslator(TranslatorBase):
 
     def translate_struct(self, struct):
         def gen_member(member, delimiters=[]):
-            if member.array:
+            if member.is_array:
                 is_dynamic = member.kind == model.Kind.DYNAMIC
                 swap_mode = 'dynamic' if is_dynamic else 'fixed'
                 if member.bound:
