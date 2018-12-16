@@ -3,7 +3,6 @@ from contextlib import contextmanager
 import os
 import pytest
 
-
 IsarTestItem = namedtuple("IsarTestItem", "file_name_base, input_xml, expected_py")
 
 ISAR_TEST_SET_1 = [
@@ -59,7 +58,6 @@ class IsarDefC(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         ('ifC_b', prophy.array(prophy.u64, bound = 'ifC_b_len'))
     ]
 """),
-
 
     IsarTestItem(
         file_name_base="included_by_sack_a",

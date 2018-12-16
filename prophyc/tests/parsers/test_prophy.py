@@ -72,8 +72,8 @@ typedef x y;
 """
 
     assert parse(content) == [
-        model.Typedef("x", "u32"),
-        model.Typedef("y", "x")
+        model.Typedef("x", "u32", None),
+        model.Typedef("y", "x", model.Typedef('x', 'u32', None))
     ]
 
 
@@ -199,9 +199,15 @@ struct ExtSized
 
     assert parse(content) == [
         model.Typedef('num_of_elements_t', 'i32'),
-        model.Typedef('sz_t', 'num_of_elements_t'),
+        model.Typedef('sz_t', 'num_of_elements_t', model.Typedef('num_of_elements_t', 'i32', None)),
         model.Struct('ExtSized', [
-            model.StructMember('sz', 'sz_t'),
+            model.StructMember(
+                'sz', 'sz_t', model.Typedef(
+                    'sz_t', 'num_of_elements_t', model.Typedef(
+                        'num_of_elements_t', 'i32', None
+                    )
+                )
+            ),
             model.StructMember('one', 'u32', bound='sz'),
             model.StructMember('two', 'u16', bound='sz'),
             model.StructMember('three', 'i32', bound='sz')
@@ -731,10 +737,12 @@ def test_include_errors():
     with pytest.raises(ParseError) as e:
         def parse_file(path):
             raise FileNotFoundError(path)
+
         parse('#include "imnotthere"', parse_file)
     assert e.value.errors == [("test.prophy:1:10", "file imnotthere not found")]
     with pytest.raises(ParseError) as e:
         def parse_file(path):
             raise CyclicIncludeError(path)
+
         parse('#include "includemeagain"', parse_file)
     assert e.value.errors == [("test.prophy:1:10", "file includemeagain included again during parsing")]

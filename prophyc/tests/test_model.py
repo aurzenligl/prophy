@@ -1,28 +1,68 @@
+from __future__ import print_function
+from __future__ import print_function
+
+import sys
+from sys import getsizeof
+
+import pytest
+
 from prophyc import model
 
 
-def test_typedef_repr():
+def test_typedef_str():
     typedef = model.Typedef("my_typedef", "u8")
-    assert str(typedef) == "u8 my_typedef"
+    assert str(typedef) == "typedef u8 my_typedef;"
+
+
+def test_typedef_repr():
+    typedef = model.Typedef('my_typedef', 'u8')
+    assert repr(typedef) == "Typedef('my_typedef', 'u8', None)"
+
+    typedef = model.Typedef('my_typedef', 'u8', 'comment')
+    assert repr(typedef) == "Typedef('my_typedef', 'u8', 'comment')"
 
 
 def test_struct_repr():
     struct = model.Struct("MyStruct", [
-        model.StructMember("a", "u8"),
-        model.StructMember("b", "u16", bound='xlen'),
-        model.StructMember("c", "u32", size=5),
-        model.StructMember("d", "u64", bound='xlen', size=5),
-        model.StructMember("e", "UU", unlimited=True),
-        model.StructMember("f", "UUUU", optional=True)
+        model.StructMember("sizer", "u8"),
+        model.StructMember("b", "UserDefinedType"),
+        model.StructMember("c", "u32", size=3, docstring="fixed array of length 3"),
+        model.StructMember("d", "u32", unlimited=True),
+        model.StructMember("e", "r64", bound='xlen', size=3),
+        model.StructMember("f", "i32", unlimited=True),
+        model.StructMember("g", "u8", bound='sizer'),
+        model.StructMember("h", "u32", bound='sizer'),
     ])
+    assert repr(struct) == """\
+Struct('MyStruct', [StructMember('sizer', 'u8', None), StructMember('b', 'UserDefinedType', None), \
+StructMember('c', 'u32', None, 'fixed array of length 3'), StructMember('d', 'u32', None), \
+StructMember('e', 'r64', None), StructMember('f', 'i32', None), StructMember('g', 'u8', None), \
+StructMember('h', 'u32', None)])"""
+
     assert str(struct) == """\
-MyStruct
-    u8 a
-    u16 b<>(xlen)
-    u32 c[5]
-    u64 d<5>(xlen)
-    UU e<...>
-    UUUU* f
+struct MyStruct {
+    u8 sizer;
+    UserDefinedType b;
+    u32 c[3];
+    u32 d<...>;
+    r64 e<3>(xlen);
+    i32 f<...>;
+    u8 g<@sizer>;
+    u32 h<@sizer>;
+};
+"""
+    # todo: its against documentation
+    assert str(struct) != """\
+struct MyStruct {
+    u8 sizer;
+    UserDefinedType b;
+    u32 c[3]; // fixed array of length 3
+    u32 d<>; // dynamic array
+    r64 e<3>; // limited array of limit 3
+    i32 f<...>; // greedy array
+    u8 g<@sizer>; // External sized array 1, size in sizer
+    u32 h<@sizer>; // External sized array 2, size in sizer
+};
 """
 
 
@@ -30,17 +70,43 @@ def test_union_repr():
     union = model.Union("MyUnion", [
         model.UnionMember("a", "u8", 1),
         model.UnionMember("b", "u16", 2),
-        model.UnionMember("c", "u32", 3)
+        model.UnionMember("c", "u32", 3, "deff")
     ])
-    assert str(union.members[0]) == "1: u8 a"
-    assert str(union.members[1]) == "2: u16 b"
-    assert str(union.members[2]) == "3: u32 c"
+    assert repr(union) == "Union('MyUnion', [UnionMember('a', 'u8', 1, None), \
+UnionMember('b', 'u16', 2, None), UnionMember('c', 'u32', 3, 'deff')])"
+
     assert str(union) == """\
-MyUnion
-    1: u8 a
-    2: u16 b
-    3: u32 c
+union MyUnion {
+    1: u8 a;
+    2: u16 b;
+    3: u32 c;
+};
 """
+
+
+MODEL_NODES = [
+    (model.ModelNode, 72),
+    (model.Constant, 72),
+    (model.EnumMember, 72),
+    (model.Include, 72),
+    (model.Enum, 72),
+    (model.Typedef, 80),
+    (model.StructMember, 152),
+    (model.CollectionNode, 72),
+    (model.Union, 96),
+]
+
+
+@pytest.mark.parametrize("cls, expected_size", MODEL_NODES)
+def test_model_slots(cls, expected_size):
+    if sys.version[0] == 2:
+        assert getsizeof(cls(1, 3)) == expected_size, "You missed slots in {} class".format(cls.__name__)
+
+
+def test_model_slots_custom_ctor():
+    if sys.version[0] == 2:
+        assert getsizeof(model.Struct("n", [])) == 96
+        assert getsizeof(model.UnionMember("n", 3, 2)) == 112
 
 
 def test_split_after():
@@ -564,9 +630,9 @@ def process_with_warnings(nodes):
 
 def get_size_alignment_padding(node):
     return (
-        isinstance(node, model.StructMember) and
-        (node.byte_size, node.alignment, node.padding) or
-        (node.byte_size, node.alignment)
+            isinstance(node, model.StructMember) and
+            (node.byte_size, node.alignment, node.padding) or
+            (node.byte_size, node.alignment)
     )
 
 
@@ -1013,13 +1079,15 @@ def test_evaluate_sizes_with_include():
 
 def test_enum_repr():
     E = model.Enum('TheEnum', [
-        model.EnumMember('E1', '1'),
+        model.EnumMember('E1', 1),
         model.EnumMember('E2', '2'),
         model.EnumMember('E3', '3')
     ])
-    assert repr(E) == """\
-TheEnum
-    E1 1
-    E2 2
-    E3 3
+    assert str(E) == """\
+enum TheEnum {
+    E1 = 1;
+    E2 = '2';
+    E3 = '3';
+};
 """
+    assert repr(E) == "Enum('TheEnum', [EnumMember('E1', 1), EnumMember('E2', '2'), EnumMember('E3', '3')])"

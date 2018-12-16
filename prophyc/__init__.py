@@ -141,7 +141,7 @@ def flatten_included_defs(supple_nodes):
     def get_nodes_and_names(nodes_list):
         for elem in nodes_list:
             if isinstance(elem, model.Include):
-                yield elem
+                yield elem.name, elem.nodes
                 for sub_elem in get_nodes_and_names(elem.nodes):
                     yield sub_elem
     """ pass trough a dictionary to avoid duplicates """

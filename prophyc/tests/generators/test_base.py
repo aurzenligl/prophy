@@ -10,12 +10,12 @@ def make_dummy_translation_method(name):
 
     def dummy_translation(node):
         return template.format(content=node)
+
     return dummy_translation
 
 
 @pytest.fixture
 def straigth_generator():
-
     class EmptyTranslator(base.TranslatorBase):
         pass
 
@@ -55,6 +55,7 @@ def serialize(mocker, straigth_generator):
         gen.serialize(nodes, base_name)
 
         return scoper.writes
+
     return process
 
 
@@ -70,10 +71,14 @@ TRANSLATION_MODEL_B = [
 ]
 TRANSLATION_WRITES_B = {
     'fake_out/mainer.em': '',
-    'fake_out/mainer.st': """scope mainer {
-<Include> [Include(name='a', nodes=[b a])]
+    'fake_out/mainer.st': """\
+scope mainer {
+<Include> [include a {
+    typedef b a;;
+};
+]
 
-<Constant> [Constant(name='CONST_A', value='0')]
+<Constant> [const CONST_A = '0';]
 
 } // endscope mainer
 """,
@@ -93,21 +98,24 @@ TRANSLATION_MODEL_C = [
 
 TRANSLATION_WRITES_C = {
     'fake_out/mainer.em': '',
-    'fake_out/mainer.st': '''scope mainer {
-<Typedef> [b a]
-<Typedef> [d c]
+    'fake_out/mainer.st': '''\
+scope mainer {
+<Typedef> [typedef b a;]
+<Typedef> [typedef d c;]
 
-<Enum> [E1
-    E1_A 0
-    E1_B 1
+<Enum> [enum E1 {
+    E1_A = '0';
+    E1_B = '1';
+};
 ]
 
-<Enum> [E2
-    E2_A 0
+<Enum> [enum E2 {
+    E2_A = '0';
+};
 ]
 
-<Constant> [Constant(name='CONST_A', value='0')]
-<Constant> [Constant(name='CONST_B', value='0')]
+<Constant> [const CONST_A = '0';]
+<Constant> [const CONST_B = '0';]
 
 } // endscope mainer
 '''}
@@ -119,7 +127,8 @@ TRANSLATION_WRITES_C = {
     (TRANSLATION_MODEL_C, TRANSLATION_WRITES_C)
 ])
 def test_straigth_translation(serialize, nodes, writes):
-    assert serialize(nodes) == writes
+    result = serialize(nodes)
+    assert result == writes
 
 
 UNKNOWN_NONE_RAISE_TEST = [
