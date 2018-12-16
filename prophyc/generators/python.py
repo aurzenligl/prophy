@@ -1,6 +1,4 @@
-
 from prophyc.generators.base import GeneratorBase, TranslatorBase
-
 
 libname = "prophy"
 primitive_types = {x + y: "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
@@ -78,7 +76,7 @@ class _PythonTranslator(TranslatorBase):
         return "from %s import *" % include.name.split("/")[-1]
 
     def translate_constant(self, constant):
-        return "%s = %s" % constant
+        return "%s = %s" % (constant.name, constant.value)
 
     def translate_typedef(self, typedef):
         if typedef.type_ in primitive_types:

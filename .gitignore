@@ -33,8 +33,11 @@ waf-*
 tmp_*
 
 # Test tools
-.tox
-.cache
+.tox/
+.cache/
 .pytest_cache
 .coverage*
 htmlcov/
+
+# Documentation
+dev_doc/
