@@ -9,7 +9,6 @@ from . import options
 from .file_processor import FileProcessor
 from .generators.base import GenerateError
 
-
 __version__ = '1.1.2'
 
 
@@ -54,7 +53,7 @@ def main(args):
             emit.error('Isar defines inclusion is supported only in "sack" compilation mode.')
 
         isar_parser = get_isar_parser(emit)
-        model_parser = ModelParser(isar_parser, patcher, emit)
+        model_parser = model.ModelParser(isar_parser, patcher, emit)
         file_parser = FileProcessor(model_parser, opts.include_dirs)
 
         for input_file in opts.isar_includes:
@@ -67,7 +66,7 @@ def main(args):
             generate_target_files(emit, serializers, include_name, include_nodes)
 
     parser = get_target_parser(emit, opts, supplementary_nodes)
-    model_parser = ModelParser(parser, patcher, emit)
+    model_parser = model.ModelParser(parser, patcher, emit)
     file_parser = FileProcessor(model_parser, opts.include_dirs)
 
     for input_file in opts.input_files:
@@ -116,23 +115,6 @@ def get_patcher(opts):
         return lambda nodes: patch.patch(nodes, patches)
 
 
-class ModelParser():
-    def __init__(self, parser, patcher, emit):
-        self.parser = parser
-        self.patcher = patcher
-        self.emit = emit
-
-    def __call__(self, *parse_args):
-        nodes = self.parser.parse(*parse_args)
-        if self.patcher:
-            self.patcher(nodes)
-        model.topological_sort(nodes)
-        model.cross_reference(nodes, warn=self.emit.warn)
-        model.evaluate_kinds(nodes)
-        model.evaluate_sizes(nodes, warn=self.emit.warn)
-        return nodes
-
-
 def get_basename(path):
     return os.path.splitext(os.path.basename(path))[0]
 
@@ -144,6 +126,7 @@ def flatten_included_defs(supple_nodes):
                 yield elem.name, elem.nodes
                 for sub_elem in get_nodes_and_names(elem.nodes):
                     yield sub_elem
+
     """ pass trough a dictionary to avoid duplicates """
     return tuple(dict(get_nodes_and_names(supple_nodes)).items())
 

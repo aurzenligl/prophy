@@ -38,40 +38,38 @@ def straigth_generator():
 
 @pytest.fixture
 def serialize(mocker, straigth_generator):
-    scoper = type('scoper', (), {'writes': {}})
+    writes = {}
 
     def write_mock(file_path, file_content):
-        scoper.writes.update({file_path: file_content})
+        writes.update({file_path: file_content})
 
     mocker.patch.object(base, '_write_file', side_effect=write_mock)
     mocker.patch.object(base.os.path, 'isdir', return_value=True)
 
     def process(nodes, base_name='mainer'):
         model.cross_reference(nodes)
-        model.evaluate_kinds(nodes)
+        model.evaluate_stiffness_kinds(nodes)
         model.evaluate_sizes(nodes)
         gen = straigth_generator('fake_out')
         gen.check_nodes(nodes)
         gen.serialize(nodes, base_name)
 
-        return scoper.writes
+        return writes
 
     return process
 
 
-TRANSLATION_MODEL_A = []
-TRANSLATION_WRITES_A = {
-    'fake_out/mainer.em': '',
-    'fake_out/mainer.st': 'scope mainer {\n\n} // endscope mainer\n'
-}
+def test_translatin_empty_model(serialize):
+    assert serialize([]) == {
+        'fake_out/mainer.em': '',
+        'fake_out/mainer.st': 'scope mainer {\n\n} // endscope mainer\n'
+    }
 
-TRANSLATION_MODEL_B = [
-    model.Include('a', [model.Typedef('a', 'b')]),
-    model.Constant('CONST_A', '0'),
-]
-TRANSLATION_WRITES_B = {
-    'fake_out/mainer.em': '',
-    'fake_out/mainer.st': """\
+
+def test_straigth_translation_b(serialize):
+    expecting_result = {
+        'fake_out/mainer.em': '',
+        'fake_out/mainer.st': """\
 scope mainer {
 <Include> [include a {
     typedef b a;;
@@ -82,23 +80,33 @@ scope mainer {
 
 } // endscope mainer
 """,
-}
+    }
 
-TRANSLATION_MODEL_C = [
-    model.Typedef('a', 'b'),
-    model.Typedef('c', 'd'),
-    model.Enum('E1', [
-        model.EnumMember('E1_A', '0'),
-        model.EnumMember('E1_B', '1')]),
-    model.Enum('E2', [
-        model.EnumMember('E2_A', '0')]),
-    model.Constant('CONST_A', '0'),
-    model.Constant('CONST_B', '0')
-]
+    result = serialize([
+        model.Include('a', [model.Typedef('a', 'b')]),
+        model.Constant('CONST_A', '0'),
+    ])
+    assert set(result.keys()) == set(expecting_result.keys())
+    assert len(result) == len(expecting_result)
+    assert sorted(result.values()) == sorted(expecting_result.values())
 
-TRANSLATION_WRITES_C = {
-    'fake_out/mainer.em': '',
-    'fake_out/mainer.st': '''\
+
+def test_straigth_translation_c(serialize):
+    input_model = [
+        model.Typedef('a', 'b'),
+        model.Typedef('c', 'd'),
+        model.Enum('E1', [
+            model.EnumMember('E1_A', '0'),
+            model.EnumMember('E1_B', '1')]),
+        model.Enum('E2', [
+            model.EnumMember('E2_A', '0')]),
+        model.Constant('CONST_A', '0'),
+        model.Constant('CONST_B', '0')
+    ]
+
+    expected_result = {
+        'fake_out/mainer.em': '',
+        'fake_out/mainer.st': '''\
 scope mainer {
 <Typedef> [typedef b a;]
 <Typedef> [typedef d c;]
@@ -120,15 +128,8 @@ scope mainer {
 } // endscope mainer
 '''}
 
-
-@pytest.mark.parametrize('nodes, writes', [
-    (TRANSLATION_MODEL_A, TRANSLATION_WRITES_A),
-    (TRANSLATION_MODEL_B, TRANSLATION_WRITES_B),
-    (TRANSLATION_MODEL_C, TRANSLATION_WRITES_C)
-])
-def test_straigth_translation(serialize, nodes, writes):
-    result = serialize(nodes)
-    assert result == writes
+    result = serialize(input_model)
+    assert result == expected_result
 
 
 UNKNOWN_NONE_RAISE_TEST = [

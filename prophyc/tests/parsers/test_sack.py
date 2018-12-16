@@ -9,14 +9,6 @@ def parse(content, extension='.hpp', warn=None, includes=[]):
     return SackParser(warn=warn, include_dirs=includes).parse(content, file_name + extension, None)
 
 
-class contains_cmp(object):
-    def __init__(self, x):
-        self.x = x
-
-    def __eq__(self, other):
-        return any((self.x in other, other in self.x))
-
-
 @pytest.mark.parametrize('extension', [('.h'), ('.hpp')])
 @pytest.clang_installed
 def test_simple_struct(extension):
@@ -486,9 +478,14 @@ typedef struct X X;
     ]
 
 
-@pytest.mark.parametrize('extension', [('.h'), ('.hpp')])
+class TwoWaysComparableString(str):
+
+    def __eq__(self, other):
+        return self in str(other) or str(other) in self
+
+
 @pytest.clang_installed
-def test_struct_with_anonymous_struct(extension):
+def test_struct_with_anonymous_struct():
     hpp = """\
 struct X
 {
@@ -498,13 +495,20 @@ struct X
     } a[3];
 };
 """
-    Anonymous = contains_cmp("X__anonymous__")
-    assert parse(hpp, extension) == [
-        model.Struct(Anonymous, [
+    assert parse(hpp, '.h') == [
+        model.Struct("X__anonymous__at__test__h__3__5__", [
             model.StructMember("b", "i8")
         ]),
         model.Struct("X", [
-            model.StructMember("a", Anonymous, size=3)
+            model.StructMember("a", "X__anonymous__at__test__h__3__5__", size=3)
+        ])
+    ]
+    assert parse(hpp, '.hpp') == [
+        model.Struct("X__anonymous__struct__at__test__hpp__3__5__", [
+            model.StructMember("b", "i8")
+        ]),
+        model.Struct("X", [
+            model.StructMember("a", "X__anonymous__struct__at__test__hpp__3__5__", size=3)
         ])
     ]
 

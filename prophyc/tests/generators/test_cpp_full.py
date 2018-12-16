@@ -47,7 +47,7 @@ def generate_hpp(nodes, base_name):
 
 def process(nodes):
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     model.evaluate_sizes(nodes)
     return nodes
 

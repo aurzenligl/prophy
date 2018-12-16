@@ -1,7 +1,7 @@
 from itertools import islice
 
 from . import calc
-from .six import ifilter, reduce
+from .six import ifilter, reduce, string_types
 
 """ Exception types """
 
@@ -14,7 +14,7 @@ class ParseError(Exception):
 
 
 class Kind:
-    """ Determines struct member wire format type. """
+    """ Determines struct member wire format type (bytes stiffness). """
     FIXED = 0
     DYNAMIC = 1
     UNLIMITED = 2
@@ -47,9 +47,11 @@ Includes, Constants, Enums, Typedefs, Structs, Unions. """
 
 class ModelNode(object):
     __slots__ = ("name", "_value", "docstring")
-    _str_pattern = None
+    _str_pattern = ""
 
     def __init__(self, name, value, docstring=""):
+        assert isinstance(name, string_types), "Got name %s, expected string." % type(name).__name__
+        assert isinstance(docstring, string_types), "Got doc string as %s, expected string." % type(docstring).__name__
         self.name = name
         self._value = value
         self.docstring = docstring
@@ -63,11 +65,7 @@ class ModelNode(object):
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        if self.docstring:
-            pattern = '{cls_name}({s.name!r}, {s.value!r}, {s.docstring!r})'
-        else:
-            pattern = '{cls_name}({s.name!r}, {s.value!r})'
-
+        pattern = '{cls_name}({s.name!r}, {s._value!r}, {s.docstring!r})'
         return pattern.format(s=self, cls_name=cls_name)
 
     def __eq__(self, other):
@@ -75,30 +73,70 @@ class ModelNode(object):
             return self.name == other.name and self._value == other._value
         if isinstance(other, tuple) and len(other) in (2, 3):
             return self.name == other[0] and self._value == other[1]
-        return NotImplemented
+
+    def __ne__(self, other):
+        return not (self.__eq__(self, other))
+
+
+class Include(ModelNode):
+    _str_pattern = "include {s.name} {{\n{s._str_nodes}}};\n"
+    __slots__ = ()
+
+    def __init__(self, name, nodes, docstring=""):
+        super(Include, self).__init__(name, nodes, docstring)
+
+    @property
+    def _str_nodes(self):
+        return "".join("    {};\n".format(m) for m in self.nodes)
+
+    @property
+    def nodes(self):
+        return self._value
 
 
 class Constant(ModelNode):
     _str_pattern = "const {s.name} = {s.value!r};"
     __slots__ = ()
 
-    def __str__(self):
-        return "const {s.name} = {s.value!r};".format(s=self)
+    def eval_int(self, all_constants):
+        try:
+            return int(self.value)
+        except ValueError:
+            try:
+                return calc.eval(self.value, all_constants)
+            except calc.ParseError:
+                return None
 
 
-class EnumMember(ModelNode):
+class EnumMember(Constant):
     _str_pattern = "{s.name} = {s.value!r}"
     __slots__ = ()
 
 
-class Typedef(ModelNode):
-    _str_pattern = "typedef {s.type_} {s.name};"
-    __slots__ = ("_type", "definition")
+class _Serializable(ModelNode):
+    __slots__ = ("kind", "byte_size", "alignment")
 
-    def __init__(self, name, type_, definition=None, docstring=""):
-        super(Typedef, self).__init__(name, None, docstring=docstring)
-        self._type = type_
+    def __init__(self, name, value, docstring=""):
+        super(_Serializable, self).__init__(name, value, docstring=docstring)
+        self.alignment = None
+        """byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy"""
+        self.byte_size = None
+        """type kind, not influenced by array or optional"""
+        self.calc_wire_stiffness()
+
+    @classmethod
+    def calc_wire_stiffness(cls):
+        raise NotImplementedError("Abstract method to be overriden in %s" % cls.__name__)
+
+
+class Typedef(_Serializable):
+    _str_pattern = "typedef {s.type_} {s.name};"
+    __slots__ = ("definition",)
+
+    def __init__(self, name, node_typedef, definition=None, docstring=""):
+        assert isinstance(node_typedef, string_types), "Got typedef %s, expected string." % type(node_typedef).__name__
         self.definition = definition
+        super(Typedef, self).__init__(name, node_typedef, docstring=docstring)
 
     def __repr__(self):
         cls_name = self.__class__.__name__
@@ -108,47 +146,36 @@ class Typedef(ModelNode):
             pattern = '{cls_name}({s.name!r}, {s.type_!r}, {s.definition!r})'
         return pattern.format(s=self, cls_name=cls_name)
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return super(Typedef, self).__eq__(other) and self.definition == other.definition
+
     @property
     def type_(self):
-        return self._type
+        return self._value
 
     @type_.setter
     def type_(self, new_value):
         assert isinstance(new_value, str), "Type name is expected in string, got {}".format(type(new_value).__name__)
-        self._type = new_value
+        self._value = new_value
 
-
-class _Serializable(Typedef):
-    __slots__ = ("kind", "byte_size", "alignment")
-
-    def __init__(self, name, type_, definition=None, docstring=""):
-        super(_Serializable, self).__init__(name, type_, definition=definition, docstring=docstring)
-        self.alignment = None
-        """byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy"""
-        self.byte_size = None
-        """type kind, not influenced by array or optional"""
-        self.kind = self.calc_dynamic_kind()
-
-    def calc_dynamic_kind(self):
+    def calc_wire_stiffness(self):
+        """ Typedef propagates stiffness kinds of its lowermost type """
+        self.kind = Kind.FIXED
         if self.definition:
-            node = self.definition
-            while isinstance(node, Typedef):
-                node = node.definition
-            if isinstance(node, Struct):
-                return node.kind
-            else:
-                return Kind.FIXED
-
-        else:
-            return Kind.FIXED
+            lowermost_typedef = self.definition
+            while isinstance(lowermost_typedef, Typedef):
+                lowermost_typedef = lowermost_typedef.definition
+            if isinstance(lowermost_typedef, Struct):
+                self.kind = lowermost_typedef.kind
 
 
-class StructMember(_Serializable):
+class StructMember(Typedef):
     __slots__ = ("array", "bound", "size", "optional", "numeric_size", "padding")
 
-    def __init__(self, name, type_, docstring="",
-                 bound=None, size=None, unlimited=False, optional=False, definition=None):
-        assert (sum((bool(bound or size), unlimited, optional)) <= 1)
+    def __init__(self, name, type_, definition=None, docstring="", bound=None, size=None, unlimited=False,
+                 optional=False):
+        assert sum((bool(bound or size), unlimited, optional)) <= 1, "Overconstraint"
 
         super(StructMember, self).__init__(name, type_, definition=definition, docstring=docstring)
         self.array = bool(bound or size or unlimited)
@@ -159,6 +186,17 @@ class StructMember(_Serializable):
         self.numeric_size = None
         """amount of bytes to add before next field. If field dynamic: negative alignment of next field"""
         self.padding = None
+
+    @property
+    def _unlimited_(self):
+        "just to make __repr__ working"
+        return self.array and not self.bound and not self.size
+
+    def __repr__(self):
+        cls_name = self.__class__.__name__
+        pattern = '{cls_name}({s.name!r}, {s.type_!r}, {s.definition!r}, {s.docstring!r}, bound={s.bound}, size={s.size}, \
+unlimited={s._unlimited_}, optional={s.optional})'
+        return pattern.format(s=self, cls_name=cls_name)
 
     def __eq__(self, other):
         return ((self.name == other.name) and
@@ -197,7 +235,7 @@ class StructMember(_Serializable):
         return self.array and not self.bound and not self.size
 
 
-class UnionMember(_Serializable):
+class UnionMember(Typedef):
     _str_pattern = '{s.discriminator}: {s.type_} {s.name}'
     __slots__ = ("discriminator",)
 
@@ -223,9 +261,9 @@ class UnionMember(_Serializable):
 """ Composite kinds """
 
 
-class CollectionNode(ModelNode):
+class Enum(ModelNode):
     _str_pattern = "{s._collection_kind} {s.name} {{\n{s._str_members}}};\n"
-    _collection_kind = None
+    _collection_kind = "enum"
     __slots__ = ()
 
     @property
@@ -236,54 +274,56 @@ class CollectionNode(ModelNode):
     def _str_members(self):
         return "".join("    {};\n".format(m) for m in self.members)
 
+    def check_for_duplicates(self):
+        values = set()
+        for m in self.members:
+            if m.value in values:
+                raise ValueError("Duplicate Enum value in '{}', value '{}'.".format(self.name, m.value))
+            values.add(m.value)
 
-class Enum(CollectionNode):
-    _collection_kind = "enum"
+
+class _SerializableContainer(_Serializable):
+    """ Base for Struct and Union. Provides membership properties. """
+    _str_pattern = "{s._collection_kind} {s.name} {{\n{s._str_members}}};\n"
+    _collection_kind = None
     __slots__ = ()
 
+    @property
+    def members(self):
+        return self._value
 
-# todo: override from _Serializable
-class _CompositeType(CollectionNode):
-    __slots__ = ("kind", "byte_size", "alignment")
+    @property
+    def value(self):
+        raise AttributeError("{} is not allowed to use .value property".format(self.__class__.__name__))
 
-    def __init__(self, name, members, docstring=""):
-        super(_CompositeType, self).__init__(name, members, docstring)
-        self.kind = self.calc_dynamic_kind()
-        self.byte_size = None
-        self.alignment = None
+    @property
+    def _str_members(self):
+        return "".join("    {};\n".format(m) for m in self.members)
 
-    def calc_dynamic_kind(self):
-        if isinstance(self, Struct) and self.members:
-            if self.members[-1].greedy:
-                return Kind.UNLIMITED
-            elif any(x.dynamic for x in self.members):
-                return Kind.DYNAMIC
-            else:
-                return max(x.kind for x in self.members)
-        else:
-            return Kind.FIXED
+    def calc_wire_stiffness(self):
+        """ Evaluate stiffness of the node. """
+        self.kind = Kind.FIXED
+        if isinstance(self, Struct):
+            if self.members:
+                for member in self.members:
+                    member.calc_wire_stiffness()
+
+                if self.members[-1].greedy:
+                    self.kind = Kind.UNLIMITED
+                elif any(x.dynamic for x in self.members):
+                    self.kind = Kind.DYNAMIC
+                else:
+                    self.kind = max(x.kind for x in self.members)
 
 
-class Struct(_CompositeType):
+class Struct(_SerializableContainer):
     _collection_kind = "struct"
     __slots__ = ()
 
 
-class Union(_CompositeType):
+class Union(_SerializableContainer):
     _collection_kind = "union"
     __slots__ = ()
-
-
-class Include(CollectionNode):
-    _collection_kind = "include"
-    __slots__ = ()
-
-    def __init__(self, name, nodes, docstring=""):
-        super(Include, self).__init__(name, nodes, docstring)
-
-    @property
-    def nodes(self):
-        return self._value
 
 
 """ Utils """
@@ -369,52 +409,36 @@ def cross_reference(nodes, warn=null_warn):
     Adds numeric_size to StructMember if it's a sized array.
     """
 
-    def get_type_definitions():
+    types = {}
+
+    def add_nodes_level(nodes_):
         included = set()
-        types_ = {}
+        for node_ in nodes_:
+            if isinstance(node_, Include):
+                if node_.name not in included:
+                    included.add(node_.name)
+                    add_nodes_level(node_.nodes)
+            else:
+                types[node_.name] = node_
 
-        def add_nodes_level(nodes_):
-            for node_ in nodes_:
-                if isinstance(node_, Include):
-                    if node_.name not in included:
-                        included.add(node_.name)
-                        add_nodes_level(node_.nodes)
-                else:
-                    types_[node_.name] = node_
+    add_nodes_level(nodes)
 
-        add_nodes_level(nodes)
-        return types_
+    constants = {}
 
-    def get_constant_definitions():
-        def eval_int(x, constants__):
-            try:
-                return int(x)
-            except ValueError:
-                try:
-                    return calc.eval(x, constants__)
-                except calc.ParseError:
-                    return None
-
+    def add_constants_level(nodes_):
         included = set()
-        constants_ = {}
+        for node_ in nodes_:
+            if isinstance(node_, Include):
+                if node_.name not in included:
+                    included.add(node_.name)
+                    add_constants_level(node_.nodes)
+            elif isinstance(node_, Constant):
+                constants[node_.name] = node_.eval_int(constants)
+            elif isinstance(node_, Enum):
+                for member in node_.members:
+                    constants[member.name] = member.eval_int(constants)
 
-        def add_constants_level(nodes_):
-            for node_ in nodes_:
-                if isinstance(node_, Include):
-                    if node_.name not in included:
-                        included.add(node_.name)
-                        add_constants_level(node_.nodes)
-                elif isinstance(node_, Constant):
-                    constants_[node_.name] = eval_int(node_.value, constants_)
-                elif isinstance(node_, Enum):
-                    for member in node_.members:
-                        constants_[member.name] = eval_int(member.value, constants_)
-
-        add_constants_level(nodes)
-        return constants_
-
-    types = get_type_definitions()
-    constants = get_constant_definitions()
+    add_constants_level(nodes)
 
     def cross_reference_types(node_):
         if node_.type_ in BUILTIN_SIZES:
@@ -450,43 +474,11 @@ def cross_reference(nodes, warn=null_warn):
             list(map(cross_reference_types, node.members))
 
 
-def evaluate_dynamics(node):
-    """Adds kind to Struct or Union. Requires cross referenced nodes."""
-    if isinstance(node, Struct) and node.members:
-        if node.members[-1].greedy:
-            return Kind.UNLIMITED
-        elif any(x.dynamic for x in node.members):
-            return Kind.DYNAMIC
-        else:
-            return max(x.kind for x in node.members)
-    else:
-        return Kind.FIXED
-
-
-def evaluate_member_kind(member):
-    """Adds kind to StructMember. Requires cross referenced nodes."""
-
-    def evaluate_node_kind(node):
-        while isinstance(node, Typedef):
-            node = node.definition
-        if isinstance(node, Struct):
-            return node.kind
-        else:
-            return Kind.FIXED
-
-    if member.definition:
-        return evaluate_node_kind(member.definition)
-    else:
-        return Kind.FIXED
-
-
-def evaluate_kinds(nodes):
+def evaluate_stiffness_kinds(nodes):
     """Adds kind to all Structs and StructMembers. Requires cross referenced nodes."""
     for node in nodes:
         if isinstance(node, Struct):
-            for member in node.members:
-                member.kind = evaluate_member_kind(member)
-            node.kind = evaluate_dynamics(node)
+            node.calc_wire_stiffness()
 
 
 def evaluate_sizes(nodes, warn=null_warn):
@@ -604,3 +596,20 @@ def partition(members):
     if members:
         current.append(members[-1])
     return main, parts
+
+
+class ModelParser():
+    def __init__(self, parser, patcher, emit):
+        self.parser = parser
+        self.patcher = patcher
+        self.emit = emit
+
+    def __call__(self, *parse_args):
+        nodes = self.parser.parse(*parse_args)
+        if self.patcher:
+            self.patcher(nodes)
+        topological_sort(nodes)
+        cross_reference(nodes, warn=self.emit.warn)
+        evaluate_stiffness_kinds(nodes)
+        evaluate_sizes(nodes, warn=self.emit.warn)
+        return nodes
