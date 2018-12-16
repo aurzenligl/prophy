@@ -9,7 +9,7 @@ cpp_translator = _CppSwapTranslator()
 
 def process(nodes):
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     model.evaluate_sizes(nodes)
     CppGenerator().check_nodes(nodes)
     return nodes

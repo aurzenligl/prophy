@@ -18,8 +18,8 @@ def test_typedef_repr():
     typedef = model.Typedef('my_typedef', 'u8')
     assert repr(typedef) == "Typedef('my_typedef', 'u8', None)"
 
-    typedef = model.Typedef('my_typedef', 'u8', 'comment')
-    assert repr(typedef) == "Typedef('my_typedef', 'u8', 'comment')"
+    typedef = model.Typedef('my_typedef', 'u8', docstring='comment')
+    assert repr(typedef) == "Typedef('my_typedef', 'u8', None, 'comment')"
 
 
 def test_struct_repr():
@@ -34,10 +34,14 @@ def test_struct_repr():
         model.StructMember("h", "u32", bound='sizer'),
     ])
     assert repr(struct) == """\
-Struct('MyStruct', [StructMember('sizer', 'u8', None), StructMember('b', 'UserDefinedType', None), \
-StructMember('c', 'u32', None, 'fixed array of length 3'), StructMember('d', 'u32', None), \
-StructMember('e', 'r64', None), StructMember('f', 'i32', None), StructMember('g', 'u8', None), \
-StructMember('h', 'u32', None)])"""
+Struct('MyStruct', [StructMember('sizer', 'u8', None, '', bound=None, size=None, unlimited=False, optional=False), \
+StructMember('b', 'UserDefinedType', None, '', bound=None, size=None, unlimited=False, optional=False), \
+StructMember('c', 'u32', None, 'fixed array of length 3', bound=None, size=3, unlimited=False, optional=False), \
+StructMember('d', 'u32', None, '', bound=None, size=None, unlimited=True, optional=False), \
+StructMember('e', 'r64', None, '', bound=xlen, size=3, unlimited=False, optional=False), \
+StructMember('f', 'i32', None, '', bound=None, size=None, unlimited=True, optional=False), \
+StructMember('g', 'u8', None, '', bound=sizer, size=None, unlimited=False, optional=False), \
+StructMember('h', 'u32', None, '', bound=sizer, size=None, unlimited=False, optional=False)], '')"""
 
     assert str(struct) == """\
 struct MyStruct {
@@ -70,10 +74,10 @@ def test_union_repr():
     union = model.Union("MyUnion", [
         model.UnionMember("a", "u8", 1),
         model.UnionMember("b", "u16", 2),
-        model.UnionMember("c", "u32", 3, "deff")
+        model.UnionMember("c", "u32", 3, docstring="deff")
     ])
     assert repr(union) == "Union('MyUnion', [UnionMember('a', 'u8', 1, None), \
-UnionMember('b', 'u16', 2, None), UnionMember('c', 'u32', 3, 'deff')])"
+UnionMember('b', 'u16', 2, None), UnionMember('c', 'u32', 3, None, 'deff')], '')"
 
     assert str(union) == """\
 union MyUnion {
@@ -92,7 +96,6 @@ MODEL_NODES = [
     (model.Enum, 72),
     (model.Typedef, 80),
     (model.StructMember, 152),
-    (model.CollectionNode, 72),
     (model.Union, 96),
 ]
 
@@ -406,7 +409,7 @@ def test_evaluate_kinds_arrays():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
 
     assert [x.kind for x in nodes[0].members] == [
         model.Kind.FIXED,
@@ -438,7 +441,7 @@ def test_evaluate_kinds_struct_records():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
 
     assert [x.kind for x in nodes] == [
         model.Kind.FIXED,
@@ -500,7 +503,7 @@ def test_evaluate_kinds_with_typedefs():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
 
     assert [x.kind for x in nodes if isinstance(x, model.Struct)] == [
         model.Kind.FIXED,
@@ -528,7 +531,7 @@ def test_partition_fixed():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     main, parts = model.partition(nodes[0].members)
 
     assert [x.name for x in main] == ["a", "b", "c"]
@@ -548,7 +551,7 @@ def test_partition_many_arrays():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     main, parts = model.partition(nodes[0].members)
 
     assert [x.name for x in main] == ["num_of_a", "a"]
@@ -566,7 +569,7 @@ def test_partition_many_arrays_mixed():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     main, parts = model.partition(nodes[0].members)
 
     assert [x.name for x in main] == ["num_of_a", "num_of_b", "a"]
@@ -587,7 +590,7 @@ def test_partition_dynamic_struct():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     main, parts = model.partition(nodes[1].members)
 
     assert [x.name for x in main] == ["a", "b"]
@@ -608,7 +611,7 @@ def test_partition_many_dynamic_structs():
     ]
 
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     main, parts = model.partition(nodes[1].members)
 
     assert [x.name for x in main] == ["a"]
@@ -617,7 +620,7 @@ def test_partition_many_dynamic_structs():
 
 def process(nodes, warn=None):
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     model.evaluate_sizes(nodes, **(warn and {'warn': warn} or {}))
     return nodes
 
@@ -1090,4 +1093,5 @@ enum TheEnum {
     E3 = '3';
 };
 """
-    assert repr(E) == "Enum('TheEnum', [EnumMember('E1', 1), EnumMember('E2', '2'), EnumMember('E3', '3')])"
+    expected = "Enum('TheEnum', [EnumMember('E1', 1, ''), EnumMember('E2', '2', ''), EnumMember('E3', '3', '')], '')"
+    assert repr(E) == expected
