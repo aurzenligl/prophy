@@ -1,5 +1,6 @@
 from prophyc.generators.base import GeneratorBase, TranslatorBase
 
+
 libname = "prophy"
 primitive_types = {x + y: "%s.%s" % (libname, x + y) for x in "uir" for y in ["8", "16", "32", "64"]}
 primitive_types['byte'] = '%s.u8' % libname
@@ -79,7 +80,8 @@ class _PythonTranslator(TranslatorBase):
         line = "%s = %s" % (constant.name, constant.value)
         doc = constant.doc_str
         if doc:
-            line += "  # {}".format(doc)
+            # todo: it's a false assumption that it fits in single line
+            line += "  \'\'\'{}\'\'\'".format(doc)
         return line
 
     def translate_typedef(self, typedef):

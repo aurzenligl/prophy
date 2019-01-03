@@ -19,11 +19,11 @@ def pytest_assertrepr_compare(op, left, right):
     """
     if op == "==" and isinstance(left, string_types) and isinstance(right, string_types):
         if len(left) > 60 or len(right) > 60:
-            print("---")
+            print("--- (left):")
             print(left)
             print("---")
-            print("supposed to be:")
-            print("---")
+            print("does not match currently defined reference:")
+            print("--- (right):")
             print(right)
             print("---")
 

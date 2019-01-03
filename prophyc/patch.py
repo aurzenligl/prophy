@@ -1,5 +1,5 @@
 import codecs
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 from . import model
 
@@ -13,10 +13,11 @@ def parse(filename):
         params = words[2:]
         return name, Action(action, params)
 
-    patches = {}
-    for name, action in (make_item(line) for line in codecs.open(filename, "r") if line.strip()):
-        patches.setdefault(name, []).append(action)
-    return patches
+    patches = defaultdict(list)
+    with codecs.open(filename, "r", encoding="utf-8") as f:
+        for name, action in (make_item(line) for line in f if line.strip()):
+            patches[name].append(action)
+    return dict(patches)
 
 
 def patch(nodes, patchdict):
