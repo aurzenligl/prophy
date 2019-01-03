@@ -3,9 +3,8 @@ import os
 import ply.lex as lex
 import ply.yacc as yacc
 
-from prophyc import model
+from prophyc import model, six
 from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
-from prophyc.six import ifilter
 
 
 def get_column(input_, pos):
@@ -142,8 +141,8 @@ class ProphyParser(object):
             )
             fieldnames.add(name)
             if member.bound:
-                bound, _, _ = next(ifilter(lambda m: m[0].name == member.bound, members[:i]),
-                                   (None, None, None))
+                bound, _, __ = next(six.ifilter(lambda m: m[0].name == member.bound, members[:i]),
+                                    (None, None, None))
                 if bound:
                     self._parser_check(self._is_type_sizer_compatible(bound.type_),
                                        "Sizer of '{}' has to be of (unsigned) integer type".format(name),
@@ -298,8 +297,8 @@ class ProphyParser(object):
                          | type_spec ID LT positive_expression GT'''
         t[0] = [
             (model.StructMember('num_of_' + t[2], 'u32', definition=None), t.lineno(2), t.lexpos(2)),
-            (model.StructMember(t[2], t[1][0], bound='num_of_' + t[2],
-                                size=str(t[4]), definition=t[1][1]), t.lineno(2), t.lexpos(2))
+            (model.StructMember(t[2], t[1][0], bound='num_of_' + t[2], size=str(t[4]), definition=t[1][1]),
+             t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_6(self, t):

@@ -336,9 +336,9 @@ def test_make_field_limited_array():
 def test_fail_to_make_field_limited_array():
     nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
                                        model.StructMember("field2", "u32"),
-                                       model.StructMember("field3", "u32")])]
+                                       model.StructMember("after", "u32")])]
 
-    patches = {'MyStruct': [patch.Action('limited', ['field2', 'field3'])]}
+    patches = {'MyStruct': [patch.Action('limited', ['field2', 'after'])]}
 
     with pytest.raises(Exception, match="Array len member not found: "):
         patch.patch(nodes, patches)

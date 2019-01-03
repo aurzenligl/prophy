@@ -478,12 +478,6 @@ typedef struct X X;
     ]
 
 
-class TwoWaysComparableString(str):
-
-    def __eq__(self, other):
-        return self in str(other) or str(other) in self
-
-
 @pytest.clang_installed
 def test_struct_with_anonymous_struct():
     hpp = """\

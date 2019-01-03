@@ -167,7 +167,8 @@ class Typedef(_Serializable):
 
     @type_.setter
     def type_(self, new_value):
-        assert isinstance(new_value, str), "Type name is expected in string, got {}".format(type(new_value).__name__)
+        if not isinstance(new_value, six.string_types):
+            raise ModelError("Type name is expected in string, got {}".format(type(new_value).__name__))
         self._value = new_value
 
     @property
