@@ -6,6 +6,15 @@ import pytest
 from prophyc import model
 
 
+def test_node_eq():
+    a = model.Enum("name", [], "docstr 1")
+    b = model.Enum("name", [], "docstr 2")
+    c = model.Struct("name", [], "docstr 3")
+
+    assert a == b
+    assert a != c
+
+
 def assert_repr_works(object_):
     from prophyc.model import Typedef, Struct, StructMember, Enum, EnumMember, Union, UnionMember  # noqa F401
     """It works under assumption that __eq__ checks actual equality. So far it skips docstring."""
@@ -40,6 +49,7 @@ def test_struct_str():
     struct_with_arrays = model.Struct("MyStruct", [
         model.StructMember("sizer_field", "u8"),
         model.StructMember("b", "UserDefinedType"),
+        model.StructMember("c", "UserDefinedType", optional=True),
         model.StructMember("fixed_array", "u32", size=3, docstring="no_docstring"),
         model.StructMember("dynamic_array", "u32", bound='num_of_dynamic_array', has_implicit_mate=True),
         model.StructMember("limited_array", "r64", bound='num_of_limited_array', size=3, has_implicit_mate=True),
@@ -53,6 +63,7 @@ def test_struct_str():
 struct MyStruct {
     u8 sizer_field;
     UserDefinedType b;
+    UserDefinedType* c;
     u32 fixed_array[3];
     u32 dynamic_array<>;
     r64 limited_array<3>;
@@ -79,17 +90,6 @@ union MyUnion {
 """
 
 
-MODEL_NODE_SIZES = [
-    (model.ModelNode, 72),
-    (model.Constant, 72),
-    (model.EnumMember, 72),
-    (model.Include, 72),
-    (model.Enum, 72),
-    (model.Typedef, 80),
-    (model.StructMember, 152),
-    (model.Union, 96),
-]
-
 NODES_CTORS = [
     (model.Constant, ("ño", "value")),
     (model.EnumMember, ("ño", "value")),
@@ -109,12 +109,6 @@ def test_unicode_handling(k, args):
     b = k(*args, docstring="used weird letter from 'jalapeño' word")
     assert a == b
     assert a.doc_str == b.doc_str
-
-
-@pytest.mark.parametrize("cls, expected_size", MODEL_NODE_SIZES)
-def test_model_slots(cls, expected_size):
-    if sys.version[0] == 2:
-        assert sys.getsizeof(cls(1, 3)) == expected_size, "You missed slots in {} class".format(cls.__name__)
 
 
 def test_model_slots_custom_ctor():
@@ -1113,13 +1107,6 @@ def test_wrong_struct_members_type_definition():
         model.Struct("A", "string")
 
 
-def test_wrong_struct_members_type_assignment():
-    expected_msg = "struct 'A' members must be a list, got str instead."
-    a = model.Struct("A", [])
-    with pytest.raises(model.ModelError, match=expected_msg):
-        a.members = "string"
-
-
 def test_wrong_struct_member_type():
     expected_msg = "Each member of struct 'A' has to be a StructMember instance. Got str at index 1."
     with pytest.raises(model.ModelError, match=expected_msg):
@@ -1163,3 +1150,32 @@ def test_duplicated_identifiers_union():
             model.UnionMember('field_name', 'u32', 0),
             model.UnionMember('field_name', 'u16', 1),
         ])
+
+
+def test_bad_creation():
+    with pytest.raises(model.ModelError, match="Got model node name of 'float' type, expected string."):
+        model.Struct(3.14159, [])
+
+
+def test_bad_creation_typedef():
+    with pytest.raises(model.ModelError, match="Typedef.definition should be string or ModelNode, got: float."):
+        model.Typedef("a", "b", 3.14159)
+
+
+def test_not_implemented():
+    a = model.ModelNode("a", "b", "c")
+
+    with pytest.raises(NotImplementedError, match="To be overridden in ModelNode class."):
+        a.dependencies()
+
+
+def test_not_implemented2():
+    with pytest.raises(NotImplementedError, match="Abstract method to be overriden in _Serializable"):
+        model._Serializable.calc_wire_stiffness()
+
+
+def test_bad_attribute():
+    a = model.Include("this", [])
+    expected_message = "Use of value property is forbidden for Include. Use 'Include.members' instead."
+    with pytest.raises(model.ModelError, match=expected_message):
+        a.value

@@ -48,9 +48,8 @@ ENUM_SIZE = BUILTIN_SIZES['u32']
 
 def _check_string(docstring, what_):
     if not isinstance(docstring, six.string_types):
-        string_names = tuple(t.__name__ for t in six.string_types)
-        msg = "Got {} of '{}' type, expected string {}."
-        raise ModelError(msg.format(what_, type(docstring).__name__, string_names))
+        msg = "Got {} of '{}' type, expected string."
+        raise ModelError(msg.format(what_, type(docstring).__name__))
     return six.decode_string(docstring)
 
 
@@ -61,9 +60,6 @@ class ModelNode(object):
     _str_pattern = None
 
     def __init__(self, name, value, docstring=""):
-        if not isinstance(name, six.string_types):
-            raise ModelError("Got name %s, expected string." % type(name).__name__)
-
         self.name = _check_string(name, "model node name")
         self._value = value
         self.doc_str = _check_string(docstring, "doc string")
@@ -147,8 +143,6 @@ class Typedef(_Serializable):
     __slots__ = ("definition",)
 
     def __init__(self, name, node_typedef, definition=None, docstring=""):
-        if not isinstance(node_typedef, six.string_types):
-            raise ModelError("Got typedef %s, expected string." % type(node_typedef).__name__)
         if definition is not None:
             if not (isinstance(definition, six.string_types) or isinstance(definition, ModelNode)):
                 msg = "{}.definition should be string or ModelNode, got: {}."
@@ -167,8 +161,7 @@ class Typedef(_Serializable):
 
     @type_.setter
     def type_(self, new_value):
-        if not isinstance(new_value, six.string_types):
-            raise ModelError("Type name is expected in string, got {}".format(type(new_value).__name__))
+        _check_string(new_value, "Type designator")
         self._value = new_value
 
     @property
@@ -316,11 +309,6 @@ class _Container(ModelNode):
     @property
     def members(self):
         return self._value
-
-    @members.setter
-    def members(self, new_members):
-        self._perform_container_checks(new_members)
-        self._value = new_members
 
     @property
     def _str_members(self):
