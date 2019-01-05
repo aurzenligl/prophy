@@ -1,8 +1,9 @@
 from collections import namedtuple
 
-from prophyc.generators import base
+from prophyc.generators import base, word_wrap
 
 INDENT_STR = "    "
+MAX_LINE_WIDTH = 100
 
 DocStr = namedtuple("DocStr", "block, inline")
 
@@ -20,42 +21,20 @@ def _form_doc(model_node, max_inl_docstring_len, indent_level):
     return DocStr(block_doc, inline_doc)
 
 
-def _gen_multi_line_doc(block_comment_text, indent_level=0, block_header="", max_line_width=100):
-    new_line = "\n" + INDENT_STR * indent_level
-    total_indent_len = len(new_line) - 1 + 3
+schema_line_breaker = word_wrap.BreakLinesByWidth(MAX_LINE_WIDTH, "    ", "/* ", " * ", "   ", " */")
 
-    yield new_line + "/* "
-    is_long_block = len(block_comment_text) >= 250
 
-    if block_header and is_long_block:
-        bar = "-" if indent_level else "="
-        block_header = "{} {} ".format(bar * 4, block_header)
-        block_header += bar * (max_line_width - total_indent_len - len(block_header))
-        yield block_header + new_line + " * "
+@schema_line_breaker
+def _gen_multi_line_doc(block_comment_text, indent_level=0, block_header=""):
+    assert "\n" not in block_header, "Will not work with line breaks in header bar."
 
-    tot = total_indent_len
-    for not_first, long_line in enumerate(block_comment_text.split("\n")):
-        if not_first and long_line:
-            yield new_line + " * "
-            tot = total_indent_len
+    if block_header:
+        if len(block_comment_text) >= 250:
+            schema_line_breaker.make_a_bar("-" if indent_level else "=", block_header)
+        yield block_header
 
-        words = long_line.split()
-        for not_last, word in enumerate(words, 1 - len(words)):
-            if not word:
-                continue
-            if tot + len(word) > max_line_width:
-                yield new_line + "   "
-                tot = total_indent_len
-
-            yield word
-            tot += len(word)
-
-            if not_last:
-                yield " "
-                tot += 1
-    if is_long_block:
-        yield new_line
-    yield " */"
+    for paragraph in block_comment_text.split("\n"):
+        yield paragraph
 
 
 def _columnizer(model_node, column_splitter, max_line_width=100):
@@ -126,7 +105,7 @@ class SchemaTranslator(base.TranslatorBase):
             if member.fixed:
                 name = '{m.name}[{m.size}];'
             elif member.limited:
-                name = '{m.name}<{m.size}>({m.bound});'
+                name = '{m.name}<{m.size}>;'
             elif member.dynamic:
                 name = '{m.name}<@{m.bound}>;'
             elif member.greedy:
