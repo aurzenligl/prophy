@@ -2,19 +2,19 @@ import prophy
 import pytest
 
 
-@pytest.mark.parametrize('IntType, min_, max_', [
-    (prophy.i8, -(0x80), 0x7F),
-    (prophy.i16, -(0x8000), 0x7FFF),
-    (prophy.i32, -(0x80000000), 0x7FFFFFFF),
-    (prophy.i64, -(0x8000000000000000), 0x7FFFFFFFFFFFFFFF),
+@pytest.mark.parametrize('integer_type, min_, max_', [
+    (prophy.i8, -0x80, 0x7F),
+    (prophy.i16, -0x8000, 0x7FFF),
+    (prophy.i32, -0x80000000, 0x7FFFFFFF),
+    (prophy.i64, -0x8000000000000000, 0x7FFFFFFFFFFFFFFF),
     (prophy.u8, 0, 0xFF),
     (prophy.u16, 0, 0xFFFF),
     (prophy.u32, 0, 0xFFFFFFFF),
     (prophy.u64, 0, 0xFFFFFFFFFFFFFFFF)
 ])
-def test_integer(IntType, min_, max_):
+def test_integer(integer_type, min_, max_):
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-        _descriptor = [("value", IntType)]
+        _descriptor = [("value", integer_type)]
 
     x = X()
     assert x.value == 0
@@ -23,17 +23,14 @@ def test_integer(IntType, min_, max_):
     x.value = min_
     assert x.value == min_
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="not an int"):
         x.value = "123"
-    assert "not an int" in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match=r"value: \d+ out of \dB integer's bounds: \[-?\d+, \d+\]"):
         x.value = max_ + 1
-    assert "out of bounds" in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match=r"value: -?\d+ out of \dB integer's bounds: \[-?\d+, \d+\]"):
         x.value = min_ - 1
-    assert "out of bounds" in str(e.value)
 
     y = X()
     y.value = 42
@@ -41,7 +38,7 @@ def test_integer(IntType, min_, max_):
     assert y.value == min_
 
 
-@pytest.mark.parametrize('IntType, a, encoded_a, b, encoded_b, too_short, too_long', [
+@pytest.mark.parametrize('integer_type, a, encoded_a, b, encoded_b, too_short, too_long', [
     (prophy.i8,
         1, b"\x01",
         (-1), b"\xff",
@@ -83,9 +80,9 @@ def test_integer(IntType, min_, max_):
         b"\xff\xff\xff\xff\xff\xff\xff",
         b"\xff\xff\xff\xff\xff\xff\xff\xff\xff")
 ])
-def test_integer_codec(IntType, a, encoded_a, b, encoded_b, too_short, too_long):
+def test_integer_codec(integer_type, a, encoded_a, b, encoded_b, too_short, too_long):
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-        _descriptor = [("value", IntType)]
+        _descriptor = [("value", integer_type)]
 
     x = X()
     x.value = 8
@@ -101,10 +98,8 @@ def test_integer_codec(IntType, a, encoded_a, b, encoded_b, too_short, too_long)
     x.decode(encoded_b, ">")
     assert x.value == b
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="X: too few bytes to decode integer"):
         x.decode(too_short, ">")
-    assert "too few bytes to decode integer" in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="not all bytes of X read"):
         x.decode(too_long, ">")
-    assert "not all bytes of {} read".format(X.__name__) in str(e.value)

@@ -2,7 +2,7 @@ include *.py
 include *.sh
 include .coveragerc
 include .bumpversion.cfg
-
+include requirements.txt
 include AUTHORS
 include HOWTO
 include CHANGELOG

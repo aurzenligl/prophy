@@ -142,8 +142,7 @@ def isar_test_helper(tmpdir_cwd):
     return check_isars_generated
 
 
-@pytest.clang_installed
-def test_sack_supples(isar_test_helper, tmpdir_cwd, call_prophyc):
+def test_sack_supplements(if_clang_installed, isar_test_helper, tmpdir_cwd, call_prophyc):
     cpp = tmpdir_cwd.join('the_sack.hpp')
     cppy = tmpdir_cwd.join('the_sack.py')
     cpp.write("""\
@@ -180,8 +179,7 @@ class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
 
 
-@pytest.clang_installed
-def test_sack_supples_array_size_from_isar(isar_test_helper, tmpdir_cwd, call_prophyc):
+def test_sack_supples_array_size_from_isar(if_clang_installed, isar_test_helper, tmpdir_cwd, call_prophyc):
     cpp = tmpdir_cwd.join('the_sack.hpp')
     cppy = tmpdir_cwd.join('the_sack.py')
     cpp.write("""\
@@ -214,8 +212,7 @@ class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
 
 
-@pytest.clang_installed
-def test_sack_supples_static_consts_values_from_isar(isar_test_helper, tmpdir_cwd, call_prophyc):
+def test_sack_supples_static_consts_values_from_isar(if_clang_installed, isar_test_helper, tmpdir_cwd, call_prophyc):
     cpp = tmpdir_cwd.join('the_sack.hpp')
     cppy = tmpdir_cwd.join('the_sack.py')
     cpp.write("""\
@@ -263,8 +260,7 @@ class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
 
 
-@pytest.clang_installed
-def test_warns_with_supplementation(isar_test_helper, tmpdir_cwd, call_prophyc):
+def test_warns_with_supplementation(if_clang_installed, isar_test_helper, tmpdir_cwd, call_prophyc):
     cpp = tmpdir_cwd.join('the_sack.hpp')
     cpp.write("""\
 #include <stdint.h>

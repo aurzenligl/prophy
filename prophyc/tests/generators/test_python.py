@@ -163,7 +163,7 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 
 
 def test_struct_rendering_with_byte_array():
-    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", unlimited=True)])]
+    nodes = [model.Struct("Struct", [model.StructMember("a", "byte", greedy=True)])]
 
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
@@ -206,7 +206,7 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
     assert ref == serialize(nodes)
 
 
-def test_of_PythonGenerator():
+def test_python_translator_1():
     ih = []
     th = []
     for x in range(20, 200, 60):
@@ -273,3 +273,56 @@ class MAC_L2CallConfigResp(prophy.with_metaclass(prophy.struct_generator, prophy
     ]
 """
     assert output == ref
+
+
+def test_python_translator_2(larger_model):
+    python_translator = _PythonTranslator()
+    output = python_translator(larger_model, "")
+
+    assert output == """\
+import prophy
+
+a = prophy.i16
+c = a
+
+from some_defs import *
+
+class the_union(prophy.with_metaclass(prophy.union_generator, prophy.union)):
+    _descriptor = [
+        ('a', IncludedStruct, 0),
+        ('field_with_a_long_name', Internal, 1),
+        ('other', Internal, 4090)
+    ]
+
+class E1(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+    _enumerators = [
+        ('E1_A', 0),
+        ('E1_B_has_a_long_name', 1),
+        ('E1_C_desc', 2)
+    ]
+
+E1_A = 0
+E1_B_has_a_long_name = 1
+E1_C_desc = 2
+
+class E2(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+    _enumerators = [
+        ('E2_A', 0)
+    ]
+
+E2_A = 0
+
+CONST_A = 6
+CONST_B = 0
+
+class StructMemberKinds(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+    _descriptor = [
+        ('meber_with_no_docstr', prophy.i16),
+        ('ext_size', prophy.i16),
+        ('optional_element', prophy.optional(Complex)),
+        ('fixed_array', prophy.array(Complex, size = 3)),
+        ('samples', prophy.array(Complex, bound = 'ext_size')),
+        ('limitted_array', prophy.array(prophy.r64, bound = 'ext_size', size = 4)),
+        ('greedy', prophy.array(Complex))
+    ]
+"""

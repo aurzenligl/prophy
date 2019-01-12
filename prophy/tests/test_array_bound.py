@@ -55,7 +55,7 @@ def test_bound_scalar_array_assignment(BoundScalarArray):
         x.value = 10
     with pytest.raises(Exception, match="not an int"):
         x.value[0] = "will fail type check"
-    with pytest.raises(Exception, match="out of bounds"):
+    with pytest.raises(Exception, match=r"value: -1 out of 4B integer's bounds: \[0, 4294967295\]"):
         x.value[0] = -1
     with pytest.raises(Exception, match="not an int"):
         x.value[:] = [1, 2, "abc"]
@@ -109,7 +109,7 @@ def test_bound_scalar_array_sizer_after():
 
 
 def test_bound_scalar_array_bad_sizer_type():
-    msg = "member type must be a prophy object, is: 'not_an_int'"
+    msg = r"struct member's \(_.not_an_int\) type must be a prophy object, is: 'not_an_int'"
     with pytest.raises(Exception, match=msg):
         class _(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("not_an_int", "not_an_int"),

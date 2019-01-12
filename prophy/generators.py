@@ -69,14 +69,16 @@ class enum_generator(_generator_base):
     def validate(cls):
         for name, number in cls._enumerators:
             if not isinstance(name, str):
-                raise ProphyError("enum member's first argument has to be string")
+                msg = "enum ({}) member's first argument has to be string, got '{}'"
+                raise ProphyError(msg.format(cls.__name__, type(name).__name__))
 
             if not isinstance(number, (int, long)):
-                raise ProphyError("enum member's second argument has to be an integer")
+                msg = "enum member's ({}.{}) second argument has to be an integer, got '{}'"
+                raise ProphyError(msg.format(cls.__name__, name, type(number).__name__))
 
-        names = set(name for name, _ in cls._enumerators)
-        if len(names) < len(cls._enumerators):
-            raise ProphyError("names overlap in '{}' enum".format(cls.__name__))
+        duplicates = ", ".join(_list_duplicates(name for name, _ in cls._enumerators))
+        if duplicates:
+            raise ProphyError("names overlap in '{}' enum, duplicates: {}".format(cls.__name__, duplicates))
 
     def add_attributes(self):
         def check(cls, value):
@@ -107,9 +109,11 @@ class struct_generator(_composite_generator_base):
     def validate(cls):
         for field in cls._descriptor:
             if not isinstance(field.name, str):
-                raise ProphyError("member name must be a string type")
+                msg = "struct ({}) member's name must be a string type, got: '{}'"
+                raise ProphyError(msg.format(cls.__name__, type(field.name).__name__))
             if not hasattr(field.type, "_is_prophy_object"):
-                raise ProphyError("member type must be a prophy object, is: {!r}".format(field.type))
+                msg = "struct member's ({}.{}) type must be a prophy object, is: {!r}"
+                raise ProphyError(msg.format(cls.__name__, field.name, field.type))
 
         types = list(cls._types())
         for type_ in types[:-1]:
@@ -397,3 +401,15 @@ class union_generator(_composite_generator_base):
             self._fields[field.name] = new_value
 
         setattr(cls, field.name, property(getter, setter))
+
+
+def _list_duplicates(iterable):
+    unique = set()
+    duplicates = []
+    for element in iterable:
+        if element in unique:
+            if element not in duplicates:
+                duplicates.append(element)
+        else:
+            unique.add(element)
+    return duplicates

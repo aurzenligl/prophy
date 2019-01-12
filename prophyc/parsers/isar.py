@@ -143,8 +143,7 @@ def make_struct_members(xml_elem, dynamic_array=False):
             if size2:
                 size = "{}*{}".format(size, size2)
             if optional:
-                yield model.StructMember("has_" + xml_elem_name, "u32", docstring="implicit enabler for optional field",
-                                         has_implicit_mate=True)
+                yield model.StructMember("has_" + xml_elem_name, "u32", docstring="implicit enabler for optional field")
 
             sizer_name = dimension.get("variableSizeFieldName", None)
             if sizer_name and "@" in sizer_name[0]:
@@ -157,7 +156,7 @@ def make_struct_members(xml_elem, dynamic_array=False):
             elif "isVariableSize" in dimension.attrib:
                 type_ = dimension.get("variableSizeFieldType", "u32")
                 sizer_name = dimension.get("variableSizeFieldName", xml_elem_name + "_len")
-                yield model.StructMember(sizer_name, type_, docstring=comment, has_implicit_mate=True)
+                yield model.StructMember(sizer_name, type_, docstring=comment)
                 size_ = None if dynamic_array else size
                 yield model.StructMember(xml_elem_name, xml_elem_type, bound=sizer_name, size=size_, docstring=comment)
 

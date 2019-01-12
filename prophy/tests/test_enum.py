@@ -110,31 +110,35 @@ def test_enum_bad_definition():
 
 
 def test_enum_invalid_name():
-    msg = "enum member's first argument has to be string"
+    msg = r"enum \(BadNamed\) member's first argument has to be string, got 'float'"
     with pytest.raises(prophy.ProphyError, match=msg):
-        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+        class BadNamed(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [(3.14159, 1),
                             ("correct_name", 2)]
 
 
 def test_enum_invalid_value():
-    msg = "enum member's second argument has to be an integer"
+    msg = r"enum member's \(TheEnum.invalid_value\) second argument has to be an integer, got 'float'"
     with pytest.raises(prophy.ProphyError, match=msg):
-        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+        class TheEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("correct_value", 1),
                             ("invalid_value", 3.14159)]
 
 
 def test_enum_names_overlap():
-    msg = "names overlap in 'NamesOverlapping' enum"
+    msg = "names overlap in 'NamesOverlapping' enum, duplicates: SameName, OtherDuplicate"
     with pytest.raises(prophy.ProphyError, match=msg):
         class NamesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
-            _enumerators = [("NamesOverlapping_Overlap", 1),
-                            ("NamesOverlapping_Overlap", 2)]
+            _enumerators = [("SameName", 1),
+                            ("SameName", 2),
+                            ("SameName", 3),
+                            ("OtherDuplicate", 4),
+                            ("OtherDuplicate", 5),
+                            ("ValidName", 6)]
 
 
 def test_enum_value_out_of_bounds():
-    msg = "out of bounds"
+    msg = r"value: 4294967296 out of 4B integer's bounds: \[0, 4294967295\]"
     with pytest.raises(prophy.ProphyError, match=msg):
         class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("OutOfBounds", 0xFFFFFFFF + 1)]

@@ -424,7 +424,7 @@ def test_struct_exception_with_access_to_nonexistent_field():
 
 
 def test_bad_struct_member_name():
-    with pytest.raises(prophy.ProphyError, match="member name must be a string type"):
+    with pytest.raises(prophy.ProphyError, match=r"struct \(X\) member's name must be a string type, got: 'float'"):
         class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
             _descriptor = [(3.14159, prophy.u32)]
 

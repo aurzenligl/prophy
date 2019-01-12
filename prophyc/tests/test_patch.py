@@ -237,7 +237,7 @@ def test_make_field_greedy_array():
 
     assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
                                       model.StructMember('field2', 'u32'),
-                                      model.StructMember('field3', 'u32', unlimited=True)])] == nodes
+                                      model.StructMember('field3', 'u32', greedy=True)])] == nodes
 
 
 def test_make_field_greedy_array_not_a_struct():

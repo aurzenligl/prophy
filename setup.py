@@ -16,8 +16,8 @@ setup(
     description = 'prophy: fast serialization protocol',
     long_description = long_description,
     packages = find_packages(),
-    requires = ['ply'],
-    install_requires = ['ply'],
+    requires = ['ply', 'renew'],
+    install_requires = ['ply', 'renew==0.1.1'],
     keywords = 'idl codec binary data protocol compiler',
     classifiers = [
         'Development Status :: 5 - Production/Stable',

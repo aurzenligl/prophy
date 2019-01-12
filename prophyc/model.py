@@ -1,5 +1,7 @@
 from itertools import islice
 
+import renew
+
 from . import calc, six
 
 """ Exception types """
@@ -45,24 +47,20 @@ DISC_SIZE = BUILTIN_SIZES['u32']
 """ Enum byte size. """
 ENUM_SIZE = BUILTIN_SIZES['u32']
 
-
-def _check_string(docstring, what_):
-    if not isinstance(docstring, six.string_types):
-        msg = "Got {} of '{}' type, expected string."
-        raise ModelError(msg.format(what_, type(docstring).__name__))
-    return six.decode_string(docstring)
+model_repr = renew.reproducible(namespace="model")
 
 
+@model_repr
 class ModelNode(object):
     """ The lowermost base for each type of prophyc model. """
-    __slots__ = ("name", "_value", "doc_str")
-    _eq_attributes = ("name", "_value")
+    __slots__ = "name", "_value", "docstring"
+    _eq_attributes = "name", "_value"
     _str_pattern = None
 
-    def __init__(self, name, value, docstring=""):
+    def __init__(self, name, value, docstring=None):
         self.name = _check_string(name, "model node name")
         self._value = value
-        self.doc_str = _check_string(docstring, "doc string")
+        self.docstring = _check_string(docstring, "doc string")
 
     @property
     def value(self):
@@ -73,11 +71,6 @@ class ModelNode(object):
 
     def schema_repr(self):
         return self._str_pattern.format(s=self)
-
-    def __repr__(self):
-        cls_name = self.__class__.__name__
-        pattern = "{cls_name}('{s.name}', {s._value!r}, '{s.doc_str}')"
-        return pattern.format(s=self, cls_name=cls_name)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -121,10 +114,10 @@ class EnumMember(Constant):
 
 
 class _Serializable(ModelNode):
-    __slots__ = ("kind", "byte_size", "alignment")
+    __slots__ = "kind", "byte_size", "alignment"
 
-    def __init__(self, name, value, docstring=""):
-        super(_Serializable, self).__init__(name, value, docstring=docstring)
+    def __init__(self, name, value, docstring=None):
+        super(_Serializable, self).__init__(name, value, docstring)
         self.alignment = None
         """byte size of field influenced by array: multiplied by fixed/limited size, 0 if dynamic/greedy"""
         self.byte_size = None
@@ -137,30 +130,26 @@ class _Serializable(ModelNode):
         raise NotImplementedError("Abstract method to be overriden in %s" % cls.__name__)
 
 
+@model_repr
 class Typedef(_Serializable):
-    _str_pattern = "typedef {s.type_} {s.name};"
-    _eq_attributes = ("name", "_value", "definition")
-    __slots__ = ("definition",)
+    _str_pattern = "typedef {s.type_name} {s.name};"
+    _eq_attributes = "name", "type_name", "definition"
+    __slots__ = "definition",
 
-    def __init__(self, name, node_typedef, definition=None, docstring=""):
+    def __init__(self, name, type_name, definition=None, docstring=None):
         if definition is not None:
-            if not (isinstance(definition, six.string_types) or isinstance(definition, ModelNode)):
-                msg = "{}.definition should be string or ModelNode, got: {}."
+            if not isinstance(definition, six.string_types + (Typedef, Enum, Struct, Union)):
+                msg = "{}.definition should be string, Typedef, Enum, Struct or Union, got: {}."
                 raise ModelError(msg.format(self.__class__.__name__, type(definition).__name__))
         self.definition = definition
-        super(Typedef, self).__init__(name, node_typedef, docstring=docstring)
-
-    def __repr__(self):
-        cls_name = self.__class__.__name__
-        pattern = u"{cls_name}('{s.name}', '{s.type_}', {s.definition!r}, '{s.doc_str}')"
-        return pattern.format(s=self, cls_name=cls_name)
+        super(Typedef, self).__init__(name, type_name, docstring)
 
     @property
-    def type_(self):
+    def type_name(self):
         return self._value
 
-    @type_.setter
-    def type_(self, new_value):
+    @type_name.setter
+    def type_name(self, new_value):
         _check_string(new_value, "Type designator")
         self._value = new_value
 
@@ -178,107 +167,89 @@ class Typedef(_Serializable):
             self.kind = self.lowermost_typedef.kind
 
     def dependencies(self):
-        yield self.type_
+        yield self.type_name
 
 
+@model_repr
 class StructMember(Typedef):
-    __slots__ = ("is_array", "bound", "size", "optional", "has_implicit_mate", "numeric_size", "padding")
-    _eq_attributes = ("name", "_value", "is_array", "bound", "size", "optional", "has_implicit_mate")
+    __slots__ = "bound", "size", "greedy", "optional", "numeric_size", "padding"
+    _eq_attributes = "name", "_value", "bound", "size", "greedy", "optional", "definition"
 
-    def __init__(self, name, type_name, definition=None, docstring="", bound=None, size=None, unlimited=False,
-                 optional=False, has_implicit_mate=False):
-        assert sum((bool(bound or size), unlimited, optional)) <= 1, "Over-constraint"
+    def __init__(self, name, type_name, definition=None, bound=None, size=None, greedy=False, optional=False,
+                 docstring=None):
+        assert sum((bool(bound or size), greedy, optional)) <= 1, "Over-constraint"
+        assert isinstance(optional, bool), "'optional' argument value has to be boolean"
+        assert isinstance(greedy, bool), "'greedy' argument value has to be boolean"
 
-        super(StructMember, self).__init__(name, type_name, definition=definition, docstring=docstring)
-        self.is_array = bool(bound or size or unlimited)
+        super(StructMember, self).__init__(name, type_name, definition, docstring)
         self.bound = bound
         self.size = size
+        self.greedy = greedy
         self.optional = optional
+
         """integral number indicating array size (it may be a string with enum member or constant name)"""
         self.numeric_size = None
         """amount of bytes to add before next field. If field dynamic: negative alignment of next field"""
         self.padding = None
-        """ has_implicit_mate indicates whether the value has been automatically added for
-            e.g. dynamic array or optional in shema it hides the sizer field, eg 'u32 that<>;'"""
-        self.has_implicit_mate = has_implicit_mate
 
     @property
-    def _unlimited_(self):
-        "just to make __repr__ working"
-        return self.is_array and not self.bound and not self.size
+    def is_array(self):
+        return self.bound or self.size or self.greedy
 
-    def __repr__(self):
-        cls_name = self.__class__.__name__
-        pattern = "{cls_name}('{s.name}', {s.type_!r}, '{s.definition}', '{s.doc_str}', bound={s.bound!r}, size={s.size!r}, \
-unlimited={s._unlimited_!r}, optional={s.optional!r})"
-        return pattern.format(s=self, cls_name=cls_name)
+    @property
+    def is_fixed(self):
+        return not self.bound and self.size
+
+    @property
+    def is_limited(self):
+        return self.bound and self.size
+
+    @property
+    def is_dynamic(self):
+        return self.bound and not self.size
 
     def __str__(self):
         return self.schema_repr()
 
     def schema_repr(self):
         if self.optional:
-            return '{s.type_}* {s.name};'.format(s=self)
-        if self.fixed:
-            return '{s.type_} {s.name}[{s.size}];'.format(s=self)
-        if self.limited:
-            return '{s.type_} {s.name}<{s.size}>;'.format(s=self)
-        if self.dynamic:
-            if self.has_implicit_mate:
-                return '{s.type_} {s.name}<>;'.format(s=self)
-            else:
-                return '{s.type_} {s.name}<@{s.bound}>;'.format(s=self)
+            return '{s.type_name}* {s.name};'.format(s=self)
+        if self.is_fixed:
+            return '{s.type_name} {s.name}[{s.size}];'.format(s=self)
+        if self.is_limited:
+            return '{s.type_name} {s.name}<{s.size}>;'.format(s=self)
+        if self.is_dynamic:
+            return '{s.type_name} {s.name}<@{s.bound}>;'.format(s=self)
         if self.greedy:
-            return '{s.type_} {s.name}<...>;'.format(s=self)
+            return '{s.type_name} {s.name}<...>;'.format(s=self)
 
-        return '{s.type_} {s.name};'.format(s=self)
-
-    @property
-    def fixed(self):
-        return not self.bound and self.size
-
-    @property
-    def limited(self):
-        return self.bound and self.size
-
-    @property
-    def dynamic(self):
-        return self.bound and not self.size
-
-    @property
-    def greedy(self):
-        return self.is_array and not self.bound and not self.size
+        return '{s.type_name} {s.name};'.format(s=self)
 
 
+@model_repr
 class UnionMember(Typedef):
-    _str_pattern = '{s.discriminator}: {s.type_} {s.name};'
-    _eq_attributes = ("name", "_value", "discriminator")
-    __slots__ = ("discriminator",)
+    _str_pattern = '{s.discriminator}: {s.type_name} {s.name};'
+    _eq_attributes = "name", "type_name", "discriminator"
+    __slots__ = "discriminator",
 
-    def __init__(self, name, type_, discriminator, definition=None, docstring=""):
-        super(UnionMember, self).__init__(name, type_, definition=definition, docstring=docstring)
+    def __init__(self, name, type_name, discriminator, definition=None, docstring=None):
+        super(UnionMember, self).__init__(name, type_name, definition, docstring)
         self.discriminator = discriminator
-
-    def __repr__(self):
-        pattern = "{cls_name}({s.name!r}, {s.type_!r}, {s.discriminator!r}, {s.definition!r}, '{s.doc_str}')"
-        return pattern.format(s=self, cls_name=self.__class__.__name__)
 
 
 """ Composite kinds """
 
 
+@model_repr
 class _Container(ModelNode):
     """ Anything that represents a collection of members. """
-    _allowed_member_type = None
-    _collection_kind = "<container base>"
+    _member_type_restriction = None
+    _collection_kind = None
     _str_pattern = "{s._collection_kind} {s.name} {{\n{s._str_members}}};\n"
     __slots__ = ()
 
-    def __init__(self, name, members, docstring=""):
-        super(_Container, self).__init__(name, value=members, docstring=docstring)
-        self._perform_container_checks(self.members)
-
-    def _perform_container_checks(self, members):
+    def __init__(self, name, members, docstring=None):
+        super(_Container, self).__init__(name, members, docstring)
         self._check_members_type(members)
         self._check_members_duplication(members)
 
@@ -288,10 +259,10 @@ class _Container(ModelNode):
             raise ModelError(msg.format(s=self, t=type(members).__name__))
 
         for index, member in enumerate(members):
-            if not isinstance(member, self._allowed_member_type):
+            if not isinstance(member, self._member_type_restriction):
                 msg = "Each member of {s._collection_kind} '{s.name}' has to be a {et} instance. Got {gt} at index {i}."
                 raise ModelError(
-                    msg.format(s=self, et=self._allowed_member_type.__name__, gt=type(member).__name__, i=index))
+                    msg.format(s=self, et=self._member_type_restriction.__name__, gt=type(member).__name__, i=index))
 
     def _check_members_duplication(self, members):
         meet_identifiers = set()
@@ -321,7 +292,7 @@ class _Container(ModelNode):
 
 
 class Include(_Container):
-    _allowed_member_type = ModelNode
+    _member_type_restriction = ModelNode
     _collection_kind = "include"
     _str_pattern = "#include {s.name};\n"
     __slots__ = ()
@@ -335,7 +306,7 @@ class Include(_Container):
 
 
 class Enum(_Container):
-    _allowed_member_type = EnumMember
+    _member_type_restriction = EnumMember
     _collection_kind = "enum"
     __slots__ = ()
 
@@ -344,10 +315,7 @@ class Enum(_Container):
             yield member.name
 
 
-class _SerializableContainer(_Serializable, _Container):
-    """ Base for Struct and Union. Provides membership properties. """
-    _str_pattern = "{s._collection_kind} {s.name} {{\n{s._str_members}}};\n"
-    _collection_kind = None
+class _SerializableContainer(_Container, _Serializable):
     __slots__ = ()
 
     def calc_wire_stiffness(self):
@@ -361,20 +329,20 @@ class _SerializableContainer(_Serializable, _Container):
 
                 if self.members[-1].greedy:
                     self.kind = Kind.UNLIMITED
-                elif any(x.dynamic for x in self.members):
+                elif any(x.is_dynamic for x in self.members):
                     self.kind = Kind.DYNAMIC
                 else:
                     self.kind = max(x.kind for x in self.members)
 
 
 class Struct(_SerializableContainer):
-    _allowed_member_type = StructMember
+    _member_type_restriction = StructMember
     _collection_kind = "struct"
     __slots__ = ()
 
 
 class Union(_SerializableContainer):
-    _allowed_member_type = UnionMember
+    _member_type_restriction = UnionMember
     _collection_kind = "union"
     __slots__ = ()
 
@@ -382,11 +350,20 @@ class Union(_SerializableContainer):
 """ Utils """
 
 
-def split_after(nodes, pred):
+def _check_string(docstring, what_):
+    if docstring is None:
+        return
+    if not isinstance(docstring, six.string_types):
+        msg = "Got {} of '{}' type, expected string."
+        raise ModelError(msg.format(what_, type(docstring).__name__))
+    return six.decode_string(docstring)
+
+
+def split_after(nodes, predicate):
     part = []
     for x in nodes:
         part.append(x)
-        if pred(x):
+        if predicate(x):
             yield part
             part = []
     if part:
@@ -425,64 +402,58 @@ def topological_sort(nodes):
             pass
 
 
+def _make_types_index(nodes_):
+    """ Creates flat dictionary that maps model objects to its name. """
+    included = set()
+    for node_ in nodes_:
+        if isinstance(node_, Include):
+            if node_.name not in included:
+                included.add(node_.name)
+                for included_name, included_type in _make_types_index(node_.members):
+                    yield included_name, included_type
+        else:
+            yield node_.name, node_
+
+
+def _collect_constants(nodes_, constants=None):
+    constants = constants or {}
+    included = set()
+    for node_ in nodes_:
+        if isinstance(node_, Include) and node_.name not in included:
+            included.add(node_.name)
+            constants.update(_collect_constants(node_.members, constants))
+
+        elif isinstance(node_, Constant):
+            constants[node_.name] = node_.eval_int(constants)
+
+        elif isinstance(node_, Enum):
+            for member in node_.members:
+                constants[member.name] = member.eval_int(constants)
+
+    return constants
+
+
 def cross_reference(nodes, warn=null_warn):
     """
     Adds definition reference to Typedef and StructMember.
     Adds numeric_size to StructMember if it's a sized array.
     """
-
-    def make_types_index(nodes_):
-        """ Creates flat dictionary that maps model objects to its name. """
-        included = set()
-        for node_ in nodes_:
-            if isinstance(node_, Include):
-                if node_.name not in included:
-                    included.add(node_.name)
-                    for included_name, included_type in make_types_index(node_.members):
-                        yield included_name, included_type
-            else:
-                yield node_.name, node_
-
-    types_index = dict(make_types_index(nodes))
-
-    def add_constants_level(nodes_):
-        included = set()
-        for node_ in nodes_:
-            if isinstance(node_, Include):
-                if node_.name not in included:
-                    included.add(node_.name)
-                    add_constants_level(node_.members)
-
-            elif isinstance(node_, Constant):
-                constants[node_.name] = node_.eval_int(constants)
-
-            elif isinstance(node_, Enum):
-                for member in node_.members:
-                    constants[member.name] = member.eval_int(constants)
-
-    constants = {}
-    add_constants_level(nodes)
+    types_index = dict(_make_types_index(nodes))
+    constants = _collect_constants(nodes)
 
     def cross_reference_types(node_):
-        if node_.type_ in BUILTIN_SIZES:
+        if node_.type_name in BUILTIN_SIZES:
             node_.definition = None
             return
-        found = types_index.get(node_.type_)
+        found = types_index.get(node_.type_name)
         if not found:
-            warn("type '%s' not found" % node_.type_)
+            warn("type '%s' not found" % node_.type_name)
         node_.definition = found
 
     def evaluate_array_sizes(node_):
-        def to_int(x):
-            try:
-                return int(x)
-            except ValueError:
-                val = constants.get(x)
-                return val if val is not None else calc.eval(x, constants)
-
         if node_.size:
             try:
-                node_.numeric_size = to_int(node_.size)
+                node_.numeric_size = to_int(node_.size, constants)
             except calc.ParseError as e:
                 warn(str(e))
                 node_.numeric_size = None
@@ -495,6 +466,16 @@ def cross_reference(nodes, warn=null_warn):
             list(map(evaluate_array_sizes, node.members))
         elif isinstance(node, Union):
             list(map(cross_reference_types, node.members))
+
+    return constants
+
+
+def to_int(x, constants):
+    try:
+        return int(x)
+    except ValueError:
+        val = constants.get(x)
+        return val if val is not None else calc.eval(x, constants)
 
 
 def evaluate_stiffness_kinds(nodes):
@@ -517,12 +498,12 @@ def evaluate_sizes(nodes, warn=null_warn):
             return node_.byte_size, node_.alignment
         elif isinstance(node_, Enum):
             return ENUM_SIZE, ENUM_SIZE
-        elif node_.type_ in BUILTIN_SIZES:
-            byte_size = BUILTIN_SIZES[node_.type_]
+        elif node_.type_name in BUILTIN_SIZES:
+            byte_size = BUILTIN_SIZES[node_.type_name]
             return byte_size, byte_size
         else:
             # unknown type, e.g. empty typedef
-            warn('%s::%s has unknown type "%s"' % (parent.name, member.name, node_.type_))
+            warn('%s::%s has unknown type "%s"' % (parent.name, member.name, node_.type_name))
             return None, None
 
     def evaluate_array_and_optional_size(member):
@@ -539,12 +520,12 @@ def evaluate_sizes(nodes, warn=null_warn):
             size_alignment = (None, None)
         elif member.definition:
             size_alignment = evaluate_node_size(node_=member.definition, parent=node_, member=member)
-        elif member.type_ in BUILTIN_SIZES:
-            byte_size = BUILTIN_SIZES[member.type_]
+        elif member.type_name in BUILTIN_SIZES:
+            byte_size = BUILTIN_SIZES[member.type_name]
             size_alignment = (byte_size, byte_size)
         else:
             # unknown type
-            warn('%s::%s has unknown type "%s"' % (node_.name, member.name, member.type_))
+            warn('%s::%s has unknown type "%s"' % (node_.name, member.name, member.type_name))
             size_alignment = (None, None)
         member.byte_size, member.alignment = size_alignment
         return size_alignment != (None, None)
@@ -565,7 +546,7 @@ def evaluate_sizes(nodes, warn=null_warn):
 
     def evaluate_struct_size(node_):
         def is_member_dynamic(m):
-            return m.dynamic or m.greedy or m.kind != Kind.FIXED
+            return m.is_dynamic or m.greedy or m.kind != Kind.FIXED
 
         alignment = node_.members and max(x.alignment for x in node_.members) or 1
         byte_size = 0
@@ -613,7 +594,7 @@ def partition(members):
     current = main
     for member in members[:-1]:
         current.append(member)
-        if member.kind == Kind.DYNAMIC or member.dynamic:
+        if member.kind == Kind.DYNAMIC or member.is_dynamic:
             current = []
             parts.append(current)
     if members:
@@ -623,13 +604,13 @@ def partition(members):
 
 def evaluate_model(nodes, warn_emitter=lambda x: None):
     topological_sort(nodes)
-    cross_reference(nodes, warn_emitter)
+    constants = cross_reference(nodes, warn_emitter)
     evaluate_stiffness_kinds(nodes)
     evaluate_sizes(nodes, warn_emitter)
-    return nodes
+    return nodes, constants
 
 
-class ModelParser():
+class ModelParser(object):
     def __init__(self, parser, patcher, emit):
         self.parser = parser
         self.patcher = patcher
@@ -639,4 +620,5 @@ class ModelParser():
         nodes = self.parser.parse(*parse_args)
         if self.patcher:
             self.patcher(nodes)
-        return evaluate_model(nodes, self.emit.warn)
+        nodes, _ = evaluate_model(nodes, self.emit.warn)
+        return nodes

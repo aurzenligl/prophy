@@ -1,5 +1,4 @@
 import os
-import pytest
 
 opd = os.path.dirname
 opr = os.path.realpath
@@ -51,8 +50,7 @@ def test_isar_input(tmpdir_cwd, call_prophyc):
     assert b"\x00\x00\x00\x01\x12\x31\x00\x00" == s.encode(">")
 
 
-@pytest.clang_installed
-def test_sack_input(tmpdir_cwd, call_prophyc):
+def test_sack_input(if_clang_installed, tmpdir_cwd, call_prophyc):
     content = """\
 #include <stdint.h>
 struct X

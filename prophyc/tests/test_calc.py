@@ -35,7 +35,7 @@ def test_calc_errors():
     with pytest.raises(calc.ParseError, match="illegal character &"):
         calc.eval('&', {})
 
-    with pytest.raises(calc.ParseError, match="syntax error at '\+'"):
+    with pytest.raises(calc.ParseError, match=r"syntax error at '\+'"):
         calc.eval('++', {})
 
     with pytest.raises(calc.ParseError, match="numeric constant 'unknown' not found"):

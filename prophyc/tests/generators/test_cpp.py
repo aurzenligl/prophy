@@ -238,7 +238,7 @@ PROPHY_STRUCT(1) Struct
 
 def test_definitions_struct_with_byte_array():
     nodes = process([
-        model.Struct("Struct", [model.StructMember("a", "byte", unlimited=True)])
+        model.Struct("Struct", [model.StructMember("a", "byte", greedy=True)])
     ])
 
     assert generate_definitions(nodes) == """\
@@ -687,7 +687,7 @@ def test_swap_struct_with_greedy_array():
         model.Typedef('Y', 'u32'),
         model.Struct("X", [
             (model.StructMember("x", "u8")),
-            (model.StructMember("y", "Y", unlimited=True))
+            (model.StructMember("y", "Y", greedy=True))
         ]),
         model.Struct("Z", [
             (model.StructMember("z", "X"))
@@ -763,7 +763,7 @@ def test_swap_enum_in_greedy_array():
             model.EnumMember("E1_A", "0")
         ]),
         model.Struct("EnumGreedyArray", [
-            (model.StructMember("x", "E1", unlimited=True))
+            (model.StructMember("x", "E1", greedy=True))
         ])
     ])
 

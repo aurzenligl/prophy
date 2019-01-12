@@ -70,7 +70,7 @@ def test_fixed_scalar_array_assignment(FixedScalarArray):
         x.value[:] = (10,)
     with pytest.raises(Exception, match="not an int"):
         x.value[0] = "will fail type check"
-    with pytest.raises(Exception, match="out of bounds"):
+    with pytest.raises(Exception, match=r"value: -1 out of 4B integer's bounds: \[0, 4294967295\]"):
         x.value[0] = -1
 
     y = FixedScalarArray()

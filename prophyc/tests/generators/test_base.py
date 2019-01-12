@@ -126,8 +126,7 @@ scope mainer {
 } // endscope mainer
 '''}
 
-    result = serialize(input_model)
-    assert result == expected_result
+    assert serialize(input_model) == expected_result
 
 
 UNKNOWN_NONE_RAISE_TEST = [
