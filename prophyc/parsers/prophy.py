@@ -1,17 +1,17 @@
 import os
+from contextlib import contextmanager
 
 import ply.lex as lex
 import ply.yacc as yacc
 
-from prophyc import model, six
-from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
+from prophyc import file_processor, model, six
 
 
 def get_column(input_, pos):
     return pos - input_.rfind('\n', 0, pos)
 
 
-class ProphyParser(object):
+class Parser(object):
     literals = ['+', '-', '*', '/', '(', ')', '#']
 
     keywords = (
@@ -105,12 +105,7 @@ class ProphyParser(object):
         self.parse_file = parse_file
         self.lexer.lineno = 1
         self.yacc.parse(input_, lexer=self.lexer)
-        if self.errors:
-            raise model.ParseError(self.errors)
         return self.nodes
-
-    def __call__(self, input_, parse_error_prefix, parse_file):
-        return self.parse(input_, parse_error_prefix, parse_file)
 
     def _init_parse_data(self, parse_error_prefix=""):
         self.nodes = []
@@ -141,10 +136,9 @@ class ProphyParser(object):
             )
             fieldnames.add(name)
             if member.bound:
-                bound, _, __ = next(six.ifilter(lambda m: m[0].name == member.bound, members[:i]),
-                                    (None, None, None))
+                bound, _, __ = next(six.ifilter(lambda m: m[0].name == member.bound, members[:i]), (None, None, None))
                 if bound:
-                    self._parser_check(self._is_type_sizer_compatible(bound.type_),
+                    self._parser_check(self._is_type_sizer_compatible(bound.type_name),
                                        "Sizer of '{}' has to be of (unsigned) integer type".format(name),
                                        line, pos)
                 else:
@@ -162,7 +156,7 @@ class ProphyParser(object):
         if typename in {type_ + width for type_ in 'ui' for width in ['8', '16', '32', '64']}:
             return True
         elif typename in self.typedecls and isinstance(self.typedecls[typename], model.Typedef):
-            return self._is_type_sizer_compatible(self.typedecls[typename].type_)
+            return self._is_type_sizer_compatible(self.typedecls[typename].type_name)
         else:
             return False
 
@@ -193,7 +187,7 @@ class ProphyParser(object):
 
         try:
             nodes = self.parse_file(path)
-        except (CyclicIncludeError, FileNotFoundError) as e:
+        except (file_processor.CyclicIncludeError, file_processor.FileNotFoundError) as e:
             self._parser_error(str(e), t.lineno(3), t.lexpos(3))
             nodes = []
 
@@ -304,7 +298,7 @@ class ProphyParser(object):
     def p_struct_member_6(self, t):
         '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
-        t[0] = [(model.StructMember(t[2], t[1][0], unlimited=True, definition=t[1][1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(model.StructMember(t[2], t[1][0], greedy=True, definition=t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_7(self, t):
         '''struct_member : type_spec '*' ID'''
@@ -486,3 +480,30 @@ class ProphyParser(object):
             line = self.lexer.lineno
             pos = len(self.lexer.lexdata) - 1
         self._parser_error(message, line, pos)
+
+
+@contextmanager
+def allocate_parser(parsers_stack):
+    """
+    Creating parsers is very expensive, so there is a need to reuse them.
+    On the other hand, recursive parser usage requires a unique one for each
+    level of recursion. Static stack of parsers seems to solve the issue.
+    """
+
+    parser = parsers_stack and parsers_stack.pop() or Parser()
+    try:
+        yield parser
+    finally:
+        parsers_stack.append(parser)
+
+
+class ProphyParser(object):
+
+    @staticmethod
+    def parse(content, parse_error_prefix, parse_file):
+        parsers_stack = []
+        with allocate_parser(parsers_stack) as parser:
+            parser.parse(content, parse_error_prefix, parse_file)
+            if parser.errors:
+                raise model.ParseError(parser.errors)
+            return parser.nodes

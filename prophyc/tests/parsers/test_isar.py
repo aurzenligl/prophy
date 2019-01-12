@@ -24,15 +24,15 @@ def test_includes_parsing():
 """
     nodes = parse(xml, process_file=lambda path: [model.Typedef("a", "u8")])
 
-    assert [
-               ("mydlo", [model.Typedef("a", "u8")]),
-               ("szydlo", [model.Typedef("a", "u8")]),
-               ("powidlo", [model.Typedef("a", "u8")]),
-               ("../zurawina", [model.Typedef("a", "u8")]),
-               ("../entliczek/petliczek", [model.Typedef("a", "u8")]),
-               ("../my.basename", [model.Typedef("a", "u8")]),
-               ("noext", [model.Typedef("a", "u8")]),
-           ] == nodes
+    assert nodes == [
+        ("mydlo", [model.Typedef("a", "u8")]),
+        ("szydlo", [model.Typedef("a", "u8")]),
+        ("powidlo", [model.Typedef("a", "u8")]),
+        ("../zurawina", [model.Typedef("a", "u8")]),
+        ("../entliczek/petliczek", [model.Typedef("a", "u8")]),
+        ("../my.basename", [model.Typedef("a", "u8")]),
+        ("noext", [model.Typedef("a", "u8")]),
+    ]
 
 
 def test_includes_call_file_process_with_proper_path():
@@ -228,7 +228,7 @@ def test_struct_parsing_dynamic_array():
 """
     assert parse(xml) == [
         model.Struct("StructWithDynamic", [
-            model.StructMember("x_len", "u32", has_implicit_mate=True),
+            model.StructMember("x_len", "u32"),
             model.StructMember("x", "TTypeX", bound="x_len")
         ])
     ]
@@ -280,7 +280,7 @@ def test_struct_parsing_dynamic_array_with_typed_sizer():
 """
     assert parse(xml) == [
         model.Struct("StructX", [
-            model.StructMember("x_len", "TNumberOfItems", has_implicit_mate=True),
+            model.StructMember("x_len", "TNumberOfItems"),
             model.StructMember("x", "TTypeX", bound="x_len")
         ])
     ]
@@ -298,7 +298,7 @@ def test_struct_parsing_dynamic_array_with_named_sizer():
 """
     assert parse(xml) == [
         model.Struct("StructX", [
-            model.StructMember("numOfX", "u32", has_implicit_mate=True),
+            model.StructMember("numOfX", "u32"),
             model.StructMember("x", "TTypeX", bound="numOfX")
         ])
     ]
@@ -316,7 +316,7 @@ def test_struct_parsing_dynamic_array_with_named_and_typed_sizer():
 """
     assert parse(xml) == [
         model.Struct("StructX", [
-            model.StructMember("numOfX", "TSize", has_implicit_mate=True),
+            model.StructMember("numOfX", "TSize"),
             model.StructMember("x", "TTypeX", bound="numOfX")
         ])
     ]
@@ -402,7 +402,7 @@ def test_struct_parsing_limited_array():
 """
     assert parse(xml) == [
         model.Struct("StructX", [
-            model.StructMember("x_len", "u32", has_implicit_mate=True),
+            model.StructMember("x_len", "u32"),
             model.StructMember("x", "TTypeX", bound="x_len", size="3")
         ])
     ]
@@ -437,8 +437,8 @@ def test_struct_parsing_with_optional_array():
 """
     assert parse(xml) == [
         model.Struct("X", [
-            model.StructMember("has_a", "u32", has_implicit_mate=True),
-            model.StructMember("a_len", "u32", has_implicit_mate=True),
+            model.StructMember("has_a", "u32"),
+            model.StructMember("a_len", "u32"),
             model.StructMember("a", "A", bound="a_len", size="5")
         ])
     ]
@@ -475,11 +475,11 @@ def test_struct_and_message_with_dynamic_array_parsing():
 </x>"""
     assert parse(xml) == [
         model.Struct("X", [
-            model.StructMember("a_len", "u32", has_implicit_mate=True),
+            model.StructMember("a_len", "u32"),
             model.StructMember("a", "A", bound="a_len", size="5")
         ]),
         model.Struct("Y", [
-            model.StructMember("b_len", "u32", has_implicit_mate=True),
+            model.StructMember("b_len", "u32"),
             model.StructMember("b", "B", bound="b_len")
         ])
     ]

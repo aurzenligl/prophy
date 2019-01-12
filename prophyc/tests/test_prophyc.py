@@ -1,5 +1,4 @@
 import os
-import pytest
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -251,8 +250,7 @@ struct X : public prophy::detail::message<X>
 """ in tmpdir_cwd.join("input.ppf.hpp").read()
 
 
-@pytest.clang_installed
-def test_sack_compiles_single_empty_hpp(call_prophyc, tmpdir_cwd):
+def test_sack_compiles_single_empty_hpp(if_clang_installed, call_prophyc, tmpdir_cwd):
     tmpdir_cwd.join("input.hpp").write("")
     ret, out, err = call_prophyc(["--sack", "--python_out",
                                   str(tmpdir_cwd),
@@ -264,8 +262,7 @@ def test_sack_compiles_single_empty_hpp(call_prophyc, tmpdir_cwd):
     assert tmpdir_cwd.join("input.py").read() == empty_python_output
 
 
-@pytest.clang_installed
-def test_sack_patch(call_prophyc, tmpdir_cwd):
+def test_sack_patch(if_clang_installed, call_prophyc, tmpdir_cwd):
     tmpdir_cwd.join("input.hpp").write("""\
 struct X
 {
@@ -290,8 +287,7 @@ class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 """
 
 
-@pytest.clang_installed
-def test_multiple_outputs(call_prophyc, tmpdir_cwd):
+def test_multiple_outputs(if_clang_installed, call_prophyc, tmpdir_cwd):
     tmpdir_cwd.join("input.xml").write("""
 <xml>
     <struct name="Test">
@@ -356,8 +352,7 @@ Test* swap<Test>(Test* payload)
 """
 
 
-@pytest.clang_not_installed
-def test_clang_not_installed(call_prophyc, tmpdir_cwd):
+def test_clang_not_installed(if_clang_not_installed, call_prophyc, tmpdir_cwd):
     tmpdir_cwd.join("input.hpp").write("")
     ret, out, err = call_prophyc(["--sack",
                                   "--python_out", str(tmpdir_cwd),
@@ -365,7 +360,7 @@ def test_clang_not_installed(call_prophyc, tmpdir_cwd):
 
     assert ret == 1
     assert out == ""
-    assert err == "prophyc: error: %s\n" % pytest.clang_not_installed.args[0].error
+    assert err == "prophyc: error: %s\n" % if_clang_not_installed.error
 
 
 def test_prophy_language(call_prophyc, tmpdir_cwd):
@@ -498,8 +493,7 @@ constant
     assert not os.path.exists("input.py")
 
 
-@pytest.clang_installed
-def test_sack_parse_warnings(call_prophyc, tmpdir_cwd):
+def test_sack_parse_warnings(if_clang_installed, call_prophyc, tmpdir_cwd):
     tmpdir_cwd.join("input.cpp").write("""\
 int foo() { int x; }
 rubbish;
@@ -516,8 +510,7 @@ rubbish;
     assert os.path.exists("input.py")
 
 
-@pytest.clang_installed
-def test_sack_parse_errors(call_prophyc, tmpdir_cwd):
+def test_sack_parse_errors(if_clang_installed, call_prophyc, tmpdir_cwd):
     tmpdir_cwd.join("input.unknown").write("")
 
     ret, out, err = call_prophyc(['--python_out', str(tmpdir_cwd), '--sack',

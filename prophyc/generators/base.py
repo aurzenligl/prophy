@@ -67,12 +67,11 @@ class TranslatorAbc(object):
 
 class TranslatorBase(TranslatorAbc):
     _translation_methods_map = {
-        model.ModelNode: "translation_fallback",
         model.Constant: "translate_constant",
-        model.Typedef: "translate_typedef",
         model.Enum: "translate_enum",
         model.Include: "translate_include",
         model.Struct: "translate_struct",
+        model.Typedef: "translate_typedef",
         model.Union: "translate_union",
     }
 

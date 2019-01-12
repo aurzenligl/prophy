@@ -154,7 +154,7 @@ struct test
         model.Typedef('x_t', 'u32'),
         model.Struct('test', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'x_t', bound='num_of_x'),
+            model.StructMember('x', 'x_t', model.Typedef('x_t', 'u32'), bound='num_of_x'),
             model.StructMember('num_of_y', 'u32'),
             model.StructMember('y', 'byte', bound='num_of_y')
         ])
@@ -178,7 +178,7 @@ struct test
         model.Struct('test', [
             model.StructMember('num_of_elements', 'u32'),
             model.StructMember('dummy', 'u16'),
-            model.StructMember('x', 'x_t', bound='num_of_elements'),
+            model.StructMember('x', 'x_t', model.Typedef('x_t', 'u32'), bound='num_of_elements'),
             model.StructMember('y', 'byte', bound='num_of_elements')
         ])
     ]
@@ -251,7 +251,7 @@ struct test
 
     assert parse(content) == [
         model.Struct('test', [
-            model.StructMember('x', 'u32', unlimited=True)
+            model.StructMember('x', 'u32', greedy=True)
         ])
     ]
 

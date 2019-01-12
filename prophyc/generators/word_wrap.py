@@ -142,3 +142,28 @@ class BreakLinesByWidth(object):
             # intended to avoid counting indentation length
             self.line_rel_pos += len(text)
         self._markup_queue.append(text)
+
+
+def split_long_string(long_string, max_line_width=80):
+    lines = long_string.split("\n")
+    if not any(len(line) > max_line_width for line in lines):
+        for not_last, line in enumerate(lines, 1 - len(lines)):
+            yield line + ("\n" if not_last else "")
+    else:
+        words = long_string.split(" ")
+        if not any(len(word) > max_line_width for word in words):
+            line, pos = "", 0
+            for not_last, word in enumerate(words, 1 - len(words)):
+                word += " " if not_last else ""
+                line += word
+                pos += len(word)
+                if pos >= 80:
+                    yield line
+                    line, pos = "", 0
+            if line:
+                yield line
+        else:
+            pos = 0
+            while pos < len(long_string):
+                yield long_string[pos:pos + max_line_width]
+                pos += max_line_width

@@ -12,7 +12,11 @@ if sys.version < '3':  # pragma: no cover
 
 
     def decode_string(str_or_unicode_or_bytes):
-        if isinstance(str_or_unicode_or_bytes, (str, bytes)):
+        if isinstance(str_or_unicode_or_bytes, str):
+            if any(ord(c) > 127 for c in str_or_unicode_or_bytes):
+                return str_or_unicode_or_bytes.decode("utf-8")
+            return str_or_unicode_or_bytes
+        if isinstance(str_or_unicode_or_bytes, bytes):
             return str_or_unicode_or_bytes.decode("utf-8")
         if isinstance(str_or_unicode_or_bytes, unicode):
             return str_or_unicode_or_bytes

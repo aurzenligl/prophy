@@ -45,7 +45,7 @@ def int_decorator(size, id_, min_, max_):
             if not isinstance(value, (int, long)):
                 raise ProphyError("not an int")
             if not min_ <= value <= max_:
-                raise ProphyError("out of bounds")
+                raise ProphyError("value: {} out of {}B integer's bounds: [{}, {}]".format(value, size, min_, max_))
             return value
 
         cls._check = check

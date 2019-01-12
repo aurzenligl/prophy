@@ -29,7 +29,7 @@ def _get_initializer(m):
         m = m.definition
     if isinstance(m.definition, model.Enum):
         return m.definition.members[0].name
-    if m.type_ in BUILTIN2C:
+    if m.type_name in BUILTIN2C:
         return ''
     return None
 
@@ -53,15 +53,15 @@ def _get_byte_size(node):
     node = _get_leaf(node)
     if isinstance(node, model.Enum):
         return DISC_SIZE
-    elif hasattr(node, 'type_'):
-        return BUILTIN_SIZES.get(node.type_)
+    elif hasattr(node, 'type_name'):
+        return BUILTIN_SIZES.get(node.type_name)
     else:
         return node.byte_size
 
 
 def _get_cpp_builtin_type(node):
     """Gets C++ float or int type from stdint.h, or throws miserably."""
-    return BUILTIN2C[_get_leaf(node).type_]
+    return BUILTIN2C[_get_leaf(node).type_name]
 
 
 def _to_literal(value):
@@ -101,7 +101,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
         return 'enum {0}\n'.format(enum.name) + '{\n' + body + '};'
 
     def translate_typedef(self, node):
-        return 'typedef {0} {1};'.format(BUILTIN2C.get(node.type_, node.type_), node.name)
+        return 'typedef {0} {1};'.format(BUILTIN2C.get(node.type_name, node.type_name), node.name)
 
     def translate_struct(self, node):
         return (
@@ -320,12 +320,12 @@ def generate_struct_encode(node):
     delimiters = {bound[m.name].name: (m, _get_cpp_builtin_type(m)) for m in node.members if m.name in bound}
 
     for m in node.members:
-        if m.fixed:
+        if m.is_fixed:
             text += 'pos = do_encode<E>(pos, x.{0}.data(), {1});\n'.format(m.name, m.size)
-        elif m.dynamic:
+        elif m.is_dynamic:
             d, dcpptype = delimiters[m.name]
             text += 'pos = do_encode<E>(pos, x.{0}.data(), {1}(x.{0}.size()));\n'.format(m.name, dcpptype)
-        elif m.limited:
+        elif m.is_limited:
             d, dcpptype = delimiters[m.name]
             dcpptype = _get_cpp_builtin_type(d)
             text += (
@@ -339,7 +339,7 @@ def generate_struct_encode(node):
         elif m.name in bound:
             b = bound[m.name]
             mcpptype = _get_cpp_builtin_type(m)
-            if b.dynamic:
+            if b.is_dynamic:
                 text += 'pos = do_encode<E>(pos, {1}(x.{0}.size()));\n'.format(b.name, mcpptype)
             else:
                 text += (
@@ -360,11 +360,11 @@ def generate_struct_decode(node):
     text = []
     bound = {m.bound: m for m in node.members if m.bound}
     for m in node.members:
-        if m.fixed:
+        if m.is_fixed:
             text.append('do_decode<E>(x.{0}.data(), {1}, pos, end)'.format(m.name, m.size))
-        elif m.dynamic:
+        elif m.is_dynamic:
             text.append('do_decode<E>(x.{0}.data(), x.{0}.size(), pos, end)'.format(m.name))
-        elif m.limited:
+        elif m.is_limited:
             text.append('do_decode_in_place<E>(x.{0}.data(), x.{0}.size(), pos, end)'.format(m.name))
             text.append('do_decode_advance({0}, pos, end)'.format(m.byte_size))
         elif m.greedy:
@@ -374,7 +374,7 @@ def generate_struct_decode(node):
         elif m.name in bound:
             b = bound[m.name]
             mcpptype = _get_cpp_builtin_type(m)
-            if b.dynamic:
+            if b.is_dynamic:
                 text.append('do_decode_resize<E, {1}>(x.{0}, pos, end)'.format(b.name, mcpptype))
             else:
                 text.append('do_decode_resize<E, {2}>(x.{0}, pos, end, {1})'.format(b.name, b.size, mcpptype))
@@ -393,15 +393,15 @@ def generate_struct_print(node):
     bound = {m.bound: m for m in node.members if m.bound}
     for m in node.members:
         if m.is_array:
-            if m.fixed:
+            if m.is_fixed:
                 inner = 'x.{0}.data(), size_t({1})'.format(m.name, m.size)
-            elif m.dynamic:
+            elif m.is_dynamic:
                 inner = 'x.{0}.data(), x.{0}.size()'.format(m.name)
-            elif m.limited:
+            elif m.is_limited:
                 inner = 'x.{0}.data(), std::min(x.{0}.size(), size_t({1}))'.format(m.name, m.size)
             elif m.greedy:
                 inner = 'x.{0}.data(), x.{0}.size()'.format(m.name)
-            if m.type_ == 'byte':
+            if m.type_name == 'byte':
                 inner = inner.join(('std::make_pair(', ')'))
             text += 'do_print(out, indent, "{0}", {1});\n'.format(m.name, inner)
         elif m.optional:
@@ -422,12 +422,12 @@ def generate_struct_get_byte_size(node):
     elems = []
     for m in node.members:
         if m.kind == model.Kind.FIXED:
-            if m.dynamic or m.greedy:
+            if m.is_dynamic or m.greedy:
                 elems += ['{0}.size() * {1}'.format(m.name, _get_byte_size(m))]
             else:
                 bytes_ += m.byte_size + m.padding
         else:
-            if m.dynamic or m.greedy:
+            if m.is_dynamic or m.greedy:
                 elems += [
                     'std::accumulate({0}.begin(), {0}.end(), size_t(), prophy::detail::byte_size())'.format(m.name)
                 ]
@@ -451,20 +451,20 @@ def generate_struct_fields(node):
     bound = {m.bound: m for m in node.members if m.bound}
     text = ''
     for m in node.members:
-        if m.fixed:
-            text += 'array<{0}, {1}> {2};\n'.format(BUILTIN2C.get(m.type_, m.type_), m.size, m.name)
-        elif m.dynamic:
-            text += 'std::vector<{0}> {1};\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name)
-        elif m.limited:
-            text += 'std::vector<{0}> {1}; /// limit {2}\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name, m.size)
+        if m.is_fixed:
+            text += 'array<{0}, {1}> {2};\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.size, m.name)
+        elif m.is_dynamic:
+            text += 'std::vector<{0}> {1};\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name)
+        elif m.is_limited:
+            text += 'std::vector<{0}> {1}; /// limit {2}\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name, m.size)
         elif m.greedy:
-            text += 'std::vector<{0}> {1}; /// greedy\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name)
+            text += 'std::vector<{0}> {1}; /// greedy\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name)
         elif m.optional:
-            text += 'optional<{0}> {1};\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name)
+            text += 'optional<{0}> {1};\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name)
         elif m.name in bound:
             pass
         else:
-            text += '{0} {1};\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name)
+            text += '{0} {1};\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name)
     return text
 
 
@@ -474,19 +474,19 @@ def generate_struct_constructor(node):
             lst.append('{0}({1})'.format(m.name, init))
 
     def add_to_full(lst, const_ref, m, fmt='{0}'):
-        lst.append((const_ref, fmt.format(BUILTIN2C.get(m.type_, m.type_)), m.name))
+        lst.append((const_ref, fmt.format(BUILTIN2C.get(m.type_name, m.type_name)), m.name))
 
     bound = {m.bound: m for m in node.members if m.bound}
     default_ctor = []
     full_ctor = []
     for m in node.members:
         init = _get_initializer(m)
-        if m.fixed:
+        if m.is_fixed:
             add_to_default(default_ctor, m, '')
             add_to_full(full_ctor, True, m, 'array<{0}, %s>' % m.size)
-        elif m.dynamic:
+        elif m.is_dynamic:
             add_to_full(full_ctor, True, m, 'std::vector<{0}>')
-        elif m.limited:
+        elif m.is_limited:
             add_to_full(full_ctor, True, m, 'std::vector<{0}>')
         elif m.greedy:
             add_to_full(full_ctor, True, m, 'std::vector<{0}>')
@@ -574,7 +574,7 @@ def generate_union_fields(node):
         'static const prophy::detail::int2type<discriminator_{0}> discriminator_{0}_t;\n'.format(m.name)
         for m in node.members
     )
-    fields = ''.join('{0} {1};\n'.format(BUILTIN2C.get(m.type_, m.type_), m.name) for m in node.members)
+    fields = ''.join('{0} {1};\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name) for m in node.members)
     return 'enum _discriminator\n{\n' + _indent(body) + '} discriminator;\n' + '\n' + disc_defs + '\n' + fields
 
 
@@ -590,7 +590,7 @@ def generate_union_constructor(node):
             .format(
                 node.name,
                 m.name,
-                _const_refize(init is None, BUILTIN2C.get(m.type_, m.type_))
+                _const_refize(init is None, BUILTIN2C.get(m.type_name, m.type_name))
             )
             for m, init in zip(node.members, inits)
         )

@@ -29,7 +29,7 @@ def _generate_enum_constants(members):
 
 
 def _form_struct_member(member):
-    prefixed_type = primitive_types.get(member.type_, member.type_)
+    prefixed_type = primitive_types.get(member.type_name, member.type_name)
     if member.optional:
         prefixed_type = "%s.optional(%s)" % (libname, prefixed_type)
     if member.is_array:
@@ -38,7 +38,7 @@ def _form_struct_member(member):
             elem_strs.append("bound = '%s'" % member.bound)
         if member.size:
             elem_strs.append("size = %s" % member.size)
-        if member.type_ == 'byte':
+        if member.type_name == 'byte':
             prefixed_type = '%s.bytes(%s)' % (libname, ', '.join(elem_strs))
         else:
             prefixed_type = '%s.array(%s)' % (libname, ', '.join([prefixed_type] + elem_strs))
@@ -46,7 +46,7 @@ def _form_struct_member(member):
 
 
 def _form_union_member(member):
-    prefixed_type = "%s.%s" % (libname, member.type_) if member.type_ in primitive_types else member.type_
+    prefixed_type = "%s.%s" % (libname, member.type_name) if member.type_name in primitive_types else member.type_name
     return "('%s', %s, %s)" % (member.name, prefixed_type, member.discriminator)
 
 
@@ -73,36 +73,42 @@ import {0}
 class _PythonTranslator(TranslatorBase):
     block_template = PYTHON_FILE_TEMPLATE
 
-    def translate_include(self, include):
+    @staticmethod
+    def translate_include(include):
         return "from %s import *" % include.name.split("/")[-1]
 
-    def translate_constant(self, constant):
+    @staticmethod
+    def translate_constant(constant):
         line = "%s = %s" % (constant.name, constant.value)
-        doc = constant.doc_str
+        doc = constant.docstring
         if doc:
             # todo: it's a false assumption that it fits in single line
             line += "  \'\'\'{}\'\'\'".format(doc)
         return line
 
-    def translate_typedef(self, typedef):
-        if typedef.type_ in primitive_types:
-            value = "{0}.{1}".format(libname, typedef.type_)
+    @staticmethod
+    def translate_typedef(typedef):
+        if typedef.type_name in primitive_types:
+            value = "{0}.{1}".format(libname, typedef.type_name)
         else:
-            value = typedef.type_
+            value = typedef.type_name
 
         return "%s = %s" % (typedef.name, value)
 
-    def translate_enum(self, enum):
+    @staticmethod
+    def translate_enum(enum):
         members_list = _make_list(_form_enum_member, enum.members)
         constants_list = _generate_enum_constants(enum.members)
         return ENUM_TEMPLATE.format(libname=libname, enum_name=enum.name, members_list=members_list,
                                     constants=constants_list)
 
-    def translate_struct(self, struct):
+    @staticmethod
+    def translate_struct(struct):
         members_list = _make_list(_form_struct_member, struct.members)
         return STRUCT_TEMPLATE.format(libname=libname, struct_name=struct.name, members_list=members_list)
 
-    def translate_union(self, union):
+    @staticmethod
+    def translate_union(union):
         members_list = _make_list(_form_union_member, union.members)
         return UNION_TEMPLATE.format(libname=libname, union_name=union.name, members_list=members_list)
 

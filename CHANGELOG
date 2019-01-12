@@ -6,10 +6,11 @@ forthcoming
 1.2.0
 -----------------------------------
 - prophyc.generators.schema: introduced schema generator
+- prophyc.model: quite large refactor performed, shaped nodes inheritance tree
 - prophyc.model: handles docstrings
-- prophyc.model: unicode fully supported in model node names and its docstrings
+- prophyc.model: unicode supported in model node names and its docstrings
 - prophyc.model: split str() and repr() functionality on prophyc.model tree objects
-- prophyc.parsers.isar collects docstrings (only this parser does it so far)
+- prophyc.parsers.isar collects docstrings
 
 1.1.2
 -----------------------------------

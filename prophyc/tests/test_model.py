@@ -2,6 +2,7 @@
 import sys
 
 import pytest
+import renew
 
 from prophyc import model
 
@@ -15,10 +16,10 @@ def test_node_eq():
     assert a != c
 
 
-def assert_repr_works(object_):
-    from prophyc.model import Typedef, Struct, StructMember, Enum, EnumMember, Union, UnionMember  # noqa F401
+def assert_repr_reproduces(object_):
     """It works under assumption that __eq__ checks actual equality. So far it skips docstring."""
     assert eval(repr(object_)) == object_
+    return True
 
 
 def test_typedef_str():
@@ -27,7 +28,7 @@ def test_typedef_str():
 
 
 def test_typedef_repr():
-    assert_repr_works(model.Typedef('my_typedef', 'u8', docstring='comment'))
+    assert_repr_reproduces(model.Typedef('my_typedef', 'u8', docstring='comment'))
 
 
 def test_struct_repr():
@@ -37,12 +38,21 @@ def test_struct_repr():
         model.StructMember("c", "u32", size=3, docstring="no_docstring"),
     ], docstring="no_docstring_")
 
-    assert_repr_works(struct_a)
     assert repr(struct_a) == """\
-Struct('MyStruct', [StructMember('a', 'u8', 'None', '', bound=None, size=None, unlimited=False, optional=False), \
-StructMember('b', 'cint16_t', 'None', '', bound=None, size=None, unlimited=False, optional=False), \
-StructMember('c', 'u32', 'None', 'no_docstring', bound=None, size=3, unlimited=False, optional=False)], \
-'no_docstring_')"""
+model.Struct(
+    'MyStruct',
+    [
+        model.StructMember('a', 'u8'),
+        model.StructMember('b', 'cint16_t'),
+        model.StructMember('c', 'u32', size=3, docstring='no_docstring'),
+    ],
+    'no_docstring_',
+)"""
+
+    assert_repr_reproduces(struct_a)
+    assert struct_a == eval(repr(struct_a))
+
+    assert_repr_reproduces(struct_a)
 
 
 def test_struct_str():
@@ -51,11 +61,11 @@ def test_struct_str():
         model.StructMember("b", "UserDefinedType"),
         model.StructMember("c", "UserDefinedType", optional=True),
         model.StructMember("fixed_array", "u32", size=3, docstring="no_docstring"),
-        model.StructMember("dynamic_array", "u32", bound='num_of_dynamic_array', has_implicit_mate=True),
-        model.StructMember("limited_array", "r64", bound='num_of_limited_array', size=3, has_implicit_mate=True),
+        model.StructMember("dynamic_array", "u32", bound='num_of_dynamic_array'),
+        model.StructMember("limited_array", "r64", bound='num_of_limited_array', size=3),
         model.StructMember("ext_sized_1", "i32", bound="sizer_field"),
         model.StructMember("ext_sized_2", "i16", bound="sizer_field"),
-        model.StructMember("greedy_array", "u8", unlimited=True),
+        model.StructMember("greedy_array", "u8", greedy=True),
     ], docstring="no_docstring_")
 
     # todo: its against documentation
@@ -65,7 +75,7 @@ struct MyStruct {
     UserDefinedType b;
     UserDefinedType* c;
     u32 fixed_array[3];
-    u32 dynamic_array<>;
+    u32 dynamic_array<@num_of_dynamic_array>;
     r64 limited_array<3>;
     i32 ext_sized_1<@sizer_field>;
     i16 ext_sized_2<@sizer_field>;
@@ -80,7 +90,7 @@ def test_union_repr():
         model.UnionMember("b", "u16", 2),
         model.UnionMember("c", "u32", 3, docstring="deff")
     ])
-    assert_repr_works(union)
+    assert_repr_reproduces(union)
     assert str(union) == """\
 union MyUnion {
     1: u8 a;
@@ -88,6 +98,128 @@ union MyUnion {
     3: u32 c;
 };
 """
+
+
+def test_larger_model_str(larger_model):
+    assert "\n".join(str(node) for node in larger_model) == """\
+typedef i16 a;
+typedef a c;
+#include some_defs;
+
+union the_union {
+    0: IncludedStruct a;
+    1: Internal field_with_a_long_name;
+    4090: Internal other;
+};
+
+enum E1 {
+    E1_A = '0';
+    E1_B_has_a_long_name = '1';
+    E1_C_desc = '2';
+};
+
+enum E2 {
+    E2_A = '0';
+};
+
+const CONST_A = '6';
+const CONST_B = '0';
+struct StructMemberKinds {
+    i16 meber_with_no_docstr;
+    i16 ext_size;
+    Complex* optional_element;
+    Complex fixed_array[3];
+    Complex samples<@ext_size>;
+    r64 limitted_array<4>;
+    Complex greedy<...>;
+};
+"""
+
+
+def test_larger_model_repr(larger_model):
+    assert renew.reproduction_string(larger_model) == r"""[
+    model.Typedef('a', 'i16'),
+    model.Typedef('c', 'a'),
+    model.Include(
+        'some_defs',
+        [
+            model.Struct(
+                'IncludedStruct',
+                [
+                    model.StructMember('member1', 'c', 'doc for member1'),
+                    model.StructMember('member2', 'u32', 'docstring for member1'),
+                ],
+            ),
+            model.Typedef('c', 'a'),
+        ],
+    ),
+    model.Union(
+        'the_union',
+        [
+            model.UnionMember('a', 'IncludedStruct', 0),
+            model.UnionMember('field_with_a_long_name', 'Internal', 1, docstring='defined internally'),
+            model.UnionMember('other', 'Internal', 4090, docstring='This one has longer discriminator'),
+        ],
+        'spec for that union',
+    ),
+    model.Enum(
+        'E1',
+        [
+            model.EnumMember('E1_A', '0', 'enum1 constant value A'),
+            model.EnumMember('E1_B_has_a_long_name', '1', 'enum1 constant va3lue B'),
+            model.EnumMember(
+                'E1_C_desc',
+                '2',
+                (
+                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
+                    'ut labore et dolore magna aliqua. Libero nunc consequat inte'
+                ),
+            ),
+        ],
+        (
+            'Enumerator is a model type that is not supposed to be serialized. Its definition '
+            'represents yet another syntax variation for typing a constant. Of course elements '
+            "of it's type are serializable (as int32)"
+        ),
+    ),
+    model.Enum('E2', [model.EnumMember('E2_A', '0', 'Short\nmultiline\ndoc')]),
+    model.Constant('CONST_A', '6'),
+    model.Constant('CONST_B', '0'),
+    model.Struct(
+        'StructMemberKinds',
+        [
+            model.StructMember('meber_with_no_docstr', 'i16'),
+            model.StructMember('ext_size', 'i16', docstring='arbitrary sizer for dynamic arrays'),
+            model.StructMember('optional_element', 'Complex', optional=True, docstring='optional array'),
+            model.StructMember('fixed_array', 'Complex', size=3, docstring='Array with static size.'),
+            model.StructMember('samples', 'Complex', bound='ext_size', docstring='dynamic (ext.sized) array'),
+            model.StructMember(
+                'limitted_array',
+                'r64',
+                bound='ext_size',
+                size=4,
+                docstring='Has statically evaluable maximum size.',
+            ),
+            model.StructMember(
+                'greedy',
+                'Complex',
+                greedy=True,
+                docstring=(
+                    'Represents array of arbitrary number of elements. Buffer size must be multiply of '
+                    'element size.'
+                ),
+            ),
+        ],
+        (
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
+            'ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas '
+            'accumsan lacus vel facilisis:\n  - Dui ut ornare,\n  - Lectus,\n  - Malesuada pellentesque,\n\n\nElit '
+            'eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis '
+            'egestas sed.\nEgestas integer eget aliquet.'
+        ),
+    ),
+]"""
+    assert_repr_reproduces(larger_model)
 
 
 NODES_CTORS = [
@@ -108,7 +240,7 @@ def test_unicode_handling(k, args):
     a = k(*args, docstring="used weird letter from 'jalapeño' word")
     b = k(*args, docstring="used weird letter from 'jalapeño' word")
     assert a == b
-    assert a.doc_str == b.doc_str
+    assert a.docstring == b.docstring
 
 
 def test_model_slots_custom_ctor():
@@ -141,7 +273,8 @@ def test_model_sort_typedefs():
 
     model.topological_sort(nodes)
 
-    assert ["A", "B", "C", "D", "E"] == [node.name for node in nodes]
+    assert [node.name for node in nodes] == ["A", "B", "C", "D", "E"]
+    assert [dep for node in nodes for dep in node.dependencies()] == ["X", "A", "B", "C", "D"]
 
 
 def test_model_sort_structs():
@@ -157,7 +290,8 @@ def test_model_sort_structs():
 
     model.topological_sort(nodes)
 
-    assert ["A", "B", "C"] == [node.name for node in nodes]
+    assert [node.name for node in nodes] == ["A", "B", "C"]
+    assert [tuple(node.dependencies()) for node in nodes] == [('X', 'Y', 'Z'), ('X', 'A', 'Y'), ('B', 'A', 'D')]
 
 
 def test_model_sort_struct_with_two_deps():
@@ -167,7 +301,7 @@ def test_model_sort_struct_with_two_deps():
 
     model.topological_sort(nodes)
 
-    assert ["A", "B", "C"] == [node.name for node in nodes]
+    assert [node.name for node in nodes] == ["A", "B", "C"]
 
 
 def test_model_sort_struct_with_multiple_dependencies():
@@ -181,7 +315,7 @@ def test_model_sort_struct_with_multiple_dependencies():
 
     model.topological_sort(nodes)
 
-    assert ["A", "B", "C", "D"] == [node.name for node in nodes]
+    assert [node.name for node in nodes] == ["A", "B", "C", "D"]
 
 
 def test_model_sort_union():
@@ -192,7 +326,7 @@ def test_model_sort_union():
 
     model.topological_sort(nodes)
 
-    assert ["A", "B", "C"] == [node.name for node in nodes]
+    assert [node.name for node in nodes] == ["A", "B", "C"]
 
 
 def test_model_sort_constants():
@@ -202,7 +336,7 @@ def test_model_sort_constants():
 
     model.topological_sort(nodes)
 
-    assert [("C_A", "1"), ("C_B", "2"), ("C_C", "C_A + C_B")] == nodes
+    assert nodes == [("C_A", "1"), ("C_B", "2"), ("C_C", "C_A + C_B")]
 
 
 def test_cross_reference_structs():
@@ -226,8 +360,9 @@ def test_cross_reference_structs():
         ])
     ]
 
-    model.cross_reference(nodes)
+    constants = model.cross_reference(nodes)
 
+    assert [n.name for n in nodes] == ['A', 'B', 'C', 'D']
     definition_names = [[x.definition.name if x.definition else None for x in y.members] for y in nodes]
     assert definition_names == [
         [None],
@@ -235,6 +370,13 @@ def test_cross_reference_structs():
         ['A', 'B', None],
         ['A', 'B', 'C']
     ]
+    assert [tuple(n.dependencies()) for n in nodes] == [
+        ('u8',),
+        ('A', 'u8'),
+        ('A', 'B', 'NON_EXISTENT'),
+        ('A', 'B', 'C')
+    ]
+    assert constants == {}
 
 
 def test_cross_reference_typedef():
@@ -266,7 +408,7 @@ def test_cross_symbols_from_includes():
             ]),
             model.Struct('ola', [
                 model.StructMember('a', 'ala'),
-            ])
+            ]),
         ]),
         model.Struct('ula', [
             model.StructMember('a', 'ola'),
@@ -276,9 +418,10 @@ def test_cross_symbols_from_includes():
 
     model.cross_reference(nodes)
 
-    assert nodes[1].members[0].definition.name == 'ola'
-    assert nodes[1].members[1].definition.name == 'ala'
+    assert nodes[1].members[0].definition == model.Struct('ola', [model.StructMember('a', 'ala')], '')
+    assert nodes[1].members[1].definition == model.Typedef('ala', 'u32')
     # cross-reference only needs to link definitions of first level of nodes
+    assert nodes[0].members[1].members[0] == model.StructMember('a', 'ala', None)
     assert nodes[0].members[1].members[0].definition is None
 
 
@@ -286,27 +429,35 @@ def test_cross_reference_array_size_from_includes():
     nodes = [
         model.Include('x', [
             model.Include('y', [
-                model.Constant('NUM', '3'),
+                model.Constant('NUM_HEX', '0xf'),
+                model.Constant('NUM_DEC', '3'),
             ]),
             model.Enum('E', [
-                model.EnumMember('E1', '1'),
-                model.EnumMember('E3', 'NUM')
+                model.EnumMember('E1', 'NUM_HEX'),
+                model.EnumMember('E3', 'NUM_DEC')
             ]),
         ]),
         model.Struct('X', [
-            model.StructMember('x', 'u32', size='NUM'),
+            model.StructMember('x', 'u32', size='NUM_DEC'),
             model.StructMember('y', 'u32', size='E1'),
             model.StructMember('z', 'u32', size='UNKNOWN'),
             model.StructMember('a', 'u32', size='E3')
         ])
     ]
 
-    model.cross_reference(nodes)
+    constants = model.cross_reference(nodes)
 
     assert nodes[1].members[0].numeric_size == 3
-    assert nodes[1].members[1].numeric_size == 1
+    assert nodes[1].members[1].numeric_size == 15
     assert nodes[1].members[2].numeric_size is None
     assert nodes[1].members[3].numeric_size == 3
+
+    assert constants == {
+        'E1': 15,
+        'E3': 3,
+        'NUM_DEC': 3,
+        'NUM_HEX': 15,
+    }
 
 
 def test_cross_reference_numeric_size_of_expression():
@@ -319,9 +470,10 @@ def test_cross_reference_numeric_size_of_expression():
         ])
     ]
 
-    model.cross_reference(nodes)
+    constants = model.cross_reference(nodes)
 
     assert nodes[3].members[0].numeric_size == 180
+    assert constants == {'A': 12, 'B': 15, 'C': 180}
 
 
 def test_cross_reference_expression_as_array_size():
@@ -409,7 +561,7 @@ def test_evaluate_kinds_arrays():
             model.StructMember("d", "u8", bound="d_len", size="5"),
             model.StructMember("e_len", "u8"),
             model.StructMember("e", "u8", bound="e_len"),
-            model.StructMember("f", "u8", unlimited=True)
+            model.StructMember("f", "u8", greedy=True)
         ])
     ]
 
@@ -441,7 +593,7 @@ def test_evaluate_kinds_struct_records():
             model.StructMember("a", "Dyn"),
             model.StructMember("b_len", "u8"),
             model.StructMember("b", "Fix", bound="b_len"),
-            model.StructMember("c", "Fix", unlimited=True)
+            model.StructMember("c", "Fix", greedy=True)
         ])
     ]
 
@@ -477,7 +629,7 @@ def test_evaluate_kinds_with_typedefs():
             model.StructMember("a", "u8", bound="a_len", size="10")
         ]),
         model.Struct("Greedy", [
-            model.StructMember("a", "byte", unlimited=True)
+            model.StructMember("a", "byte", greedy=True)
         ]),
         model.Struct("DynamicWrapper", [
             model.StructMember("a", "Dynamic")
@@ -486,7 +638,7 @@ def test_evaluate_kinds_with_typedefs():
             model.StructMember("a", "Greedy")
         ]),
         model.Struct("GreedyDynamic", [
-            model.StructMember("a", "Dynamic", unlimited=True)
+            model.StructMember("a", "Dynamic", greedy=True)
         ]),
         model.Typedef("TU8", "u8"),
         model.Typedef("TDynamic", "Dynamic"),
@@ -745,7 +897,7 @@ def test_evaluate_sizes_greedy_array():
     nodes = process([
         model.Struct('X', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'u8', unlimited=True),
+            model.StructMember('x', 'u8', greedy=True),
         ])
     ])
     assert list(map(get_size_alignment_padding, get_members_and_node(nodes[0]))) == [
@@ -1098,7 +1250,7 @@ enum TheEnum {
     E3 = '3';
 };
 """
-    assert_repr_works(E)
+    assert_repr_reproduces(E)
 
 
 def test_wrong_struct_members_type_definition():
@@ -1158,7 +1310,8 @@ def test_bad_creation():
 
 
 def test_bad_creation_typedef():
-    with pytest.raises(model.ModelError, match="Typedef.definition should be string or ModelNode, got: float."):
+    msg = "Typedef.definition should be string, Typedef, Enum, Struct or Union, got: float."
+    with pytest.raises(model.ModelError, match=msg):
         model.Typedef("a", "b", 3.14159)
 
 

@@ -5,7 +5,7 @@ import sys
 import pytest
 
 import prophyc
-from prophyc.six import string_types
+from prophyc import model, six
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.insert(0, main_dir)
@@ -17,7 +17,7 @@ def pytest_assertrepr_compare(op, left, right):
     Native pytest's comparison failure representation is at least unreadable for this purpose.
     This prints compared strings only in case of test's failure.
     """
-    if op == "==" and isinstance(left, string_types) and isinstance(right, string_types):
+    if op == "==" and isinstance(left, six.string_types) and isinstance(right, six.string_types):
         if len(left) > 60 or len(right) > 60:
             print("--- (left):")
             print(left)
@@ -33,11 +33,20 @@ def check_libclang():
     return SackParser.check()
 
 
-def pytest_namespace():
-    return {
-        'clang_installed': pytest.mark.skipif(not check_libclang(), reason="clang not installed"),
-        'clang_not_installed': pytest.mark.skipif(check_libclang(), reason="clang installed")
-    }
+@pytest.fixture
+def if_clang_installed():
+    result = check_libclang()
+    if not result:
+        pytest.skip("clang not installed")
+    return result
+
+
+@pytest.fixture
+def if_clang_not_installed():
+    result = check_libclang()
+    if result:
+        pytest.skip("clang installed")
+    return result
 
 
 @pytest.yield_fixture
@@ -108,3 +117,63 @@ def call_prophyc(request, sys_capture):
             return cp.get()
 
         return call_captured
+
+
+@pytest.fixture
+def lorem_with_breaks():
+    return "\n".join([
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt "
+        "ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas accumsan "
+        "lacus vel facilisis:",
+        "  - Dui ut ornare,",
+        "  - Lectus,",
+        "  - Malesuada pellentesque,",
+        "",
+        "",
+        "Elit eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis egestas sed.",
+        "Egestas integer eget aliquet.",
+    ])
+
+
+@pytest.fixture
+def larger_model(lorem_with_breaks):
+    return [
+        model.Typedef('a', 'i16'),
+        model.Typedef('c', 'a'),
+        model.Include('some_defs', [
+            model.Struct('IncludedStruct', [
+                model.StructMember('member1', 'c', 'doc for member1'),
+                model.StructMember('member2', 'u32', 'docstring for member1')
+            ]),
+            model.Typedef('c', 'a'),
+        ]),
+        model.Union('the_union', [
+            model.UnionMember('a', 'IncludedStruct', 0),
+            model.UnionMember('field_with_a_long_name', 'Internal', 1, docstring='defined internally'),
+            model.UnionMember('other', 'Internal', 4090, docstring='This one has longer discriminator'),
+        ], "spec for that union"),
+        model.Enum('E1', [
+            model.EnumMember('E1_A', '0', 'enum1 constant value A'),
+            model.EnumMember('E1_B_has_a_long_name', '1', 'enum1 constant va3lue B'),
+            model.EnumMember('E1_C_desc', '2', lorem_with_breaks[:150]),
+        ], "Enumerator is a model type that is not supposed to be serialized. Its definition represents yet another "
+           "syntax variation for typing a constant. Of course elements of it's type are serializable "
+           "(as int32)"),
+        model.Enum('E2', [
+            model.EnumMember('E2_A', '0', "Short\nmultiline\ndoc"),
+        ]),
+        model.Constant('CONST_A', '6'),
+        model.Constant('CONST_B', '0'),
+        model.Struct('StructMemberKinds', [
+            model.StructMember('meber_with_no_docstr', 'i16'),
+            model.StructMember('ext_size', 'i16', docstring='arbitrary sizer for dynamic arrays'),
+            model.StructMember('optional_element', 'Complex', optional=True, docstring='optional array'),
+            model.StructMember('fixed_array', 'Complex', size=3, docstring='Array with static size.'),
+            model.StructMember('samples', 'Complex', bound='ext_size', docstring='dynamic (ext.sized) array'),
+            model.StructMember('limitted_array', 'r64', size=4, bound='ext_size', docstring='Has statically '
+                                                                                            'evaluable maximum size.'),
+            model.StructMember('greedy', 'Complex', greedy=True, docstring='Represents array of arbitrary '
+                                                                           'number of elements. Buffer size '
+                                                                           'must be multiply of element size.'),
+        ], lorem_with_breaks[:400]),
+    ]

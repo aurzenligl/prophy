@@ -59,52 +59,9 @@ LOREM_W_BREAKS = "\n".join([
 ])
 
 
-def test_larger_model(schema_gen):
-    input_model = [
-        model.Typedef('a', 'i16'),
-        model.Typedef('c', 'a'),
-        model.Include('some_defs', [
-            model.Struct('IncludedStruct', [
-                model.StructMember('member1', 'c', 'doc for member1'),
-                model.StructMember('member2', 'u32', 'docstring for member1')
-            ]),
-            model.Typedef('c', 'a'),
-        ]),
-        model.Union('the_union', [
-            model.UnionMember('a', 'IncludedStruct', 0),
-            model.UnionMember('field_with_a_long_name', 'Internal', 1, docstring='defined internally'),
-            model.UnionMember('other', 'Internal', 4090, docstring='This one has longer discriminator'),
-        ], "spec for that union"),
-        model.Enum('E1', [
-            model.EnumMember('E1_A', '0', 'enum1 constant value A'),
-            model.EnumMember('E1_B_has_a_long_name', '1', 'enum1 constant va3lue B'),
-            model.EnumMember('E1_C_desc', '2', LOREM_W_BREAKS[:150]),
-        ], 'This is Enum E1. It has long description. ' + LOREM_W_BREAKS),
-        model.Enum('E2', [
-            model.EnumMember('E2_A', '0', "Short\nmultiline\ndoc"),
-        ]),
-        model.Constant('CONST_A', '6'),
-        model.Constant('CONST_B', '0'),
-        model.Struct('Internal', [
-            model.StructMember('one', 'a', docstring='doc one'),
-            model.StructMember('two', 'u32', docstring='doc two')
-        ], "Spec for the internally defined structure."),
-        model.Struct('Complex', [
-            model.StructMember('re', 'i32', docstring='real'),
-            model.StructMember('im', 'i32', docstring='imaginary')
-        ], "Looks like a complex number"),
-    ]
-
-    assert schema_gen(input_model) == '''\
+def test_larger_model(schema_gen, larger_model):
+    assert schema_gen(larger_model) == """\
 #include "some_defs"
-
-/* Internal
- * Spec for the internally defined structure.
- */
-struct Internal {
-    a   one;  // doc one
-    u32 two;  // doc two
-};
 
 /* the_union
  * spec for that union
@@ -115,20 +72,10 @@ union the_union {
     4090: Internal       other;                   // This one has longer discriminator
 };
 
-/* ==== E1 =========================================================================================
- * E1
- * This is Enum E1. It has long description. Lorem ipsum dolor sit amet, consectetur adipiscing
-   elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Libero nunc consequat
-   interdum varius sit. Maecenas accumsan lacus vel facilisis:
- *    - Dui ut ornare,
- *    - Lectus,
- *    - Malesuada pellentesque,
- * Elit eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis egestas
-   sed.
- * Neque ornare aenean euismod elementum nisi quis eleifend. Arcu dictum varius duis at consectetur
-   lorem. Nam at lectus urna duis convallis convallis. At lectus urna duis convallis convallis
-   tellus. At urna condimentum mattis pellentesque id nibh tortor id. Fames ac turpis.
- * Egestas integer eget aliquet.
+/* E1
+ * Enumerator is a model type that is not supposed to be serialized. Its definition represents yet
+   another syntax variation for typing a constant. Of course elements of it's type are serializable
+   (as int32)
  */
 enum E1 {
     E1_A                 = 0;  // enum1 constant value A
@@ -155,14 +102,31 @@ CONST_A = 6;
 
 CONST_B = 0;
 
-/* Complex
- * Looks like a complex number
+/* ==== StructMemberKinds ==========================================================================
+ * StructMemberKinds
+ * Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+   labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas accumsan lacus
+   vel facilisis:
+ *    - Dui ut ornare,
+ *    - Lectus,
+ *    - Malesuada pellentesque,
+ * Elit eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis egestas
+   sed.
+ * Egestas integer eget aliquet.
  */
-struct Complex {
-    i32 re;  // real
-    i32 im;  // imaginary
+struct StructMemberKinds {
+    i16      meber_with_no_docstr;
+    i16      ext_size;              // arbitrary sizer for dynamic arrays
+    Complex* optional_element;      // optional array
+    Complex  fixed_array[3];        // Array with static size.
+    Complex  samples<@ext_size>;    // dynamic (ext.sized) array
+    r64      limitted_array<4>;     // Has statically evaluable maximum size.
+/* greedy
+ * Represents array of arbitrary number of elements. Buffer size must be multiply of element size.
+ */
+    Complex  greedy<...>;
 };
-'''
+"""
 
 
 def test_constants_layout(schema_gen):
@@ -175,7 +139,7 @@ def test_constants_layout(schema_gen):
         model.Constant('D', "CONSTANT_B"),
     ]
 
-    assert schema_gen(input_model) == '''\
+    assert schema_gen(input_model) == """\
 
 CONSTANT_0 = NULL;
 
@@ -192,84 +156,4 @@ CONSTANT_B = 23;
 CONST_C = NO DESC;
 
 D = CONSTANT_B;
-'''
-
-
-def test_container_layout(schema_gen):
-    input_model = [
-        model.Struct('StaticVectors', [
-            model.StructMember('ext_size', 'i16', docstring='arbitrary sizer for dynamic arrays'),
-            model.StructMember('optional_element', 'Complex', optional=True, docstring='optional array'),
-            model.StructMember('fixed', 'Complex', size=3, docstring='static size array'),
-            model.StructMember('samples', 'Complex', bound='ext_size', docstring='dynamic (ext.sized) array'),
-            model.StructMember('dyn_array', 'i16', bound='num_of_dyn_array', docstring='dynamic array'),
-            model.StructMember('scalings', 'r64', size=4, bound='ext_size', docstring='limited array'),
-            model.StructMember('dynamic', 'UeEntry', bound='sizer', docstring='dynamic array'),
-        ], LOREM_W_BREAKS),
-
-        model.Struct('UeEntry', [
-            model.StructMember('frame', 'u16'),
-            model.StructMember('subframe', 'u8', docstring="Short info."),
-            model.StructMember('symbol', 'u8',
-                               docstring="This is the only one field that gets a long description in this structure. "
-                                         "The info is too long to fit in one line."),
-            model.StructMember('context', 'r32', size=16),
-
-        ], "Short UeEntry description"),
-
-        model.Struct('DynamicSizeVector', [
-            model.StructMember('sizer', 'i16', docstring='sizer field for dynamic arrays'),
-            model.StructMember('dynamic', 'Complex', bound='sizer', docstring='dynamic array'),
-            model.StructMember('greedy', 'Complex', unlimited=True, docstring='greedy array'),
-        ], "This one has shorter description."),
-    ]
-
-    assert schema_gen(input_model) == '''\
-/* UeEntry
- * Short UeEntry description
- */
-struct UeEntry {
-    u16 frame;
-    u8  subframe;     // Short info.
-/* symbol
- * This is the only one field that gets a long description in this structure. The info is too long
-   to fit in one line.
- */
-    u8  symbol;
-    r32 context[16];
-};
-
-/* ==== StaticVectors ==============================================================================
- * StaticVectors
- * Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-   labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas accumsan lacus
-   vel facilisis:
- *    - Dui ut ornare,
- *    - Lectus,
- *    - Malesuada pellentesque,
- * Elit eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis egestas
-   sed.
- * Neque ornare aenean euismod elementum nisi quis eleifend. Arcu dictum varius duis at consectetur
-   lorem. Nam at lectus urna duis convallis convallis. At lectus urna duis convallis convallis
-   tellus. At urna condimentum mattis pellentesque id nibh tortor id. Fames ac turpis.
- * Egestas integer eget aliquet.
- */
-struct StaticVectors {
-    i16      ext_size;                      // arbitrary sizer for dynamic arrays
-    Complex* optional_element;              // optional array
-    Complex  fixed[3];                      // static size array
-    Complex  samples<@ext_size>;            // dynamic (ext.sized) array
-    i16      dyn_array<@num_of_dyn_array>;  // dynamic array
-    r64      scalings<4>;                   // limited array
-    UeEntry  dynamic<@sizer>;               // dynamic array
-};
-
-/* DynamicSizeVector
- * This one has shorter description.
- */
-struct DynamicSizeVector {
-    i16     sizer;            // sizer field for dynamic arrays
-    Complex dynamic<@sizer>;  // dynamic array
-    Complex greedy<...>;      // greedy array
-};
-'''
+"""

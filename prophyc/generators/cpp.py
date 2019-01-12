@@ -88,7 +88,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
         return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
 
     def translate_typedef(self, typedef):
-        tp = primitive_types.get(typedef.type_, typedef.type_)
+        tp = primitive_types.get(typedef.type_name, typedef.type_name)
         return 'typedef {} {};'.format(tp, typedef.name)
 
     def translate_enum(self, enum):
@@ -111,7 +111,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
                         annotation = 'greedy array'
                 return annotation
 
-            typename = primitive_types.get(member.type_, member.type_)
+            typename = primitive_types.get(member.type_name, member.type_name)
             if member.is_array:
                 annotation = build_annotation(member)
                 size = member.size or 1
@@ -154,7 +154,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
             return 'discriminator_{0} = {1}'.format(member.name, member.discriminator)
 
         def gen_member(member):
-            typename = primitive_types.get(member.type_, member.type_)
+            typename = primitive_types.get(member.type_name, member.type_name)
             return '{0} {1};\n'.format(typename, member.name)
 
         enum_fields = _indent(',\n'.join(gen_disc(mem) for mem in union.members), 4)
@@ -276,7 +276,7 @@ class _CppSwapTranslator(TranslatorBase):
                     name,
                     _member_access_statement(last_mem)
                 )
-            elif last_mem.kind == model.Kind.DYNAMIC or last_mem.dynamic:
+            elif last_mem.kind == model.Kind.DYNAMIC or last_mem.is_dynamic:
                 return 'return cast<{0}*>({1});\n'.format(
                     name,
                     gen_member(last_mem, delimiters)

@@ -351,7 +351,7 @@ def Builtin():
             model.StructMember('x', 'u32', size=2, bound='num_of_x')
         ]),
         model.Struct('BuiltinGreedy', [
-            model.StructMember('x', 'u32', unlimited=True)
+            model.StructMember('x', 'u32', greedy=True)
         ])
     ])
 
@@ -379,7 +379,7 @@ def Fixcomp():
             model.StructMember('x', 'Builtin', size=2, bound='num_of_x')
         ]),
         model.Struct('FixcompGreedy', [
-            model.StructMember('x', 'Builtin', unlimited=True)
+            model.StructMember('x', 'Builtin', greedy=True)
         ])
     ])
 
@@ -399,7 +399,7 @@ def Dyncomp():
             model.StructMember('x', 'BuiltinDynamic', bound='num_of_x')
         ]),
         model.Struct('DyncompGreedy', [
-            model.StructMember('x', 'BuiltinDynamic', unlimited=True)
+            model.StructMember('x', 'BuiltinDynamic', greedy=True)
         ])
     ])
 
@@ -471,7 +471,7 @@ def Bytes():
             model.StructMember('x', 'byte', size=4, bound='num_of_x')
         ]),
         model.Struct('BytesGreedy', [
-            model.StructMember('x', 'byte', unlimited=True)
+            model.StructMember('x', 'byte', greedy=True)
         ])
     ])
 
@@ -497,7 +497,7 @@ def Endpad():
         ]),
         model.Struct('EndpadGreedy', [
             model.StructMember('x', 'u32'),
-            model.StructMember('y', 'u8', unlimited=True)
+            model.StructMember('y', 'u8', greedy=True)
         ])
     ])
 

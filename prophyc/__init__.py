@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 
-from contextlib import contextmanager
 import os
 import sys
+from contextlib import contextmanager
 
 from . import model
 from . import options
@@ -69,10 +69,14 @@ def main(args):
     model_parser = model.ModelParser(parser, patcher, emit)
     file_parser = FileProcessor(model_parser, opts.include_dirs)
 
+    model_nodes = {}
     for input_file in opts.input_files:
         with error_on_exception(emit):
             nodes = file_parser(input_file)
+            model_nodes[input_file] = nodes
         generate_target_files(emit, serializers, get_basename(input_file), nodes)
+
+    return model_nodes
 
 
 def get_isar_parser(emit):

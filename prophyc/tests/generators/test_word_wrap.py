@@ -5,6 +5,7 @@ from prophyc.generators import word_wrap
 
 # flake8: noqa W291
 
+
 @pytest.fixture
 def foo_generator():
     foo_breaker = word_wrap.BreakLinesByWidth(
@@ -22,43 +23,7 @@ def foo_generator():
     return foo_writer
 
 
-LOREM_W_BREAKS = "\n".join([
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt "
-    "ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas accumsan "
-    "lacus vel facilisis:",
-    "  - Dui ut ornare,",
-    "  - Lectus,",
-    "  - Malesuada pellentesque,",
-    "",
-    "",
-    "Elit eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis egestas sed.",
-    "Egestas integer eget aliquet.",
-])
-
-FOO_GEN_TEST = [
-    ("", 0, ""),
-    ("At duis convallis eget gravida cum sociis.", 0,
-     """\
-.... Foo writes: .......................
-l0x00: At duis convallis eget gravida
-       cum sociis.
-"""),
-    ("At duis convallis eget gravida cum sociis.", 1,
-     """\
-    .... Foo writes: ...................
-    l0x00: At duis convallis eget
-           gravida cum sociis.
-"""),
-    ("At duis convallis eget gravida cum sociis.", 4,
-     """\
-                .... Foo writes: .......
-                l0x00: At duis convallis
-                       eget gravida cum
-                       sociis.
-"""),
-
-    (LOREM_W_BREAKS, 0,
-     """\
+FOO_GEN_TEST = ["""\
 .... Foo writes: .......................
 l0x00: Lorem ipsum dolor sit amet,
        consectetur adipiscing elit, sed
@@ -77,10 +42,27 @@ l0x06: Elit eget gravida cum sociis
        malesuada fames ac turpis egestas
        sed.
 l0x07: Egestas integer eget aliquet.
-"""
-     ),
-    (LOREM_W_BREAKS, 2,
-     """\
+""", """\
+    .... Foo writes: ...................
+    l0x00: Lorem ipsum dolor sit amet,
+           consectetur adipiscing elit,
+           sed do eiusmod tempor
+           incididunt ut labore et
+           dolore magna aliqua. Libero
+           nunc consequat interdum
+           varius sit. Maecenas accumsan
+           lacus vel facilisis:
+    l0x01:   - Dui ut ornare,
+    l0x02:   - Lectus,
+    l0x03:   - Malesuada pellentesque,
+    l0x04: 
+    l0x05: 
+    l0x06: Elit eget gravida cum sociis
+           natoque penatibus et. Netus
+           et malesuada fames ac turpis
+           egestas sed.
+    l0x07: Egestas integer eget aliquet.
+""", """\
         .... Foo writes: ...............
         l0x00: Lorem ipsum dolor sit
                amet, consectetur
@@ -105,13 +87,14 @@ l0x07: Egestas integer eget aliquet.
         l0x07: Egestas integer eget
                aliquet.
 """
-     ),
-]
+
+                ]
 
 
-@pytest.mark.parametrize("input_str, level, reference_str", FOO_GEN_TEST)
-def test_foo_generator(foo_generator, input_str, level, reference_str):
-    assert render_str(foo_generator, input_str, level) == reference_str
+@pytest.mark.parametrize("level, reference_str", enumerate(FOO_GEN_TEST),
+                         ids=[str(i) for i in range(len(FOO_GEN_TEST))])
+def test_foo_generator(foo_generator, lorem_with_breaks, level, reference_str):
+    assert render_str(foo_generator, lorem_with_breaks, level) == reference_str
 
 
 @pytest.fixture
@@ -182,7 +165,6 @@ def test_c_generator_empty(c_alike_generator, indent, expected_result):
     assert render_str(c_alike_generator, "", indent) == expected_result
 
 
-
 def test_wraps_with_overflow(c_alike_generator):
     input_str = (
         "Lorem ipsum dolor sit amet, consecteturadipiscingelitseddoeiusmodtempor ut "
@@ -199,8 +181,7 @@ def test_wraps_with_overflow(c_alike_generator):
              */"""
 
 
-def test_c_generator_0(c_alike_generator):
-    input_str = LOREM_W_BREAKS
+def test_c_generator_0(c_alike_generator, lorem_with_breaks):
     reference_str = """\
 /* Lorem ipsum dolor sit amet,
    consectetur adipiscing elit, sed do
@@ -217,11 +198,10 @@ def test_c_generator_0(c_alike_generator):
    fames ac turpis egestas sed.
  * Egestas integer eget aliquet.
  */"""
-    assert render_str(c_alike_generator, input_str, 0) == reference_str
+    assert render_str(c_alike_generator, lorem_with_breaks, 0) == reference_str
 
 
-def test_c_generator_2(c_alike_generator):
-    input_str = LOREM_W_BREAKS
+def test_c_generator_2(c_alike_generator, lorem_with_breaks):
     reference_str = """\
         /* Lorem ipsum dolor sit amet,
            consectetur adipiscing elit,
@@ -240,7 +220,7 @@ def test_c_generator_2(c_alike_generator):
            egestas sed.
          * Egestas integer eget aliquet.
          */"""
-    assert render_str(c_alike_generator, input_str, 2) == reference_str
+    assert render_str(c_alike_generator, lorem_with_breaks, 2) == reference_str
 
 
 def render_str(gen_, input_str, indent_level):
@@ -248,7 +228,7 @@ def render_str(gen_, input_str, indent_level):
 
 
 @pytest.fixture
-def kak_block_generator():
+def fooing_gen():
     breaker = word_wrap.BreakLinesByWidth(
         max_line_width=40,
         hard_indent_tail=" % ",
@@ -268,8 +248,8 @@ def kak_block_generator():
     return fooing
 
 
-def test_empty_text_word_wrap(kak_block_generator):
-    assert "".join(kak_block_generator("", indent_level=0)) == """\
+def test_empty_text_word_wrap(fooing_gen):
+    assert "".join(fooing_gen("", indent_level=0)) == """\
  % ==== that things ====================
  % >fooing start:
  % :fooing end<
@@ -283,9 +263,8 @@ LOREM_SINGLE_LINE = (
     "lacus vel facilisis.\n"
 )
 
-
-def test_single_line_slpit_0(kak_block_generator):
-    assert "".join(kak_block_generator(LOREM_SINGLE_LINE, indent_level=0)) == """\
+FOOING_TEST = [
+    """\
  % ==== that things ====================
  % >fooing start:
  % Lorem ipsum dolor sit amet,
@@ -297,11 +276,7 @@ def test_single_line_slpit_0(kak_block_generator):
  | facilisis.
  % :fooing end<
  % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-"""
-
-
-def test_single_line_slpit_1(kak_block_generator):
-    assert "".join(kak_block_generator(LOREM_SINGLE_LINE, indent_level=1)) == """\
+""", """\
      % ==== that things ================
      % >fooing start:
      % Lorem ipsum dolor sit amet,
@@ -313,11 +288,7 @@ def test_single_line_slpit_1(kak_block_generator):
      | lacus vel facilisis.
      % :fooing end<
      % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-"""
-
-
-def test_single_line_slpit_2(kak_block_generator):
-    assert "".join(kak_block_generator(LOREM_SINGLE_LINE, indent_level=2)) == """\
+""", """\
          % ==== that things ============
          % >fooing start:
          % Lorem ipsum dolor sit amet,
@@ -330,11 +301,7 @@ def test_single_line_slpit_2(kak_block_generator):
          | lacus vel facilisis.
          % :fooing end<
          % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-"""
-
-
-def test_multi_line_slpit_long(kak_block_generator):
-    assert "".join(kak_block_generator(LOREM_W_BREAKS, indent_level=3)) == """\
+""", """\
              % ==== that things ========
              % >fooing start:
              % Lorem ipsum dolor sit
@@ -345,18 +312,73 @@ def test_multi_line_slpit_long(kak_block_generator):
              | aliqua. Libero nunc
              | consequat interdum varius
              | sit. Maecenas accumsan
-             | lacus vel facilisis:
-             %    - Dui ut ornare,
-             %    - Lectus,
-             %    - Malesuada
-             | pellentesque,
-             % Elit eget gravida cum
-             | sociis natoque penatibus
-             | et. Netus et malesuada
-             | fames ac turpis egestas
-             | sed.
-             % Egestas integer eget
-             | aliquet.
+             | lacus vel facilisis.
              % :fooing end<
              % ^^^^^^^^^^^^^^^^^^^^^^^^^
 """
+]
+
+
+@pytest.mark.parametrize("indent, reference_str", enumerate(FOOING_TEST), ids=[str(i) for i in range(len(FOOING_TEST))])
+def test_single_line_slpit_0(fooing_gen, indent, reference_str):
+    assert "".join(fooing_gen(LOREM_SINGLE_LINE, indent_level=indent)) == reference_str
+
+
+@pytest.mark.parametrize("string", [
+    "", " ", "\n", "abcd", "abcd efgh", "abcd\nefgh", "\nabcd\nefgh\n", "\n \t \n"
+])
+def test_split_short_string_not_modified(string):
+    assert "".join(word_wrap.split_long_string(string)) == string
+
+
+def test_split_string_with_short_lines():
+    INPUT = """\
+ | Lorem ipsum dolor sit
+ | amet, consectetur
+ | adipiscing elit, sed do
+ | eiusmod tempor incididunt
+ | ut labore et dolore magna
+ | aliqua.
+"""
+    assert list(word_wrap.split_long_string(INPUT)) == [
+        ' | Lorem ipsum dolor sit\n',
+        ' | amet, consectetur\n',
+        ' | adipiscing elit, sed do\n',
+        ' | eiusmod tempor incididunt\n',
+        ' | ut labore et dolore magna\n',
+        ' | aliqua.\n',
+        ''
+    ]
+
+
+def test_breaking_long_string_no_breaks():
+    parts = list(word_wrap.split_long_string(LOREM_SINGLE_LINE))
+    assert "".join(parts) == LOREM_SINGLE_LINE
+    assert parts == [
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ',
+        'ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas ',
+        'accumsan lacus vel facilisis.\n'
+    ]
+
+
+def test_breaking_long_string(lorem_with_breaks):
+    parts = list(word_wrap.split_long_string(lorem_with_breaks))
+    assert "".join(parts) == lorem_with_breaks
+    assert parts == [
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ',
+        'ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas ',
+        'accumsan lacus vel facilisis:\n  - Dui ut ornare,\n  - Lectus,\n  - Malesuada pellentesque,\n\n\nElit ',
+        'eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis ',
+        'egestas sed.\nEgestas integer eget aliquet.'
+    ]
+
+
+def test_hard_breaking_string():
+    text = "".join(chr(c) for s, e in ('AZ', '09', 'az') * 4 for c in range(ord(s), ord(e)))
+    parts = list(word_wrap.split_long_string(text))
+    assert "".join(parts) == text
+    assert parts == [
+        'ABCDEFGHIJKLMNOPQRSTUVWXY012345678abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTU',
+        'VWXY012345678abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY012345678abcdefgh',
+        'ijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXY012345678abcdefghijklmnopqrstuvwxy'
+    ]

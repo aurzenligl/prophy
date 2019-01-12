@@ -10,13 +10,13 @@ DocStr = namedtuple("DocStr", "block, inline")
 
 def _form_doc(model_node, max_inl_docstring_len, indent_level):
     block_doc, inline_doc = "", ""
-    if model_node.doc_str:
-        if len(model_node.doc_str) <= max_inl_docstring_len and "\n" not in model_node.doc_str:
-            inline_doc = u"  // {}".format(model_node.doc_str)
+    if model_node.docstring:
+        if len(model_node.docstring) <= max_inl_docstring_len and "\n" not in model_node.docstring:
+            inline_doc = u"  // {}".format(model_node.docstring)
 
-        elif model_node.doc_str:
+        elif model_node.docstring:
             block_doc = u"\n" + "".join(
-                _gen_multi_line_doc(model_node.doc_str, indent_level, block_header=model_node.name))
+                _gen_multi_line_doc(model_node.docstring, indent_level, block_header=model_node.name))
 
     return DocStr(block_doc, inline_doc)
 
@@ -64,8 +64,8 @@ def _columnizer(model_node, column_splitter, max_line_width=100):
 
 
 def generate_schema_container(model_node, designator, column_splitter):
-    if model_node.doc_str:
-        yield "".join(_gen_multi_line_doc(model_node.doc_str, indent_level=0, block_header=model_node.name))
+    if model_node.docstring:
+        yield "".join(_gen_multi_line_doc(model_node.docstring, indent_level=0, block_header=model_node.name))
 
     yield "\n{} {} {{".format(designator, model_node.name)
 
@@ -102,11 +102,11 @@ class SchemaTranslator(base.TranslatorBase):
             if member.optional:
                 type_ += "*"
 
-            if member.fixed:
+            if member.is_fixed:
                 name = '{m.name}[{m.size}];'
-            elif member.limited:
+            elif member.is_limited:
                 name = '{m.name}<{m.size}>;'
-            elif member.dynamic:
+            elif member.is_dynamic:
                 name = '{m.name}<@{m.bound}>;'
             elif member.greedy:
                 name = '{m.name}<...>;'
