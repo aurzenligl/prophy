@@ -167,60 +167,60 @@ class struct_generator(_composite_generator_base):
                 if field.type._BOUND:
                     cls.substitute_len_field(field)
 
-    def add_repeated_property(cls, descriptor_item):
+    def add_repeated_property(cls, descriptor_field):
         def getter(self):
-            value = self._fields.get(descriptor_item.name)
+            value = self._fields.get(descriptor_field.name)
             if value is None:
-                value = descriptor_item.type()
-                self._fields[descriptor_item.name] = value
+                value = descriptor_field.type()
+                self._fields[descriptor_field.name] = value
             return value
 
         def setter(self, new_value):
             raise ProphyError("assignment to array field not allowed")
 
-        setattr(cls, descriptor_item.name, property(getter, setter))
+        setattr(cls, descriptor_field.name, property(getter, setter))
 
-    def add_scalar_property(cls, descriptor_item):
-        if descriptor_item.type._OPTIONAL:
+    def add_scalar_property(cls, descriptor_field):
+        if descriptor_field.type._OPTIONAL:
             def getter(self):
-                return self._fields.get(descriptor_item.name)
+                return self._fields.get(descriptor_field.name)
 
             def setter(self, new_value):
                 if new_value is None:
-                    self._fields[descriptor_item.name] = None
+                    self._fields[descriptor_field.name] = None
                 else:
-                    self._fields[descriptor_item.name] = descriptor_item.type._check(new_value)
+                    self._fields[descriptor_field.name] = descriptor_field.type._check(new_value)
         else:
             def getter(self):
-                return self._fields.get(descriptor_item.name, descriptor_item.type._DEFAULT)
+                return self._fields.get(descriptor_field.name, descriptor_field.type._DEFAULT)
 
             def setter(self, new_value):
-                self._fields[descriptor_item.name] = descriptor_item.type._check(new_value)
-        setattr(cls, descriptor_item.name, property(getter, setter))
+                self._fields[descriptor_field.name] = descriptor_field.type._check(new_value)
+        setattr(cls, descriptor_field.name, property(getter, setter))
 
-    def add_composite_property(cls, descriptor_item):
-        if descriptor_item.type._OPTIONAL:
+    def add_composite_property(cls, descriptor_field):
+        if descriptor_field.type._OPTIONAL:
             def getter(self):
-                return self._fields.get(descriptor_item.name)
+                return self._fields.get(descriptor_field.name)
 
             def setter(self, new_value):
                 if new_value is True:
-                    self._fields[descriptor_item.name] = descriptor_item.type()
+                    self._fields[descriptor_field.name] = descriptor_field.type()
                 elif new_value is None:
-                    self._fields.pop(descriptor_item.name, None)
+                    self._fields.pop(descriptor_field.name, None)
                 else:
                     raise ProphyError("assignment to composite field not allowed")
         else:
             def getter(self):
-                value = self._fields.get(descriptor_item.name)
+                value = self._fields.get(descriptor_field.name)
                 if value:
                     return value
                 else:
-                    return self._fields.setdefault(descriptor_item.name, descriptor_item.type())
+                    return self._fields.setdefault(descriptor_field.name, descriptor_field.type())
 
             def setter(self, new_value):
                 raise ProphyError("assignment to composite field not allowed")
-        setattr(cls, descriptor_item.name, property(getter, setter))
+        setattr(cls, descriptor_field.name, property(getter, setter))
 
     def substitute_len_field(cls, container_item):
         sizer_name = cls.validate_and_fix_sizer_name(container_item)
