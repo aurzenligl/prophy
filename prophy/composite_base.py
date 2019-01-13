@@ -22,7 +22,4 @@ class _composite_base(prophy_data_object):
 
     @classmethod
     def get_descriptor(cls):
-        """
-            FIXME: I'm afraid it rapes YAGNI rule
-        """
         return [field.descriptor_info for field in cls._descriptor]

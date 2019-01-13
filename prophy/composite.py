@@ -140,9 +140,6 @@ class union(_composite_base):
         return field_to_string(name, self._discriminated.type, value)
 
     def get_discriminated(self):
-        """
-            FIXME: I'm afraid it rapes YAGNI rule
-        """
         return self._discriminated.descriptor_info
 
     def encode(self, endianness, **_):

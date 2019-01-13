@@ -3,7 +3,6 @@ from collections import namedtuple
 from .composite import codec_kind
 from .exception import ProphyError
 
-# TODO: FieldDescriptor kept for backward compatibility only, seems it's not used although
 FieldDescriptor = namedtuple("FieldDescriptor", "name, type, kind")
 FieldDescriptor.__repr__ = lambda self: "<{}, {!r}, {!r}>".format(*self)
 
@@ -136,9 +135,6 @@ def decode_scalar(parent, name, type_, data, pos, endianness, _):
 
 
 class kind(type):
-    """
-        FIXME: I hope nobody needs that. I'm about to remove that.
-    """
     INT = ('INT', 0)
     ENUM = ('ENUM', 1)
     BYTES = ('BYTES', 2)
