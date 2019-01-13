@@ -1,7 +1,7 @@
 from .base_array import base_array
 from .composite_base import _composite_base
 from .exception import ProphyError
-from .scalar import enum, scalar_bricks_walk
+from .scalar import enum
 from .six import repr_bytes, long
 
 
@@ -47,20 +47,6 @@ class struct(_composite_base):
     @classmethod
     def get_descriptor(cls):
         return [field.descriptor_info for field in cls._descriptor]
-
-    @classmethod
-    def get_descriptor2(cls, cursor=None):
-        for field in cls._descriptor:
-            if cursor:
-                yield cls._get_padding_field(cursor, field.type._ALIGNMENT)
-
-            yield field
-
-            if cursor and field.type._PARTIAL_ALIGNMENT:
-                yield cls._get_padding_field(cursor, field.type._PARTIAL_ALIGNMENT)
-
-        if cursor:
-            yield cls._get_padding_field(cursor, cls._ALIGNMENT)
 
     @classmethod
     def _get_padding_field(cls, cursor, alignment, name):
@@ -219,7 +205,6 @@ def bytes_(**kwargs):
         _BOUND = bound
         _BOUND_SHIFT = shift
         _PARTIAL_ALIGNMENT = None
-        _bricks_walk = scalar_bricks_walk
         _is_prophy_object = True
 
         @staticmethod

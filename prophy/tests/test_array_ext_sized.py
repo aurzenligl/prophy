@@ -10,6 +10,7 @@ def ExtSizedArr():
                        ("a", prophy.array(prophy.u8, bound="sz")),
                        ("b", prophy.array(prophy.u8, bound="sz")),
                        ("c", prophy.array(prophy.u16, bound="sz"))]
+
     return ExtSizedArr
 
 
@@ -22,6 +23,7 @@ def read_stdout_stderr(capsys):
 
         def __exit__(self, *_):
             self.out, self.err = capsys.readouterr()
+
     return Capture
 
 
@@ -31,17 +33,15 @@ def read_stdout_stderr(capsys):
     ("numOfany_other_name_will_be_forgotten_in_this_case", "numOfField"),
     ("numOfany_other_name_will_be_forgotten_in_this_case", "any_wrong_name_expected")])
 def test_ext_sized_can_be_lenient(sizer_name, expected_sizer_name, read_stdout_stderr):
-
     with read_stdout_stderr() as capture:
-
         class IForgotS(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [(sizer_name, prophy.u8),
                            ("field", prophy.array(prophy.u8, bound=expected_sizer_name))]
 
     assert capture.err == ""
-    assert capture.out == "Warning: Sizing member '{}' of container 'field' not "\
-        "found in the object 'IForgotS'.\n Picking '{}' as the missing sizer instead.\n\n".format(expected_sizer_name,
-                                                                                                  sizer_name)
+    assert capture.out == "Warning: Sizing member '{}' of container 'field' not " \
+                          "found in the object 'IForgotS'.\n Picking '{}' as the missing sizer instead." \
+                          "\n\n".format(expected_sizer_name, sizer_name)
     assert IForgotS().field._BOUND == sizer_name
 
 
@@ -95,7 +95,7 @@ def test_ext_sized_scalar_array_assignment(ExtSizedArr):
 
 def test_ext_sized_scalar_array_exceptions():
     with pytest.raises(Exception):
-        class LengthFieldNonexistent(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        class _(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("a", prophy.array(prophy.i32, bound="nonexistent"))]
     with pytest.raises(Exception):
         class LengthFieldAfter(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
@@ -154,7 +154,7 @@ def test_ext_sized_scalar_array_copy_from(ExtSizedArr):
     x = ExtSizedArr()
     x.a[:] = [1, 2]
     y = ExtSizedArr()
-    y.a[:] = [5, 6, 7]   # initial value to override
+    y.a[:] = [5, 6, 7]  # initial value to override
 
     y.copy_from(x)
     assert y.a == [1, 2]
@@ -309,11 +309,11 @@ def test_multi_ext_sized_arrays_sets_interwined():
 
 
 def test_ext_sized_scalar_array_with_shift():
-
     class XS(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u8),
                        ("a", prophy.array(prophy.u8, bound="len", shift=2)),
                        ("b", prophy.array(prophy.u8, bound="len", shift=2))]
+
     x = XS()
     x.a[:] = [1, 2, 3, 4]
     x.b[:] = [5, 6, 7, 8]

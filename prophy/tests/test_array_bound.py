@@ -1,5 +1,6 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.fixture(scope='session')
@@ -7,6 +8,7 @@ def BoundScalarArray():
     class BoundScalarArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u32),
                        ("value", prophy.array(prophy.u32, bound="len"))]
+
     return BoundScalarArray
 
 
@@ -15,6 +17,7 @@ def BoundCompositeArray(BoundScalarArray):
     class BoundCompositeArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("len", prophy.u32),
                        ("value", prophy.array(BoundScalarArray, bound="len"))]
+
     return BoundCompositeArray
 
 
@@ -108,7 +111,7 @@ def test_bound_scalar_array_sizer_after():
 def test_bound_scalar_array_bad_sizer_type():
     msg = "member type must be a prophy object, is: 'not_an_int'"
     with pytest.raises(Exception, match=msg):
-        class LengthFieldIsNotAnInteger(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
+        class _(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
             _descriptor = [("not_an_int", "not_an_int"),
                            ("a", prophy.array(prophy.i32, bound="not_an_int"))]
 

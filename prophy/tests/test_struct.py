@@ -1,5 +1,6 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.fixture(scope='session')
@@ -7,6 +8,7 @@ def Struct():
     class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.u32),
                        ("y", prophy.u32)]
+
     return Struct
 
 
@@ -15,6 +17,7 @@ def NestedStruct(Struct):
     class NestedStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", Struct),
                        ("b", Struct)]
+
     return NestedStruct
 
 
@@ -24,6 +27,7 @@ def DeeplyNestedStruct(NestedStruct, Struct):
         _descriptor = [("m", NestedStruct),
                        ("n", Struct),
                        ("o", prophy.u32)]
+
     return DeeplyNestedStruct
 
 
@@ -305,6 +309,7 @@ def test_struct_with_many_arrays():
                        ("y", prophy.array(prophy.u16, bound="y_len")),
                        ("z_len", prophy.u8),
                        ("z", prophy.array(prophy.u64, bound="z_len"))]
+
     x = X()
     x.x[:] = [1, 2, 3, 4, 5]
     x.y[:] = [1, 2]
@@ -327,6 +332,7 @@ def test_struct_with_many_arrays_mixed():
                        ("y_len", prophy.u16),
                        ("x", prophy.array(prophy.u8, bound="x_len")),
                        ("y", prophy.array(prophy.u16, bound="y_len"))]
+
     x = X()
     x.x[:] = [1, 2, 3, 4, 5]
     x.y[:] = [1, 2]
@@ -410,9 +416,10 @@ def test_struct_with_many_arrays_fixed_tail():
 
 
 def test_struct_exception_with_access_to_nonexistent_field():
+    class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+        _descriptor = [("a", prophy.u32)]
+
     with pytest.raises(AttributeError, match="'X' object has no attribute 'im_not_there'"):
-        class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
-            _descriptor = [("a", prophy.u32)]
         X().im_not_there
 
 
@@ -421,6 +428,7 @@ def test_struct_encoding_with_scalars():
         _descriptor = [("a", prophy.u8),
                        ("b", prophy.u16),
                        ("c", prophy.u8)]
+
     x = S()
 
     x.a = 1
@@ -436,7 +444,6 @@ def test_struct_encoding_with_scalars():
 
 
 def test_struct_encoding_with_inner_struct():
-
     class A(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u16),
                        ("b", prophy.u8)]
@@ -485,6 +492,7 @@ def test_struct_with_multiple_dynamic_fields():
                        ("b_len", prophy.u8),
                        ("a", prophy.array(prophy.u32, bound="a_len")),
                        ("b", prophy.array(prophy.u8, bound="b_len"))]
+
     x = A()
     x.a[:] = [1, 2]
     x.b[:] = [3, 4]
@@ -502,6 +510,7 @@ def test_struct_with_greedy_bytes():
         _descriptor = [("a_len", prophy.u16),
                        ("a", prophy.array(prophy.u16, bound="a_len")),
                        ("b", prophy.bytes())]
+
     x = A()
     x.a[:] = [5, 6, 7]
     x.b = b'ala ma kota'

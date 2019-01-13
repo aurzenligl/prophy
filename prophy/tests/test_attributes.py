@@ -1,5 +1,6 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.mark.parametrize("tp, size", [
@@ -41,12 +42,14 @@ def test_float_attributes(tp, size):
 def make_E():
     class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("E_1", 1)]
+
     return E
 
 
 def make_E8():
     class E8(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("E_1", 1)]
+
     return E8
 
 

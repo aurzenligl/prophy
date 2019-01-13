@@ -1,11 +1,13 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.fixture(scope='session')
 def X():
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", prophy.u32)]
+
     return X
 
 
@@ -21,6 +23,7 @@ def FixedScalarArray():
 def FixedCompositeArray(X):
     class FixedCompositeArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", prophy.array(X, size=2))]
+
     return FixedCompositeArray
 
 
@@ -209,6 +212,7 @@ def test_fixed_array_decode_multiple_scalar_arrays():
         _descriptor = [('x', prophy.array(prophy.u8, size=1)),
                        ('y', prophy.array(prophy.u8, size=1)),
                        ('z', prophy.array(prophy.u8, size=1))]
+
     x = X()
     x.decode(b'\x00\x00\x00', '<')
 

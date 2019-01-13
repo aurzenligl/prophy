@@ -37,3 +37,4 @@ tmp_*
 .cache
 .pytest_cache
 .coverage*
+htmlcov/

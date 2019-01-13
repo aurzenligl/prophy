@@ -126,7 +126,6 @@ class bound_scalar_array(base_array):
 
 
 class fixed_composite_array(base_array):
-
     __slots__ = []
 
     def __init__(self):

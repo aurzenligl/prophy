@@ -320,10 +320,6 @@ def build_container_length_field(sizer_item_type, container_name, bound_shift):
                 raise ProphyError("decoded array length smaller than shift")
             return value, size
 
-        @classmethod
-        def _bricks_walk(cls, _):
-            yield sizer_item_type, " (sizer)"
-
     return container_len
 
 

@@ -9,14 +9,6 @@ class prophy_data_object(object):
     __slots__ = []
 
 
-@classmethod
-def scalar_bricks_walk(cls, cursor):
-    """
-        A final step of iteration accros prophy object's descriptors, a single yield.
-    """
-    yield cls, None
-
-
 def numeric_decorator(cls, size, id_):
     @staticmethod
     def encode(value, endianness):
@@ -32,7 +24,6 @@ def numeric_decorator(cls, size, id_):
     cls._is_prophy_object = True
     cls._encode = encode
     cls._decode = decode
-    cls._bricks_walk = scalar_bricks_walk
 
     cls._SIZE = size
     cls._ALIGNMENT = size
@@ -62,6 +53,7 @@ def int_decorator(size, id_, min_, max_):
         cls._DEFAULT = 0
 
         return cls
+
     return decorator
 
 
@@ -80,6 +72,7 @@ def float_decorator(size, id_):
         cls._DEFAULT = 0.0
 
         return cls
+
     return decorator
 
 

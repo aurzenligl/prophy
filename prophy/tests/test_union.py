@@ -8,6 +8,7 @@ def SimpleUnion():
         _descriptor = [("a", prophy.u32, 0),
                        ("b", prophy.u32, 1),
                        ("c", prophy.u32, 2)]
+
     return SimpleUnion
 
 
@@ -18,6 +19,7 @@ def VariableLengthFieldsUnion():
                        ("b", prophy.u16, 1),
                        ("c", prophy.u32, 2),
                        ("d", prophy.u64, 3)]
+
     return VariableLengthFieldsUnion
 
 
@@ -97,6 +99,7 @@ def test_union_nonsequential_discriminators():
         _descriptor = [("a", prophy.u32, 3),
                        ("b", prophy.u32, 10),
                        ("c", prophy.u32, 55)]
+
     x = U()
     assert 3 == x.discriminator
 

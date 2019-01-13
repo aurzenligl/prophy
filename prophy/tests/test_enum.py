@@ -1,5 +1,6 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.fixture(scope='session')
@@ -8,6 +9,7 @@ def Enumeration():
         _enumerators = [("Enumeration_One", 1),
                         ("Enumeration_Two", 2),
                         ("Enumeration_Three", 3)]
+
     return Enumeration
 
 
@@ -17,6 +19,7 @@ def Enumeration8():
         _enumerators = [("Enumeration_One", 1),
                         ("Enumeration_Two", 2),
                         ("Enumeration_Three", 3)]
+
     return Enumeration8
 
 
@@ -24,6 +27,7 @@ def Enumeration8():
 def Enum(Enumeration):
     class Enum(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration)]
+
     return Enum
 
 
@@ -31,6 +35,7 @@ def Enum(Enumeration):
 def Enum8(Enumeration8):
     class Enum8(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration8)]
+
     return Enum8
 
 
@@ -38,6 +43,7 @@ def Enum8(Enumeration8):
 def EnumFixedArray(Enumeration):
     class EnumFixedArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", prophy.array(Enumeration, size=2))]
+
     return EnumFixedArray
 
 
@@ -46,6 +52,7 @@ def EnumBoundArray(Enumeration):
     class EnumBoundArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.array(Enumeration, bound="value_len"))]
+
     return EnumBoundArray
 
 
