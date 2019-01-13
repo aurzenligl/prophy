@@ -44,21 +44,20 @@ class _composite_generator_base(_generator_base):
             yield field.type
 
     def add_attributes(cls):
-        pass
+        """To be implemented in derived class."""
 
     def extend_descriptor(cls):
         for raw_item in cls._descriptor:
             raw_item.evaluate_codecs()
 
     def add_properties(cls):
-        pass
+        """To be implemented in derived class."""
 
     def add_sizers(cls):
-        pass
+        """To be implemented in derived class."""
 
     def validate(cls):
-        msg = "Abstract method to be implemented in derived class: {}."
-        raise NotImplementedError(msg.format(cls.__name__))
+        """To be implemented in derived class."""
 
 
 class enum_generator(_generator_base):
@@ -80,7 +79,6 @@ class enum_generator(_generator_base):
             raise ProphyError("names overlap in '{}' enum".format(cls.__name__))
 
     def add_attributes(self):
-        @classmethod
         def check(cls, value):
             if isinstance(value, str):
                 value = name_to_int.get(value)
@@ -100,7 +98,7 @@ class enum_generator(_generator_base):
         self._DEFAULT = self(self._enumerators[0][1])
         self._name_to_int = name_to_int
         self._int_to_name = int_to_name
-        self._check = check
+        self._check = classmethod(check)
 
 
 class struct_generator(_composite_generator_base):

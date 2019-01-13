@@ -423,6 +423,12 @@ def test_struct_exception_with_access_to_nonexistent_field():
         X().im_not_there
 
 
+def test_bad_struct_member_name():
+    with pytest.raises(prophy.ProphyError, match="member name must be a string type"):
+        class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
+            _descriptor = [(3.14159, prophy.u32)]
+
+
 def test_struct_encoding_with_scalars():
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", prophy.u8),

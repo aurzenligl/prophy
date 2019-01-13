@@ -104,14 +104,30 @@ def test_enum_decode_exception(Enum):
 
 def test_enum_bad_definition():
     msg = "type object 'NoEnumerators' has no attribute '_enumerators'"
-    with pytest.raises(Exception, match=msg):
+    with pytest.raises(AttributeError, match=msg):
         class NoEnumerators(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             pass
 
 
+def test_enum_invalid_name():
+    msg = "enum member's first argument has to be string"
+    with pytest.raises(prophy.ProphyError, match=msg):
+        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+            _enumerators = [(3.14159, 1),
+                            ("correct_name", 2)]
+
+
+def test_enum_invalid_value():
+    msg = "enum member's second argument has to be an integer"
+    with pytest.raises(prophy.ProphyError, match=msg):
+        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+            _enumerators = [("correct_value", 1),
+                            ("invalid_value", 3.14159)]
+
+
 def test_enum_names_overlap():
     msg = "names overlap in 'NamesOverlapping' enum"
-    with pytest.raises(Exception, match=msg):
+    with pytest.raises(prophy.ProphyError, match=msg):
         class NamesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("NamesOverlapping_Overlap", 1),
                             ("NamesOverlapping_Overlap", 2)]
@@ -119,9 +135,15 @@ def test_enum_names_overlap():
 
 def test_enum_value_out_of_bounds():
     msg = "out of bounds"
-    with pytest.raises(Exception, match=msg):
-        class ValueOutOfBounds(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+    with pytest.raises(prophy.ProphyError, match=msg):
+        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("OutOfBounds", 0xFFFFFFFF + 1)]
+
+
+def test_enum_bad_assignment(Enum):
+    msg = "neither string nor int"
+    with pytest.raises(prophy.ProphyError, match=msg):
+        Enum().value = 3.14159
 
 
 def test_enum8_encoding(Enum8):
@@ -135,17 +157,14 @@ def test_enum8_encoding(Enum8):
     x.decode(b"\x02", ">")
     assert x.value == 2
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="unknown enumerator Enumeration8 value"):
         x.decode(b"\x09", ">")
-    assert 'unknown enumerator Enumeration8 value' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="too few bytes to decode integer"):
         x.decode(b"", ">")
-    assert 'too few bytes to decode integer' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="not all bytes of Enum8 read"):
         x.decode(b"\x01\x01", ">")
-    assert 'not all bytes of Enum8 read' in str(e.value)
 
 
 def test_enum_with_overlapping_values():
@@ -240,9 +259,8 @@ def test_enum_access_to_members():
 
     x = E()
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(AttributeError, match="has no attribute"):
         x.not_available = 102
-    assert "has no attribute" in str(e.value)
 
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", E),

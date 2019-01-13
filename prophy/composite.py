@@ -49,10 +49,6 @@ class struct(_composite_base):
         return [field.descriptor_info for field in cls._descriptor]
 
     @classmethod
-    def _get_padding_field(cls, cursor, alignment, name):
-        return cls._padding_byte * cls._get_padding_size(cursor.offset, alignment)
-
-    @classmethod
     def _get_padding(cls, offset, alignment):
         return cls._padding_byte * cls._get_padding_size(offset, alignment)
 

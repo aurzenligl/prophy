@@ -1,12 +1,15 @@
 import prophy
 import pytest
 
+from prophy.descriptor import DescriptorField
+
 
 @pytest.fixture(scope='session')
 def Struct():
     class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x", prophy.u32),
                        ("y", prophy.u32)]
+
     return Struct
 
 
@@ -16,6 +19,7 @@ def Union(Struct):
         _descriptor = [("a", prophy.u16, 0),
                        ("b", prophy.u32, 1),
                        ("c", Struct, 2)]
+
     return Union
 
 
@@ -24,6 +28,7 @@ def NestedStruct(Struct):
     class NestedStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", Struct),
                        ("b", Struct)]
+
     return NestedStruct
 
 
@@ -33,6 +38,7 @@ def DeeplyNestedStruct(NestedStruct, Struct):
         _descriptor = [("m", NestedStruct),
                        ("n", Struct),
                        ("o", prophy.u32)]
+
     return DeeplyNestedStruct
 
 
@@ -43,6 +49,7 @@ def ComplicatedStruct(NestedStruct, Struct, Union):
                        ("b", prophy.u32),
                        ("c", prophy.array(Struct, size=2)),
                        ("d", prophy.array(Union, size=2))]
+
     return ComplicatedStruct
 
 
@@ -87,3 +94,13 @@ def test_union_instance_get_discriminated(Union, Struct):
         ('b', prophy.kind.INT, prophy.u32),
         ('c', prophy.kind.STRUCT, Struct)
     ]
+
+
+def test_descriptor_field_repr():
+    a = DescriptorField("x", prophy.u32)
+    assert repr(a) == "DescriptorField('x', <class 'prophy.scalar.u32'>)"
+
+
+def test_union_descriptor_field_repr():
+    a = DescriptorField("x", prophy.u32, 0)
+    assert repr(a) == "DescriptorField('x', <class 'prophy.scalar.u32'>, 0)"
