@@ -1,11 +1,13 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.fixture(scope='session')
 def X():
     class X(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("x", prophy.u32)]
+
     return X
 
 
@@ -21,6 +23,7 @@ def FixedScalarArray():
 def FixedCompositeArray(X):
     class FixedCompositeArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", prophy.array(X, size=2))]
+
     return FixedCompositeArray
 
 
@@ -33,9 +36,8 @@ def test_base_array_operators():
     x.values[2] = 4
     x.values[3] = -1
 
-    with pytest.raises(TypeError) as err:
+    with pytest.raises(TypeError, match="unhashable (:?object|type: '_array')"):
         set([x.values])
-    assert "unhashable" in str(err.value)
 
     assert len(x.values) == 4
     assert repr(x.values) == '[123, 0, 4, -1]'
@@ -54,21 +56,21 @@ def test_fixed_scalar_array_assignment(FixedScalarArray):
     x.value[slice(0, 2)] = [6, 7]
     assert x.value[:] == [6, 7]
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="(:?__delitem__|'_array' object does not support item deletion)"):
         del x.value[0]
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="'_array' object has no attribute 'no_such_attribute'"):
         x.value.no_such_attribute
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="'_array' object has no attribute 'no_such_attribute'"):
         x.value.no_such_attribute = 10
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="assignment to array field not allowed"):
         x.value = 10
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match=r"(:?object of type |)'int' has no (:?len\(\)|length)"):
         x.value[:] = 10
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="setting slice with different length collection"):
         x.value[:] = (10,)
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="not an int"):
         x.value[0] = "will fail type check"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="out of bounds"):
         x.value[0] = -1
 
     y = FixedScalarArray()
@@ -114,21 +116,17 @@ def test_fixed_scalar_array_exception():
     class U(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("a", prophy.array(prophy.u8))]
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(Exception, match="static/limited array of dynamic type not allowed"):
         prophy.array(D, size=2)
-    assert "static/limited array of dynamic type not allowed" == str(e.value)
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(Exception, match="static/limited array of dynamic type not allowed"):
         prophy.array(U, size=2)
-    assert "static/limited array of dynamic type not allowed" == str(e.value)
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(Exception, match="static/limited array of dynamic type not allowed"):
         prophy.array(D, bound="a_len", size=2)
-    assert "static/limited array of dynamic type not allowed" == str(e.value)
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(Exception, match="static/limited array of dynamic type not allowed"):
         prophy.array(U, bound="a_len", size=2)
-    assert "static/limited array of dynamic type not allowed" == str(e.value)
 
 
 def test_fixed_composite_array_assignment(FixedCompositeArray):
@@ -196,9 +194,8 @@ def test_fixed_array_decode_exception():
         _descriptor = [("a_len", prophy.u8),
                        ("a", prophy.array(prophy.u8, bound="a_len", size=3))]
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(Exception, match="A: too few bytes to decode array"):
         A().decode(b"\x00", ">")
-    assert "A: too few bytes to decode array" == str(e.value)
 
 
 def test_fixed_array_decode_size_over_255():
@@ -215,6 +212,7 @@ def test_fixed_array_decode_multiple_scalar_arrays():
         _descriptor = [('x', prophy.array(prophy.u8, size=1)),
                        ('y', prophy.array(prophy.u8, size=1)),
                        ('z', prophy.array(prophy.u8, size=1))]
+
     x = X()
     x.decode(b'\x00\x00\x00', '<')
 

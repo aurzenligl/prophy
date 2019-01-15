@@ -1,5 +1,7 @@
+from prophy.scalar import prophy_data_object
 
-class base_array(object):
+
+class base_array(prophy_data_object):
     __slots__ = ['_values']
 
     def __init__(self):

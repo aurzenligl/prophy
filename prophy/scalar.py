@@ -1,6 +1,12 @@
 import struct
+
 from .exception import ProphyError
 from .six import long
+
+
+class prophy_data_object(object):
+    _is_prophy_object = True
+    __slots__ = []
 
 
 def numeric_decorator(cls, size, id_):
@@ -15,6 +21,7 @@ def numeric_decorator(cls, size, id_):
         value, = struct.unpack(endianness + id_, data[pos:(pos + size)])
         return value, size
 
+    cls._is_prophy_object = True
     cls._encode = encode
     cls._decode = decode
 
@@ -46,6 +53,7 @@ def int_decorator(size, id_, min_, max_):
         cls._DEFAULT = 0
 
         return cls
+
     return decorator
 
 
@@ -64,6 +72,7 @@ def float_decorator(size, id_):
         cls._DEFAULT = 0.0
 
         return cls
+
     return decorator
 
 
@@ -117,45 +126,6 @@ class r64(float):
     __slots__ = []
 
 
-def add_enum_attributes(cls, enumerators):
-
-    @classmethod
-    def check(cls, value):
-        if isinstance(value, str):
-            value = name_to_int.get(value)
-            if value is None:
-                raise ProphyError("unknown enumerator name in {}".format(cls.__name__))
-            return cls(value)
-        elif isinstance(value, (int, long)):
-            if value not in int_to_name:
-                raise ProphyError("unknown enumerator {} value".format(cls.__name__))
-            return cls(value)
-        else:
-            raise ProphyError("neither string nor int")
-
-    name_to_int = {name: value for name, value in enumerators}
-    int_to_name = {value: name for name, value in enumerators}
-    if len(name_to_int) < len(enumerators):
-        raise ProphyError("names overlap")
-    list(map(cls._check, (value for _, value in enumerators)))
-    cls._DEFAULT = cls(enumerators[0][1])
-    cls._name_to_int = name_to_int
-    cls._int_to_name = int_to_name
-    cls._check = check
-
-
-class enum_generator(type):
-    def __new__(cls, name, bases, attrs):
-        attrs["__slots__"] = []
-        return super(enum_generator, cls).__new__(cls, name, bases, attrs)
-
-    def __init__(cls, name, bases, attrs):
-        if not hasattr(cls, "_generated"):
-            cls._generated = True
-            add_enum_attributes(cls, cls._enumerators)
-        super(enum_generator, cls).__init__(name, bases, attrs)
-
-
 class enum(u32):
     __slots__ = []
 
@@ -170,55 +140,3 @@ class enum(u32):
 
 class enum8(u8, enum):
     __slots__ = []
-
-
-def bytes_(**kwargs):
-    size = kwargs.pop("size", 0)
-    bound = kwargs.pop("bound", None)
-    shift = kwargs.pop("shift", 0)
-    if shift and (not bound or size):
-        raise ProphyError("only shifting bound bytes implemented")
-    if kwargs:
-        raise ProphyError("unknown arguments to bytes field")
-
-    class _bytes(bytes):
-        _SIZE = size
-        _DYNAMIC = not size
-        _UNLIMITED = not size and not bound
-        _DEFAULT = b"\x00" * size if size and not bound else ""
-        _OPTIONAL = False
-        _ALIGNMENT = 1
-        _BOUND = bound
-        _BOUND_SHIFT = shift
-        _PARTIAL_ALIGNMENT = None
-
-        @staticmethod
-        def _check(value):
-            if not isinstance(value, bytes):
-                raise ProphyError("not a bytes")
-            if size and len(value) > size:
-                raise ProphyError("too long")
-            if size and not bound:
-                return value.ljust(size, b'\x00')
-            return value
-
-        @staticmethod
-        def _encode(value):
-            return value.ljust(size, b'\x00')
-
-        @staticmethod
-        def _decode(data, pos, len_hint):
-            if (len(data) - pos) < size:
-                raise ProphyError("too few bytes to decode string")
-            if size and not bound:
-                return data[pos:(pos + size)], size
-            elif size and bound:
-                return data[pos:(pos + len_hint)], size
-            elif bound:
-                if (len(data) - pos) < len_hint:
-                    raise ProphyError("too few bytes to decode string")
-                return data[pos:(pos + len_hint)], len_hint
-            else:  # greedy
-                return data[pos:], (len(data) - pos)
-
-    return _bytes

@@ -1,6 +1,6 @@
 from . import scalar
-from .exception import ProphyError
 from .base_array import base_array
+from .exception import ProphyError
 
 
 def optional(cls):

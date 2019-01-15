@@ -1,5 +1,6 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.fixture(scope='session')
@@ -8,6 +9,7 @@ def Enumeration():
         _enumerators = [("Enumeration_One", 1),
                         ("Enumeration_Two", 2),
                         ("Enumeration_Three", 3)]
+
     return Enumeration
 
 
@@ -17,6 +19,7 @@ def Enumeration8():
         _enumerators = [("Enumeration_One", 1),
                         ("Enumeration_Two", 2),
                         ("Enumeration_Three", 3)]
+
     return Enumeration8
 
 
@@ -24,6 +27,7 @@ def Enumeration8():
 def Enum(Enumeration):
     class Enum(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration)]
+
     return Enum
 
 
@@ -31,6 +35,7 @@ def Enum(Enumeration):
 def Enum8(Enumeration8):
     class Enum8(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", Enumeration8)]
+
     return Enum8
 
 
@@ -38,6 +43,7 @@ def Enum8(Enumeration8):
 def EnumFixedArray(Enumeration):
     class EnumFixedArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value", prophy.array(Enumeration, size=2))]
+
     return EnumFixedArray
 
 
@@ -46,6 +52,7 @@ def EnumBoundArray(Enumeration):
     class EnumBoundArray(prophy.with_metaclass(prophy.struct_generator, prophy.struct_packed)):
         _descriptor = [("value_len", prophy.u32),
                        ("value", prophy.array(Enumeration, bound="value_len"))]
+
     return EnumBoundArray
 
 
@@ -82,30 +89,61 @@ def test_enum_encoding(Enum):
     x.decode(b"\x00\x00\x00\x03", ">")
     assert x.value == 3
 
-    with pytest.raises(prophy.ProphyError) as e:
+
+def test_enum_decode_exception(Enum):
+    x = Enum()
+    with pytest.raises(prophy.ProphyError, match='unknown enumerator Enumeration value'):
         x.decode(b"\x00\x00\x00\x09", ">")
-    assert 'unknown enumerator Enumeration value' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match='too few bytes to decode integer'):
         x.decode(b"\x00\x00\x01", ">")
-    assert 'too few bytes to decode integer' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match='not all bytes of Enum read'):
         x.decode(b"\x00\x00\x00\x01\x01", ">")
-    assert 'not all bytes of Enum read' in str(e.value)
 
 
-def test_enum_exceptions():
-    with pytest.raises(Exception):
+def test_enum_bad_definition():
+    msg = "type object 'NoEnumerators' has no attribute '_enumerators'"
+    with pytest.raises(AttributeError, match=msg):
         class NoEnumerators(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             pass
-    with pytest.raises(Exception):
+
+
+def test_enum_invalid_name():
+    msg = "enum member's first argument has to be string"
+    with pytest.raises(prophy.ProphyError, match=msg):
+        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+            _enumerators = [(3.14159, 1),
+                            ("correct_name", 2)]
+
+
+def test_enum_invalid_value():
+    msg = "enum member's second argument has to be an integer"
+    with pytest.raises(prophy.ProphyError, match=msg):
+        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+            _enumerators = [("correct_value", 1),
+                            ("invalid_value", 3.14159)]
+
+
+def test_enum_names_overlap():
+    msg = "names overlap in 'NamesOverlapping' enum"
+    with pytest.raises(prophy.ProphyError, match=msg):
         class NamesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("NamesOverlapping_Overlap", 1),
                             ("NamesOverlapping_Overlap", 2)]
-    with pytest.raises(Exception):
-        class ValueOutOfBounds(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
+
+
+def test_enum_value_out_of_bounds():
+    msg = "out of bounds"
+    with pytest.raises(prophy.ProphyError, match=msg):
+        class _(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("OutOfBounds", 0xFFFFFFFF + 1)]
+
+
+def test_enum_bad_assignment(Enum):
+    msg = "neither string nor int"
+    with pytest.raises(prophy.ProphyError, match=msg):
+        Enum().value = 3.14159
 
 
 def test_enum8_encoding(Enum8):
@@ -119,17 +157,14 @@ def test_enum8_encoding(Enum8):
     x.decode(b"\x02", ">")
     assert x.value == 2
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="unknown enumerator Enumeration8 value"):
         x.decode(b"\x09", ">")
-    assert 'unknown enumerator Enumeration8 value' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="too few bytes to decode integer"):
         x.decode(b"", ">")
-    assert 'too few bytes to decode integer' in str(e.value)
 
-    with pytest.raises(prophy.ProphyError) as e:
+    with pytest.raises(prophy.ProphyError, match="not all bytes of Enum8 read"):
         x.decode(b"\x01\x01", ">")
-    assert 'not all bytes of Enum8 read' in str(e.value)
 
 
 def test_enum_with_overlapping_values():
@@ -224,9 +259,8 @@ def test_enum_access_to_members():
 
     x = E()
 
-    with pytest.raises(Exception) as e:
+    with pytest.raises(AttributeError, match="has no attribute"):
         x.not_available = 102
-    assert "has no attribute" in str(e.value)
 
     class S(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("a", E),

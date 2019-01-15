@@ -1,5 +1,6 @@
-import prophy
 import pytest
+
+import prophy
 
 
 @pytest.mark.parametrize("tp, size", [
@@ -41,12 +42,14 @@ def test_float_attributes(tp, size):
 def make_E():
     class E(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [("E_1", 1)]
+
     return E
 
 
 def make_E8():
     class E8(prophy.with_metaclass(prophy.enum_generator, prophy.enum8)):
         _enumerators = [("E_1", 1)]
+
     return E8
 
 
@@ -203,8 +206,8 @@ def test_container_len_attributes():
                        ("b_len", prophy.u8),
                        ("b", prophy.array(prophy.u8, bound="b_len"))]
 
-    assert [["a"], "a_len", ["b"], "b_len"] == [tpl[1]._BOUND for tpl in S._descriptor]
-    assert ["a_len", "a", "b_len", "b"] == [tpl[0] for tpl in S._descriptor]
+    assert [["a"], "a_len", ["b"], "b_len"] == [tpl.type._BOUND for tpl in S._descriptor]
+    assert ["a_len", "a", "b_len", "b"] == [tpl.name for tpl in S._descriptor]
 
 
 def test_ext_sized_array_attributes_1():
@@ -214,8 +217,8 @@ def test_ext_sized_array_attributes_1():
                        ("b", prophy.array(prophy.u16, bound="sizer")),
                        ("c", prophy.array(prophy.u32, bound="sizer"))]
 
-    assert [["a", "b", "c"], "sizer", "sizer", "sizer"] == [tpl[1]._BOUND for tpl in S._descriptor]
-    assert ["sizer", "a", "b", "c"] == [tpl[0] for tpl in S._descriptor]
+    assert [["a", "b", "c"], "sizer", "sizer", "sizer"] == [tpl.type._BOUND for tpl in S._descriptor]
+    assert ["sizer", "a", "b", "c"] == [tpl.name for tpl in S._descriptor]
 
 
 def test_ext_sized_array_attributes_2():
@@ -227,8 +230,8 @@ def test_ext_sized_array_attributes_2():
                        ("b1", prophy.array(prophy.u32, bound="sz1")),
                        ("b2", prophy.array(prophy.u32, bound="sz2"))]
 
-    assert [["a1", "b1"], ["a2", "b2"], "sz1", "sz2", "sz1", "sz2"] == [tpl[1]._BOUND for tpl in S._descriptor]
-    assert ["sz1", "sz2", "a1", "a2", "b1", "b2"] == [tpl[0] for tpl in S._descriptor]
+    assert [["a1", "b1"], ["a2", "b2"], "sz1", "sz2", "sz1", "sz2"] == [tpl.type._BOUND for tpl in S._descriptor]
+    assert ["sz1", "sz2", "a1", "a2", "b1", "b2"] == [tpl.name for tpl in S._descriptor]
 
 
 def test_struct_static_attributes():
@@ -403,7 +406,7 @@ def test_struct_partially_padded():
                        ("z", prophy.u64)]
 
     assert X._ALIGNMENT == 8
-    assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in X._descriptor] == [None, 8, None, None]
+    assert [field.type._PARTIAL_ALIGNMENT for field in X._descriptor] == [None, 8, None, None]
 
     class Y(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [("x_len", prophy.u8),
@@ -413,7 +416,7 @@ def test_struct_partially_padded():
                        ("z", prophy.u64)]
 
     assert Y._ALIGNMENT == 8
-    assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in Y._descriptor] == [None, 4, None, 8, None]
+    assert [field.type._PARTIAL_ALIGNMENT for field in Y._descriptor] == [None, 4, None, 8, None]
 
 
 def test_bytes_partially_padded():
@@ -425,7 +428,7 @@ def test_bytes_partially_padded():
                        ("z", prophy.u64)]
 
     assert Y._ALIGNMENT == 8
-    assert [tp._PARTIAL_ALIGNMENT for _, tp, _, _ in Y._descriptor] == [None, 4, None, 8, None]
+    assert [field.type._PARTIAL_ALIGNMENT for field in Y._descriptor] == [None, 4, None, 8, None]
 
 
 def test_empty_struct():

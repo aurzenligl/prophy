@@ -24,13 +24,17 @@ waf-*
 .lock-*
 
 # IDE
+.DS_Store
 .cproject
+.idea
 .project
 .pydevproject
 .settings
+tmp_*
 
 # Test tools
 .tox
 .cache
 .pytest_cache
 .coverage*
+htmlcov/

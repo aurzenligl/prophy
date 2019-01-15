@@ -1,36 +1,38 @@
-from .scalar import (i8, i16, i32, i64,
-                     u8, u16, u32, u64,
-                     r32, r64,
-                     enum, enum8, enum_generator,
-                     bytes_ as bytes)
-from .optional import optional
+from .generators import (
+    enum_generator,
+    struct_generator,
+    union_generator
+)
 from .container import array
-from .composite import (struct,
-                        struct_packed,
-                        struct_generator,
-                        union,
-                        union_generator)
-
+from .composite import (
+    bytes_ as bytes,
+    struct,
+    struct_packed,
+    union,
+)
+from .descriptor import kind
 from .exception import ProphyError
+from .optional import optional
+from .scalar import i8, i16, i32, i64, u8, u16, u32, u64, r32, r64, enum, enum8
 from .six import with_metaclass
-from .kind import kind
+
 
 __all__ = [
     'i8', 'i16', 'i32', 'i64',
     'u8', 'u16', 'u32', 'u64',
     'r32', 'r64',
-    'enum', 'enum8', 'enum_generator',
-    'bytes',
-    'optional',
     'array',
+    'bytes',
+    'enum', 'enum8', 'enum_generator',
+    'kind',
+    'optional',
+    'ProphyError',
     'struct',
-    'struct_packed',
     'struct_generator',
+    'struct_packed',
     'union',
     'union_generator',
-    'ProphyError',
     'with_metaclass',
-    'kind',
 ]
 
 __version__ = '1.1.2'

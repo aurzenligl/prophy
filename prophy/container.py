@@ -1,6 +1,6 @@
-from . import composite
-from .exception import ProphyError
 from .base_array import base_array
+from .composite import struct, union
+from .exception import ProphyError
 from .six import xrange
 
 
@@ -126,7 +126,6 @@ class bound_scalar_array(base_array):
 
 
 class fixed_composite_array(base_array):
-
     __slots__ = []
 
     def __init__(self):
@@ -137,7 +136,7 @@ class fixed_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return b"".join(value.encode(endianness, terminal=False) for value in self)
+        return b"".join(value.encode(endianness) for value in self)
 
     def _decode_impl(self, data, pos, endianness, _):
         cursor = 0
@@ -186,7 +185,7 @@ class bound_composite_array(base_array):
         return composite_array_eq(self, other)
 
     def _encode_impl(self, endianness):
-        return b"".join(value.encode(endianness, terminal=False) for value in self).ljust(self._SIZE, b"\x00")
+        return b"".join(value.encode(endianness) for value in self).ljust(self._SIZE, b"\x00")
 
     def _decode_impl(self, data, pos, endianness, len_hint):
         if self._SIZE > (len(data) - pos):
@@ -223,7 +222,7 @@ def array(type_, **kwargs):
         raise ProphyError("array of optional type not allowed")
 
     is_static = size and not bound
-    is_composite = issubclass(type_, (composite.struct, composite.union))
+    is_composite = issubclass(type_, (struct, union))
 
     if is_composite:
         base = fixed_composite_array if is_static else bound_composite_array
