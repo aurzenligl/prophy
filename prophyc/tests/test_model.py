@@ -137,7 +137,7 @@ struct StructMemberKinds {
 
 
 def test_larger_model_repr(larger_model):
-    assert renew.reproduction_string(larger_model) == r"""[
+    assert renew.reproduction(larger_model) == r"""[
     model.Typedef('a', 'i16'),
     model.Typedef('c', 'a'),
     model.Include(
