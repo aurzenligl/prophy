@@ -6,7 +6,7 @@ long_description = open('README.rst').read()
 
 setup(
     name = 'prophy',
-    version = '1.1.2',
+    version = '1.2.0',
     author = 'Krzysztof Laskowski',
     author_email = 'aurzenligl@gmail.com',
     maintainer = 'Krzysztof Laskowski',
@@ -17,7 +17,7 @@ setup(
     long_description = long_description,
     packages = find_packages(),
     requires = ['ply', 'renew'],
-    install_requires = ['ply', 'renew==0.1.1'],
+    install_requires = ['ply', 'renew==0.2'],
     keywords = 'idl codec binary data protocol compiler',
     classifiers = [
         'Development Status :: 5 - Production/Stable',

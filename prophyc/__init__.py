@@ -9,7 +9,7 @@ from . import options
 from .file_processor import FileProcessor
 from .generators.base import GenerateError
 
-__version__ = '1.1.2'
+__version__ = '1.2.0'
 
 
 class ProphycError(Exception):
