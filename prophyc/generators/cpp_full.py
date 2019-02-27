@@ -2,7 +2,6 @@ from prophyc import model
 from prophyc.model import DISC_SIZE, BUILTIN_SIZES
 from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
 
-
 BUILTIN2C = {
     'i8': 'int8_t',
     'i16': 'int16_t',
@@ -78,7 +77,8 @@ class _HppIncludesTranslator(TranslatorBase):
         return '#include "{}.ppf.hpp"'.format(include.name)
 
 
-HPP_DEFS_TEMPLATE = """\
+class _HppDefinitionsTranslator(TranslatorBase):
+    block_template = """\
 namespace prophy
 {{
 namespace generated
@@ -88,10 +88,6 @@ namespace generated
 }} // namespace generated
 }} // namespace prophy
 """
-
-
-class _HppDefinitionsTranslator(TranslatorBase):
-    block_template = HPP_DEFS_TEMPLATE
 
     def translate_constant(self, constant):
         return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
@@ -211,6 +207,7 @@ class _CppTranslator(TranslatorBase):
 
     def translate_struct(self, node):
         def encode_impl(node):
+            cast_template = 'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'
             return (
                 'template <>\n' +
                 'template <endianness E>\n' +
@@ -221,14 +218,12 @@ class _CppTranslator(TranslatorBase):
                     'return pos;\n'
                 ) +
                 '}\n' +
-                ''.join(
-                    'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(
-                        node.name, e)
-                    for e in ('native', 'little', 'big')
-                )
+                ''.join(cast_template.format(node.name, e) for e in ('native', 'little', 'big'))
             )
 
         def decode_impl(node):
+            cast_template = 'template bool message_impl<{0}>::decode<{1}>' \
+                            '({0}& x, const uint8_t*& pos, const uint8_t* end);\n'
             return (
                 'template <>\n' +
                 'template <endianness E>\n' +
@@ -239,24 +234,19 @@ class _CppTranslator(TranslatorBase):
                     _indent(generate_struct_decode(node)) +
                     ');\n'
                 ) +
-                '}\n' +
-                ''.join(
-                    'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
-                        node.name, e)
-                    for e in ('native', 'little', 'big')
-                )
+                '}\n' + ''.join(cast_template.format(node.name, e) for e in ('native', 'little', 'big'))
             )
 
         def print_impl(node):
+            cast_template = 'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);'
             return (
                 'template <>\n' +
                 'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name) +
                 '{\n' +
                 _indent(generate_struct_print(node)) +
-                '}\n' +
-                'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);'.format(
-                    node.name)
+                '}\n' + cast_template.format(node.name)
             )
+
         return (
             encode_impl(node) + '\n' +
             decode_impl(node) + '\n' +
@@ -307,6 +297,7 @@ class _CppTranslator(TranslatorBase):
                 'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
                     node.name)
             )
+
         return (
             encode_impl(node) + '\n' +
             decode_impl(node) + '\n' +
@@ -328,10 +319,9 @@ def generate_struct_encode(node):
         elif m.is_limited:
             d, dcpptype = delimiters[m.name]
             dcpptype = _get_cpp_builtin_type(d)
-            text += (
-                'do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'.format(m.name, m.size, dcpptype) +
-                'pos = pos + {0};\n'.format(m.byte_size)
-            )
+            text += ('do_encode<E>(pos, x.{0}.data(), {2}(std::min(x.{0}.size(), size_t({1}))));\n'
+                     'pos = pos + {3};\n').format(m.name, m.size, dcpptype, m.byte_size)
+
         elif m.greedy:
             text += 'pos = do_encode<E>(pos, x.{0}.data(), x.{0}.size());\n'.format(m.name)
         elif m.optional:
@@ -456,7 +446,8 @@ def generate_struct_fields(node):
         elif m.is_dynamic:
             text += 'std::vector<{0}> {1};\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name)
         elif m.is_limited:
-            text += 'std::vector<{0}> {1}; /// limit {2}\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name, m.size)
+            text += 'std::vector<{0}> {1}; /// limit {2}\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name,
+                                                                   m.size)
         elif m.greedy:
             text += 'std::vector<{0}> {1}; /// greedy\n'.format(BUILTIN2C.get(m.type_name, m.type_name), m.name)
         elif m.optional:
@@ -587,11 +578,7 @@ def generate_union_constructor(node):
         )) +
         ''.join(
             '{0}(prophy::detail::int2type<discriminator_{1}>, {2} _1): discriminator(discriminator_{1}), {1}(_1) {{ }}\n'
-            .format(
-                node.name,
-                m.name,
-                _const_refize(init is None, BUILTIN2C.get(m.type_name, m.type_name))
-            )
+            .format(node.name, m.name, _const_refize(init is None, BUILTIN2C.get(m.type_name, m.type_name)))
             for m, init in zip(node.members, inits)
         )
     )

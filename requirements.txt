@@ -1,2 +1,2 @@
 ply
-renew==0.2
+renew==0.2.2

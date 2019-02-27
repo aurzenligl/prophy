@@ -5,15 +5,15 @@ forthcoming
 
 1.2.0
 -----------------------------------
-- prophyc.generators.schema: introduced schema generator
+- prophyc.generators.prophy: introduced prophy language generator
 - prophyc.parsers.isar collects docstrings
 - prophyc.model:
-  * quite large refactor performed, shaped nodes inheritance tree
+  * refactor performed, shaped nodes' inheritance tree
   * each node gets reproducible repr() (added renew package as dependency)
-  * each node gets str implementation that returns a valid prophy schema language
-  * each node may have a docstring
-  * node name and docstring can be defined in unicode (python2)
-  * Constant can be defined with numbers in hexadecimal format
+  * each node gets str implementation that returns its prophy language representation
+  * each node may have a doc-string
+  * node name and docstring can be defined in unicode (special care in python2)
+  * Constant can be defined with numbers in hexadecimal literal format
 
 
 1.1.2

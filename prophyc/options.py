@@ -69,20 +69,24 @@ def parse_options(emit_error, args):
                         type=readable_dir,
                         help='Generate Python source files.')
 
+    parser.add_argument('--prophy_out',
+                        metavar='OUT_DIR',
+                        type=readable_dir,
+                        help='Generate prophy schema source files.')
+
     parser.add_argument('--cpp_out',
                         metavar='OUT_DIR',
                         type=readable_dir,
                         help='Generate C++ simple POD-based codec header and source files.')
 
-    parser.add_argument('--schema_out',
-                        metavar='OUT_DIR',
-                        type=readable_dir,
-                        help='Generate prophy schema source files.')
-
     parser.add_argument('--cpp_full_out',
                         metavar='OUT_DIR',
                         type=readable_dir,
                         help='Generate C++ full object-based codec header and source files.')
+
+    parser.add_argument('--void_out',
+                        action='store_true',
+                        help='Allow compilation without generating any files.')
 
     parser.add_argument('--version',
                         action='store_true',

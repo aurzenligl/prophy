@@ -5,7 +5,7 @@
 import pytest
 from prophyc import model
 
-from prophyc.generators import base, schema
+from prophyc.generators import base, prophy
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def serialize(mocker):
 @pytest.fixture
 def schema_gen(serialize):
     def perform_test(nodes):
-        gen = schema.SchemaGenerator()
+        gen = prophy.SchemaGenerator()
         writes_ = serialize(nodes, gen, "schema_test")
         assert len(writes_) == 1
         file_names = list(writes_.keys())
@@ -41,6 +41,30 @@ def schema_gen(serialize):
 
 def test_empty_tree(schema_gen):
     assert schema_gen([]) == ''
+
+
+def test_structs(schema_gen):
+    model_nodes = [
+        model.Struct('X', [
+            model.StructMember('x', 'u32'),
+            model.StructMember('y', 'u64', size=2),
+        ]),
+        model.Struct('Y', [
+            model.StructMember('q', 'u16'),
+        ]),
+    ]
+    assert schema_gen(model_nodes) == """\
+
+struct X {
+    u32 x;
+    u64 y[2];
+};
+
+
+struct Y {
+    u16 q;
+};
+"""
 
 
 LOREM_W_BREAKS = "\n".join([

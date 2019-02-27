@@ -65,13 +65,12 @@ def _columnizer(model_node, column_splitter, max_line_width=100):
 
 def generate_schema_container(model_node, designator, column_splitter):
     if model_node.docstring:
-        yield "".join(_gen_multi_line_doc(model_node.docstring, indent_level=0, block_header=model_node.name))
-
-    yield "\n{} {} {{".format(designator, model_node.name)
-
-    yield "".join(_columnizer(model_node, column_splitter, max_line_width=100))
-
-    yield "};"
+        block_docstring = "".join(
+            _gen_multi_line_doc(model_node.docstring, indent_level=0, block_header=model_node.name))
+    else:
+        block_docstring = ""
+    members = "".join(_columnizer(model_node, column_splitter, max_line_width=100))
+    return "{}\n{} {} {{{}}};".format(block_docstring, designator, model_node.name, members)
 
 
 class SchemaTranslator(base.TranslatorBase):
@@ -93,7 +92,7 @@ class SchemaTranslator(base.TranslatorBase):
             value = " = {};".format(member.value)
             return member.name, value
 
-        return u''.join(generate_schema_container(enumerator, "enum", column_selector))
+        return generate_schema_container(enumerator, "enum", column_selector)
 
     @staticmethod
     def translate_struct(struct):
@@ -115,7 +114,7 @@ class SchemaTranslator(base.TranslatorBase):
 
             return type_, " ", name.format(m=member)
 
-        return ''.join(generate_schema_container(struct, "struct", column_selector))
+        return generate_schema_container(struct, "struct", column_selector)
 
     @staticmethod
     def translate_union(union):
@@ -125,7 +124,7 @@ class SchemaTranslator(base.TranslatorBase):
             field_name = " {};".format(member.name)
             return discriminator, field_type, field_name
 
-        return ''.join(generate_schema_container(union, "union", column_selector))
+        return generate_schema_container(union, "union", column_selector)
 
 
 class SchemaGenerator(base.GeneratorBase):
