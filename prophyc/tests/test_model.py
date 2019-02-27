@@ -4,6 +4,7 @@ import sys
 import pytest
 import renew
 
+import prophyc  # noqa
 from prophyc import model
 
 
