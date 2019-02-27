@@ -39,12 +39,12 @@ def test_struct_repr():
     ], docstring="no_docstring_")
 
     assert repr(struct_a) == """\
-model.Struct(
+prophyc.model.Struct(
     'MyStruct',
     [
-        model.StructMember('a', 'u8'),
-        model.StructMember('b', 'cint16_t'),
-        model.StructMember('c', 'u32', size=3, docstring='no_docstring'),
+        prophyc.model.StructMember('a', 'u8'),
+        prophyc.model.StructMember('b', 'cint16_t'),
+        prophyc.model.StructMember('c', 'u32', size=3, docstring='no_docstring'),
     ],
     'no_docstring_',
 )"""
@@ -138,85 +138,82 @@ struct StructMemberKinds {
 
 def test_larger_model_repr(larger_model):
     assert renew.reproduction(larger_model) == r"""[
-    model.Typedef('a', 'i16'),
-    model.Typedef('c', 'a'),
-    model.Include(
+    prophyc.model.Typedef('a', 'i16'),
+    prophyc.model.Typedef('c', 'a'),
+    prophyc.model.Include(
         'some_defs',
         [
-            model.Struct(
+            prophyc.model.Struct(
                 'IncludedStruct',
                 [
-                    model.StructMember('member1', 'c', 'doc for member1'),
-                    model.StructMember('member2', 'u32', 'docstring for member1'),
+                    prophyc.model.StructMember('member1', 'c', 'doc for member1'),
+                    prophyc.model.StructMember('member2', 'u32', 'docstring for member1'),
                 ],
             ),
-            model.Typedef('c', 'a'),
+            prophyc.model.Typedef('c', 'a'),
         ],
     ),
-    model.Union(
+    prophyc.model.Union(
         'the_union',
         [
-            model.UnionMember('a', 'IncludedStruct', 0),
-            model.UnionMember('field_with_a_long_name', 'Internal', 1, docstring='defined internally'),
-            model.UnionMember('other', 'Internal', 4090, docstring='This one has longer discriminator'),
+            prophyc.model.UnionMember('a', 'IncludedStruct', 0),
+            prophyc.model.UnionMember('field_with_a_long_name', 'Internal', 1, docstring='defined internally'),
+            prophyc.model.UnionMember('other', 'Internal', 4090, docstring='This one has longer discriminator'),
         ],
         'spec for that union',
     ),
-    model.Enum(
+    prophyc.model.Enum(
         'E1',
         [
-            model.EnumMember('E1_A', '0', 'enum1 constant value A'),
-            model.EnumMember('E1_B_has_a_long_name', '1', 'enum1 constant va3lue B'),
-            model.EnumMember(
+            prophyc.model.EnumMember('E1_A', '0', 'enum1 constant value A'),
+            prophyc.model.EnumMember('E1_B_has_a_long_name', '1', 'enum1 constant va3lue B'),
+            prophyc.model.EnumMember(
                 'E1_C_desc',
                 '2',
-                (
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
-                    'ut labore et dolore magna aliqua. Libero nunc consequat inte'
-                ),
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
+                'ut labore et dolore magna aliqua. Libero nunc consequat inte'
             ),
         ],
-        (
-            'Enumerator is a model type that is not supposed to be serialized. Its definition '
-            'represents yet another syntax variation for typing a constant. Of course elements '
-            "of it's type are serializable (as int32)"
-        ),
+        'Enumerator is a model type that is not supposed to be serialized. Its definition '
+        'represents yet another syntax variation for typing a constant. Of course elements '
+        "of it's type are serializable (as int32)"
     ),
-    model.Enum('E2', [model.EnumMember('E2_A', '0', 'Short\nmultiline\ndoc')]),
-    model.Constant('CONST_A', '6'),
-    model.Constant('CONST_B', '0'),
-    model.Struct(
+    prophyc.model.Enum('E2', [prophyc.model.EnumMember('E2_A', '0', 'Short\nmultiline\ndoc')]),
+    prophyc.model.Constant('CONST_A', '6'),
+    prophyc.model.Constant('CONST_B', '0'),
+    prophyc.model.Struct(
         'StructMemberKinds',
         [
-            model.StructMember('meber_with_no_docstr', 'i16'),
-            model.StructMember('ext_size', 'i16', docstring='arbitrary sizer for dynamic arrays'),
-            model.StructMember('optional_element', 'Complex', optional=True, docstring='optional array'),
-            model.StructMember('fixed_array', 'Complex', size=3, docstring='Array with static size.'),
-            model.StructMember('samples', 'Complex', bound='ext_size', docstring='dynamic (ext.sized) array'),
-            model.StructMember(
+            prophyc.model.StructMember('meber_with_no_docstr', 'i16'),
+            prophyc.model.StructMember('ext_size', 'i16', docstring='arbitrary sizer for dynamic arrays'),
+            prophyc.model.StructMember('optional_element', 'Complex', optional=True, docstring='optional array'),
+            prophyc.model.StructMember('fixed_array', 'Complex', size=3, docstring='Array with static size.'),
+            prophyc.model.StructMember(
+                'samples',
+                'Complex',
+                bound='ext_size',
+                docstring='dynamic (ext.sized) array',
+            ),
+            prophyc.model.StructMember(
                 'limitted_array',
                 'r64',
                 bound='ext_size',
                 size=4,
                 docstring='Has statically evaluable maximum size.',
             ),
-            model.StructMember(
+            prophyc.model.StructMember(
                 'greedy',
                 'Complex',
                 greedy=True,
-                docstring=(
-                    'Represents array of arbitrary number of elements. Buffer size must be multiply of '
-                    'element size.'
-                ),
+                docstring='Represents array of arbitrary number of elements. Buffer size must be multiply of '
+                'element size.'
             ),
         ],
-        (
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
-            'ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas '
-            'accumsan lacus vel facilisis:\n  - Dui ut ornare,\n  - Lectus,\n  - Malesuada pellentesque,\n\n\nElit '
-            'eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis '
-            'egestas sed.\nEgestas integer eget aliquet.'
-        ),
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
+        'ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas '
+        'accumsan lacus vel facilisis:\n  - Dui ut ornare,\n  - Lectus,\n  - Malesuada pellentesque,\n\n\nElit '
+        'eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis '
+        'egestas sed.\nEgestas integer eget aliquet.'
     ),
 ]"""
     assert_repr_reproduces(larger_model)

@@ -35,8 +35,8 @@ class GeneratorAbc(object):
 
 
 class GeneratorBase(GeneratorAbc):
-    def __init__(self, outpu_directory="."):
-        self.output_dir = outpu_directory
+    def __init__(self, output_directory="."):
+        self.output_dir = output_directory
 
     def serialize(self, nodes, base_name):
         self.check_nodes(nodes)

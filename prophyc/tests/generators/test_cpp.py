@@ -1,6 +1,7 @@
 import pytest
+
 from prophyc import model
-from prophyc.generators.cpp import CppGenerator, GenerateError, _Padder, _HppTranslator,\
+from prophyc.generators.cpp import CppGenerator, GenerateError, _Padder, _HppTranslator, \
     _HppDefinitionsTranslator, _HppSwapDeclarations, _HppIncludesTranslator, _CppSwapTranslator
 
 hpp_translator = _HppTranslator()

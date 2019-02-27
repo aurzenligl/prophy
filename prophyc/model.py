@@ -47,7 +47,7 @@ DISC_SIZE = BUILTIN_SIZES['u32']
 """ Enum byte size. """
 ENUM_SIZE = BUILTIN_SIZES['u32']
 
-model_repr = renew.reproducible(namespace="model")
+model_repr = renew.reproducible(namespace="prophyc.model")
 
 
 @model_repr

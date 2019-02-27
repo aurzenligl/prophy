@@ -70,7 +70,7 @@ def make_include(xml_elem, process_file, warn):
 
 
 def get_docstr(xml_elem):
-    return six.decode_string(xml_elem.get("comment", ""))
+    return six.decode_string(xml_elem.get("comment", "")) or None
 
 
 def make_constant(xml_elem):
