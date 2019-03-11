@@ -126,7 +126,7 @@ def test_enum_invalid_value():
 
 
 def test_enum_names_overlap():
-    msg = "names overlap in 'NamesOverlapping' enum, duplicates: SameName, OtherDuplicate"
+    msg = "names overlap in 'NamesOverlapping' enum, duplicates: OtherDuplicate, SameName"
     with pytest.raises(prophy.ProphyError, match=msg):
         class NamesOverlapping(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
             _enumerators = [("SameName", 1),

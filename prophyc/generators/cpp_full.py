@@ -101,51 +101,44 @@ namespace generated
 
     def translate_struct(self, node):
         return (
-            'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
-            '{\n' +
-            _indent(
-                '\n'.join((
-                    'enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)),
-                    generate_struct_fields(node),
-                    generate_struct_constructor(node),
-                    'size_t get_byte_size() const\n' +
-                    '{\n' +
-                    _indent(generate_struct_get_byte_size(node)) +
-                    '}\n'
-                ))
-            ) +
-            '};'
+                'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
+                '{\n' +
+                _indent(
+                    '\n'.join((
+                        'enum {{ encoded_byte_size = {0} }};\n'.format(generate_struct_encoded_byte_size(node)),
+                        generate_struct_fields(node),
+                        generate_struct_constructor(node),
+                        'size_t get_byte_size() const\n' +
+                        '{\n' +
+                        _indent(generate_struct_get_byte_size(node)) +
+                        '}\n'
+                    ))
+                ) +
+                '};'
         )
 
     def translate_union(self, node):
         return (
-            'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
-            '{\n' +
-            _indent(
-                '\n'.join((
-                    'enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)),
-                    generate_union_fields(node),
-                    generate_union_constructor(node),
-                    'size_t get_byte_size() const\n' +
-                    '{\n' +
-                    _indent(generate_union_get_byte_size(node)) +
-                    '}\n'
-                ))
-            ) +
-            '};'
+                'struct {0} : public prophy::detail::message<{0}>\n'.format(node.name) +
+                '{\n' +
+                _indent(
+                    '\n'.join((
+                        'enum {{ encoded_byte_size = {0} }};\n'.format(generate_union_encoded_byte_size(node)),
+                        generate_union_fields(node),
+                        generate_union_constructor(node),
+                        'size_t get_byte_size() const\n' +
+                        '{\n' +
+                        _indent(generate_union_get_byte_size(node)) +
+                        '}\n'
+                    ))
+                ) +
+                '};'
         )
-
 
     @classmethod
     def _make_lines_splitter(cls, previous_node_type, current_node_type):
-        if "prerequisite block" in (previous_node_type, current_node_type):
-            return ""
-
         if not previous_node_type:
             return ""
-
-        if previous_node_type == "Include" and current_node_type != "Include":
-            return "\n\n\n"
 
         if previous_node_type in ("Enum", "Struct", "Union") or current_node_type in ("Enum", "Struct", "Union"):
             return "\n\n\n"
@@ -154,6 +147,7 @@ namespace generated
             return "\n\n"
 
         return "\n"
+
 
 HPP_HEADER_TEMPLATE = """\
 #ifndef _PROPHY_GENERATED_FULL_{base_name}_HPP
@@ -184,22 +178,11 @@ class _HppTranslator(TranslatorBase):
 
     @classmethod
     def _make_lines_splitter(cls, previous_node_type, current_node_type):
-        if "prerequisite block" in (previous_node_type, current_node_type):
-            return ""
-
         if not previous_node_type:
             return ""
-
-        if previous_node_type == "Include" and current_node_type != "Include":
-            return "\n\n"
-
         if previous_node_type in ("Enum", "Struct", "Union") or current_node_type in ("Enum", "Struct", "Union"):
             return "\n\n"
-
-        if previous_node_type != current_node_type:
-            return "\n\n"
-
-        return "\n"
+        return TranslatorBase._make_lines_splitter(previous_node_type, current_node_type)
 
 
 CPP_SOURCE_TEMPLATE = """\
@@ -228,118 +211,122 @@ class _CppTranslator(TranslatorBase):
 
     def translate_enum(self, node):
         return (
-            'template <>\n' +
-            'const char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name) +
-            '{\n' +
-            _indent(
-                'switch (x)\n' +
+                'template <>\n' +
+                'const char* print_traits<{0}>::to_literal({0} x)\n'.format(node.name) +
                 '{\n' +
                 _indent(
-                    ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members) +
-                    'default: return 0;\n'
+                    'switch (x)\n' +
+                    '{\n' +
+                    _indent(
+                        ''.join('case {0}: return "{0}";\n'.format(m.name) for m in node.members) +
+                        'default: return 0;\n'
+                    ) +
+                    '}\n'
                 ) +
-                '}\n'
-            ) +
-            '}'
+                '}'
         )
 
     def translate_struct(self, node):
         def encode_impl(node):
             cast_template = 'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'
             return (
-                'template <>\n' +
-                'template <endianness E>\n' +
-                'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
-                '{\n' +
-                _indent(
-                    generate_struct_encode(node) +
-                    'return pos;\n'
-                ) +
-                '}\n' +
-                ''.join(cast_template.format(node.name, e) for e in ('native', 'little', 'big'))
+                    'template <>\n' +
+                    'template <endianness E>\n' +
+                    'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
+                    '{\n' +
+                    _indent(
+                        generate_struct_encode(node) +
+                        'return pos;\n'
+                    ) +
+                    '}\n' +
+                    ''.join(cast_template.format(node.name, e) for e in ('native', 'little', 'big'))
             )
 
         def decode_impl(node):
             cast_template = 'template bool message_impl<{0}>::decode<{1}>' \
                             '({0}& x, const uint8_t*& pos, const uint8_t* end);\n'
             return (
-                'template <>\n' +
-                'template <endianness E>\n' +
-                'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name) +
-                '{\n' +
-                _indent(
-                    'return (\n' +
-                    _indent(generate_struct_decode(node)) +
-                    ');\n'
-                ) +
-                '}\n' + ''.join(cast_template.format(node.name, e) for e in ('native', 'little', 'big'))
+                    'template <>\n' +
+                    'template <endianness E>\n' +
+                    'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(
+                        node.name) +
+                    '{\n' +
+                    _indent(
+                        'return (\n' +
+                        _indent(generate_struct_decode(node)) +
+                        ');\n'
+                    ) +
+                    '}\n' + ''.join(cast_template.format(node.name, e) for e in ('native', 'little', 'big'))
             )
 
         def print_impl(node):
             cast_template = 'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);'
             return (
-                'template <>\n' +
-                'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name) +
-                '{\n' +
-                _indent(generate_struct_print(node)) +
-                '}\n' + cast_template.format(node.name)
+                    'template <>\n' +
+                    'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(
+                        node.name) +
+                    '{\n' +
+                    _indent(generate_struct_print(node)) +
+                    '}\n' + cast_template.format(node.name)
             )
 
         return (
-            encode_impl(node) + '\n' +
-            decode_impl(node) + '\n' +
-            print_impl(node)
+                encode_impl(node) + '\n' +
+                decode_impl(node) + '\n' +
+                print_impl(node)
         )
 
     def translate_union(self, node):
         def encode_impl(node):
             return (
-                'template <>\n' +
-                'template <endianness E>\n' +
-                'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
-                '{\n' +
-                _indent(
-                    generate_union_encode(node) +
-                    'return pos;\n'
-                ) +
-                '}\n' +
-                ''.join(
-                    'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(
-                        node.name, e)
-                    for e in ('native', 'little', 'big')
-                )
+                    'template <>\n' +
+                    'template <endianness E>\n' +
+                    'uint8_t* message_impl<{0}>::encode(const {0}& x, uint8_t* pos)\n'.format(node.name) +
+                    '{\n' +
+                    _indent(
+                        generate_union_encode(node) +
+                        'return pos;\n'
+                    ) +
+                    '}\n' +
+                    ''.join(
+                        'template uint8_t* message_impl<{0}>::encode<{1}>(const {0}& x, uint8_t* pos);\n'.format(
+                            node.name, e)
+                        for e in ('native', 'little', 'big')
+                    )
             )
 
         def decode_impl(node):
             return (
-                'template <>\n' +
-                'template <endianness E>\n' +
-                'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(node.name) +
-                '{\n' +
-                _indent(generate_union_decode(node)) +
-                '}\n' +
-                ''.join(
-                    'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
-                        node.name, e)
-                    for e in ('native', 'little', 'big')
-                )
+                    'template <>\n' +
+                    'template <endianness E>\n' +
+                    'bool message_impl<{0}>::decode({0}& x, const uint8_t*& pos, const uint8_t* end)\n'.format(
+                        node.name) +
+                    '{\n' +
+                    _indent(generate_union_decode(node)) +
+                    '}\n' +
+                    ''.join(
+                        'template bool message_impl<{0}>::decode<{1}>({0}& x, const uint8_t*& pos, const uint8_t* end);\n'.format(
+                            node.name, e)
+                        for e in ('native', 'little', 'big')
+                    )
             )
 
         def print_impl(node):
             return (
-                'template <>\n' +
-                'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(node.name) +
-                '{\n' +
-                _indent(generate_union_print(node)) +
-                '}\n' +
-                'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
-                    node.name)
+                    'template <>\n' +
+                    'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(
+                        node.name) +
+                    '{\n' +
+                    _indent(generate_union_print(node)) +
+                    '}\n' +
+                    'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
+                        node.name)
             )
 
         return (
-            encode_impl(node) + '\n' +
-            decode_impl(node) + '\n' +
-            print_impl(node)
+                encode_impl(node) + '\n' +
+                decode_impl(node) + '\n' +
+                print_impl(node)
         )
 
 
@@ -372,7 +359,7 @@ def generate_struct_encode(node):
             else:
                 text += (
                     'pos = do_encode<E>(pos, {2}(std::min(x.{0}.size(), size_t({1}))));\n'
-                    .format(b.name, b.size, mcpptype)
+                        .format(b.name, b.size, mcpptype)
                 )
         else:
             text += 'pos = do_encode<E>(pos, x.{0});\n'.format(m.name)
@@ -527,15 +514,15 @@ def generate_struct_constructor(node):
             add_to_default(default_ctor, m, init)
             add_to_full(full_ctor, init is None, m)
     return (
-        (default_ctor and
-         '{0}(): {1} {{ }}\n'.format(node.name, ', '.join(default_ctor)) or
-         '{0}() {{ }}\n'.format(node.name)) +
-        '{0}({1}): {2} {{ }}\n'.format(
-            node.name,
-            ', '.join(_const_refize(const_ref, tp) + ' _%s' %
-                      idx for idx, (const_ref, tp, _) in enumerate(full_ctor, 1)),
-            ', '.join('{0}(_{1})'.format(name, idx) for idx, (_, _, name) in enumerate(full_ctor, 1))
-        )
+            (default_ctor and
+             '{0}(): {1} {{ }}\n'.format(node.name, ', '.join(default_ctor)) or
+             '{0}() {{ }}\n'.format(node.name)) +
+            '{0}({1}): {2} {{ }}\n'.format(
+                node.name,
+                ', '.join(_const_refize(const_ref, tp) + ' _%s' %
+                          idx for idx, (const_ref, tp, _) in enumerate(full_ctor, 1)),
+                ', '.join('{0}(_{1})'.format(name, idx) for idx, (_, _, name) in enumerate(full_ctor, 1))
+            )
     )
 
 
@@ -547,14 +534,14 @@ def generate_union_decode(node):
                 .format(node.name, member.name))
 
     return (
-        'if (!do_decode<E>(x.discriminator, pos, end)) return false;\n' +
-        (discpad and 'if (!do_decode_advance({0}, pos, end)) return false;\n'.format(discpad) or '') +
-        'switch (x.discriminator)\n' +
-        '{\n' +
-        ''.join('    ' + gen_case(m) for m in node.members) +
-        '    ' + 'default: return false;\n' +
-        '}\n' +
-        'return do_decode_advance({0}, pos, end);\n'.format(node.byte_size - DISC_SIZE - discpad)
+            'if (!do_decode<E>(x.discriminator, pos, end)) return false;\n' +
+            (discpad and 'if (!do_decode_advance({0}, pos, end)) return false;\n'.format(discpad) or '') +
+            'switch (x.discriminator)\n' +
+            '{\n' +
+            ''.join('    ' + gen_case(m) for m in node.members) +
+            '    ' + 'default: return false;\n' +
+            '}\n' +
+            'return do_decode_advance({0}, pos, end);\n'.format(node.byte_size - DISC_SIZE - discpad)
     )
 
 
@@ -566,13 +553,13 @@ def generate_union_encode(node):
                 .format(node.name, member.name))
 
     return (
-        'pos = do_encode<E>(pos, x.discriminator);\n' +
-        (discpad and 'pos = pos + {0};\n'.format(discpad) or '') +
-        'switch (x.discriminator)\n' +
-        '{\n' +
-        ''.join('    ' + gen_case(m) for m in node.members) +
-        '}\n' +
-        'pos = pos + {0};\n'.format(node.byte_size - DISC_SIZE - discpad)
+            'pos = do_encode<E>(pos, x.discriminator);\n' +
+            (discpad and 'pos = pos + {0};\n'.format(discpad) or '') +
+            'switch (x.discriminator)\n' +
+            '{\n' +
+            ''.join('    ' + gen_case(m) for m in node.members) +
+            '}\n' +
+            'pos = pos + {0};\n'.format(node.byte_size - DISC_SIZE - discpad)
     )
 
 
@@ -582,10 +569,10 @@ def generate_union_print(node):
                 .format(node.name, member.name))
 
     return (
-        'switch (x.discriminator)\n' +
-        '{\n' +
-        ''.join('    ' + gen_case(m) for m in node.members) +
-        '}\n'
+            'switch (x.discriminator)\n' +
+            '{\n' +
+            ''.join('    ' + gen_case(m) for m in node.members) +
+            '}\n'
     )
 
 
@@ -610,15 +597,15 @@ def generate_union_fields(node):
 def generate_union_constructor(node):
     inits = [_get_initializer(m) for m in node.members]
     return (
-        '{0}(): {1} {{ }}\n'.format(node.name, ', '.join(
-            ['discriminator(discriminator_{0})'.format(node.members[0].name)] +
-            ['{0}({1})'.format(m.name, init) for m, init in zip(node.members, inits) if init is not None]
-        )) +
-        ''.join(
-            '{0}(prophy::detail::int2type<discriminator_{1}>, {2} _1): discriminator(discriminator_{1}), {1}(_1) {{ }}\n'
-            .format(node.name, m.name, _const_refize(init is None, BUILTIN2C.get(m.type_name, m.type_name)))
-            for m, init in zip(node.members, inits)
-        )
+            '{0}(): {1} {{ }}\n'.format(node.name, ', '.join(
+                ['discriminator(discriminator_{0})'.format(node.members[0].name)] +
+                ['{0}({1})'.format(m.name, init) for m, init in zip(node.members, inits) if init is not None]
+            )) +
+            ''.join(
+                '{0}(prophy::detail::int2type<discriminator_{1}>, {2} _1): discriminator(discriminator_{1}), {1}(_1) {{ }}\n'
+                    .format(node.name, m.name, _const_refize(init is None, BUILTIN2C.get(m.type_name, m.type_name)))
+                for m, init in zip(node.members, inits)
+            )
     )
 
 

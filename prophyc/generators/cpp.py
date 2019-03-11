@@ -164,6 +164,16 @@ class _HppDefinitionsTranslator(TranslatorBase):
 
         return UNION_DEF_TEMPLATE.format(align=union.alignment, name=union.name, parts=_indent(parts, 4))
 
+    @classmethod
+    def _make_lines_splitter(cls, previous_node_type, current_node_type):
+        if not previous_node_type:
+            return ""
+
+        if previous_node_type != current_node_type:
+            return "\n\n"
+
+        return "\n"
+
 
 ENUM_SWAP_TEMPLATE = """\
 template <> inline {0}* swap<{0}>({0}* in) {{ swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }}"""
@@ -352,12 +362,6 @@ class _HppTranslator(TranslatorBase):
         _HppDefinitionsTranslator,
         _HppSwapDeclarations
     ]
-
-    @classmethod
-    def _make_lines_splitter(cls, previous_node_type, current_node_type):
-        if "prerequisite block" in (previous_node_type, current_node_type):
-            return ""
-        return TranslatorBase._make_lines_splitter(previous_node_type, current_node_type)
 
 
 class CppGenerator(GeneratorBase):
