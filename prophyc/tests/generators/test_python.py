@@ -8,17 +8,35 @@ def serialize(nodes):
 
 
 def test_includes_rendering():
+    common_include = model.Include("foo", [
+        model.Constant("symbol_1", 1),
+        model.Constant("number_12", 12),
+    ])
     nodes = [
-        model.Include("szydlo", []),
-        model.Include("root/nowe_mydlo", []),
-        model.Include("../root/nowiejsze_powidlo", []),
+        common_include,
+        model.Include("root/ni_knights", [
+            model.Include("../root/rabbit", [
+                common_include,
+                model.Constant("pi", "3.14159"),
+                model.Typedef("definition", "things", "r32", "docstring"),
+            ]),
+            model.Constant("symbol_2", 2),
+        ]),
+        model.Include("../root/baz_bar", []),
+        model.Include("many/numbers", [model.Constant("number_%s" % n, n) for n in reversed(range(20))]),
     ]
 
     ref = """\
-from szydlo import *
-from nowe_mydlo import *
-from nowiejsze_powidlo import *
+from foo import number_12, symbol_1
+from ni_knights import definition, pi, symbol_2
+from numbers import (
+    number_0, number_1, number_10, number_11, number_13, number_14, number_15,
+    number_16, number_17, number_18, number_19, number_2, number_3, number_4,
+    number_5, number_6, number_7, number_8, number_9
+)
 """
+    # call twice to check if 'duplication avoidance' machinery in _PythonTranslator.translate_include works ok
+    assert serialize(nodes) == ref
     assert serialize(nodes) == ref
 
 
@@ -52,13 +70,13 @@ class EEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
     _enumerators = [
         ('EEnum_A', 0),
         ('EEnum_B', 1),
-        ('EEnum_C', 2)
+        ('EEnum_C', 2),
     ]
+
 
 EEnum_A = 0
 EEnum_B = 1
 EEnum_C = 2
-
 """
     assert serialize(nodes) == ref
 
@@ -75,10 +93,10 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         ('a', prophy.u8),
         ('b', prophy.i64),
         ('c', prophy.r32),
-        ('d', TTypeX)
+        ('d', TTypeX),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_struct_rendering_with_dynamic_array():
@@ -89,10 +107,10 @@ def test_struct_rendering_with_dynamic_array():
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('tmpName', TNumberOfItems),
-        ('a', prophy.array(prophy.u8, bound = 'tmpName'))
+        ('a', prophy.array(prophy.u8, bound='tmpName')),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_struct_rendering_with_dynamic_arrays_bounded_by_the_same_member():
@@ -106,11 +124,11 @@ class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('numOfElements', TNumberOfItems),
         ('tmpName', prophy.u32),
-        ('a', prophy.array(prophy.u8, bound = 'numOfElements')),
-        ('b', prophy.array(prophy.r32, bound = 'numOfElements'))
+        ('a', prophy.array(prophy.u8, bound='numOfElements')),
+        ('b', prophy.array(prophy.r32, bound='numOfElements')),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_struct_rendering_with_static_array():
@@ -119,10 +137,10 @@ def test_struct_rendering_with_static_array():
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('a', prophy.array(prophy.u8, size = NUM_OF_ARRAY_ELEMS))
+        ('a', prophy.array(prophy.u8, size=NUM_OF_ARRAY_ELEMS)),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_struct_rendering_with_limited_array():
@@ -133,10 +151,10 @@ def test_struct_rendering_with_limited_array():
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('a_len', prophy.u8),
-        ('a', prophy.array(prophy.u8, bound = 'a_len', size = NUM_OF_ARRAY_ELEMS))
+        ('a', prophy.array(prophy.u8, bound='a_len', size=NUM_OF_ARRAY_ELEMS)),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_struct_rendering_with_optional():
@@ -145,10 +163,10 @@ def test_struct_rendering_with_optional():
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('a', prophy.optional(prophy.u32))
+        ('a', prophy.optional(prophy.u32)),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_struct_rendering_with_byte():
@@ -157,10 +175,10 @@ def test_struct_rendering_with_byte():
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('a', prophy.u8)
+        ('a', prophy.u8),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_struct_rendering_with_byte_array():
@@ -169,10 +187,10 @@ def test_struct_rendering_with_byte_array():
     ref = """\
 class Struct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('a', prophy.bytes())
+        ('a', prophy.bytes()),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_union_rendering():
@@ -185,10 +203,10 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
     _descriptor = [
         ('a', A, 0),
         ('b', B, 1),
-        ('c', C, 2)
+        ('c', C, 2),
     ]
 """
-    assert ref == serialize(nodes)
+    assert serialize(nodes) == ref
 
 
 def test_union_rendering_2():
@@ -201,7 +219,7 @@ class U(prophy.with_metaclass(prophy.union_generator, prophy.union)):
     _descriptor = [
         ('a', prophy.i8, 0),
         ('b', prophy.u32, 1),
-        ('c', prophy.r64, 2)
+        ('c', prophy.r64, 2),
     ]
 """
     assert serialize(nodes) == ref
@@ -211,7 +229,7 @@ def test_python_translator_1():
     ih = []
     th = []
     for x in range(20, 200, 60):
-        ih.append(model.Include("test_include_" + str(x), []))
+        ih.append(model.Include("test_include_" + str(x), [model.Constant("n_%s" % x, x, "doc")]))
         th.append(model.Typedef("td_elem_name_" + str(x), "td_elem_val_" + str(x)))
         th.append(model.Typedef("td_elem_name_" + str(x), "i_td_elem_val_" + str(x)))
         th.append(model.Typedef("td_elem_name_" + str(x), "u_td_elem_val_" + str(x)))
@@ -239,9 +257,9 @@ def test_python_translator_1():
 
 import prophy
 
-from test_include_20 import *
-from test_include_80 import *
-from test_include_140 import *
+from test_include_20 import n_20
+from test_include_80 import n_80
+from test_include_140 import n_140
 
 C_A = 5
 C_B = 5
@@ -257,13 +275,15 @@ td_elem_name_140 = td_elem_val_140
 td_elem_name_140 = i_td_elem_val_140
 td_elem_name_140 = u_td_elem_val_140
 
+
 class test(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
     _enumerators = [
         ('elem_1', val_1),
         ('elem_31', val_31),
         ('elem_61', val_61),
-        ('elem_91', val_91)
+        ('elem_91', val_91),
     ]
+
 
 elem_1 = val_1
 elem_31 = val_31
@@ -273,7 +293,7 @@ elem_91 = val_91
 
 class MAC_L2CallConfigResp(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('messageResult', SMessageResult)
+        ('messageResult', SMessageResult),
     ]
 """
     assert output == ref
@@ -288,24 +308,29 @@ def test_python_translator_2(larger_model):
 
 import prophy
 
+from some_defs import IncludedStruct, c
+from cplx import cint16_t, cint32_t
+
 a = prophy.i16
 c = a
 
-from some_defs import *
 
 class the_union(prophy.with_metaclass(prophy.union_generator, prophy.union)):
     _descriptor = [
         ('a', IncludedStruct, 0),
-        ('field_with_a_long_name', Internal, 1),
-        ('other', Internal, 4090)
+        ('field_with_a_long_name', cint16_t, 1),
+        ('field_with_a_longer_name', cint32_t, 2),
+        ('other', prophy.i32, 4090),
     ]
+
 
 class E1(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
     _enumerators = [
         ('E1_A', 0),
         ('E1_B_has_a_long_name', 1),
-        ('E1_C_desc', 2)
+        ('E1_C_desc', 2),
     ]
+
 
 E1_A = 0
 E1_B_has_a_long_name = 1
@@ -314,23 +339,23 @@ E1_C_desc = 2
 
 class E2(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
     _enumerators = [
-        ('E2_A', 0)
+        ('E2_A', 0),
     ]
 
+
 E2_A = 0
-
-
 CONST_A = 6
 CONST_B = 0
 
+
 class StructMemberKinds(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('meber_with_no_docstr', prophy.i16),
+        ('member_without_docstring', prophy.i16),
         ('ext_size', prophy.i16),
-        ('optional_element', prophy.optional(Complex)),
-        ('fixed_array', prophy.array(Complex, size = 3)),
-        ('samples', prophy.array(Complex, bound = 'ext_size')),
-        ('limitted_array', prophy.array(prophy.r64, bound = 'ext_size', size = 4)),
-        ('greedy', prophy.array(Complex))
+        ('optional_element', prophy.optional(cint16_t)),
+        ('fixed_array', prophy.array(cint16_t, size=3)),
+        ('samples', prophy.array(cint16_t, bound='ext_size')),
+        ('limited_array', prophy.array(prophy.r64, bound='ext_size', size=4)),
+        ('greedy', prophy.array(cint16_t)),
     ]
 """

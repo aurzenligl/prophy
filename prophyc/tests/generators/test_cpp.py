@@ -9,9 +9,9 @@ cpp_translator = _CppSwapTranslator()
 
 
 def process(nodes):
-    model.cross_reference(nodes)
-    model.evaluate_stiffness_kinds(nodes)
-    model.evaluate_sizes(nodes)
+    def warn(things):
+        print(things)
+    nodes, _ = model.evaluate_model(nodes, warn)
     CppGenerator().check_nodes(nodes)
     return nodes
 
@@ -479,7 +479,10 @@ def test_definitions_newlines():
     nodes = process([
         model.Typedef("a", "b"),
         model.Typedef("c", "d"),
-        model.Enum("E1", [model.EnumMember("E1_A", "0")]),
+        model.Enum("E1", [
+            model.EnumMember("E1_A", "0"),
+            model.EnumMember("E1_B", "1"),
+        ]),
         model.Enum("E2", [model.EnumMember("E2_A", "0")]),
         model.Constant("CONST_A", "0"),
         model.Typedef("e", "f"),
@@ -495,9 +498,9 @@ typedef d c;
 
 enum E1
 {
-    E1_A = 0
+    E1_A = 0,
+    E1_B = 1u
 };
-
 enum E2
 {
     E2_A = 0
@@ -514,7 +517,6 @@ PROPHY_STRUCT(4) A
 {
     uint32_t a;
 };
-
 PROPHY_STRUCT(4) B
 {
     uint32_t b;
@@ -702,7 +704,6 @@ X* swap<X>(X* payload)
     swap(&payload->x);
     return cast<X*>(payload->y);
 }
-
 template <>
 Z* swap<Z>(Z* payload)
 {
@@ -820,7 +821,6 @@ Dynamic* swap<Dynamic>(Dynamic* payload)
     swap(&payload->num_of_x);
     return cast<Dynamic*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
-
 template <>
 X* swap<X>(X* payload)
 {
@@ -848,7 +848,6 @@ Y* swap<Y>(Y* payload)
     swap(&payload->num_of_x);
     return cast<Y*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
-
 template <>
 X* swap<X>(X* payload)
 {
@@ -1032,7 +1031,6 @@ Y* swap<Y>(Y* payload)
     swap(&payload->num_of_x);
     return cast<Y*>(swap_n_fixed(payload->x, payload->num_of_x));
 }
-
 inline X::part2* swap(X::part2* payload)
 {
     return cast<X::part2*>(swap(&payload->y));
@@ -1084,12 +1082,6 @@ def test_generate_empty_file():
 #define _PROPHY_GENERATED_TestEmpty_HPP
 
 #include <prophy/prophy.hpp>
-
-namespace prophy
-{
-
-
-} // namespace prophy
 
 #endif  /* _PROPHY_GENERATED_TestEmpty_HPP */
 """
@@ -1152,6 +1144,130 @@ Struct* swap<Struct>(Struct* payload)
 {
     swap(&payload->a);
     return payload + 1;
+}
+
+} // namespace prophy
+"""
+
+
+def test_rendering_larger_model(larger_model):
+    assert generate_hpp(process(larger_model), "TestFile") == """\
+#ifndef _PROPHY_GENERATED_TestFile_HPP
+#define _PROPHY_GENERATED_TestFile_HPP
+
+#include <prophy/prophy.hpp>
+
+#include "some_defs.pp.hpp"
+#include "cplx.pp.hpp"
+
+typedef int16_t a;
+typedef a c;
+
+PROPHY_STRUCT(8) the_union
+{
+    enum _discriminator
+    {
+        discriminator_a = 0,
+        discriminator_field_with_a_long_name = 1,
+        discriminator_field_with_a_longer_name = 2,
+        discriminator_other = 4090
+    } discriminator;
+
+    uint32_t _padding0; /// manual padding to ensure natural alignment layout
+
+    union
+    {
+        IncludedStruct a;
+        cint16_t field_with_a_long_name;
+        cint32_t field_with_a_longer_name;
+        int32_t other;
+    };
+};
+
+enum E1
+{
+    E1_A = 0,
+    E1_B_has_a_long_name = 1u,
+    E1_C_desc = 2u
+};
+enum E2
+{
+    E2_A = 0
+};
+
+enum { CONST_A = 6u };
+enum { CONST_B = 0 };
+
+PROPHY_STRUCT(8) StructMemberKinds
+{
+    int16_t member_without_docstring;
+    int16_t ext_size;
+    prophy::bool_t has_optional_element;
+    cint16_t optional_element;
+    cint16_t fixed_array[3];
+    cint16_t samples[1]; /// dynamic array, size in ext_size
+
+    PROPHY_STRUCT(8) part2
+    {
+        double limited_array[4]; /// limited array, size in ext_size
+        cint16_t greedy[1]; /// greedy array
+    } _2;
+};
+
+namespace prophy
+{
+
+template <> the_union* swap<the_union>(the_union*);
+template <> inline E1* swap<E1>(E1* in) { swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }
+template <> inline E2* swap<E2>(E2* in) { swap(reinterpret_cast<uint32_t*>(in)); return in + 1; }
+template <> StructMemberKinds* swap<StructMemberKinds>(StructMemberKinds*);
+
+} // namespace prophy
+
+#endif  /* _PROPHY_GENERATED_TestFile_HPP */
+"""
+    assert generate_cpp(process(larger_model), "TestFile") == """\
+#include <prophy/detail/prophy.hpp>
+
+#include "TestFile.pp.hpp"
+
+using namespace prophy::detail;
+
+namespace prophy
+{
+
+template <>
+the_union* swap<the_union>(the_union* payload)
+{
+    swap(reinterpret_cast<uint32_t*>(&payload->discriminator));
+    switch (payload->discriminator)
+    {
+        case the_union::discriminator_a: swap(&payload->a); break;
+        case the_union::discriminator_field_with_a_long_name: swap(&payload->field_with_a_long_name); break;
+        case the_union::discriminator_field_with_a_longer_name: swap(&payload->field_with_a_longer_name); break;
+        case the_union::discriminator_other: swap(&payload->other); break;
+        default: break;
+    }
+    return payload + 1;
+}
+
+inline StructMemberKinds::part2* swap(StructMemberKinds::part2* payload, size_t ext_size)
+{
+    swap_n_fixed(payload->limited_array, ext_size);
+    return cast<StructMemberKinds::part2*>(payload->greedy);
+}
+
+template <>
+StructMemberKinds* swap<StructMemberKinds>(StructMemberKinds* payload)
+{
+    swap(&payload->member_without_docstring);
+    swap(&payload->ext_size);
+    swap(&payload->has_optional_element);
+    if (payload->has_optional_element) swap(&payload->optional_element);
+    swap_n_fixed(payload->fixed_array, 3);
+    StructMemberKinds::part2* part2 = cast<StructMemberKinds::part2*>(swap_n_fixed(payload->samples, \
+payload->ext_size));
+    return cast<StructMemberKinds*>(swap(part2, payload->ext_size));
 }
 
 } // namespace prophy

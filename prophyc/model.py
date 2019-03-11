@@ -304,6 +304,15 @@ class Include(_Container):
         """ No need to provide any dependencies to include. """
         return []
 
+    def defined_symbols(self):
+        """ Generate collection of symbols delivered by this include. """
+        for member in self.members:
+            if isinstance(member, Include):
+                for symbol in member.defined_symbols():
+                    yield symbol
+            else:
+                yield member
+
 
 class Enum(_Container):
     _member_type_restriction = EnumMember
@@ -520,6 +529,7 @@ def evaluate_sizes(nodes, warn=null_warn):
             size_alignment = (None, None)
         elif member.definition:
             size_alignment = evaluate_node_size(node_=member.definition, parent=node_, member=member)
+
         elif member.type_name in BUILTIN_SIZES:
             byte_size = BUILTIN_SIZES[member.type_name]
             size_alignment = (byte_size, byte_size)
@@ -582,6 +592,8 @@ def evaluate_sizes(nodes, warn=null_warn):
         elif isinstance(node, Union):
             if evaluate_members_sizes(node):
                 evaluate_union_size(node)
+        elif isinstance(node, Include):
+            evaluate_sizes(node.members, warn)
 
 
 def partition(members):

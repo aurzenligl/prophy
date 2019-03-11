@@ -40,13 +40,15 @@ IsarCONST_B = 16
 IsarDefA = prophy.r32
 IsarDefB = prophy.r64
 
+
 class EIsarDefEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
     _enumerators = [
         ('EIsarDefEnum_A', 0),
         ('EIsarDefEnum_B', 1),
         ('EIsarDefEnum_C', 2),
-        ('EIsarDefEnum_D', 4)
+        ('EIsarDefEnum_D', 4),
     ]
+
 
 EIsarDefEnum_A = 0
 EIsarDefEnum_B = 1
@@ -58,7 +60,7 @@ class IsarDefC(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('ifC_a', prophy.u16),
         ('ifC_b_len', prophy.u32),
-        ('ifC_b', prophy.array(prophy.u64, bound = 'ifC_b_len'))
+        ('ifC_b', prophy.array(prophy.u64, bound='ifC_b_len')),
     ]
 """),
 
@@ -85,18 +87,21 @@ class IsarDefC(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 
 import prophy
 
-from isar_root_defs import *
+from isar_root_defs import (
+    EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC
+)
 
 class IsarK(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('ifK_a', prophy.u8),
-        ('ifK_B', prophy.array(IsarDefB, size = IsarCONST_A))
+        ('ifK_B', prophy.array(IsarDefB, size=IsarCONST_A)),
     ]
+
 
 class IsarL(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('numOfItems', prophy.u32),
-        ('theBItems', prophy.array(IsarDefB, bound = 'numOfItems'))
+        ('theBItems', prophy.array(IsarDefB, bound='numOfItems')),
     ]
 """),
 
@@ -119,14 +124,16 @@ class IsarL(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 
 import prophy
 
-from isar_root_defs import *
+from isar_root_defs import (
+    EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC
+)
 
 class IsarV(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('ifV_a', IsarDefA),
         ('ifV_b_len', prophy.u32),
-        ('ifV_b', prophy.array(IsarDefB, bound = 'ifV_b_len', size = IsarCONST_B)),
-        ('ifV_c', EIsarDefEnum)
+        ('ifV_b', prophy.array(IsarDefB, bound='ifV_b_len', size=IsarCONST_B)),
+        ('ifV_c', EIsarDefEnum),
     ]
 """)
 ]
@@ -175,15 +182,18 @@ struct cppX
 
 import prophy
 
-from included_by_sack_a import *
-from included_by_sack_b import *
+from included_by_sack_a import (
+    EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC, IsarK,
+    IsarL
+)
+from included_by_sack_b import IsarV
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
         ('defined_in_xml', IsarK),
         ('defined_deeper_in_xmls', IsarDefC),
         ('regular_type', prophy.u16),
-        ('typedefed_deeper_in_xmls', IsarDefA)
+        ('typedefed_deeper_in_xmls', IsarDefA),
     ]
 """
 
@@ -212,13 +222,16 @@ struct cppX
 
 import prophy
 
-from included_by_sack_a import *
-from included_by_sack_b import *
+from included_by_sack_a import (
+    EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC, IsarK,
+    IsarL
+)
+from included_by_sack_b import IsarV
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('type_from_isar', prophy.array(IsarV, size = 4)),
-        ('regular_type', prophy.array(prophy.u16, size = 16))
+        ('type_from_isar', prophy.array(IsarV, size=4)),
+        ('regular_type', prophy.array(prophy.u16, size=16)),
     ]
 """
 
@@ -257,18 +270,22 @@ struct cppX
 
 import prophy
 
-from included_by_sack_a import *
-from included_by_sack_b import *
+from included_by_sack_a import (
+    EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC, IsarK,
+    IsarL
+)
+from included_by_sack_b import IsarV
 
 class constants(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = []
 
+
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
-        ('straigth', prophy.array(prophy.u8, size = 2)),
-        ('tricky1', prophy.array(prophy.u16, size = 4)),
-        ('tricky2', prophy.array(prophy.u16, size = 20)),
-        ('tricky3', prophy.array(prophy.u16, size = 64))
+        ('straigth', prophy.array(prophy.u8, size=2)),
+        ('tricky1', prophy.array(prophy.u16, size=4)),
+        ('tricky2', prophy.array(prophy.u16, size=20)),
+        ('tricky3', prophy.array(prophy.u16, size=64)),
     ]
 """
 

@@ -16,7 +16,7 @@ def _form_doc(model_node, max_inl_docstring_len, indent_level):
 
         elif model_node.docstring:
             block_doc = u"\n" + "".join(
-                _gen_multi_line_doc(model_node.docstring, indent_level, block_header=model_node.name))
+                _gen_multi_line_doc(model_node.docstring, indent_level=indent_level, block_header=model_node.name))
 
     return DocStr(block_doc, inline_doc)
 
@@ -65,12 +65,14 @@ def _columnizer(model_node, column_splitter, max_line_width=100):
 
 def generate_schema_container(model_node, designator, column_splitter):
     if model_node.docstring:
-        block_docstring = "".join(
-            _gen_multi_line_doc(model_node.docstring, indent_level=0, block_header=model_node.name))
+        block_docstring = "".join(_gen_multi_line_doc(model_node.docstring, indent_level=0,
+                                                      block_header=model_node.name))
+        if block_docstring:
+            block_docstring += "\n"
     else:
         block_docstring = ""
     members = "".join(_columnizer(model_node, column_splitter, max_line_width=100))
-    return "{}\n{} {} {{{}}};".format(block_docstring, designator, model_node.name, members)
+    return "{}{} {} {{{}}};".format(block_docstring, designator, model_node.name, members)
 
 
 class SchemaTranslator(base.TranslatorBase):
@@ -125,6 +127,22 @@ class SchemaTranslator(base.TranslatorBase):
             return discriminator, field_type, field_name
 
         return generate_schema_container(union, "union", column_selector)
+
+    @classmethod
+    def _make_lines_splitter(cls, previous_node_type, current_node_type):
+        if not previous_node_type:
+            return ""
+
+        if previous_node_type == "Include" and current_node_type != "Include":
+            return "\n\n"
+
+        if previous_node_type in ("Struct", "Union") or current_node_type in ("Enum", "Struct", "Union"):
+            return "\n\n\n"
+
+        if previous_node_type != current_node_type:
+            return "\n\n"
+
+        return "\n"
 
 
 class SchemaGenerator(base.GeneratorBase):

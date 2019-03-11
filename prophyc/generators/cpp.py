@@ -1,7 +1,6 @@
 from prophyc import model
 from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
 
-
 primitive_types = {
     'u8': 'uint8_t',
     'u16': 'uint16_t',
@@ -123,7 +122,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
                 field = '{0} {1};\n'.format(typename, member.name)
             if member.optional:
                 field = 'prophy::bool_t has_{0};\n'.format(member.name) + field
-            if member.padding > 0:
+            if member.padding is not None and member.padding > 0:
                 field += padder.generate_padding(member.padding)
             return field
 
@@ -183,8 +182,8 @@ namespace prophy
 class _HppSwapDeclarations(TranslatorBase):
     block_template = HPP_SWAPS_BLOCK_TEMPLATE
 
-    def _prepend_newline(self, _, __):
-        return False
+    def _make_lines_splitter(self, previous_node_type, _):
+        return "\n" if previous_node_type else ""
 
     def translate_enum(self, enum):
         return ENUM_SWAP_TEMPLATE.format(enum.name)
@@ -353,6 +352,12 @@ class _HppTranslator(TranslatorBase):
         _HppDefinitionsTranslator,
         _HppSwapDeclarations
     ]
+
+    @classmethod
+    def _make_lines_splitter(cls, previous_node_type, current_node_type):
+        if "prerequisite block" in (previous_node_type, current_node_type):
+            return ""
+        return TranslatorBase._make_lines_splitter(previous_node_type, current_node_type)
 
 
 class CppGenerator(GeneratorBase):
