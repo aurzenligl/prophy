@@ -136,6 +136,25 @@ namespace generated
         )
 
 
+    @classmethod
+    def _make_lines_splitter(cls, previous_node_type, current_node_type):
+        if "prerequisite block" in (previous_node_type, current_node_type):
+            return ""
+
+        if not previous_node_type:
+            return ""
+
+        if previous_node_type == "Include" and current_node_type != "Include":
+            return "\n\n\n"
+
+        if previous_node_type in ("Enum", "Struct", "Union") or current_node_type in ("Enum", "Struct", "Union"):
+            return "\n\n\n"
+
+        if previous_node_type != current_node_type:
+            return "\n\n"
+
+        return "\n"
+
 HPP_HEADER_TEMPLATE = """\
 #ifndef _PROPHY_GENERATED_FULL_{base_name}_HPP
 #define _PROPHY_GENERATED_FULL_{base_name}_HPP
@@ -162,6 +181,25 @@ class _HppTranslator(TranslatorBase):
         _HppIncludesTranslator,
         _HppDefinitionsTranslator
     ]
+
+    @classmethod
+    def _make_lines_splitter(cls, previous_node_type, current_node_type):
+        if "prerequisite block" in (previous_node_type, current_node_type):
+            return ""
+
+        if not previous_node_type:
+            return ""
+
+        if previous_node_type == "Include" and current_node_type != "Include":
+            return "\n\n"
+
+        if previous_node_type in ("Enum", "Struct", "Union") or current_node_type in ("Enum", "Struct", "Union"):
+            return "\n\n"
+
+        if previous_node_type != current_node_type:
+            return "\n\n"
+
+        return "\n"
 
 
 CPP_SOURCE_TEMPLATE = """\

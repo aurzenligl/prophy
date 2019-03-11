@@ -33,11 +33,11 @@ class DescriptorField(object):
             codec_kind.BYTES: (encode_bytes, decode_bytes),
             codec_kind.SCALAR: (encode_scalar, decode_scalar)
         }
-        kind = codec_kind.classify(self.type)
-        assert kind in all_codecs
-        self.encode_fcn, self.decode_fcn = all_codecs.get(kind)
+        kind_ = codec_kind.classify(self.type)
+        assert kind_ in all_codecs
+        self.encode_fcn, self.decode_fcn = all_codecs.get(kind_)
 
-        if kind == codec_kind.OPTIONAL:
+        if kind_ == codec_kind.OPTIONAL:
             base_kind = codec_kind.classify(self.type.__bases__[0])
             opt_encode, opt_decode = all_codecs.get(base_kind)
 

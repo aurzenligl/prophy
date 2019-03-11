@@ -54,7 +54,6 @@ def test_structs(schema_gen):
         ]),
     ]
     assert schema_gen(model_nodes) == """\
-
 struct X {
     u32 x;
     u64 y[2];
@@ -86,15 +85,18 @@ LOREM_W_BREAKS = "\n".join([
 def test_larger_model(schema_gen, larger_model):
     assert schema_gen(larger_model) == """\
 #include "some_defs"
+#include "cplx"
 
 /* the_union
  * spec for that union
  */
 union the_union {
     0:    IncludedStruct a;
-    1:    Internal       field_with_a_long_name;  // defined internally
-    4090: Internal       other;                   // This one has longer discriminator
+    1:    cint16_t       field_with_a_long_name;    // Shorter
+    2:    cint32_t       field_with_a_longer_name;  // Longer description
+    4090: i32            other;                     // This one has larger discriminator
 };
+
 
 /* E1
  * Enumerator is a model type that is not supposed to be serialized. Its definition represents yet
@@ -104,20 +106,20 @@ union the_union {
 enum E1 {
     E1_A                 = 0;  // enum1 constant value A
     E1_B_has_a_long_name = 1;  // enum1 constant va3lue B
-/* E1_C_desc
- * Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-   labore et dolore magna aliqua. Libero nunc consequat inte
- */
+    /* E1_C_desc
+     * Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+       labore et dolore magna aliqua. Libero nunc consequat inte
+     */
     E1_C_desc            = 2;
 };
 
 
 enum E2 {
-/* E2_A
- * Short
- * multiline
- * doc
- */
+    /* E2_A
+     * Short
+     * multiline
+     * doc
+     */
     E2_A = 0;
 };
 
@@ -125,6 +127,7 @@ enum E2 {
 CONST_A = 6;
 
 CONST_B = 0;
+
 
 /* ==== StructMemberKinds ==========================================================================
  * StructMemberKinds
@@ -139,16 +142,17 @@ CONST_B = 0;
  * Egestas integer eget aliquet.
  */
 struct StructMemberKinds {
-    i16      meber_with_no_docstr;
-    i16      ext_size;              // arbitrary sizer for dynamic arrays
-    Complex* optional_element;      // optional array
-    Complex  fixed_array[3];        // Array with static size.
-    Complex  samples<@ext_size>;    // dynamic (ext.sized) array
-    r64      limitted_array<4>;     // Has statically evaluable maximum size.
-/* greedy
- * Represents array of arbitrary number of elements. Buffer size must be multiply of element size.
- */
-    Complex  greedy<...>;
+    i16       member_without_docstring;
+    i16       ext_size;                  // arbitrary sizer for dynamic arrays
+    cint16_t* optional_element;          // optional array
+    cint16_t  fixed_array[3];            // Array with static size.
+    cint16_t  samples<@ext_size>;        // dynamic (ext.sized) array
+    r64       limited_array<4>;          // Has statically evaluable maximum size.
+    /* greedy
+     * Represents array of arbitrary number of elements. Buffer size must be multiply of element
+       size.
+     */
+    cint16_t  greedy<...>;
 };
 """
 

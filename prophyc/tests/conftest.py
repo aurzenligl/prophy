@@ -19,13 +19,9 @@ def pytest_assertrepr_compare(op, left, right):
     """
     if op == "==" and isinstance(left, six.string_types) and isinstance(right, six.string_types):
         if len(left) > 60 or len(right) > 60:
-            print("--- (left):")
-            print(left)
-            print("---")
+            print("--- (left):\n{}---".format(left))
             print("does not match currently defined reference:")
-            print("--- (right):")
-            print(right)
-            print("---")
+            print("--- (right):\n{}---".format(right))
 
 
 def check_libclang():
@@ -59,14 +55,6 @@ def tmpdir_cwd(tmpdir):
     os.chdir(orig_dir)
 
 
-@pytest.yield_fixture
-def tmpfiles_cwd(tmpdir_cwd):
-    def create_tmp_files(*files_to_create):
-        return map(tmpdir_cwd.join, files_to_create)
-
-    yield create_tmp_files
-
-
 @pytest.fixture
 def dummy_file(tmpdir_cwd):
     the_file = tmpdir_cwd.join("input")
@@ -96,7 +84,7 @@ def sys_capture(capsys):
     return Capture
 
 
-@pytest.fixture(params=["py_code"])
+@pytest.fixture(params=["py_code", "subprocess"])
 def call_prophyc(request, sys_capture):
     if request.param == "subprocess":
 
@@ -142,15 +130,26 @@ def larger_model(lorem_with_breaks):
         model.Typedef('c', 'a'),
         model.Include('some_defs', [
             model.Struct('IncludedStruct', [
-                model.StructMember('member1', 'c', 'doc for member1'),
-                model.StructMember('member2', 'u32', 'docstring for member1')
+                model.StructMember('member1', 'r32', docstring='doc for member1'),
+                model.StructMember('member2', 'u64', docstring='docstring for member1')
             ]),
             model.Typedef('c', 'a'),
         ]),
+        model.Include('cplx', [
+            model.Struct('cint16_t', [
+                model.StructMember('re', 'i16', docstring='real'),
+                model.StructMember('im', 'i16', docstring='imaginary')
+            ]),
+            model.Struct('cint32_t', [
+                model.StructMember('re', 'i32', docstring='real'),
+                model.StructMember('im', 'i32', docstring='imaginary')
+            ]),
+        ]),
         model.Union('the_union', [
             model.UnionMember('a', 'IncludedStruct', 0),
-            model.UnionMember('field_with_a_long_name', 'Internal', 1, docstring='defined internally'),
-            model.UnionMember('other', 'Internal', 4090, docstring='This one has longer discriminator'),
+            model.UnionMember('field_with_a_long_name', 'cint16_t', 1, docstring="Shorter"),
+            model.UnionMember('field_with_a_longer_name', 'cint32_t', 2, docstring="Longer description"),
+            model.UnionMember('other', 'i32', 4090, docstring='This one has larger discriminator'),
         ], "spec for that union"),
         model.Enum('E1', [
             model.EnumMember('E1_A', '0', 'enum1 constant value A'),
@@ -165,15 +164,15 @@ def larger_model(lorem_with_breaks):
         model.Constant('CONST_A', '6'),
         model.Constant('CONST_B', '0'),
         model.Struct('StructMemberKinds', [
-            model.StructMember('meber_with_no_docstr', 'i16'),
+            model.StructMember('member_without_docstring', 'i16'),
             model.StructMember('ext_size', 'i16', docstring='arbitrary sizer for dynamic arrays'),
-            model.StructMember('optional_element', 'Complex', optional=True, docstring='optional array'),
-            model.StructMember('fixed_array', 'Complex', size=3, docstring='Array with static size.'),
-            model.StructMember('samples', 'Complex', bound='ext_size', docstring='dynamic (ext.sized) array'),
-            model.StructMember('limitted_array', 'r64', size=4, bound='ext_size', docstring='Has statically '
-                                                                                            'evaluable maximum size.'),
-            model.StructMember('greedy', 'Complex', greedy=True, docstring='Represents array of arbitrary '
-                                                                           'number of elements. Buffer size '
-                                                                           'must be multiply of element size.'),
+            model.StructMember('optional_element', 'cint16_t', optional=True, docstring='optional array'),
+            model.StructMember('fixed_array', 'cint16_t', size=3, docstring='Array with static size.'),
+            model.StructMember('samples', 'cint16_t', bound='ext_size', docstring='dynamic (ext.sized) array'),
+            model.StructMember('limited_array', 'r64', size=4, bound='ext_size', docstring='Has statically '
+                                                                                           'evaluable maximum size.'),
+            model.StructMember('greedy', 'cint16_t', greedy=True, docstring='Represents array of arbitrary '
+                                                                            'number of elements. Buffer size '
+                                                                            'must be multiply of element size.'),
         ], lorem_with_breaks[:400]),
     ]
