@@ -1,3 +1,5 @@
+import collections
+
 from .base_array import base_array
 from .composite import codec_kind, distance_to_next_multiply, struct_packed
 from .descriptor import DescriptorField
@@ -404,12 +406,5 @@ class union_generator(_composite_generator_base):
 
 
 def _list_duplicates(iterable):
-    unique = set()
-    duplicates = []
-    for element in iterable:
-        if element in unique:
-            if element not in duplicates:
-                duplicates.append(element)
-        else:
-            unique.add(element)
-    return duplicates
+    iterable = list(iterable)
+    return sorted((collections.Counter(iterable) - collections.Counter(set(iterable))).keys())

@@ -106,9 +106,6 @@ class TranslatorBase(TranslatorAbc):
         if not previous_node_type:
             return ""
 
-        if previous_node_type == "Include" and current_node_type != "Include":
-            return "\n\n"
-
         if previous_node_type != current_node_type:
             return "\n\n"
 
@@ -129,10 +126,8 @@ class TranslatorBase(TranslatorAbc):
                 yield type(node).__name__, translated_node
 
     def _get_translation_handler(self, node):
-        if type(node) not in self._translation_methods_map:
-            raise GenerateError("Unknown node type: {}".format(type(node).__name__))
-
-        translation_method_name = self._translation_methods_map[type(node)]
+        translation_method_name = self._translation_methods_map.get(type(node), None)
+        assert translation_method_name, "Unknown node type: {}".format(type(node).__name__)
         return getattr(self, translation_method_name, None)
 
     @staticmethod
