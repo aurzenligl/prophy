@@ -1,3 +1,4 @@
+import os
 from prophyc.generators import word_wrap
 from prophyc.generators.base import GeneratorBase, TranslatorBase
 
@@ -148,3 +149,8 @@ class PythonGenerator(GeneratorBase):
     top_level_translators = {
         ".py": _PythonTranslator
     }
+
+    def check_nodes(self, _):
+        init_file = os.path.join(self.output_dir, "__init__.py")
+        with open(init_file, "a") as f:
+            f.write('')
