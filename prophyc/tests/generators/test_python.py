@@ -27,9 +27,9 @@ def test_includes_rendering():
     ]
 
     ref = """\
-from foo import number_12, symbol_1
-from ni_knights import definition, pi, symbol_2
-from numbers import (
+from .foo import number_12, symbol_1
+from .ni_knights import definition, pi, symbol_2
+from .numbers import (
     number_0, number_1, number_10, number_11, number_13, number_14, number_15,
     number_16, number_17, number_18, number_19, number_2, number_3, number_4,
     number_5, number_6, number_7, number_8, number_9
@@ -257,9 +257,9 @@ def test_python_translator_1():
 
 import prophy
 
-from test_include_20 import n_20
-from test_include_80 import n_80
-from test_include_140 import n_140
+from .test_include_20 import n_20
+from .test_include_80 import n_80
+from .test_include_140 import n_140
 
 C_A = 5
 C_B = 5
@@ -308,8 +308,8 @@ def test_python_translator_2(larger_model):
 
 import prophy
 
-from some_defs import IncludedStruct, c
-from cplx import cint16_t, cint32_t
+from .some_defs import IncludedStruct, c
+from .cplx import cint16_t, cint32_t
 
 a = prophy.i16
 c = a

@@ -87,7 +87,7 @@ class IsarDefC(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 
 import prophy
 
-from isar_root_defs import (
+from .isar_root_defs import (
     EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC
 )
 
@@ -124,7 +124,7 @@ class IsarL(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
 
 import prophy
 
-from isar_root_defs import (
+from .isar_root_defs import (
     EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC
 )
 
@@ -182,11 +182,11 @@ struct cppX
 
 import prophy
 
-from included_by_sack_a import (
+from .included_by_sack_a import (
     EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC, IsarK,
     IsarL
 )
-from included_by_sack_b import IsarV
+from .included_by_sack_b import IsarV
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
@@ -222,11 +222,11 @@ struct cppX
 
 import prophy
 
-from included_by_sack_a import (
+from .included_by_sack_a import (
     EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC, IsarK,
     IsarL
 )
-from included_by_sack_b import IsarV
+from .included_by_sack_b import IsarV
 
 class cppX(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = [
@@ -270,11 +270,11 @@ struct cppX
 
 import prophy
 
-from included_by_sack_a import (
+from .included_by_sack_a import (
     EIsarDefEnum, IsarCONST_A, IsarCONST_B, IsarDefA, IsarDefB, IsarDefC, IsarK,
     IsarL
 )
-from included_by_sack_b import IsarV
+from .included_by_sack_b import IsarV
 
 class constants(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
     _descriptor = []

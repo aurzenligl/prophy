@@ -65,7 +65,7 @@ import {0}
         self.included_symbols.update(included)
         if not included:
             return ""
-        statement_begin = "from %s import " % include.name.split("/")[-1]
+        statement_begin = "from .%s import " % include.name.split("/")[-1]
         symbols = ", ".join(included)
         if len(statement_begin) + len(symbols) <= 80:
             return statement_begin + symbols
