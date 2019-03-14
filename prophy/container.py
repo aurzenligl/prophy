@@ -1,7 +1,7 @@
 from .base_array import base_array
 from .composite import struct, union
 from .exception import ProphyError
-from .prophy_six import xrange
+from .six import xrange
 
 
 def decode_scalar_array(tp, data, pos, endianness, count):

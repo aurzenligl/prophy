@@ -25,7 +25,8 @@ def jsonize(struct_, ordered=True):
             discriminated = next(
                 (dsc.name for dsc in struct_._descriptor if dsc.discriminator == struct_.discriminator), None
             )
-            assert discriminated is not None, "Failed to get currently discriminated union field"
+            if discriminated is None:
+                raise ProphyError("Failed to get currently discriminated union field")
             return jsonize(getattr(struct_, discriminated, None), ordered)
 
         elif isinstance(struct_, six.string_types):
@@ -44,4 +45,4 @@ def jsonize(struct_, ordered=True):
             return struct_
 
     except Exception as e:
-        six.reraise(ProphyError, e)
+        raise ProphyError(e)
