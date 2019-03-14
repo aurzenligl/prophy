@@ -1,5 +1,7 @@
 import prophy
-from six import string_types
+from prophy.exception import ProphyError
+
+import six
 
 
 def _is_namedtuple(object_):
@@ -9,13 +11,6 @@ def _is_namedtuple(object_):
             return all(isinstance(field_name, str) for field_name in fields)
 
 
-def _try_to_get_attr(obj, name):
-    try:
-        return getattr(obj, name)
-    except AttributeError as e:
-        return str(e)
-
-
 def jsonize(struct_, ordered=True):
     """
         It returns a python dict/list but it supposed to be fully json-serializable.
@@ -23,10 +18,8 @@ def jsonize(struct_, ordered=True):
     """
     try:
         if isinstance(struct_, prophy.composite.struct):
-            if ordered:
-                return [(dsc.name, jsonize(getattr(struct_, dsc.name, None), ordered)) for dsc in struct_._descriptor]
-            else:
-                return {dsc.name: jsonize(getattr(struct_, dsc.name, None), ordered) for dsc in struct_._descriptor}
+            s = ((dsc.name, jsonize(getattr(struct_, dsc.name, None), ordered)) for dsc in struct_._descriptor)
+            return list(s) if ordered else dict(s)
 
         elif isinstance(struct_, prophy.composite.union):
             discriminated = next(
@@ -35,7 +28,7 @@ def jsonize(struct_, ordered=True):
             assert discriminated is not None, "Failed to get currently discriminated union field"
             return jsonize(getattr(struct_, discriminated, None), ordered)
 
-        elif isinstance(struct_, string_types):
+        elif isinstance(struct_, six.string_types):
             return struct_
 
         elif isinstance(struct_, dict):
@@ -51,6 +44,4 @@ def jsonize(struct_, ordered=True):
             return struct_
 
     except Exception as e:
-        error_msg = 'Failed to dictionize {}: {}: {}'.format(type(struct_).__name__, type(e).__name__, e)
-        print(error_msg)
-        return error_msg
+        six.reraise(ProphyError, e)

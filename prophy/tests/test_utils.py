@@ -1,8 +1,36 @@
 import prophy
 from prophy.utils import jsonize
 
+import pytest
 
-def test_jsonize():
+
+@pytest.mark.parametrize('ordered, _result', [
+    (True, [
+        ('that_enum', 2),
+        ('that_union', 12345),
+        ('optional_element', 666),
+        ('fixed_array', [
+            [('re', 0), ('im', 0)], [('re', 2), ('im', 22)], [('re', 3), ('im', -33)],
+        ]),
+        ('ext_size', None),
+        ('dynamic', [
+            [('re', 45), ('im', 55)]
+        ]),
+    ]),
+    (False, {
+        'dynamic': [{'im': 55, 're': 45}],
+        'ext_size': None,
+        'fixed_array': [
+            {'im': 0, 're': 0},
+            {'im': 22, 're': 2},
+            {'im': -33, 're': 3}
+        ],
+        'optional_element': 666,
+        'that_enum': 2,
+        'that_union': 12345
+    })
+])
+def test_jsonize(ordered, _result):
 
     class cint16_t(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [
@@ -47,34 +75,6 @@ def test_jsonize():
     s.dynamic[0].re = 45
     s.dynamic[0].im = 55
 
-    result = jsonize(s, False)
-    from pprint import pprint
-    pprint(result)
-    assert result == {
-        'dynamic': [{'im': 55, 're': 45}],
-        'ext_size': None,
-        'fixed_array': [
-            {'im': 0, 're': 0},
-            {'im': 22, 're': 2},
-            {'im': -33, 're': 3}
-        ],
-        'optional_element': 666,
-        'that_enum': 2,
-        'that_union': 12345
-    }
+    result = jsonize(s, ordered)
 
-    ordered_result = jsonize(s, True)
-
-    pprint(ordered_result)
-    assert ordered_result == [
-        ('that_enum', 2),
-        ('that_union', 12345),
-        ('optional_element', 666),
-        ('fixed_array', [
-            [('re', 0), ('im', 0)], [('re', 2), ('im', 22)], [('re', 3), ('im', -33)],
-        ]),
-        ('ext_size', None),
-        ('dynamic', [
-            [('re', 45), ('im', 55)]
-        ]),
-    ]
+    assert result == _result

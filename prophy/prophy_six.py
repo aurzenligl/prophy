@@ -6,7 +6,6 @@ if sys.version < '3':  # pragma: no cover
     long = long
     from itertools import ifilter
     xrange = xrange
-    string_types = (basestring, )
 
     def repr_bytes(x):
         return repr(x)
@@ -15,7 +14,6 @@ else:  # pragma: no cover
     long = int
     ifilter = filter
     xrange = range
-    string_types = (str,)
 
     def repr_bytes(x):
         return "'" + repr(x)[2:-1] + "'"

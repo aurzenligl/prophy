@@ -3,7 +3,7 @@ from .composite import codec_kind, distance_to_next_multiply, struct_packed
 from .descriptor import DescriptorField
 from .exception import ProphyError
 from .scalar import u32
-from .six import long
+from .prophy_six import long
 
 
 class _generator_base(type):

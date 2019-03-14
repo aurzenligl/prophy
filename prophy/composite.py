@@ -2,7 +2,7 @@ from .base_array import base_array
 from .composite_base import _composite_base
 from .exception import ProphyError
 from .scalar import enum
-from .six import repr_bytes, long
+from .prophy_six import repr_bytes, long
 
 
 def distance_to_next_multiply(number, alignment):

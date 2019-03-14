@@ -1,7 +1,7 @@
 import struct
 
 from .exception import ProphyError
-from .six import long
+from .prophy_six import long
 
 
 class prophy_data_object(object):
