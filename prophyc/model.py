@@ -47,11 +47,9 @@ DISC_SIZE = BUILTIN_SIZES['u32']
 """ Enum byte size. """
 ENUM_SIZE = BUILTIN_SIZES['u32']
 
-model_repr = renew.make_renew_reprs(namespace="prophyc.model")
 
-
-@model_repr
-class ModelNode(object):
+class ModelNode(renew.Mold):
+    _cls_namespace = "prophyc.model"
     """ The lowermost base for each type of prophyc model. """
     __slots__ = "name", "_value", "docstring"
     _eq_attributes = "name", "_value"
@@ -114,6 +112,7 @@ class EnumMember(Constant):
 
 
 class _Serializable(ModelNode):
+    _cls_make_slots = False
     __slots__ = "kind", "byte_size", "alignment"
 
     def __init__(self, name, value, docstring=None):
@@ -130,7 +129,6 @@ class _Serializable(ModelNode):
         raise NotImplementedError("Abstract method to be overriden in %s" % cls.__name__)
 
 
-@model_repr
 class Typedef(_Serializable):
     _str_pattern = "typedef {s.type_name} {s.name};"
     _eq_attributes = "name", "type_name", "definition"
@@ -170,7 +168,6 @@ class Typedef(_Serializable):
         yield self.type_name
 
 
-@model_repr
 class StructMember(Typedef):
     __slots__ = "bound", "size", "greedy", "optional", "numeric_size", "padding"
     _eq_attributes = "name", "_value", "bound", "size", "greedy", "optional", "definition"
@@ -226,7 +223,6 @@ class StructMember(Typedef):
         return '{s.type_name} {s.name};'.format(s=self)
 
 
-@model_repr
 class UnionMember(Typedef):
     _str_pattern = '{s.discriminator}: {s.type_name} {s.name};'
     _eq_attributes = "name", "type_name", "discriminator"
@@ -240,9 +236,9 @@ class UnionMember(Typedef):
 """ Composite kinds """
 
 
-@model_repr
 class _Container(ModelNode):
     """ Anything that represents a collection of members. """
+    _cls_make_slots = False
     _member_type_restriction = None
     _collection_kind = None
     _str_pattern = "{s._collection_kind} {s.name} {{\n{s._str_members}}};\n"
