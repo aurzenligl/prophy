@@ -108,3 +108,4 @@ def test_jsonize_simple_types():
     data = [3.14159, ({1, 2, 3}, {4: "five"}, MyTuple(1, 2))]
     assert jsonize(data) == [3.14159, [set([1, 2, 3]), {4: 'five'}, {'y': 2, 'x': 1}]]
 
+
