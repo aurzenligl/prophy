@@ -4,8 +4,15 @@ from prophy.utils import jsonize
 import pytest
 
 
-@pytest.mark.parametrize('ordered, _result', [
+@pytest.mark.parametrize('ordered, result_no_values, result_values', [
     (True, [
+        ('that_enum', 0L),
+        ('that_union', [('re', 0), ('im', 0)]),
+        ('optional_element', None),
+        ('fixed_array', [[('re', 0), ('im', 0)], [('re', 0), ('im', 0)], [('re', 0), ('im', 0)]]),
+        ('ext_size', None),
+        ('dynamic', [])],
+     [
         ('that_enum', 2),
         ('that_union', 12345),
         ('optional_element', 666),
@@ -17,7 +24,18 @@ import pytest
             [('re', 45), ('im', 55)]
         ]),
     ]),
-    (False, {
+    (False,  {
+        'dynamic': [],
+        'ext_size': None,
+        'fixed_array': [
+            {'im': 0, 're': 0},
+            {'im': 0, 're': 0},
+            {'im': 0, 're': 0}
+        ],
+        'optional_element': None,
+        'that_enum': 0,
+        'that_union': {'im': 0, 're': 0}
+    }, {
         'dynamic': [{'im': 55, 're': 45}],
         'ext_size': None,
         'fixed_array': [
@@ -30,7 +48,7 @@ import pytest
         'that_union': 12345
     })
 ])
-def test_jsonize(ordered, _result):
+def test_jsonize(ordered, result_no_values, result_values):
 
     class cint16_t(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [
@@ -62,6 +80,10 @@ def test_jsonize(ordered, _result):
         ]
 
     s = StructMemberKinds()
+
+    result = jsonize(s, ordered)
+    assert result == result_no_values
+
     s.that_enum = 2
     s.that_union.discriminator = "other"
     s.that_union.other = 12345
@@ -76,5 +98,4 @@ def test_jsonize(ordered, _result):
     s.dynamic[0].im = 55
 
     result = jsonize(s, ordered)
-
-    assert result == _result
+    assert result == result_values
