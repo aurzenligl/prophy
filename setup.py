@@ -1,25 +1,23 @@
 from setuptools import setup, find_packages
 
-# flake8: noqa
-
 long_description = open('README.rst').read()
 
 setup(
-    name = 'prophy',
-    version = '1.1.2',
-    author = 'Krzysztof Laskowski',
-    author_email = 'aurzenligl@gmail.com',
-    maintainer = 'Krzysztof Laskowski',
-    maintainer_email = 'aurzenligl@gmail.com',
-    license = 'MIT license',
-    url = 'https://github.com/aurzenligl/prophy',
-    description = 'prophy: fast serialization protocol',
-    long_description = long_description,
-    packages = find_packages(),
-    requires = ['ply'],
-    install_requires = ['ply'],
-    keywords = 'idl codec binary data protocol compiler',
-    classifiers = [
+    name='prophy',
+    version='1.2.1',
+    author='Krzysztof Laskowski',
+    author_email='aurzenligl@gmail.com',
+    maintainer='Krzysztof Laskowski',
+    maintainer_email='aurzenligl@gmail.com',
+    license='MIT license',
+    url='https://github.com/aurzenligl/prophy',
+    description='prophy: fast serialization protocol',
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
+    packages=find_packages(),
+    install_requires=['ply', 'renew>=0.4.1,<0.5'],
+    keywords='idl codec binary data protocol compiler',
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Telecommunications Industry',
@@ -43,7 +41,7 @@ setup(
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
     ],
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'prophyc = prophyc.__main__:entry_main'
         ],

@@ -11,6 +11,11 @@ def test_calc_numeric():
     assert calc.eval('10 >> 2', {}) == 2
     assert calc.eval('-10', {}) == -10
     assert calc.eval('\n-10\n', {}) == -10
+    assert calc.eval('0x0', {}) == 0
+    assert calc.eval('0x3', {}) == 3
+    assert calc.eval('\n-0x1a\n', {}) == -26
+    assert calc.eval('0x2 + 0x00ff', {}) == 257
+    assert calc.eval('0x2 - 0xff', {}) == -253
 
 
 def test_calc_parens():
@@ -27,14 +32,14 @@ def test_calc_nested_variables():
 
 
 def test_calc_errors():
-    with pytest.raises(calc.ParseError) as e:
+    with pytest.raises(calc.ParseError, match="illegal character &"):
         calc.eval('&', {})
-    assert 'illegal' in str(e.value)
 
-    with pytest.raises(calc.ParseError) as e:
+    with pytest.raises(calc.ParseError, match=r"syntax error at '\+'"):
         calc.eval('++', {})
-    assert 'syntax' in str(e.value)
 
-    with pytest.raises(calc.ParseError) as e:
+    with pytest.raises(calc.ParseError, match="numeric constant 'unknown' not found"):
         calc.eval('unknown', {})
-    assert 'not found' in str(e.value)
+
+    with pytest.raises(calc.ParseError, match="numeric constant 'x2' not found"):
+        calc.eval('2 + x2', {})

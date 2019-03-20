@@ -4,10 +4,7 @@ from contextlib import contextmanager
 import ply.lex as lex
 import ply.yacc as yacc
 
-from prophyc.six import ifilter
-from prophyc.model import Include, Constant, Typedef, Enum, EnumMember, Struct, StructMember, Union, UnionMember, \
-    Kind, ParseError
-from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
+from prophyc import file_processor, model, six
 
 
 def get_column(input_, pos):
@@ -15,7 +12,6 @@ def get_column(input_, pos):
 
 
 class Parser(object):
-
     literals = ['+', '-', '*', '/', '(', ')', '#']
 
     keywords = (
@@ -140,10 +136,9 @@ class Parser(object):
             )
             fieldnames.add(name)
             if member.bound:
-                bound, _, _ = next(ifilter(lambda m: m[0].name == member.bound, members[:i]),
-                                   (None, None, None))
+                bound, _, __ = next(six.ifilter(lambda m: m[0].name == member.bound, members[:i]), (None, None, None))
                 if bound:
-                    self._parser_check(self._is_type_sizer_compatible(bound.type_),
+                    self._parser_check(self._is_type_sizer_compatible(bound.type_name),
                                        "Sizer of '{}' has to be of (unsigned) integer type".format(name),
                                        line, pos)
                 else:
@@ -152,7 +147,7 @@ class Parser(object):
 
         for member, line, pos in members[:-1]:
             self._parser_check(
-                not member.greedy and member.kind != Kind.UNLIMITED,
+                not member.greedy and member.kind != model.Kind.UNLIMITED,
                 "greedy array field '{}' not last".format(member.name),
                 line, pos
             )
@@ -160,8 +155,8 @@ class Parser(object):
     def _is_type_sizer_compatible(self, typename):
         if typename in {type_ + width for type_ in 'ui' for width in ['8', '16', '32', '64']}:
             return True
-        elif typename in self.typedecls and isinstance(self.typedecls[typename], Typedef):
-            return self._is_type_sizer_compatible(self.typedecls[typename].type_)
+        elif typename in self.typedecls and isinstance(self.typedecls[typename], model.Typedef):
+            return self._is_type_sizer_compatible(self.typedecls[typename].type_name)
         else:
             return False
 
@@ -192,31 +187,31 @@ class Parser(object):
 
         try:
             nodes = self.parse_file(path)
-        except (CyclicIncludeError, FileNotFoundError) as e:
+        except (file_processor.CyclicIncludeError, file_processor.FileNotFoundError) as e:
             self._parser_error(str(e), t.lineno(3), t.lexpos(3))
             nodes = []
 
         for node in nodes:
-            if isinstance(node, Constant):
+            if isinstance(node, model.Constant):
                 self.constdecls[node.name] = node
-            if isinstance(node, Enum):
+            if isinstance(node, model.Enum):
                 for mem in node.members:
                     self.constdecls[mem.name] = mem
-            if isinstance(node, (Typedef, Enum, Struct, Union)):
+            if isinstance(node, (model.Typedef, model.Enum, model.Struct, model.Union)):
                 self.typedecls[node.name] = node
 
-        node = Include(stem, nodes)
+        node = model.Include(stem, nodes)
         self.nodes.append(node)
 
     def p_constant_def(self, t):
         '''constant_def : CONST unique_id EQUALS expression SEMI'''
-        node = Constant(t[2], str(t[4]))
+        node = model.Constant(t[2], str(t[4]))
         self.constdecls[t[2]] = node
         self.nodes.append(node)
 
     def p_enum_def(self, t):
         '''enum_def : ENUM unique_id enum_body SEMI'''
-        node = Enum(t[2], t[3])
+        node = model.Enum(t[2], t[3])
         self.typedecls[t[2]] = node
         self.nodes.append(node)
 
@@ -234,13 +229,13 @@ class Parser(object):
 
     def p_enum_member(self, t):
         '''enum_member : unique_id EQUALS expression'''
-        member = EnumMember(t[1], str(t[3]))
+        member = model.EnumMember(t[1], str(t[3]))
         self.constdecls[t[1]] = member
         t[0] = member
 
     def p_typedef_def(self, t):
         '''typedef_def : TYPEDEF type_spec unique_id SEMI'''
-        node = Typedef(t[3], t[2][0], definition=t[2][1])
+        node = model.Typedef(t[3], t[2][0], definition=t[2][1])
         self.typedecls[t[3]] = node
         self.nodes.append(node)
 
@@ -248,10 +243,12 @@ class Parser(object):
         '''struct_def : STRUCT unique_id struct_body SEMI'''
 
         self._validate_struct_members(t[3])
-
-        node = Struct(t[2], [x for x, _, _ in t[3]])
-        self.typedecls[t[2]] = node
-        self.nodes.append(node)
+        try:
+            node = model.Struct(t[2], [x for x, _, _ in t[3]])
+            self.typedecls[t[2]] = node
+            self.nodes.append(node)
+        except model.ModelError as e:  # actual raise is postponed till end of parsing
+            self._parser_error(str(e), t.lexer.lineno, 0)
 
     def p_struct_body(self, t):
         '''struct_body : LBRACE struct_member_list RBRACE'''
@@ -267,45 +264,45 @@ class Parser(object):
 
     def p_struct_member_1(self, t):
         '''struct_member : type_spec ID'''
-        t[0] = [(StructMember(t[2], t[1][0], definition=t[1][1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(model.StructMember(t[2], t[1][0], definition=t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_2(self, t):
         '''struct_member : bytes ID LBRACKET positive_expression RBRACKET
                          | type_spec ID LBRACKET positive_expression RBRACKET'''
-        t[0] = [(StructMember(t[2], t[1][0], size=str(t[4]), definition=t[1][1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(model.StructMember(t[2], t[1][0], size=str(t[4]), definition=t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_3(self, t):
         '''struct_member : bytes ID LT AT ID GT
                          | type_spec ID LT AT ID GT'''
         t[0] = [
-            (StructMember(t[2], t[1][0], bound=t[5], definition=t[1][1]), t.lineno(2), t.lexpos(2))
+            (model.StructMember(t[2], t[1][0], bound=t[5], definition=t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_4(self, t):
         '''struct_member : bytes ID LT GT
                          | type_spec ID LT GT'''
         t[0] = [
-            (StructMember('num_of_' + t[2], 'u32', definition=None), t.lineno(2), t.lexpos(2)),
-            (StructMember(t[2], t[1][0], bound='num_of_' + t[2], definition=t[1][1]), t.lineno(2), t.lexpos(2))
+            (model.StructMember('num_of_' + t[2], 'u32', definition=None), t.lineno(2), t.lexpos(2)),
+            (model.StructMember(t[2], t[1][0], bound='num_of_' + t[2], definition=t[1][1]), t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_5(self, t):
         '''struct_member : bytes ID LT positive_expression GT
                          | type_spec ID LT positive_expression GT'''
         t[0] = [
-            (StructMember('num_of_' + t[2], 'u32', definition=None), t.lineno(2), t.lexpos(2)),
-            (StructMember(t[2], t[1][0], bound='num_of_' + t[2],
-                          size=str(t[4]), definition=t[1][1]), t.lineno(2), t.lexpos(2))
+            (model.StructMember('num_of_' + t[2], 'u32', definition=None), t.lineno(2), t.lexpos(2)),
+            (model.StructMember(t[2], t[1][0], bound='num_of_' + t[2], size=str(t[4]), definition=t[1][1]),
+             t.lineno(2), t.lexpos(2))
         ]
 
     def p_struct_member_6(self, t):
         '''struct_member : bytes ID LT DOTS GT
                          | type_spec ID LT DOTS GT'''
-        t[0] = [(StructMember(t[2], t[1][0], unlimited=True, definition=t[1][1]), t.lineno(2), t.lexpos(2))]
+        t[0] = [(model.StructMember(t[2], t[1][0], greedy=True, definition=t[1][1]), t.lineno(2), t.lexpos(2))]
 
     def p_struct_member_7(self, t):
         '''struct_member : type_spec '*' ID'''
-        t[0] = [(StructMember(t[3], t[1][0], optional=True, definition=t[1][1]), t.lineno(3), t.lexpos(3))]
+        t[0] = [(model.StructMember(t[3], t[1][0], optional=True, definition=t[1][1]), t.lineno(3), t.lexpos(3))]
 
     def p_bytes(self, t):
         '''bytes : BYTES'''
@@ -332,12 +329,12 @@ class Parser(object):
             discriminatorvalues.add(member.discriminator)
         for member, line, pos in t[3]:
             self._parser_check(
-                member.kind == Kind.FIXED,
+                member.kind == model.Kind.FIXED,
                 "dynamic union arm '{}'".format(member.name),
                 line, pos
             )
 
-        node = Union(t[2], [x for x, _, _ in t[3]])
+        node = model.Union(t[2], [x for x, _, _ in t[3]])
         self.typedecls[t[2]] = node
         self.nodes.append(node)
 
@@ -355,7 +352,7 @@ class Parser(object):
 
     def p_union_member(self, t):
         '''union_member : expression COLON type_spec ID'''
-        t[0] = (UnionMember(t[4], t[3][0], str(t[1]), definition=t[3][1]), t.lineno(4), t.lexpos(4))
+        t[0] = (model.UnionMember(t[4], t[3][0], str(t[1]), definition=t[3][1]), t.lineno(4), t.lexpos(4))
 
     def p_type_spec_1(self, t):
         '''type_spec : U8
@@ -486,29 +483,27 @@ class Parser(object):
 
 
 @contextmanager
-def allocate_parser(parsers=[]):
+def allocate_parser(parsers_stack):
     """
     Creating parsers is very expensive, so there is a need to reuse them.
     On the other hand, recursive parser usage requires a unique one for each
     level of recursion. Static stack of parsers seems to solve the issue.
     """
 
-    parser = parsers and parsers.pop() or Parser()
+    parser = parsers_stack and parsers_stack.pop() or Parser()
     try:
         yield parser
     finally:
-        parsers.append(parser)
-
-
-def build_model(input_, parse_error_prefix, parse_file):
-    with allocate_parser() as parser:
-        parser.parse(input_, parse_error_prefix, parse_file)
-        if parser.errors:
-            raise ParseError(parser.errors)
-        return parser.nodes
+        parsers_stack.append(parser)
 
 
 class ProphyParser(object):
 
-    def parse(self, content, path, parse_file):
-        return build_model(content, path, parse_file)
+    @staticmethod
+    def parse(content, parse_error_prefix, parse_file):
+        parsers_stack = []
+        with allocate_parser(parsers_stack) as parser:
+            parser.parse(content, parse_error_prefix, parse_file)
+            if parser.errors:
+                raise model.ParseError(parser.errors)
+            return parser.nodes

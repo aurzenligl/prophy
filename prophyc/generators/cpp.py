@@ -1,7 +1,6 @@
 from prophyc import model
 from prophyc.generators.base import GenerateError, GeneratorBase, TranslatorBase
 
-
 primitive_types = {
     'u8': 'uint8_t',
     'u16': 'uint16_t',
@@ -88,7 +87,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
         return 'enum {{ {} = {} }};'.format(constant.name, _to_literal(constant.value))
 
     def translate_typedef(self, typedef):
-        tp = primitive_types.get(typedef.type_, typedef.type_)
+        tp = primitive_types.get(typedef.type_name, typedef.type_name)
         return 'typedef {} {};'.format(tp, typedef.name)
 
     def translate_enum(self, enum):
@@ -111,8 +110,8 @@ class _HppDefinitionsTranslator(TranslatorBase):
                         annotation = 'greedy array'
                 return annotation
 
-            typename = primitive_types.get(member.type_, member.type_)
-            if member.array:
+            typename = primitive_types.get(member.type_name, member.type_name)
+            if member.is_array:
                 annotation = build_annotation(member)
                 size = member.size or 1
                 if annotation:
@@ -123,7 +122,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
                 field = '{0} {1};\n'.format(typename, member.name)
             if member.optional:
                 field = 'prophy::bool_t has_{0};\n'.format(member.name) + field
-            if member.padding > 0:
+            if member.padding is not None and member.padding > 0:
                 field += padder.generate_padding(member.padding)
             return field
 
@@ -154,7 +153,7 @@ class _HppDefinitionsTranslator(TranslatorBase):
             return 'discriminator_{0} = {1}'.format(member.name, member.discriminator)
 
         def gen_member(member):
-            typename = primitive_types.get(member.type_, member.type_)
+            typename = primitive_types.get(member.type_name, member.type_name)
             return '{0} {1};\n'.format(typename, member.name)
 
         enum_fields = _indent(',\n'.join(gen_disc(mem) for mem in union.members), 4)
@@ -164,6 +163,16 @@ class _HppDefinitionsTranslator(TranslatorBase):
         parts = UNION_DEF_PART_TEMPLATE.format(enum_fields=enum_fields, padding=padding, union_fields=union_fields)
 
         return UNION_DEF_TEMPLATE.format(align=union.alignment, name=union.name, parts=_indent(parts, 4))
+
+    @classmethod
+    def _make_lines_splitter(cls, previous_node_type, current_node_type):
+        if not previous_node_type:
+            return ""
+
+        if previous_node_type != current_node_type:
+            return "\n\n"
+
+        return "\n"
 
 
 ENUM_SWAP_TEMPLATE = """\
@@ -183,8 +192,8 @@ namespace prophy
 class _HppSwapDeclarations(TranslatorBase):
     block_template = HPP_SWAPS_BLOCK_TEMPLATE
 
-    def _prepend_newline(self, _, __):
-        return False
+    def _make_lines_splitter(self, previous_node_type, _):
+        return "\n" if previous_node_type else ""
 
     def translate_enum(self, enum):
         return ENUM_SWAP_TEMPLATE.format(enum.name)
@@ -198,7 +207,7 @@ class _HppSwapDeclarations(TranslatorBase):
 
 def _member_access_statement(member):
     out = '&payload->%s' % member.name
-    if isinstance(member, model.StructMember) and member.array:
+    if isinstance(member, model.StructMember) and member.is_array:
         out = out[1:]
     return out
 
@@ -251,7 +260,7 @@ class _CppSwapTranslator(TranslatorBase):
 
     def translate_struct(self, struct):
         def gen_member(member, delimiters=[]):
-            if member.array:
+            if member.is_array:
                 is_dynamic = member.kind == model.Kind.DYNAMIC
                 swap_mode = 'dynamic' if is_dynamic else 'fixed'
                 if member.bound:
@@ -276,7 +285,7 @@ class _CppSwapTranslator(TranslatorBase):
                     name,
                     _member_access_statement(last_mem)
                 )
-            elif last_mem.kind == model.Kind.DYNAMIC or last_mem.dynamic:
+            elif last_mem.kind == model.Kind.DYNAMIC or last_mem.is_dynamic:
                 return 'return cast<{0}*>({1});\n'.format(
                     name,
                     gen_member(last_mem, delimiters)

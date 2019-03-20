@@ -24,7 +24,7 @@ def test_includes_parsing():
 """
     nodes = parse(xml, process_file=lambda path: [model.Typedef("a", "u8")])
 
-    assert [
+    assert nodes == [
         ("mydlo", [model.Typedef("a", "u8")]),
         ("szydlo", [model.Typedef("a", "u8")]),
         ("powidlo", [model.Typedef("a", "u8")]),
@@ -32,7 +32,7 @@ def test_includes_parsing():
         ("../entliczek/petliczek", [model.Typedef("a", "u8")]),
         ("../my.basename", [model.Typedef("a", "u8")]),
         ("noext", [model.Typedef("a", "u8")]),
-    ] == nodes
+    ]
 
 
 def test_includes_call_file_process_with_proper_path():
@@ -61,6 +61,7 @@ def test_includes_cyclic_include_error():
 
     def process_file_with_error(path):
         raise CyclicIncludeError(path)
+
     warnings = []
 
     nodes = parse(
@@ -81,6 +82,7 @@ def test_includes_file_not_found_error():
 
     def process_file_with_error(path):
         raise FileNotFoundError(path)
+
     warnings = []
 
     nodes = parse(
@@ -172,9 +174,8 @@ def test_enums_parsing_repeated_value():
     </enum>
 </x>
 """
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError, match="Duplicate Enum value"):
         parse(xml)
-    assert "Duplicate Enum value" in str(e)
 
 
 def test_struct_parsing():
@@ -519,9 +520,7 @@ def test_empty_elemens_parsing():
 </x>
 """
 
-    nodes = parse(xml)
-
-    assert len(nodes) == 0
+    assert parse(xml) == []
 
 
 def test_primitive_types():

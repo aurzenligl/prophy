@@ -237,7 +237,7 @@ def test_make_field_greedy_array():
 
     assert [model.Struct('MyStruct', [model.StructMember('field1', 'u32'),
                                       model.StructMember('field2', 'u32'),
-                                      model.StructMember('field3', 'u32', unlimited=True)])] == nodes
+                                      model.StructMember('field3', 'u32', greedy=True)])] == nodes
 
 
 def test_make_field_greedy_array_not_a_struct():
@@ -333,6 +333,17 @@ def test_make_field_limited_array():
                                       model.StructMember('field3', 'u32', bound='field2', size='20')])] == nodes
 
 
+def test_fail_to_make_field_limited_array():
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
+                                       model.StructMember("field2", "u32"),
+                                       model.StructMember("after", "u32")])]
+
+    patches = {'MyStruct': [patch.Action('limited', ['field2', 'after'])]}
+
+    with pytest.raises(Exception, match="Array len member not found: "):
+        patch.patch(nodes, patches)
+
+
 def test_make_field_limited_array_not_a_struct():
     nodes = [model.Typedef("MyStruct", "MyRealStruct")]
     patches = {'MyStruct': [patch.Action('limited', ['field3', 'field2'])]}
@@ -404,8 +415,8 @@ def test_change_union_to_struct_and_remove_field():
 
 
 def test_change_union_to_struct_not_a_union():
-    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32", 1),
-                                       model.StructMember("field2", "u32", 2)])]
+    nodes = [model.Struct("MyStruct", [model.StructMember("field1", "u32"),
+                                       model.StructMember("field2", "u32")])]
     patches = {'MyStruct': [patch.Action('struct', [])]}
 
     with pytest.raises(Exception) as e:

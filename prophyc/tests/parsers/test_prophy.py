@@ -73,7 +73,7 @@ typedef x y;
 
     assert parse(content) == [
         model.Typedef("x", "u32"),
-        model.Typedef("y", "x")
+        model.Typedef("y", "x", model.Typedef('x', 'u32'))
     ]
 
 
@@ -154,7 +154,7 @@ struct test
         model.Typedef('x_t', 'u32'),
         model.Struct('test', [
             model.StructMember('num_of_x', 'u32'),
-            model.StructMember('x', 'x_t', bound='num_of_x'),
+            model.StructMember('x', 'x_t', model.Typedef('x_t', 'u32'), bound='num_of_x'),
             model.StructMember('num_of_y', 'u32'),
             model.StructMember('y', 'byte', bound='num_of_y')
         ])
@@ -178,7 +178,7 @@ struct test
         model.Struct('test', [
             model.StructMember('num_of_elements', 'u32'),
             model.StructMember('dummy', 'u16'),
-            model.StructMember('x', 'x_t', bound='num_of_elements'),
+            model.StructMember('x', 'x_t', model.Typedef('x_t', 'u32'), bound='num_of_elements'),
             model.StructMember('y', 'byte', bound='num_of_elements')
         ])
     ]
@@ -199,9 +199,15 @@ struct ExtSized
 
     assert parse(content) == [
         model.Typedef('num_of_elements_t', 'i32'),
-        model.Typedef('sz_t', 'num_of_elements_t'),
+        model.Typedef('sz_t', 'num_of_elements_t', model.Typedef('num_of_elements_t', 'i32', None)),
         model.Struct('ExtSized', [
-            model.StructMember('sz', 'sz_t'),
+            model.StructMember(
+                'sz', 'sz_t', model.Typedef(
+                    'sz_t', 'num_of_elements_t', model.Typedef(
+                        'num_of_elements_t', 'i32', None
+                    )
+                )
+            ),
             model.StructMember('one', 'u32', bound='sz'),
             model.StructMember('two', 'u16', bound='sz'),
             model.StructMember('three', 'i32', bound='sz')
@@ -245,7 +251,7 @@ struct test
 
     assert parse(content) == [
         model.Struct('test', [
-            model.StructMember('x', 'u32', unlimited=True)
+            model.StructMember('x', 'u32', greedy=True)
         ])
     ]
 
@@ -549,8 +555,9 @@ def test_error_union_empty():
 
 
 def test_error_union_repeated_arm_name():
-    with pytest.raises(ParseError) as e:
-        parse('union test { 1: u32 x; 2: u32 x; };')
+    with pytest.raises(model.ModelError, match="Duplicated 'x' identifier in union test."):
+        with pytest.raises(ParseError) as e:
+            parse('union test { 1: u32 x; 2: u32 x; };')
     assert ":1:31", "field 'x' redefined" == e.value.errors[0]
 
 
@@ -581,6 +588,7 @@ const Z 2;
 """)
     assert e.value.errors == [
         ("test.prophy:1:23", "field 'x' redefined"),
+        ('test.prophy:2:1', "Duplicated 'x' identifier in struct X."),
         ("test.prophy:2:11", "constant 'unknown' was not declared"),
         ("test.prophy:3:9", "syntax error at '2'")
     ]
@@ -731,10 +739,12 @@ def test_include_errors():
     with pytest.raises(ParseError) as e:
         def parse_file(path):
             raise FileNotFoundError(path)
+
         parse('#include "imnotthere"', parse_file)
     assert e.value.errors == [("test.prophy:1:10", "file imnotthere not found")]
     with pytest.raises(ParseError) as e:
         def parse_file(path):
             raise CyclicIncludeError(path)
+
         parse('#include "includemeagain"', parse_file)
     assert e.value.errors == [("test.prophy:1:10", "file includemeagain included again during parsing")]

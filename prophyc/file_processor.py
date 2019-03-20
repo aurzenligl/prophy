@@ -1,3 +1,4 @@
+import codecs
 import os
 from contextlib import contextmanager
 
@@ -43,7 +44,7 @@ class FileProcessor(object):
     def __init__(self, process_content, include_dirs):
         self.process_content = process_content
         '''Function object accepting arguments (content, path, process_file)'''
-        self.include_dirs = [_ for _ in include_dirs]
+        self.include_dirs = [d for d in include_dirs]
         self.files = {}
         '''Absolute paths are keys, values are results of process_content calls'''
 
@@ -79,6 +80,8 @@ class FileProcessor(object):
             return self.files[abspath]
         self.files[abspath] = None
 
-        result = self.process_content(open(path).read(), path, lambda leaf: self.process_leaf(leaf))
+        with codecs.open(path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        result = self.process_content(content, path, lambda leaf: self.process_leaf(leaf))
         self.files[abspath] = result
         return result

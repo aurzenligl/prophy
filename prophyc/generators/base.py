@@ -1,4 +1,6 @@
+import codecs
 import os
+
 from prophyc import model
 
 
@@ -7,7 +9,7 @@ class GenerateError(Exception):
 
 
 def _write_file(file_path, string):
-    with open(file_path, "w") as f:
+    with codecs.open(file_path, "w", encoding="utf-8") as f:
         f.write(string)
 
 
@@ -33,8 +35,8 @@ class GeneratorAbc(object):
 
 
 class GeneratorBase(GeneratorAbc):
-    def __init__(self, outpu_directory="."):
-        self.output_dir = outpu_directory
+    def __init__(self, output_directory="."):
+        self.output_dir = output_directory
 
     def serialize(self, nodes, base_name):
         self.check_nodes(nodes)
@@ -74,19 +76,23 @@ class TranslatorBase(TranslatorAbc):
     }
 
     def __call__(self, nodes, base_name):
+        nodes = self._move_includes_to_front(nodes)
         content = self._process_nodes(nodes, base_name)
         return self._block_post_process(content, base_name, nodes)
 
     def _process_nodes(self, nodes, base_name):
-        def collect():
-            previous_node = None
-            for node, translated_node in self._nodes_dispatcher(nodes, base_name):
-                if self._prepend_newline(previous_node, node):
-                    yield '\n'
-                yield translated_node + "\n"
-                previous_node = node
+        render = ""
+        previous_node_type = None
+        for node_type_name, translated_node in self._nodes_dispatcher(nodes, base_name):
+            lines_splitter = self._make_lines_splitter(previous_node_type, node_type_name)
+            if translated_node:
+                render += lines_splitter + translated_node
 
-        return ''.join(collect())
+            previous_node_type = node_type_name
+
+        if nodes and render:
+            render += "\n"
+        return render
 
     @classmethod
     def _block_post_process(cls, content, base_name, nodes):
@@ -96,28 +102,41 @@ class TranslatorBase(TranslatorAbc):
             return content
 
     @classmethod
-    def _prepend_newline(cls, previous_node, current_node):
-        if previous_node:
-            is_different_type = type(previous_node) is not type(current_node)
-            is_enum_struct_or_union = isinstance(previous_node, (model.Enum, model.Struct, model.Union))
-            return is_different_type or is_enum_struct_or_union
+    def _make_lines_splitter(cls, previous_node_type, current_node_type):
+        if not previous_node_type:
+            return ""
+
+        if previous_node_type != current_node_type:
+            return "\n\n"
+
+        return "\n"
 
     def _nodes_dispatcher(self, nodes, base_name):
         for block_translator_class in self.prerequisite_translators:
             prerequisite_block_translator = block_translator_class()
             translated_block = prerequisite_block_translator(nodes, base_name)
-            if translated_block:
-                yield "prerequisite block", translated_block
+            if nodes and translated_block:
+                last_node_name = type(nodes[-1]).__name__
+                yield last_node_name, translated_block
 
         for node in nodes:
             handler = self._get_translation_handler(node)
             if handler:
                 translated_node = handler(node)
-                yield node, translated_node
+                yield type(node).__name__, translated_node
 
     def _get_translation_handler(self, node):
-        if type(node) not in self._translation_methods_map:
-            raise GenerateError("Unknown node type: {}".format(type(node).__name__))
-
-        translation_method_name = self._translation_methods_map[type(node)]
+        translation_method_name = self._translation_methods_map.get(type(node), None)
+        assert translation_method_name, "Unknown node type: {}".format(type(node).__name__)
         return getattr(self, translation_method_name, None)
+
+    @staticmethod
+    def _move_includes_to_front(nodes):
+        includes = []
+        others = []
+        for node in nodes:
+            if isinstance(node, model.Include):
+                includes.append(node)
+            else:
+                others.append(node)
+        return includes + others

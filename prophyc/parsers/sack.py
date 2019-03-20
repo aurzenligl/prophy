@@ -1,12 +1,12 @@
+import ctypes.util
 import os
 import re
-import ctypes.util
-from .clang.cindex import Config, Index, CursorKind, TypeKind, TranslationUnitLoadError, LibclangError
+from contextlib import contextmanager
 
 from prophyc import model
 from prophyc.generators.cpp import _HppDefinitionsTranslator
 from prophyc.six import to_bytes
-from contextlib import contextmanager
+from .clang import cindex
 
 
 class SackParserError(Exception):
@@ -29,13 +29,13 @@ class SackModelTree(object):
 
 class Builder(object):
     unambiguous_builtins = {
-        TypeKind.UCHAR: 'u8',
-        TypeKind.SCHAR: 'i8',
-        TypeKind.CHAR_S: 'i8',
-        TypeKind.POINTER: 'u32',
-        TypeKind.FLOAT: 'r32',
-        TypeKind.DOUBLE: 'r64',
-        TypeKind.BOOL: 'i32'
+        cindex.TypeKind.UCHAR: 'u8',
+        cindex.TypeKind.SCHAR: 'i8',
+        cindex.TypeKind.CHAR_S: 'i8',
+        cindex.TypeKind.POINTER: 'u32',
+        cindex.TypeKind.FLOAT: 'r32',
+        cindex.TypeKind.DOUBLE: 'r64',
+        cindex.TypeKind.BOOL: 'i32'
     }
 
     def __init__(self, tree_model):
@@ -61,36 +61,36 @@ class Builder(object):
                 method(decl)
             return name
 
-        if tp.kind is TypeKind.TYPEDEF:
+        if tp.kind is cindex.TypeKind.TYPEDEF:
             return self.get_type_name(decl.underlying_typedef_type)
 
-        elif tp.kind in (TypeKind.UNEXPOSED, TypeKind.ELABORATED, TypeKind.RECORD):
+        elif tp.kind in (cindex.TypeKind.UNEXPOSED, cindex.TypeKind.ELABORATED, cindex.TypeKind.RECORD):
 
-            if decl.kind in (CursorKind.STRUCT_DECL, CursorKind.CLASS_DECL):
+            if decl.kind in (cindex.CursorKind.STRUCT_DECL, cindex.CursorKind.CLASS_DECL):
                 return dive_deeper(self.add_struct)
 
-            elif decl.kind is CursorKind.UNION_DECL:
+            elif decl.kind is cindex.CursorKind.UNION_DECL:
                 return dive_deeper(self.add_union)
 
-            elif decl.kind is CursorKind.ENUM_DECL:
+            elif decl.kind is cindex.CursorKind.ENUM_DECL:
                 return self.get_type_name(decl.type)
 
-            elif decl.kind is CursorKind.TYPEDEF_DECL:
+            elif decl.kind is cindex.CursorKind.TYPEDEF_DECL:
                 return self.get_type_name(decl.underlying_typedef_type)
 
             else:
                 raise SackParserError("Unknown declaration, {} {}".format(tp.spelling, decl.kind))
 
-        elif tp.kind in (TypeKind.CONSTANTARRAY, TypeKind.INCOMPLETEARRAY):
+        elif tp.kind in (cindex.TypeKind.CONSTANTARRAY, cindex.TypeKind.INCOMPLETEARRAY):
             return self.get_type_name(tp.element_type)
 
-        elif tp.kind is TypeKind.ENUM:
+        elif tp.kind is cindex.TypeKind.ENUM:
             return dive_deeper(self.add_enum)
 
-        if tp.kind in (TypeKind.USHORT, TypeKind.UINT, TypeKind.ULONG, TypeKind.ULONGLONG):
+        if tp.kind in (cindex.TypeKind.USHORT, cindex.TypeKind.UINT, cindex.TypeKind.ULONG, cindex.TypeKind.ULONGLONG):
             return 'u%d' % (tp.get_size() * 8)
 
-        elif tp.kind in (TypeKind.SHORT, TypeKind.INT, TypeKind.LONG, TypeKind.LONGLONG):
+        elif tp.kind in (cindex.TypeKind.SHORT, cindex.TypeKind.INT, cindex.TypeKind.LONG, cindex.TypeKind.LONGLONG):
             return 'i%d' % (tp.get_size() * 8)
 
         return self.unambiguous_builtins[tp.kind]
@@ -111,9 +111,8 @@ class Builder(object):
 
     def add_struct(self, cursor):
         def array_length(tp):
-            if tp.kind is TypeKind.CONSTANTARRAY:
+            if tp.kind is cindex.TypeKind.CONSTANTARRAY:
                 return tp.element_count
-            return None
 
         def struct_member(cursor_):
             name = cursor_.spelling.decode()
@@ -122,7 +121,7 @@ class Builder(object):
             return model.StructMember(name, type_name, size=array_len)
 
         members = [struct_member(x) for x in cursor.get_children()
-                   if x.kind is CursorKind.FIELD_DECL and not x.is_bitfield()]
+                   if x.kind is cindex.CursorKind.FIELD_DECL and not x.is_bitfield()]
         node = model.Struct(Builder.alphanumeric_name(cursor), members)
         self.tree.add_node(node)
 
@@ -133,20 +132,21 @@ class Builder(object):
             return model.UnionMember(name, type_name, str(disc))
 
         members = [union_member(x, i) for i, x in enumerate(cursor.get_children())
-                   if x.kind is CursorKind.FIELD_DECL]
+                   if x.kind is cindex.CursorKind.FIELD_DECL]
         node = model.Union(Builder.alphanumeric_name(cursor), members)
         self.tree.add_node(node)
 
     def build_model(self, translation_unit):
         for cursor in translation_unit.cursor.get_children():
-            if cursor.kind is CursorKind.UNEXPOSED_DECL:
+            if cursor.kind is cindex.CursorKind.UNEXPOSED_DECL:
                 for in_cursor in cursor.get_children():
-                    if in_cursor.kind is CursorKind.STRUCT_DECL and in_cursor.spelling and in_cursor.is_definition():
-                        self.add_struct(in_cursor)
+                    if in_cursor.kind is cindex.CursorKind.STRUCT_DECL:
+                        if in_cursor.spelling and in_cursor.is_definition():
+                            self.add_struct(in_cursor)
             if cursor.spelling and cursor.is_definition():
-                if cursor.kind is CursorKind.STRUCT_DECL:
+                if cursor.kind is cindex.CursorKind.STRUCT_DECL:
                     self.add_struct(cursor)
-                if cursor.kind is CursorKind.ENUM_DECL:
+                if cursor.kind is cindex.CursorKind.ENUM_DECL:
                     self.add_enum(cursor)
 
 
@@ -163,7 +163,7 @@ class SupplementaryDefs(object):
     def flatten_nodes(nodes_list):
         for node in nodes_list:
             if isinstance(node, model.Include):
-                for node in SupplementaryDefs.flatten_nodes(node.nodes):
+                for node in SupplementaryDefs.flatten_nodes(node.members):
                     yield node
             else:
                 yield node
@@ -224,11 +224,11 @@ class SackParser(object):
             __nonzero__ = __bool__
 
         def _check_libclang():
-            testconf = Config()
+            testconf = cindex.Config()
             try:
                 testconf.get_cindex_library()
                 return True
-            except LibclangError:
+            except cindex.LibclangError:
                 return False
 
         import platform
@@ -238,14 +238,14 @@ class SackParser(object):
             return SackParserStatus("sack input requires libclang and it's not installed")
         return SackParserStatus()
 
-    def __init__(self, include_dirs=[], warn=None, include_tree=[]):
-        self.include_dirs = include_dirs
+    def __init__(self, include_dirs=None, warn=None, include_tree=None):
+        self.include_dirs = include_dirs or []
         self.warn = warn
-        self.supples = SupplementaryDefs(include_tree)
+        self.supples = SupplementaryDefs(include_tree or [])
 
     def parse(self, content, path, _):
         args_ = [to_bytes("-I" + x) for x in self.include_dirs]
-        index = Index.create()
+        index = cindex.Index.create()
         with self.supples.implicit_supplementation(content) as (content_, tree):
             builder = Builder(tree)
             path = path.encode()
@@ -253,7 +253,7 @@ class SackParser(object):
 
             try:
                 translation_unit = index.parse(path, args_, unsaved_files=((path, content_),))
-            except TranslationUnitLoadError:
+            except cindex.TranslationUnitLoadError:
                 raise model.ParseError([(path.decode(), 'error parsing translation unit')])
 
             self.print_diagnostics(path, translation_unit)
@@ -285,7 +285,7 @@ class SackParser(object):
 
 def _setup_libclang():
     if os.environ.get('PROPHY_NOCLANG'):
-        Config.set_library_file('prophy_noclang')
+        cindex.Config.set_library_file('prophy_noclang')
         return
 
     versions = [None, '3.5', '3.4', '3.3', '3.2', '3.6', '3.7', '3.8', '3.9']
@@ -293,7 +293,7 @@ def _setup_libclang():
         name = v and 'clang-' + v or 'clang'
         libname = ctypes.util.find_library(name)
         if libname:
-            Config.set_library_file(libname)
+            cindex.Config.set_library_file(libname)
             break
 
 

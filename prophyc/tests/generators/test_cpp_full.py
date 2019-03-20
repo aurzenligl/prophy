@@ -47,7 +47,7 @@ def generate_hpp(nodes, base_name):
 
 def process(nodes):
     model.cross_reference(nodes)
-    model.evaluate_kinds(nodes)
+    model.evaluate_stiffness_kinds(nodes)
     model.evaluate_sizes(nodes)
     return nodes
 
@@ -351,7 +351,7 @@ def Builtin():
             model.StructMember('x', 'u32', size=2, bound='num_of_x')
         ]),
         model.Struct('BuiltinGreedy', [
-            model.StructMember('x', 'u32', unlimited=True)
+            model.StructMember('x', 'u32', greedy=True)
         ])
     ])
 
@@ -379,7 +379,7 @@ def Fixcomp():
             model.StructMember('x', 'Builtin', size=2, bound='num_of_x')
         ]),
         model.Struct('FixcompGreedy', [
-            model.StructMember('x', 'Builtin', unlimited=True)
+            model.StructMember('x', 'Builtin', greedy=True)
         ])
     ])
 
@@ -399,7 +399,7 @@ def Dyncomp():
             model.StructMember('x', 'BuiltinDynamic', bound='num_of_x')
         ]),
         model.Struct('DyncompGreedy', [
-            model.StructMember('x', 'BuiltinDynamic', unlimited=True)
+            model.StructMember('x', 'BuiltinDynamic', greedy=True)
         ])
     ])
 
@@ -471,7 +471,7 @@ def Bytes():
             model.StructMember('x', 'byte', size=4, bound='num_of_x')
         ]),
         model.Struct('BytesGreedy', [
-            model.StructMember('x', 'byte', unlimited=True)
+            model.StructMember('x', 'byte', greedy=True)
         ])
     ])
 
@@ -497,7 +497,7 @@ def Endpad():
         ]),
         model.Struct('EndpadGreedy', [
             model.StructMember('x', 'u32'),
-            model.StructMember('y', 'u8', unlimited=True)
+            model.StructMember('y', 'u8', greedy=True)
         ])
     ])
 
@@ -2311,15 +2311,18 @@ def test_generate_hpp_newlines():
 typedef b a;
 typedef d c;
 
+
 enum E1
 {
     E1_A = 0
 };
 
+
 enum E2
 {
     E2_A = 0
 };
+
 
 enum { CONST_A = 0 };
 
@@ -2327,6 +2330,7 @@ typedef f e;
 
 enum { CONST_B = 0 };
 enum { CONST_C = 0 };
+
 
 struct A : public prophy::detail::message<A>
 {
@@ -2342,6 +2346,7 @@ struct A : public prophy::detail::message<A>
         return 4;
     }
 };
+
 
 struct B : public prophy::detail::message<B>
 {
@@ -2461,7 +2466,6 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
     do_print(out, indent, "y", x.y);
 }
 template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
-
 template <>
 template <endianness E>
 uint8_t* message_impl<Y>::encode(const Y& x, uint8_t* pos)
@@ -2534,6 +2538,7 @@ def test_generate_hpp_with_included_struct():
 
 #include "Input.ppf.hpp"
 #include "Input2.ppf.hpp"
+
 
 namespace prophy
 {

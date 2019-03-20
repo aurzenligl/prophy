@@ -34,6 +34,7 @@ def parse_options(emit_error, args):
     group.add_argument('--isar',
                        action='store_true',
                        help='Parse input files as isar xml.')
+
     group.add_argument('--sack',
                        action='store_true',
                        help='Parse input files as sack C++.')
@@ -45,7 +46,7 @@ def parse_options(emit_error, args):
                         action='append',
                         default=[],
                         help=('Add the directory to the list of directories to be '
-                                'searched for included files.'))
+                              'searched for included files.'))
 
     parser.add_argument('-S', '--include_isar',
                         metavar='XMLFILE',
@@ -60,13 +61,18 @@ def parse_options(emit_error, args):
                         type=readable_file,
                         help=("File with instructions changing definitions of prophy "
                               "messages after parsing. It's needed in sack and isar "
-                                "modes, since C++ and isar xml are unable to express "
-                                "all prophy features."))
+                              "modes, since C++ and isar xml are unable to express "
+                              "all prophy features."))
 
     parser.add_argument('--python_out',
                         metavar='OUT_DIR',
                         type=readable_dir,
                         help='Generate Python source files.')
+
+    parser.add_argument('--prophy_out',
+                        metavar='OUT_DIR',
+                        type=readable_dir,
+                        help='Generate prophy schema source files.')
 
     parser.add_argument('--cpp_out',
                         metavar='OUT_DIR',
@@ -77,6 +83,10 @@ def parse_options(emit_error, args):
                         metavar='OUT_DIR',
                         type=readable_dir,
                         help='Generate C++ full object-based codec header and source files.')
+
+    parser.add_argument('--void_out',
+                        action='store_true',
+                        help='Allow compilation without generating any files.')
 
     parser.add_argument('--version',
                         action='store_true',
