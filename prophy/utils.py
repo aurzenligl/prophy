@@ -33,7 +33,7 @@ def jsonize(struct_, ordered=True):
             return struct_
 
         elif isinstance(struct_, dict):
-            return {k: jsonize(v, ordered) for k, v in struct_.iteritems()}
+            return {k: jsonize(v, ordered) for k, v in struct_.items()}
 
         elif _is_namedtuple(struct_):
             return {f: jsonize(getattr(struct_, f), ordered) for f in struct_._fields}

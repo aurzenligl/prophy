@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import prophy
 from prophy.utils import jsonize
 
@@ -6,7 +8,7 @@ import pytest
 
 @pytest.mark.parametrize('ordered, result_no_values, result_values', [
     (True, [
-        ('that_enum', 0L),
+        ('that_enum', 0),
         ('that_union', [('re', 0), ('im', 0)]),
         ('optional_element', None),
         ('fixed_array', [[('re', 0), ('im', 0)], [('re', 0), ('im', 0)], [('re', 0), ('im', 0)]]),
@@ -99,3 +101,10 @@ def test_jsonize(ordered, result_no_values, result_values):
 
     result = jsonize(s, ordered)
     assert result == result_values
+
+
+def test_jsonize_simple_types():
+    MyTuple = namedtuple('MyTuple', ['x', 'y'])
+    data = [3.14159, ({1, 2, 3}, {4: "five"}, MyTuple(1, 2))]
+    assert jsonize(data) == [3.14159, [set([1, 2, 3]), {4: 'five'}, {'y': 2, 'x': 1}]]
+
