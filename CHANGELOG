@@ -5,6 +5,7 @@ forthcoming
 1.2.1
 -----------------------------------
 - adopting to newer renew version: 0.4.1
+- fixing ISAR unicode bug introduced in 1.2.0
 
 1.2.0
 -----------------------------------

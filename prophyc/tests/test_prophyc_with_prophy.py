@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+import codecs
 import os
 
 opd = os.path.dirname
@@ -10,10 +12,10 @@ def form_args(mode, tmpdir_cwd, target_file_name):
 
 
 def test_isar_input(tmpdir_cwd, call_prophyc):
-    content = """\
+    content = u"""\
 <dom>
     <constant name="MAX_NUM_OF_L2DEPLOYABLE_NODE" value="10"/>
-    <typedef name="TPoolId" type="u32"/>
+    <typedef name="TPoolId" type="u32" comment="it's …Jalapeño in comment"/>
     <typedef name="TNumberOfItems" primitiveType="32 bit integer unsigned"/>
     <enum name="EL2DeployableNode">
         <enum-member name="EL2DeployableNode_Basic1" value="0"/>
@@ -30,20 +32,21 @@ def test_isar_input(tmpdir_cwd, call_prophyc):
             variableSizeFieldComment="Currently either 4 or 8" variableSizeFieldName="numOfDeploymentInfo"/>
         </member>
     </struct>
-    <struct name="SL2DeploymentInfo">
+    <struct name="SL2DeploymentInfo" comment="it's …Jalapeño in comment">
         <member comment="Deployable node type" name="l2NodeType" type="EL2DeployableNode"/>
         <member comment="NID" name="nodeAddr" type="TAaSysComNid"/>
     </struct>
 </dom>
 """
 
-    xml_file_name = "isar.xml"
-    tmpdir_cwd.join(xml_file_name).write(content)
+    xml_file_name = "isar_test.xml"
+    with codecs.open(str(tmpdir_cwd.join(xml_file_name)), 'w', encoding='utf-8') as f:
+        f.write(content)
 
     call_prophyc(form_args("--isar", tmpdir_cwd, xml_file_name))
 
-    import isar
-    s = isar.SL2DeploymentInfo()
+    import isar_test
+    s = isar_test.SL2DeploymentInfo()
     s.l2NodeType = "EL2DeployableNode_Basic2"
     s.nodeAddr = 0x1231
 

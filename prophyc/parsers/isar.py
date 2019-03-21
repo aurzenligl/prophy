@@ -194,6 +194,11 @@ class IsarParser(object):
         self.warn = warn
 
     def parse(self, content, _, process_file):
+        # by default FileProcessor decodes files while opening in _process_file method,
+        # but ElementTree doesn't like it. ElementTree handles the encoding on its own,
+        # so it's OK to encode the data back into utf-8 before parsing
+        content = content.encode('utf-8')
+
         def collect():
             root = ElementTree.fromstring(content)
             for xml_elem in root.iterfind('.//*[@href]'):
