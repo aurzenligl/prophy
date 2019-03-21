@@ -1,9 +1,10 @@
+# -*- encoding: utf-8 -*-
 import pytest
 
 from prophyc import model
+from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 from prophyc.parsers.isar import IsarParser
 from prophyc.parsers.isar import expand_operators
-from prophyc.file_processor import CyclicIncludeError, FileNotFoundError
 
 
 def parse(xml_string, process_file=lambda path: [], warn=None):
@@ -572,3 +573,30 @@ def test_operator_expansion_in_enum_and_constant():
         ]))
     ]
     assert nodes[1].members[0].value == "((Constant) << (16))"
+
+
+def test_parsing_with_unicode_in_comment():
+    xml = u"""\
+<x>
+    <constant name="CONST_COMMENT" value="0" comment="it's …Jalapeño in comment"/>
+</x>
+"""
+    assert parse(xml) == [model.Constant('CONST_COMMENT', '0', u"it's …Jalapeño in comment")]
+
+
+def test_parsing_with_unicode_in_name():
+    xml = u"""\
+<x>
+    <constant name="CONST_NAME_Jalapeño" value="31"/>
+</x>
+"""
+    assert parse(xml) == [model.Constant(u'CONST_NAME_Jalapeño', '31')]
+
+
+def test_parsing_with_unicode_in_value():
+    xml = u"""\
+<x>
+    <constant name="CONST_VALUE" value="…ñ"/>
+</x>
+"""
+    assert parse(xml) == [model.Constant('CONST_VALUE', u'…ñ')]
