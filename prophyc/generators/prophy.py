@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from prophyc.generators import base, word_wrap
 
-INDENT_STR = "    "
+INDENT_STR = u"    "
 MAX_LINE_WIDTH = 100
 
 DocStr = namedtuple("DocStr", "block, inline")
@@ -47,13 +47,13 @@ def _columnizer(model_node, column_splitter, max_line_width=100):
 
         if doc.block:
             yield doc.block
-        yield "\n" + INDENT_STR
+        yield u"\n" + INDENT_STR
 
         for is_not_last, (cell_width, cell_str) in enumerate(zip(widths, columns), 1 - len(columns)):
 
             yield cell_str
 
-            padding = " " * (max(0, cell_width - len(cell_str)))
+            padding = u" " * (max(0, cell_width - len(cell_str)))
             if is_not_last:
                 yield padding
             elif doc.inline:
@@ -65,14 +65,14 @@ def _columnizer(model_node, column_splitter, max_line_width=100):
 
 def generate_schema_container(model_node, designator, column_splitter):
     if model_node.docstring:
-        block_docstring = "".join(_gen_multi_line_doc(model_node.docstring, indent_level=0,
-                                                      block_header=model_node.name))
+        block_docstring = u"".join(_gen_multi_line_doc(model_node.docstring, indent_level=0,
+                                                       block_header=model_node.name))
         if block_docstring:
-            block_docstring += "\n"
+            block_docstring += u"\n"
     else:
-        block_docstring = ""
-    members = "".join(_columnizer(model_node, column_splitter, max_line_width=100))
-    return "{}{} {} {{{}}};".format(block_docstring, designator, model_node.name, members)
+        block_docstring = u""
+    members = u"".join(_columnizer(model_node, column_splitter, max_line_width=100))
+    return u"{}{} {} {{{}}};".format(block_docstring, designator, model_node.name, members)
 
 
 class SchemaTranslator(base.TranslatorBase):
@@ -91,7 +91,7 @@ class SchemaTranslator(base.TranslatorBase):
     @staticmethod
     def translate_enum(enumerator):
         def column_selector(member):
-            value = " = {};".format(member.value)
+            value = u" = {};".format(member.value)
             return member.name, value
 
         return generate_schema_container(enumerator, "enum", column_selector)
@@ -101,48 +101,48 @@ class SchemaTranslator(base.TranslatorBase):
         def column_selector(member):
             type_ = member.value
             if member.optional:
-                type_ += "*"
+                type_ += u"*"
 
             if member.is_fixed:
-                name = '{m.name}[{m.size}];'
+                name = u"{m.name}[{m.size}];"
             elif member.is_limited:
-                name = '{m.name}<{m.size}>;'
+                name = u"{m.name}<{m.size}>;"
             elif member.is_dynamic:
-                name = '{m.name}<@{m.bound}>;'
+                name = u"{m.name}<@{m.bound}>;"
             elif member.greedy:
-                name = '{m.name}<...>;'
+                name = u"{m.name}<...>;"
             else:
-                name = '{m.name};'
+                name = u"{m.name};"
 
-            return type_, " ", name.format(m=member)
+            return type_, u" ", name.format(m=member)
 
-        return generate_schema_container(struct, "struct", column_selector)
+        return generate_schema_container(struct, u"struct", column_selector)
 
     @staticmethod
     def translate_union(union):
         def column_selector(member):
-            discriminator = "{}: ".format(member.discriminator)
+            discriminator = u"{}: ".format(member.discriminator)
             field_type = member.value
-            field_name = " {};".format(member.name)
+            field_name = u" {};".format(member.name)
             return discriminator, field_type, field_name
 
-        return generate_schema_container(union, "union", column_selector)
+        return generate_schema_container(union, u"union", column_selector)
 
     @classmethod
     def _make_lines_splitter(cls, previous_node_type, current_node_type):
         if not previous_node_type:
-            return ""
+            return u""
 
         if previous_node_type == "Include" and current_node_type != "Include":
-            return "\n\n"
+            return u"\n\n"
 
         if previous_node_type in ("Struct", "Union") or current_node_type in ("Enum", "Struct", "Union"):
-            return "\n\n\n"
+            return u"\n\n\n"
 
         if previous_node_type != current_node_type:
-            return "\n\n"
+            return u"\n\n"
 
-        return "\n"
+        return u"\n"
 
 
 class SchemaGenerator(base.GeneratorBase):

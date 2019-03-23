@@ -2,6 +2,11 @@ forthcoming
 -----------------------------------
 - []
 
+1.2.2
+-----------------------------------
+- prophyc.generators.python: adding utf-8 encoding shebang
+- prophyc.generators: prophy & python: reinforced unicode support for python2
+
 1.2.1
 -----------------------------------
 - adopting to newer renew version: 0.4.1
