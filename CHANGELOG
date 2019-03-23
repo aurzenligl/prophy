@@ -12,6 +12,9 @@ forthcoming
 - adopting to newer renew version: 0.4.1
 - fixing ISAR unicode bug introduced in 1.2.0
 
+# warning for python2: this version had troubles generating python codec with unicode characters
+# please use 1.2.2 instead, works well with python3.x however
+
 1.2.0
 -----------------------------------
 - prophyc.generators.prophy: introduced prophy language generator
@@ -28,6 +31,8 @@ forthcoming
   * node name and docstring can be defined in unicode (special care in python2)
   * Constant can be defined with numbers in hexadecimal literal format
 
+# warning for python2: this version had troubles parsing XML's and generating python and prophy code
+# with unicode characters, please use 1.2.2 instead, works well with python3.x however
 
 1.1.2
 -----------------------------------
