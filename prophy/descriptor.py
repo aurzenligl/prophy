@@ -1,19 +1,23 @@
 from collections import namedtuple
 
+import renew
+
 from .composite import codec_kind
-from .exception import ProphyError
 
 FieldDescriptor = namedtuple("FieldDescriptor", "name, type, kind")
 FieldDescriptor.__repr__ = lambda self: "<{}, {!r}, {!r}>".format(*self)
 
 
-class DescriptorField(object):
-    __slots__ = ["name", "type", "discriminator", "encode_fcn", "decode_fcn"]
+class DescriptorField(renew.Mold):
+    _cls_namespace = "prophy.descriptor"
+    _extra_slots = "encode_fcn", "decode_fcn"
 
-    def __init__(self, name, type_, discriminator=None):
+    def __init__(self, name, type, discriminator=None):
         self.name = name
-        self.type = type_
+        self.type = type
         self.discriminator = discriminator
+        # These two are set later in extend_descriptor
+        # their value don't affect __eq__ & __ne__ result
         self.encode_fcn = None
         self.decode_fcn = None
 
@@ -107,8 +111,7 @@ def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
 
 def decode_array_delimiter(_, __, type_, data, pos, endianness, len_hints):
     value, size = type_._decode(data, pos, endianness)
-    if value < 0:
-        raise ProphyError("Array delimiter must have positive value")
+    assert value >= 0, "Array delimiter must have positive value, got %s." % value
     for array_name in type_._BOUND:
         len_hints[array_name] = value
     return size
