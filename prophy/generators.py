@@ -61,6 +61,18 @@ class _composite_generator_base(_generator_base):
     def validate(cls):
         """To be implemented in derived class."""
 
+    def __eq__(cls, other):
+        if not isinstance(other, cls.__class__):
+            return NotImplemented
+        # todo: DescriptorField cannot be reliable compared yet
+        return cls._descriptor == other._descriptor
+
+    def __ne__(cls, other):
+        are_equal = cls.__class__.__eq__(cls, other)
+        if are_equal is NotImplemented:
+            return NotImplemented
+        return not are_equal
+
 
 class enum_generator(_generator_base):
 
@@ -103,6 +115,17 @@ class enum_generator(_generator_base):
         self._name_to_int = name_to_int
         self._int_to_name = int_to_name
         self._check = classmethod(check)
+
+    def __eq__(cls, other):
+        if not isinstance(other, cls.__class__):
+            return NotImplemented
+        return cls._enumerators == other._enumerators
+
+    def __ne__(cls, other):
+        are_equal = cls.__class__.__eq__(cls, other)
+        if are_equal is NotImplemented:
+            return NotImplemented
+        return not are_equal
 
 
 class struct_generator(_composite_generator_base):
