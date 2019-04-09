@@ -2,6 +2,11 @@ forthcoming
 -----------------------------------
 - []
 
+
+1.2.3
+-----------------------------------
+- prophy: adding class comparison handlers for struct, union and enum
+
 1.2.2
 -----------------------------------
 - prophyc.generators.python: adding utf-8 encoding shebang
