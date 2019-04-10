@@ -1,5 +1,6 @@
 language: python
 sudo: false
+dist: trusty
 
 env:
   global:
@@ -32,6 +33,26 @@ matrix:
       env: CXX=g++-6
     - python: '3.6'
       env: CXX=clang++-3.8
+    - name: "py27+clang6@xenial"
+      python: '2.7'
+      env: TOXENV=py27
+      dist: xenial
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-6.0
+          packages:
+            - clang-6.0
+    - name: "py36+clang7@xenial"
+      python: '3.6'
+      env: TOXENV=py36
+      dist: xenial
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-7
+          packages:
+            - clang-7
 
 before_install:
   - python --version
@@ -40,6 +61,7 @@ before_install:
 install:
   - virtualenv --version
   - pip --version
+  - clang --version
   - if [ $TOXENV ]; then pip install tox; fi
   - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
