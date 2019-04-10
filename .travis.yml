@@ -1,5 +1,5 @@
 language: python
-sudo: false
+sudo: true
 dist: trusty
 
 env:
@@ -62,6 +62,7 @@ install:
   - virtualenv --version
   - pip --version
   - clang --version
+  - sudo dpkg -l
   - if [ $TOXENV ]; then pip install tox; fi
   - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
