@@ -31,6 +31,7 @@ def check_libclang():
 
 @pytest.fixture
 def if_clang_installed():
+    return True
     result = check_libclang()
     if not result:
         pytest.skip("clang not installed")
