@@ -293,6 +293,8 @@ def _setup_libclang():
         name = v and 'clang-' + v or 'clang'
         libname = ctypes.util.find_library(name)
         if libname:
+            print("name:" + name)
+            print("libname:"+libname)
             cindex.Config.set_library_file(libname)
             break
 

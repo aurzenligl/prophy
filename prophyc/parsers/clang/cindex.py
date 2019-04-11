@@ -3369,6 +3369,7 @@ class Config:
 
     def get_filename(self):
         if Config.library_file:
+            print("1" + Config.library_file)
             return Config.library_file
 
         import platform
@@ -3384,6 +3385,7 @@ class Config:
         if Config.library_path:
             file = Config.library_path + '/' + file
 
+        print("2" + file)
         return file
 
     def get_cindex_library(self):
