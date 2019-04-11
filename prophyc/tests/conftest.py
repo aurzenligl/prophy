@@ -36,7 +36,10 @@ def if_clang_installed():
 
 @pytest.fixture
 def if_clang_not_installed():
-    return 'PROPHY_NOCLANG' in os.environ
+    result = check_libclang()
+    if result:
+        pytest.skip("clang installed")
+    return result
 
 
 @pytest.yield_fixture
