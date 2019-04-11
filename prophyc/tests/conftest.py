@@ -31,19 +31,12 @@ def check_libclang():
 
 @pytest.fixture
 def if_clang_installed():
-    return True
-    result = check_libclang()
-    if not result:
-        pytest.skip("clang not installed")
-    return result
+    return 'PROPHY_NOCLANG' not in os.environ
 
 
 @pytest.fixture
 def if_clang_not_installed():
-    result = check_libclang()
-    if result:
-        pytest.skip("clang installed")
-    return result
+    return 'PROPHY_NOCLANG' in os.environ
 
 
 @pytest.yield_fixture
