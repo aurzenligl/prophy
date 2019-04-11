@@ -288,7 +288,7 @@ def _setup_libclang():
         cindex.Config.set_library_file('prophy_noclang')
         return
 
-    versions = ['3.5', '3.4', '3.3', '3.2', '3.6', '3.7', '3.8', '3.9', '6']
+    versions = ['3.5', '3.4', '3.3', '3.2', '3.6', '3.7', '3.8', '3.9', '6', '7']
     for v in versions:
         name = v and 'clang-' + v or 'clang'
         libname = ctypes.util.find_library(name)
