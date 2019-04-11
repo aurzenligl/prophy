@@ -63,6 +63,7 @@ install:
   - pip --version
   - clang --version
   - sudo dpkg -l
+  - sudo ldconfig -p | grep clang
   - if [ $TOXENV ]; then pip install tox; fi
   - if [ $TOXENV ]; then tox --version; fi
   - if [ $CXX ]; then $CXX --version; fi
