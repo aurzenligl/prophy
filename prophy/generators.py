@@ -124,25 +124,6 @@ class _composite_generator_base(_generator_base):
     def validate(cls):
         """To be implemented in derived class."""
 
-    # def __eq__(cls, other):
-    #     if not isinstance(other, cls.__class__):
-    #         return NotImplemented
-    #     # # todo: DescriptorField cannot be reliable compared yet
-    #     # return cls._descriptor == other._descriptor
-    #     for cls_d, other_d in zip(cls._descriptor, other._descriptor):
-    #         name_eq = cls_d.name == other_d.name
-    #
-    #         if getattr(cls_d.type, '_OPTIONAL', False) == getattr(other_d.type, '_OPTIONAL', False) == True:
-    #             cls_d_type, other_d_type = cls_d.type._optional_type, other_d.type._optional_type
-    #         else:
-    #             cls_d_type, other_d_type = cls_d.type, other_d.type
-    #
-    #         type_eq = cls_d_type == other_d_type
-    #
-    #         if not all([name_eq, type_eq]):
-    #             return False
-    #     return True
-
     def __ne__(cls, other):
         are_equal = cls.__class__.__eq__(cls, other)
         if are_equal is NotImplemented:
