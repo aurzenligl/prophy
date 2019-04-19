@@ -29,6 +29,69 @@ class _generator_base(type):
         """
             Implementation of type creation. To be overridden in derived metaclasses.
         """
+    def __eq__(cls, other):
+        if not isinstance(other, cls.__class__):
+            return NotImplemented
+
+        if cls.__bases__ != other.__bases__:
+            return False
+
+        for cls_d, other_d in zip(cls._descriptor, other._descriptor):
+            name_eq = cls_d.name == other_d.name
+            if not name_eq:
+                return False
+
+            if cls_d.discriminator != other_d.discriminator:
+                return False
+
+            if cls_d.type.__name__ == other_d.type.__name__ == '_array':
+                cls_d_type, other_d_type = cls_d.type._TYPE, other_d.type._TYPE
+
+                for f in ('_SIZE', '_BOUND', '_DYNAMIC', '_ALIGNMENT'):
+                    if getattr(cls_d.type, f) != getattr(other_d.type, f):
+                        return False
+                    if getattr(cls_d.type._TYPE, f) != getattr(other_d.type._TYPE, f):
+                        return False
+
+            elif cls_d.type.__name__ == other_d.type.__name__ == 'container_len':
+                cls_d_type, other_d_type = cls_d.type.__name__, other_d.type.__name__
+
+                if cls_d.type.__bases__ != other_d.type.__bases__:
+                    return False
+
+                for f in ('_SIZE', '_BOUND', '_DYNAMIC', '_ALIGNMENT', '_TYPE'):
+                    if getattr(cls_d.type, f) != getattr(other_d.type, f):
+                        return False
+
+            elif cls_d.type.__name__ == other_d.type.__name__ == '_bytes':
+                cls_d_type, other_d_type = cls_d.type.__name__, other_d.type.__name__
+
+                if cls_d.type.__bases__ != other_d.type.__bases__:
+                    return False
+
+                for f in ('_ALIGNMENT', '_BOUND', '_BOUND_SHIFT', '_DEFAULT', '_DYNAMIC', '_OPTIONAL', '_SIZE',
+                          '_UNLIMITED'):
+                    if getattr(cls_d.type, f) != getattr(other_d.type, f):
+                        return False
+
+            elif getattr(cls_d.type, '_OPTIONAL', False) == getattr(other_d.type, '_OPTIONAL', False) \
+                    == True:  # noqa: E712
+                cls_d_type, other_d_type = cls_d.type._optional_type, other_d.type._optional_type
+
+            else:
+                cls_d_type, other_d_type = cls_d.type, other_d.type
+
+            type_eq = cls_d_type == other_d_type
+            if not type_eq:
+                return False
+
+        return True
+
+    def __ne__(cls, other):
+        are_equal = cls.__class__.__eq__(cls, other)
+        if are_equal is NotImplemented:
+            return NotImplemented
+        return not are_equal
 
 
 class _composite_generator_base(_generator_base):
@@ -61,11 +124,24 @@ class _composite_generator_base(_generator_base):
     def validate(cls):
         """To be implemented in derived class."""
 
-    def __eq__(cls, other):
-        if not isinstance(other, cls.__class__):
-            return NotImplemented
-        # todo: DescriptorField cannot be reliable compared yet
-        return cls._descriptor == other._descriptor
+    # def __eq__(cls, other):
+    #     if not isinstance(other, cls.__class__):
+    #         return NotImplemented
+    #     # # todo: DescriptorField cannot be reliable compared yet
+    #     # return cls._descriptor == other._descriptor
+    #     for cls_d, other_d in zip(cls._descriptor, other._descriptor):
+    #         name_eq = cls_d.name == other_d.name
+    #
+    #         if getattr(cls_d.type, '_OPTIONAL', False) == getattr(other_d.type, '_OPTIONAL', False) == True:
+    #             cls_d_type, other_d_type = cls_d.type._optional_type, other_d.type._optional_type
+    #         else:
+    #             cls_d_type, other_d_type = cls_d.type, other_d.type
+    #
+    #         type_eq = cls_d_type == other_d_type
+    #
+    #         if not all([name_eq, type_eq]):
+    #             return False
+    #     return True
 
     def __ne__(cls, other):
         are_equal = cls.__class__.__eq__(cls, other)
@@ -319,6 +395,7 @@ class struct_generator(_composite_generator_base):
 def build_container_length_field(sizer_item_type, container_name, bound_shift):
     class container_len(sizer_item_type):
         _BOUND = [container_name]
+        _TYPE = sizer_item_type
 
         @classmethod
         def add_bounded_container(cls, cont_name):
