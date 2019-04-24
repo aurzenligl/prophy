@@ -33,12 +33,19 @@ class _generator_base(type):
         if not isinstance(other, cls.__class__):
             return NotImplemented
 
+        def type_attr_eq(attr):
+            if hasattr(cls_d.type, attr) and hasattr(other_d.type, attr):
+                return getattr(cls_d.type, attr) == getattr(other_d.type, attr)
+
         if cls.__bases__ != other.__bases__:
             return False
 
+        if len(cls._descriptor) != len(other._descriptor):
+            return False
+
         for cls_d, other_d in zip(cls._descriptor, other._descriptor):
-            name_eq = cls_d.name == other_d.name
-            if not name_eq:
+
+            if cls_d.name != other_d.name:
                 return False
 
             if cls_d.discriminator != other_d.discriminator:
@@ -48,7 +55,7 @@ class _generator_base(type):
                 cls_d_type, other_d_type = cls_d.type._TYPE, other_d.type._TYPE
 
                 for f in ('_SIZE', '_BOUND', '_DYNAMIC', '_ALIGNMENT'):
-                    if getattr(cls_d.type, f) != getattr(other_d.type, f):
+                    if not type_attr_eq(f):
                         return False
                     if getattr(cls_d.type._TYPE, f) != getattr(other_d.type._TYPE, f):
                         return False
@@ -56,22 +63,22 @@ class _generator_base(type):
             elif cls_d.type.__name__ == other_d.type.__name__ == 'container_len':
                 cls_d_type, other_d_type = cls_d.type.__name__, other_d.type.__name__
 
-                if cls_d.type.__bases__ != other_d.type.__bases__:
+                if not type_attr_eq('__bases__'):
                     return False
 
                 for f in ('_SIZE', '_BOUND', '_DYNAMIC', '_ALIGNMENT', '_TYPE'):
-                    if getattr(cls_d.type, f) != getattr(other_d.type, f):
+                    if not type_attr_eq(f):
                         return False
 
             elif cls_d.type.__name__ == other_d.type.__name__ == '_bytes':
                 cls_d_type, other_d_type = cls_d.type.__name__, other_d.type.__name__
 
-                if cls_d.type.__bases__ != other_d.type.__bases__:
+                if not type_attr_eq('__bases__'):
                     return False
 
                 for f in ('_ALIGNMENT', '_BOUND', '_BOUND_SHIFT', '_DEFAULT', '_DYNAMIC', '_OPTIONAL', '_SIZE',
                           '_UNLIMITED'):
-                    if getattr(cls_d.type, f) != getattr(other_d.type, f):
+                    if not type_attr_eq(f):
                         return False
 
             elif getattr(cls_d.type, '_OPTIONAL', False) == getattr(other_d.type, '_OPTIONAL', False) \
@@ -81,8 +88,7 @@ class _generator_base(type):
             else:
                 cls_d_type, other_d_type = cls_d.type, other_d.type
 
-            type_eq = cls_d_type == other_d_type
-            if not type_eq:
+            if cls_d_type != other_d_type:
                 return False
 
         return True
@@ -123,12 +129,6 @@ class _composite_generator_base(_generator_base):
 
     def validate(cls):
         """To be implemented in derived class."""
-
-    def __ne__(cls, other):
-        are_equal = cls.__class__.__eq__(cls, other)
-        if are_equal is NotImplemented:
-            return NotImplemented
-        return not are_equal
 
 
 class enum_generator(_generator_base):
@@ -177,12 +177,6 @@ class enum_generator(_generator_base):
         if not isinstance(other, cls.__class__):
             return NotImplemented
         return cls._enumerators == other._enumerators
-
-    def __ne__(cls, other):
-        are_equal = cls.__class__.__eq__(cls, other)
-        if are_equal is NotImplemented:
-            return NotImplemented
-        return not are_equal
 
 
 class struct_generator(_composite_generator_base):

@@ -158,8 +158,6 @@ def test_compare_descriptors_arrays(_type):
     assert e != i
     assert g != i
 
-# TODO array, optional bytes
-
 
 @pytest.mark.parametrize('_type', [
     prophy.i8,
