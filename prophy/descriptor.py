@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import renew
 
+from .exception import ProphyError
 from .composite import codec_kind
 
 FieldDescriptor = namedtuple("FieldDescriptor", "name, type, kind")
@@ -111,7 +112,8 @@ def decode_optional(parent, name, type_, data, pos, endianness, len_hints):
 
 def decode_array_delimiter(_, __, type_, data, pos, endianness, len_hints):
     value, size = type_._decode(data, pos, endianness)
-    assert value >= 0, "Array delimiter must have positive value, got %s." % value
+    if value < 0:
+        raise ProphyError("Array delimiter must have positive value")
     for array_name in type_._BOUND:
         len_hints[array_name] = value
     return size
