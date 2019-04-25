@@ -7,14 +7,12 @@ def get_helper_classes():
             ("a", prophy.array(prophy.u8, size=2)),
         ]
 
-
     class OneStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [
             ("x", prophy.u8),
             ("y", prophy.u32),
             ("o", prophy.optional(prophy.u32)),
         ]
-
 
     class SameStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [
@@ -23,7 +21,6 @@ def get_helper_classes():
             ("o", prophy.optional(prophy.u32)),
         ]
 
-
     class DifferentStruct(prophy.with_metaclass(prophy.struct_generator, prophy.struct)):
         _descriptor = [
             ("x", prophy.u8),
@@ -31,13 +28,11 @@ def get_helper_classes():
             ("o", prophy.optional(prophy.u32)),
         ]
 
-
     class OneEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [
             ("x", 1),
             ("y", 2),
         ]
-
 
     class SameEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [
@@ -45,13 +40,11 @@ def get_helper_classes():
             ("y", 2),
         ]
 
-
     class DifferentEnum(prophy.with_metaclass(prophy.enum_generator, prophy.enum)):
         _enumerators = [
             ("x", 1),
             ("y", 3),
         ]
-
 
     class OneUnion(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [
@@ -59,13 +52,11 @@ def get_helper_classes():
             ("s", OneStruct, 2),
         ]
 
-
     class SameUnion(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [
             ("x", prophy.u8, 1),
             ("s", OneStruct, 2),
         ]
-
 
     class DifferentUnion(prophy.with_metaclass(prophy.union_generator, prophy.union)):
         _descriptor = [
