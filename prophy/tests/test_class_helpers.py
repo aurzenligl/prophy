@@ -64,7 +64,7 @@ def get_helper_classes():
             ("s", OneStruct, 3),
         ]
     return SubStruct, OneStruct, SameStruct, DifferentStruct, OneEnum, SameEnum, DifferentEnum, OneUnion, SameUnion, \
-           DifferentUnion
+        DifferentUnion
 
 
 def test_prophy_structs_equality():
