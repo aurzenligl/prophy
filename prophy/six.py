@@ -16,7 +16,7 @@ else:  # pragma: no cover
     xrange = range
 
     def repr_bytes(x):
-        return "'" + repr(x)[2:-1] + "'"
+        return repr(x)[1:]
 
 
 def with_metaclass(meta, *bases):
