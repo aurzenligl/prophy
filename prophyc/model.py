@@ -172,7 +172,7 @@ class StructMember(Typedef):
     __slots__ = "bound", "size", "greedy", "optional", "numeric_size", "padding"
     _eq_attributes = "name", "_value", "bound", "size", "greedy", "optional", "definition"
 
-    def __init__(self, name, type_name, definition=None, bound=None, size=0, greedy=False, optional=False,
+    def __init__(self, name, type_name, definition=None, bound=None, size=None, greedy=False, optional=False,
                  docstring=None):
         assert sum((bool(bound or size), greedy, optional)) <= 1, "Over-constraint"
         assert isinstance(optional, bool), "'optional' argument value has to be boolean"
