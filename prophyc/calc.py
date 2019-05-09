@@ -80,7 +80,7 @@ class Calc(object):
         elif p[2] == '>>':
             p[0] = p[1] >> p[3]
         elif p[2] == '|':
-            p[0] = p[1] or p[3]
+            p[0] = p[1] | p[3]
 
     @staticmethod
     def p_expression_uminus(p):
