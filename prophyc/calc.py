@@ -15,7 +15,7 @@ class Calc(object):
         ('right', 'UMINUS'),
     )
 
-    literals = ['+', '-', '*', '/', '(', ')']
+    literals = ['+', '-', '*', '/', '(', ')', '|']
 
     t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
     t_LSHIFT = r'<<'
@@ -64,6 +64,7 @@ class Calc(object):
                       | expression '-' expression
                       | expression '*' expression
                       | expression '/' expression
+                      | expression '|' expression
                       | expression LSHIFT expression
                       | expression RSHIFT expression"""
         if p[2] == '+':
@@ -78,6 +79,8 @@ class Calc(object):
             p[0] = p[1] << p[3]
         elif p[2] == '>>':
             p[0] = p[1] >> p[3]
+        elif p[2] == '|':
+            p[0] = p[1] or p[3]
 
     @staticmethod
     def p_expression_uminus(p):
