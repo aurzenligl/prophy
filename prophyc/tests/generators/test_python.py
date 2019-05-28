@@ -45,8 +45,10 @@ def test_constants_rendering():
              model.Constant("CONST_B", "31", "second constant")]
 
     ref = """\
-CONST_A = 0  '''first constant'''
-CONST_B = 31  '''second constant'''
+'''first constant'''
+CONST_A = 0
+'''second constant'''
+CONST_B = 31
 """
     assert serialize(nodes) == ref
 

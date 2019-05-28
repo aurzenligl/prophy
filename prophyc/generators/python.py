@@ -79,12 +79,11 @@ import {0}
 
     @staticmethod
     def translate_constant(constant):
-        line = u"%s = %s" % (constant.name, constant.value)
+        content = u"%s = %s" % (constant.name, constant.value)
         doc = constant.docstring
         if doc:
-            # todo: it's a false assumption that it fits in single line
-            line += u"  \'\'\'{}\'\'\'".format(doc)
-        return line
+            content = u"\'\'\'{}\'\'\'\n{}".format(doc, content)
+        return content
 
     @staticmethod
     def translate_typedef(typedef):
