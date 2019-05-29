@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-import renew
 
 import prophyc  # noqa
 from prophyc import model
@@ -142,110 +141,6 @@ struct StructMemberKinds {
 
 
 def test_larger_model_repr(larger_model):
-    assert renew.reproduction(larger_model) == r"""[
-    prophyc.model.Typedef('a', 'i16'),
-    prophyc.model.Typedef('c', 'a'),
-    prophyc.model.Include(
-        'some_defs',
-        [
-            prophyc.model.Struct(
-                'IncludedStruct',
-                [
-                    prophyc.model.StructMember('member1', 'r32', docstring='doc for member1'),
-                    prophyc.model.StructMember('member2', 'u64', docstring='docstring for member1'),
-                ],
-            ),
-            prophyc.model.Typedef('c', 'a'),
-        ],
-    ),
-    prophyc.model.Include(
-        'cplx',
-        [
-            prophyc.model.Struct(
-                'cint16_t',
-                [
-                    prophyc.model.StructMember('re', 'i16', docstring='real'),
-                    prophyc.model.StructMember('im', 'i16', docstring='imaginary'),
-                ],
-            ),
-            prophyc.model.Struct(
-                'cint32_t',
-                [
-                    prophyc.model.StructMember('re', 'i32', docstring='real'),
-                    prophyc.model.StructMember('im', 'i32', docstring='imaginary'),
-                ],
-            ),
-        ],
-    ),
-    prophyc.model.Union(
-        'the_union',
-        [
-            prophyc.model.UnionMember('a', 'IncludedStruct', 0),
-            prophyc.model.UnionMember('field_with_a_long_name', 'cint16_t', 1, docstring='Shorter'),
-            prophyc.model.UnionMember('field_with_a_longer_name', 'cint32_t', 2, docstring='Longer description'),
-            prophyc.model.UnionMember('other', 'i32', 4090, docstring='This one has larger discriminator'),
-        ],
-        'spec for that union',
-    ),
-    prophyc.model.Enum(
-        'E1',
-        [
-            prophyc.model.EnumMember('E1_A', '0', 'enum1 constant value A'),
-            prophyc.model.EnumMember('E1_B_has_a_long_name', '1', 'enum1 constant va3lue B'),
-            prophyc.model.EnumMember(
-                'E1_C_desc',
-                '2',
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
-                'ut labore et dolore magna aliqua. Libero nunc consequat inte'
-            ),
-        ],
-        'Enumerator is a model type that is not supposed to be serialized. Its definition '
-        'represents yet another syntax variation for typing a constant. Of course elements '
-        "of it's type are serializable (as int32)"
-    ),
-    prophyc.model.Enum('E2', [prophyc.model.EnumMember('E2_A', '0', 'Short\nmultiline\ndoc')]),
-    prophyc.model.Constant('CONST_A', '6'),
-    prophyc.model.Constant('CONST_B', '0'),
-    prophyc.model.Struct(
-        'StructMemberKinds',
-        [
-            prophyc.model.StructMember('member_without_docstring', 'i16'),
-            prophyc.model.StructMember('ext_size', 'i16', docstring='arbitrary sizer for dynamic arrays'),
-            prophyc.model.StructMember(
-                'optional_element',
-                'cint16_t',
-                optional=True,
-                docstring='optional array',
-            ),
-            prophyc.model.StructMember('fixed_array', 'cint16_t', size=3, docstring='Array with static size.'),
-            prophyc.model.StructMember(
-                'samples',
-                'cint16_t',
-                bound='ext_size',
-                docstring='dynamic (ext.sized) array',
-            ),
-            prophyc.model.StructMember(
-                'limited_array',
-                'r64',
-                bound='ext_size',
-                size=4,
-                docstring='Has statically evaluable maximum size.',
-            ),
-            prophyc.model.StructMember(
-                'greedy',
-                'cint16_t',
-                greedy=True,
-                docstring='Represents array of arbitrary number of elements. Buffer size must be multiply of '
-                'element size.'
-            ),
-        ],
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt '
-        'ut labore et dolore magna aliqua. Libero nunc consequat interdum varius sit. Maecenas '
-        'accumsan lacus vel facilisis:\n  - Dui ut ornare,\n  - Lectus,\n  - Malesuada pellentesque,\n\n\nElit '
-        'eget gravida cum sociis natoque penatibus et. Netus et malesuada fames ac turpis '
-        'egestas sed.\nEgestas integer eget aliquet.'
-    ),
-]"""
     assert_repr_reproduces(larger_model)
 
 
