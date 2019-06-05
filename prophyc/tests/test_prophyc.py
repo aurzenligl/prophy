@@ -13,7 +13,7 @@ import prophy
 
 def test_showing_version(call_prophyc):
     ret, out, err = call_prophyc(["--version"])
-    expected_version = '1.2.2'
+    expected_version = '1.2.3'
     assert ret == 0
     assert out == 'prophyc %s\n' % expected_version
     assert err == ""
