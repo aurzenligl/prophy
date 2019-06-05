@@ -1,11 +1,8 @@
-forthcoming
------------------------------------
-- []
-
-
 1.2.3
 -----------------------------------
 - prophy: adding class comparison handlers for struct, union and enum
+- prophyc: bitwise or in isar frontend bugfix
+- prophyc: prophy backend docstring bugfix
 
 1.2.2
 -----------------------------------
