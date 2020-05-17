@@ -1,4 +1,7 @@
 import os
+import sys
+
+import pytest
 
 main_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
@@ -700,3 +703,32 @@ prophyc: warning: X::x has unknown type "Unknown"
 prophyc: warning: X::y array has unknown size "UNKNOWN"
 prophyc: error: X byte size unknown
 """
+
+
+@pytest.mark.xfail(sys.version_info >= (3,), reason="implicit relative imports are gone in py3; #25", strict=True)
+def test_python_package_cross_module_imports(call_prophyc, tmpdir_cwd, monkeypatch):
+    codecs_package_dir = tmpdir_cwd.join("some_codecs")
+    codecs_package_dir.mkdir()
+    codecs_package_dir.join("__init__.py").ensure()
+
+    tmpdir_cwd.join("a.prophy").write("""\
+struct A {
+    u32 a;
+};
+""")
+    tmpdir_cwd.join("b.prophy").write("""\
+#include "a.prophy"
+struct B {
+    A a;
+};
+""")
+
+    ret, _, _ = call_prophyc(["--python_out", str(codecs_package_dir),
+                              str(tmpdir_cwd.join("a.prophy")),
+                              str(tmpdir_cwd.join("b.prophy"))])
+    assert ret == 0
+
+    monkeypatch.syspath_prepend(str(tmpdir_cwd))
+
+    from some_codecs import b
+    b.A
