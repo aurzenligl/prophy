@@ -1,3 +1,9 @@
+1.2.4
+-----------------------------------
+- prophyc: python codecs use relative imports proper for:
+  * in-package and out-of-package imports
+  * py2 and py3 language versions
+
 1.2.3
 -----------------------------------
 - prophy: adding class comparison handlers for struct, union and enum
