@@ -470,7 +470,8 @@ struct X
     } a[3];
 };
 """
-    assert parse(hpp, '.h') == [
+    h_parsing_result = parse(hpp, '.h')
+    expectance_1_h = [
         model.Struct("X__anonymous__at__test__h__3__5__", [
             model.StructMember("b", "i8")
         ]),
@@ -478,7 +479,17 @@ struct X
             model.StructMember("a", "X__anonymous__at__test__h__3__5__", size=3)
         ])
     ]
-    assert parse(hpp, '.hpp') == [
+    expectance_2_h = [
+        model.Struct('X__unnamed__at__test__h__3__5__', [
+            model.StructMember('b', 'i8'),
+        ]),
+        model.Struct('X', [
+            model.StructMember('a', 'X__unnamed__at__test__h__3__5__', size=3)
+        ])
+    ]
+    assert h_parsing_result == expectance_1_h or h_parsing_result == expectance_2_h
+    hpp_parsing_result = parse(hpp, '.hpp')
+    expectance_1_hpp = [
         model.Struct("X__anonymous__struct__at__test__hpp__3__5__", [
             model.StructMember("b", "i8")
         ]),
@@ -486,6 +497,15 @@ struct X
             model.StructMember("a", "X__anonymous__struct__at__test__hpp__3__5__", size=3)
         ])
     ]
+    expectance_2_hpp = [
+        model.Struct('X__unnamed__struct__at__test__hpp__3__5__', [
+            model.StructMember('b', 'i8'),
+        ]),
+        model.Struct('X', [
+            model.StructMember('a', 'X__unnamed__struct__at__test__hpp__3__5__', size=3),
+        ]),
+    ]
+    assert hpp_parsing_result == expectance_1_hpp or hpp_parsing_result == expectance_2_hpp
 
 
 @pytest.mark.parametrize('extension', [('.h'), ('.hpp')])
@@ -578,7 +598,9 @@ int foo()
     assert parse(content,
                  extension,
                  warn=warn) == []
-    assert warn.warnings == [('test' + extension + ':4:1', 'control reaches end of non-void function')]
+    v1 = [('test' + extension + ':4:1', 'control reaches end of non-void function')]
+    v2 = [('test' + extension + ':4:1', 'non-void function does not return a value')]
+    assert warn.warnings == v1 or warn.warnings == v2
 
 
 def test_libclang_parsing_error(if_clang_installed, ):

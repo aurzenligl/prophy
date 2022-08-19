@@ -1,3 +1,7 @@
+1.2.5
+-----------------------------------
+- add tests for support of python 3.7, 3.8, 3.9, 3.10 and pypy3
+
 1.2.4
 -----------------------------------
 - prophyc: python codecs use relative imports proper for:

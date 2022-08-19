@@ -522,7 +522,9 @@ rubbish;
     assert out == ""
     errlines = err.splitlines()
     assert len(errlines) == 2
-    assert 'input.cpp:1:20: warning: control reaches end of non-void function' in errlines[0]
+    v1 = 'input.cpp:1:20: warning: control reaches end of non-void function'
+    v2 = 'non-void function does not return a value'
+    assert v1 in errlines[0] or v2 in errlines[0]
     assert 'input.cpp:2:1: warning: C++ requires a type specifier for all declarations' in errlines[1]
     assert os.path.exists("input.py")
 
