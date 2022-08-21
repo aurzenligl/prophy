@@ -260,14 +260,13 @@ class _CppTranslator(TranslatorBase):
             )
 
         def print_impl(node):
-            cast_template = 'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);'
             return (
                     'template <>\n' +
                     'void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent)\n'.format(
                         node.name) +
                     '{\n' +
                     _indent(generate_struct_print(node)) +
-                    '}\n' + cast_template.format(node.name)
+                    '}'
             )
 
         return (
@@ -318,9 +317,7 @@ class _CppTranslator(TranslatorBase):
                         node.name) +
                     '{\n' +
                     _indent(generate_union_print(node)) +
-                    '}\n' +
-                    'template void message_impl<{0}>::print(const {0}& x, std::ostream& out, size_t indent);\n'.format(
-                        node.name)
+                    '}'
             )
 
         return (

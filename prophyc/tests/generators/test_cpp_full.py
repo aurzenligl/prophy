@@ -249,8 +249,7 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
 {
     do_print(out, indent, "x", x.x);
     do_print(out, indent, "y", x.y);
-}
-template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);"""
+}"""
 
     assert generate_struct_implementation(Struct[1]) == """\
 template <>
@@ -282,8 +281,7 @@ template <>
 void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent)
 {
     do_print(out, indent, "x", x.x.data(), x.x.size());
-}
-template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent);"""
+}"""
 
 
 def test_generate_union_implementation(Union):
@@ -327,9 +325,7 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
     {
         case X::discriminator_a: do_print(out, indent, "a", x.a); break;
     }
-}
-template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
-"""
+}"""
 
 
 @pytest.fixture(scope='session')
@@ -2465,7 +2461,6 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
     do_print(out, indent, "x", x.x);
     do_print(out, indent, "y", x.y);
 }
-template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
 template <>
 template <endianness E>
 uint8_t* message_impl<Y>::encode(const Y& x, uint8_t* pos)
@@ -2496,7 +2491,6 @@ void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent)
 {
     do_print(out, indent, "x", x.x.data(), x.x.size());
 }
-template void message_impl<Y>::print(const Y& x, std::ostream& out, size_t indent);
 
 } // namespace detail
 } // namespace prophy

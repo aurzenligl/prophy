@@ -651,7 +651,6 @@ void message_impl<X>::print(const X& x, std::ostream& out, size_t indent)
     do_print(out, indent, "x", x.x);
     do_print(out, indent, "y", x.y.data(), std::min(x.y.size(), size_t(4)));
 }
-template void message_impl<X>::print(const X& x, std::ostream& out, size_t indent);
 
 } // namespace detail
 } // namespace prophy
