@@ -32,7 +32,6 @@ void message_impl<generated::Nestcomp>::print(const generated::Nestcomp& x, std:
     do_print(out, indent, "a", x.a);
     do_print(out, indent, "b", x.b);
 }
-template void message_impl<generated::Nestcomp>::print(const generated::Nestcomp& x, std::ostream& out, size_t indent);
 }
 }
 
