@@ -21,6 +21,7 @@ var/
 # Waf build tool
 waf-*
 .waf-*
+.waf3-*
 .lock-*
 
 # IDE
