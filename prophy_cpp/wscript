@@ -17,6 +17,8 @@ def configure(ctx):
     if not ctx.options.no_valgrind:
         ctx.find_program('valgrind')
     ctx.env.CXXFLAGS = ['-g', '-O0', '-Wall', '-Wextra', '-Werror', '-pedantic', '-std=c++11']
+    if ctx.env.CXX == ['g++']:
+        ctx.env.CXXFLAGS += ['-Wno-address-of-packed-member', '-Wno-packed-not-aligned']
 
 def build(ctx):
     for dir in ctx.path.ant_glob('include/**/*', dir=True, src=False):
@@ -72,7 +74,7 @@ class prophyc_cpp(Task):
 def process_prophy(self, node):
     patch_file = node.parent.ant_glob('*patch')[0]
     tsk = self.create_task('prophyc_cpp', [node, patch_file], node.change_ext('.pp.cpp'))
-    
+
     if "ExtSized.prophy" in str(node):
         self.source.extend(tsk.outputs)
     else:
