@@ -10,9 +10,8 @@
 .. image:: https://coveralls.io/repos/github/aurzenligl/prophy/badge.svg?branch=master
     :target: https://coveralls.io/github/aurzenligl/prophy?branch=master
     :alt: Coverage Status
-.. image:: https://travis-ci.org/aurzenligl/prophy.svg?branch=master
-    :target: https://travis-ci.org/aurzenligl/prophy
-    :alt: Travis-CI Build Status
+.. image:: https://github.com/aurzenligl/prophy/workflows/test/badge.svg
+    :target: https://github.com/aurzenligl/prophy/actions?query=workflow%3Atest
 
 Prophy is a statically typed, binary, tag-free, unpacked serialization protocol.
 
