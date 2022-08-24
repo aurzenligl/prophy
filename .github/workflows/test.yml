@@ -1,0 +1,98 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - ubuntu-py38-lintcov
+          - ubuntu-py27
+          - ubuntu-py35
+          - ubuntu-py36
+          - ubuntu-pypy2
+          - ubuntu-py27-noclang
+          - ubuntu-py35-noclang
+          - ubuntu-py36-noclang
+          - ubuntu-py36-gcc
+          - ubuntu-py36-clang
+
+        include:
+          - name: ubuntu-py38-lintcov
+            python: "3.8"
+            tox_env: check,coverage
+            coverage: true
+          - name: ubuntu-py27
+            python: "2.7"
+            tox_env: py27
+          - name: ubuntu-py35
+            python: "3.5"
+            tox_env: py35
+          - name: ubuntu-py36
+            python: "3.6"
+            tox_env: py36
+          - name: ubuntu-pypy2
+            python: "pypy-2.7"
+            tox_env: pypy
+          - name: ubuntu-py27-noclang
+            python: "2.7"
+            tox_env: noclang
+          - name: ubuntu-py35-noclang
+            python: "3.5"
+            tox_env: noclang
+          - name: ubuntu-py36-noclang
+            python: "3.6"
+            tox_env: noclang
+          - name: ubuntu-py36-gcc
+            python: "3.6"
+            cxx: g++
+          - name: ubuntu-py36-clang
+            python: "3.6"
+            cxx: clang++
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Set up C++
+      run: sudo apt-get install -y g++ clang libgtest-dev valgrind
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox
+
+    - name: Test with tox
+      if: "matrix.tox_env"
+      run: "tox -e ${{ matrix.tox_env }}"
+
+    - name: Test with gtest
+      if: "matrix.cxx"
+      run: |
+        ${{ matrix.cxx }} --version
+        pip install .
+        mkdir -p /tmp/gtest && cd /tmp/gtest && cmake /usr/src/gtest && make && export LIBRARY_PATH=${LIBRARY_PATH}:/tmp/gtest && cd -
+        cd prophy_cpp && CXX=${{ matrix.cxx }} ./waf configure test dist -j1
+
+    - name: Coveralls
+      if: "matrix.coverage"
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ./coverage.lcov

@@ -37,6 +37,8 @@ tmp_*
 .cache/
 .pytest_cache
 .coverage*
+coverage.xml
+coverage.lcov
 htmlcov/
 
 # Documentation
