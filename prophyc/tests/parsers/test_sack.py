@@ -578,7 +578,8 @@ int foo()
     assert parse(content,
                  extension,
                  warn=warn) == []
-    assert warn.warnings == [('test' + extension + ':4:1', 'control reaches end of non-void function')]
+    assert len(warn.warnings) == 1
+    assert warn.warnings[0][0] == 'test' + extension + ':4:1'
 
 
 def test_libclang_parsing_error(if_clang_installed, ):
