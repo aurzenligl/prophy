@@ -470,20 +470,21 @@ struct X
     } a[3];
 };
 """
+    unnamed = ['anonymous', 'unnamed']['unnamed' in parse(hpp, '.h')[0].name]
     assert parse(hpp, '.h') == [
-        model.Struct("X__anonymous__at__test__h__3__5__", [
+        model.Struct("X__%s__at__test__h__3__5__" % unnamed, [
             model.StructMember("b", "i8")
         ]),
         model.Struct("X", [
-            model.StructMember("a", "X__anonymous__at__test__h__3__5__", size=3)
+            model.StructMember("a", "X__%s__at__test__h__3__5__" % unnamed, size=3)
         ])
     ]
     assert parse(hpp, '.hpp') == [
-        model.Struct("X__anonymous__struct__at__test__hpp__3__5__", [
+        model.Struct("X__%s__struct__at__test__hpp__3__5__" % unnamed, [
             model.StructMember("b", "i8")
         ]),
         model.Struct("X", [
-            model.StructMember("a", "X__anonymous__struct__at__test__hpp__3__5__", size=3)
+            model.StructMember("a", "X__%s__struct__at__test__hpp__3__5__" % unnamed, size=3)
         ])
     ]
 
