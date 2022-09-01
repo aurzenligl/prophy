@@ -1,3 +1,8 @@
+1.2.5
+-----------------------------------
+- ci: dropping travis in favor or github-workflow
+- python/gcc/clang versions updated
+
 1.2.4
 -----------------------------------
 - prophyc: python codecs use relative imports proper for:
